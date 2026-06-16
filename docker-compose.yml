@@ -1,0 +1,50 @@
+services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  photon:
+    image: komoot/photon
+    ports:
+      - "2322:2322"
+    volumes:
+      - photon-data:/photon/photon_data
+    command: >
+      java -jar photon.jar
+      -country-codes nz
+      -listen-ip 0.0.0.0
+      -listen-port 2322
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:2322/api?q=test || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
+
+  osrm:
+    image: osrm/osrm-backend
+    ports:
+      - "5000:5000"
+    volumes:
+      - osrm-data:/data
+    command: osrm-routed --algorithm mld /data/new-zealand-latest.osrm
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:5000/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+volumes:
+  redis-data:
+  photon-data:
+  osrm-data:
