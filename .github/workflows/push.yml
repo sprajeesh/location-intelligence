@@ -42,6 +42,7 @@ jobs:
 
       - name: Install uv
         run: curl -Ls https://uv.vc/install.sh | sh -s -- --git uv/uv
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
 
       - name: Install Python dependencies
         run: cd apps/api && uv sync
