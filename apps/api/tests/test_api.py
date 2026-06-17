@@ -92,8 +92,14 @@ class TestCategoriesEndpoint:
         response = client.get("/categories")
         ids = {c["id"] for c in response.json()}
         expected = {
-            "schools", "bus_stops", "hospitals", "universities",
-            "supermarkets", "parks", "libraries", "pharmacies"
+            "schools",
+            "bus_stops",
+            "hospitals",
+            "universities",
+            "supermarkets",
+            "parks",
+            "libraries",
+            "pharmacies",
         }
         assert ids == expected
 

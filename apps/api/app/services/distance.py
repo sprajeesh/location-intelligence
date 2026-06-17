@@ -10,9 +10,7 @@ OSRM_TTL = 60 * 60 * 24  # 24 hours
 
 
 def _cache_key(lat1: float, lon1: float, lat2: float, lon2: float, mode: str) -> str:
-    return (
-        f"osrm:{round(lat1, 4)},{round(lon1, 4)}:{round(lat2, 4)},{round(lon2, 4)}:{mode}"
-    )
+    return f"osrm:{round(lat1, 4)},{round(lon1, 4)}:{round(lat2, 4)},{round(lon2, 4)}:{mode}"
 
 
 class DistanceService:

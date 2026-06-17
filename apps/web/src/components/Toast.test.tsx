@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ToastContainer, useToast } from './Toast';
 import { useLocationStore } from '@/store';
@@ -10,7 +10,9 @@ import { useLocationStore } from '@/store';
 
 // Reset store before each test
 beforeEach(() => {
-  useLocationStore.setState({ toasts: [] });
+  act(() => {
+    useLocationStore.setState({ toasts: [] });
+  });
 });
 
 describe('ToastContainer', () => {
@@ -22,15 +24,17 @@ describe('ToastContainer', () => {
   it('renders a single error toast', () => {
     render(<ToastContainer />);
 
-    useLocationStore.setState({
-      toasts: [
-        {
-          id: '1',
-          message: 'Error occurred',
-          type: 'error',
-          dismissible: true,
-        },
-      ],
+    act(() => {
+      useLocationStore.setState({
+        toasts: [
+          {
+            id: '1',
+            message: 'Error occurred',
+            type: 'error',
+            dismissible: true,
+          },
+        ],
+      });
     });
 
     expect(screen.getByRole('alert')).toBeInTheDocument();
@@ -40,24 +44,26 @@ describe('ToastContainer', () => {
   it('renders multiple toasts', () => {
     render(<ToastContainer />);
 
-    useLocationStore.setState({
-      toasts: [
-        {
-          id: '1',
-          message: 'Error 1',
-          type: 'error',
-        },
-        {
-          id: '2',
-          message: 'Warning 1',
-          type: 'warning',
-        },
-        {
-          id: '3',
-          message: 'Success 1',
-          type: 'success',
-        },
-      ],
+    act(() => {
+      useLocationStore.setState({
+        toasts: [
+          {
+            id: '1',
+            message: 'Error 1',
+            type: 'error',
+          },
+          {
+            id: '2',
+            message: 'Warning 1',
+            type: 'warning',
+          },
+          {
+            id: '3',
+            message: 'Success 1',
+            type: 'success',
+          },
+        ],
+      });
     });
 
     expect(screen.getByText('Error 1')).toBeInTheDocument();
@@ -68,14 +74,16 @@ describe('ToastContainer', () => {
   it('applies correct styling for error type', () => {
     const { container } = render(<ToastContainer />);
 
-    useLocationStore.setState({
-      toasts: [
-        {
-          id: '1',
-          message: 'Error message',
-          type: 'error',
-        },
-      ],
+    act(() => {
+      useLocationStore.setState({
+        toasts: [
+          {
+            id: '1',
+            message: 'Error message',
+            type: 'error',
+          },
+        ],
+      });
     });
 
     const toast = container.querySelector('[role="alert"]');
@@ -85,14 +93,16 @@ describe('ToastContainer', () => {
   it('applies correct styling for warning type', () => {
     const { container } = render(<ToastContainer />);
 
-    useLocationStore.setState({
-      toasts: [
-        {
-          id: '1',
-          message: 'Warning message',
-          type: 'warning',
-        },
-      ],
+    act(() => {
+      useLocationStore.setState({
+        toasts: [
+          {
+            id: '1',
+            message: 'Warning message',
+            type: 'warning',
+          },
+        ],
+      });
     });
 
     const toast = container.querySelector('[role="alert"]');
@@ -102,14 +112,16 @@ describe('ToastContainer', () => {
   it('applies correct styling for success type', () => {
     const { container } = render(<ToastContainer />);
 
-    useLocationStore.setState({
-      toasts: [
-        {
-          id: '1',
-          message: 'Success message',
-          type: 'success',
-        },
-      ],
+    act(() => {
+      useLocationStore.setState({
+        toasts: [
+          {
+            id: '1',
+            message: 'Success message',
+            type: 'success',
+          },
+        ],
+      });
     });
 
     const toast = container.querySelector('[role="alert"]');
@@ -119,14 +131,16 @@ describe('ToastContainer', () => {
   it('applies correct styling for info type', () => {
     const { container } = render(<ToastContainer />);
 
-    useLocationStore.setState({
-      toasts: [
-        {
-          id: '1',
-          message: 'Info message',
-          type: 'info',
-        },
-      ],
+    act(() => {
+      useLocationStore.setState({
+        toasts: [
+          {
+            id: '1',
+            message: 'Info message',
+            type: 'info',
+          },
+        ],
+      });
     });
 
     const toast = container.querySelector('[role="alert"]');
@@ -137,19 +151,23 @@ describe('ToastContainer', () => {
     jest.useFakeTimers();
     render(<ToastContainer />);
 
-    useLocationStore.setState({
-      toasts: [
-        {
-          id: '1',
-          message: 'Auto-dismiss toast',
-          type: 'error',
-        },
-      ],
+    act(() => {
+      useLocationStore.setState({
+        toasts: [
+          {
+            id: '1',
+            message: 'Auto-dismiss toast',
+            type: 'error',
+          },
+        ],
+      });
     });
 
     expect(screen.getByText('Auto-dismiss toast')).toBeInTheDocument();
 
-    jest.advanceTimersByTime(3000);
+    act(() => {
+      jest.advanceTimersByTime(3000);
+    });
 
     await waitFor(() => {
       expect(screen.queryByText('Auto-dismiss toast')).not.toBeInTheDocument();
@@ -162,15 +180,17 @@ describe('ToastContainer', () => {
     const user = userEvent.setup();
     render(<ToastContainer />);
 
-    useLocationStore.setState({
-      toasts: [
-        {
-          id: '1',
-          message: 'Dismissible toast',
-          type: 'error',
-          dismissible: true,
-        },
-      ],
+    act(() => {
+      useLocationStore.setState({
+        toasts: [
+          {
+            id: '1',
+            message: 'Dismissible toast',
+            type: 'error',
+            dismissible: true,
+          },
+        ],
+      });
     });
 
     const closeButton = screen.getByLabelText('Dismiss notification');
@@ -182,15 +202,17 @@ describe('ToastContainer', () => {
   it('renders close button when dismissible is true', () => {
     render(<ToastContainer />);
 
-    useLocationStore.setState({
-      toasts: [
-        {
-          id: '1',
-          message: 'Dismissible toast',
-          type: 'error',
-          dismissible: true,
-        },
-      ],
+    act(() => {
+      useLocationStore.setState({
+        toasts: [
+          {
+            id: '1',
+            message: 'Dismissible toast',
+            type: 'error',
+            dismissible: true,
+          },
+        ],
+      });
     });
 
     expect(screen.getByLabelText('Dismiss notification')).toBeInTheDocument();
@@ -199,15 +221,17 @@ describe('ToastContainer', () => {
   it('does not render close button when dismissible is false', () => {
     render(<ToastContainer />);
 
-    useLocationStore.setState({
-      toasts: [
-        {
-          id: '1',
-          message: 'Non-dismissible toast',
-          type: 'error',
-          dismissible: false,
-        },
-      ],
+    act(() => {
+      useLocationStore.setState({
+        toasts: [
+          {
+            id: '1',
+            message: 'Non-dismissible toast',
+            type: 'error',
+            dismissible: false,
+          },
+        ],
+      });
     });
 
     expect(screen.queryByLabelText('Dismiss notification')).not.toBeInTheDocument();
@@ -216,14 +240,16 @@ describe('ToastContainer', () => {
   it('renders close button when dismissible is undefined (defaults to true)', () => {
     render(<ToastContainer />);
 
-    useLocationStore.setState({
-      toasts: [
-        {
-          id: '1',
-          message: 'Toast with undefined dismissible',
-          type: 'error',
-        },
-      ],
+    act(() => {
+      useLocationStore.setState({
+        toasts: [
+          {
+            id: '1',
+            message: 'Toast with undefined dismissible',
+            type: 'error',
+          },
+        ],
+      });
     });
 
     expect(screen.getByLabelText('Dismiss notification')).toBeInTheDocument();

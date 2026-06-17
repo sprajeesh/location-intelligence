@@ -1,0 +1,68 @@
+name: CI/CD
+on: [push]
+
+jobs:
+  test:
+    name: Test and Security Scan
+    runs-on: ${{ matrix.os }}
+    env:
+      SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        node-version: [24]
+        python-version: [3.12]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@2d1c1198e79c30cca5c3957b1e3b65ce95b5356e
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@69b2dd252ee5a3ae9d2f38e3b402b037b4c4170c
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Install node dependencies
+        run: cd apps/web && pnpm install
+
+      - name: Cache node modules
+        uses: actions/cache@v3
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v8.1.0
+        with:
+          enable-cache: true
+
+      - name: Install Python dependencies
+        run: cd apps/api && uv sync
+
+      - name: Install Snyk CLI
+        run: npm install -g snyk
+
+      - name: Run linters
+        run: cd apps/web && pnpm run lint && cd ../api && uv run ruff check . && uv run ruff format --check .
+
+      - name: Run tests
+        run: cd apps/web && pnpm test && cd ../api && uv run pytest
+
+      # - name: Run security scan
+      #   run: snyk test --severity-threshold=high --all-projects
+
+      # - name: Run snyk monitor
+      #   if: github.ref == 'refs/heads/main'
+      #   run: snyk monitor --all-projects
+
+      # - name: Build
+      #   run: pnpm run build:web
