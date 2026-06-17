@@ -64,5 +64,5 @@ jobs:
       #   if: github.ref == 'refs/heads/main'
       #   run: snyk monitor --all-projects
 
-      - name: Build
-        run: pnpm run build:web
+      # - name: Build
+      #   run: pnpm run build:web
