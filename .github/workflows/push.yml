@@ -24,7 +24,7 @@ jobs:
           node-version: ${{ matrix.node-version }}
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -41,8 +41,9 @@ jobs:
           key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
 
       - name: Install uv
-        run: curl -Ls https://uv.vc/install.sh | sh -s -- --git uv/uv
-          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+        uses: astral-sh/setup-uv@v8.1.0
+        with:
+          enable-cache: true
 
       - name: Install Python dependencies
         run: cd apps/api && uv sync
@@ -51,7 +52,7 @@ jobs:
         run: npm install -g snyk
 
       - name: Run linters
-        run: cd apps/web && pnpm run lint && cd ../api && uv run ruff check .
+        run: cd apps/web && pnpm run lint && cd ../api && uv run ruff check . && uv run ruff foramt --check .
 
       - name: Run tests
         run: cd apps/web && pnpm test && cd ../api && uv run pytest
