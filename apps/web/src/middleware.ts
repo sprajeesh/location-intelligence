@@ -1,5 +1,5 @@
-import createMiddleware from 'next-intl/middleware';
-import { routing } from './i18n/routing';
+import createMiddleware from "next-intl/middleware";
+import { routing } from "./i18n/routing";
 
 /**
  * Middleware for next-intl
@@ -28,6 +28,6 @@ export const config = {
     // - _next/image (image optimization files)
     // - favicon.ico (favicon file)
     // - api/* (API routes are not processed by this middleware)
-    '/((?!_next/static|_next/image|favicon.ico|api/).*)',
+    "/((?!api|_next|favicon.ico|.*\\..*).*)",
   ],
 };

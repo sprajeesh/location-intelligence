@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import React, { ReactNode } from 'react';
+import React, { ReactNode } from "react";
 
 /**
  * CategoryGroup — Collapsible category header with visibility toggle.
@@ -38,7 +38,11 @@ export default function CategoryGroup({
   return (
     <div className="space-y-2">
       {/* Header */}
-      <button
+      {/* TODO: Fix this later - div and button nesting is a bit awkward but it
+      allows the whole header to be clickable for expand/collapse while still
+      having a separate button for visibility toggle. We just need to stop
+      propagation on the visibility button click. */}
+      <div
         onClick={onToggleExpand}
         className={`
           w-full flex items-center justify-between px-3 py-2 rounded-lg
@@ -60,9 +64,7 @@ export default function CategoryGroup({
 
           {/* Label and count */}
           <div className="flex items-center gap-2 min-w-0">
-            <span className="font-medium text-slate-100 truncate">
-              {label}
-            </span>
+            <span className="font-medium text-slate-100 truncate">{label}</span>
             <span className="text-xs font-semibold px-2 py-0.5 rounded bg-slate-700/50 text-slate-300 flex-shrink-0">
               {count}
             </span>
@@ -78,14 +80,14 @@ export default function CategoryGroup({
               p-1.5 rounded-lg transition-all duration-200
               ${
                 isVisible
-                  ? 'text-blue-400 hover:text-blue-300 hover:bg-blue-500/10'
-                  : 'text-slate-500 hover:text-slate-400 hover:bg-slate-700/20'
+                  ? "text-blue-400 hover:text-blue-300 hover:bg-blue-500/10"
+                  : "text-slate-500 hover:text-slate-400 hover:bg-slate-700/20"
               }
               focus:outline-none focus:ring-2 focus:ring-blue-500
             `}
             aria-pressed={isVisible}
-            aria-label={`${isVisible ? 'Hide' : 'Show'} ${label} markers on map`}
-            title={`${isVisible ? 'Hide' : 'Show'} markers`}
+            aria-label={`${isVisible ? "Hide" : "Show"} ${label} markers on map`}
+            title={`${isVisible ? "Hide" : "Show"} markers`}
           >
             {isVisible ? (
               // Eye open icon
@@ -125,7 +127,7 @@ export default function CategoryGroup({
             <svg
               className={`
                 w-4 h-4 text-slate-400 transition-transform duration-200
-                ${isExpanded ? 'rotate-180' : ''}
+                ${isExpanded ? "rotate-180" : ""}
               `}
               fill="none"
               viewBox="0 0 24 24"
@@ -141,8 +143,7 @@ export default function CategoryGroup({
             </svg>
           </div>
         </div>
-      </button>
-
+      </div>
       {/* Expanded content */}
       {isExpanded && (
         <div id={`category-${id}`} className="animate-in fade-in duration-200">

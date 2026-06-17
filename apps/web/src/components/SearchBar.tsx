@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import React, { useState, useRef, useEffect } from 'react';
-import { useTranslations } from 'next-intl';
-import { useLocationStore } from '@/store';
-import { useAddressSearch } from '@/hooks/useAddressSearch';
-import type { AddressResult } from '@/types/api';
+import React, { useState, useRef, useEffect } from "react";
+import { useTranslations } from "next-intl";
+import { useLocationStore } from "@/store";
+import { useAddressSearch } from "@/hooks/useAddressSearch";
+import type { AddressResult } from "@/types/api";
 
 /**
  * SearchBar component
@@ -39,21 +39,26 @@ export function SearchBar() {
       }
     }
 
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
   // Show/hide dropdown based on suggestions
   useEffect(() => {
-    if (suggestions.length > 0 && query.trim()) {
-      setIsDropdownOpen(true);
-      setHighlightedIndex(null);
-    } else if (query.trim() === '') {
+    const hasQuery = query.trim().length > 0;
+    if (!hasQuery) {
       setIsDropdownOpen(false);
+      setHighlightedIndex(null);
+      return;
     }
-  }, [suggestions, query]);
+
+    setIsDropdownOpen(true);
+    if (suggestions.length > 0) {
+      setHighlightedIndex(null);
+    }
+  }, [suggestions, query, error, isLoading]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setQuery(e.target.value);
@@ -73,7 +78,7 @@ export function SearchBar() {
   };
 
   const handleClear = () => {
-    setQuery('');
+    setQuery("");
     setSelectedAddress(null);
     setIsDropdownOpen(false);
     setHighlightedIndex(null);
@@ -82,37 +87,35 @@ export function SearchBar() {
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (!isDropdownOpen || suggestions.length === 0) {
-      if (e.key === 'Enter') {
+      if (e.key === "Enter") {
         e.preventDefault();
       }
       return;
     }
 
     switch (e.key) {
-      case 'ArrowDown': {
+      case "ArrowDown": {
         e.preventDefault();
         setHighlightedIndex((prev) =>
-          prev === null
-            ? 0
-            : Math.min(prev + 1, suggestions.length - 1)
+          prev === null ? 0 : Math.min(prev + 1, suggestions.length - 1),
         );
         break;
       }
-      case 'ArrowUp': {
+      case "ArrowUp": {
         e.preventDefault();
         setHighlightedIndex((prev) =>
-          prev === null ? suggestions.length - 1 : Math.max(prev - 1, 0)
+          prev === null ? suggestions.length - 1 : Math.max(prev - 1, 0),
         );
         break;
       }
-      case 'Enter': {
+      case "Enter": {
         e.preventDefault();
         if (highlightedIndex !== null && suggestions[highlightedIndex]) {
           handleSelectAddress(suggestions[highlightedIndex]);
         }
         break;
       }
-      case 'Escape': {
+      case "Escape": {
         e.preventDefault();
         setIsDropdownOpen(false);
         setHighlightedIndex(null);
@@ -155,7 +158,7 @@ export function SearchBar() {
           onChange={handleInputChange}
           onFocus={handleInputFocus}
           onKeyDown={handleKeyDown}
-          placeholder={t('search.placeholder')}
+          placeholder={t("search.placeholder")}
           aria-label="Search address"
           aria-autocomplete="list"
           aria-expanded={isDropdownOpen}
@@ -204,11 +207,11 @@ export function SearchBar() {
         >
           {error ? (
             <div className="px-4 py-3 text-sm text-red-400">
-              {t('errors.generic')}
+              {t("errors.generic")}
             </div>
           ) : suggestions.length === 0 ? (
             <div className="px-4 py-3 text-sm text-gray-400">
-              {query.trim() ? t('search.noResults') : ''}
+              {query.trim() ? t("search.noResults") : ""}
             </div>
           ) : (
             <ul className="max-h-60 overflow-y-auto">
@@ -223,8 +226,8 @@ export function SearchBar() {
                     onMouseEnter={() => setHighlightedIndex(index)}
                     className={`w-full text-left px-4 py-2.5 text-sm transition-colors duration-150 flex items-start gap-2 ${
                       highlightedIndex === index
-                        ? 'bg-emerald-500/20 text-emerald-100'
-                        : 'hover:bg-gray-700/50 text-gray-300'
+                        ? "bg-emerald-500/20 text-emerald-100"
+                        : "hover:bg-gray-700/50 text-gray-300"
                     }`}
                     type="button"
                   >
@@ -270,7 +273,7 @@ export function SearchBar() {
       {/* Loading State Message */}
       {isLoading && query.trim() && (
         <div className="absolute top-full left-0 right-0 mt-2 px-4 py-2.5 text-sm text-gray-400 bg-gray-800/50 border border-gray-700 rounded-lg">
-          {t('search.loading')}
+          {t("search.loading")}
         </div>
       )}
     </div>

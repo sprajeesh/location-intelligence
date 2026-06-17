@@ -4,11 +4,7 @@
  * which in turn forward requests to the FastAPI backend.
  */
 
-import {
-  AddressResult,
-  AnalyzeResponse,
-  Category,
-} from '@/types/api'
+import { AddressResult, AnalyzeResponse, Category } from "@/types/api";
 
 /**
  * Base URL for API calls. Uses NEXT_PUBLIC_API_URL if set,
@@ -16,12 +12,12 @@ import {
  */
 const getBaseUrl = (): string => {
   // In a browser environment, we use relative URLs (the Next.js BFF routes)
-  if (typeof window !== 'undefined') {
-    return ''
+  if (typeof window !== "undefined") {
+    return "";
   }
   // In SSR/server context, use the environment variable or localhost
-  return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
-}
+  return process.env.NEXT_PUBLIC_APP_ORIGIN || "http://localhost:3000";
+};
 
 /**
  * Error class for API errors.
@@ -30,10 +26,10 @@ export class ApiError extends Error {
   constructor(
     public statusCode: number,
     message: string,
-    public originalError?: unknown
+    public originalError?: unknown,
   ) {
-    super(message)
-    this.name = 'ApiError'
+    super(message);
+    this.name = "ApiError";
   }
 }
 
@@ -42,39 +38,39 @@ export class ApiError extends Error {
  */
 async function fetchJson<T>(
   endpoint: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
 ): Promise<T> {
-  const baseUrl = getBaseUrl()
-  const url = `${baseUrl}/api${endpoint}`
+  const baseUrl = getBaseUrl();
+  const url = `${baseUrl}/api${endpoint}`;
 
   try {
     const response = await fetch(url, {
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         ...options.headers,
       },
       ...options,
-    })
+    });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
+      const errorData = await response.json().catch(() => ({}));
       const errorMessage =
         errorData.error ||
-        `API error: ${response.status} ${response.statusText}`
-      throw new ApiError(response.status, errorMessage)
+        `API error: ${response.status} ${response.statusText}`;
+      throw new ApiError(response.status, errorMessage);
     }
 
-    const data: T = await response.json()
-    return data
+    const data: T = await response.json();
+    return data;
   } catch (error) {
     if (error instanceof ApiError) {
-      throw error
+      throw error;
     }
 
     // Network or parsing error
     const message =
-      error instanceof Error ? error.message : 'Unknown error occurred'
-    throw new ApiError(0, `Failed to fetch ${endpoint}: ${message}`, error)
+      error instanceof Error ? error.message : "Unknown error occurred";
+    throw new ApiError(0, `Failed to fetch ${endpoint}: ${message}`, error);
   }
 }
 
@@ -88,11 +84,11 @@ async function fetchJson<T>(
  */
 export async function searchAddress(q: string): Promise<AddressResult[]> {
   if (!q.trim()) {
-    return []
+    return [];
   }
 
-  const endpoint = `/search/address?q=${encodeURIComponent(q)}`
-  return fetchJson<AddressResult[]>(endpoint, { method: 'GET' })
+  const endpoint = `/search/address?q=${encodeURIComponent(q)}`;
+  return fetchJson<AddressResult[]>(endpoint, { method: "GET" });
 }
 
 /**
@@ -100,12 +96,12 @@ export async function searchAddress(q: string): Promise<AddressResult[]> {
  * Must include: address, lat, lon, radiusKm, categories, distanceMode
  */
 export interface AnalyzeRequest {
-  address: string
-  lat: number
-  lon: number
-  radiusKm: number
-  categories: string[]
-  distanceMode: 'driving' | 'walking'
+  address: string;
+  lat: number;
+  lon: number;
+  radiusKm: number;
+  categories: string[];
+  distanceMode: "driving" | "walking";
 }
 
 /**
@@ -117,12 +113,12 @@ export interface AnalyzeRequest {
  * @throws ApiError on network or server error
  */
 export async function analyzeLocation(
-  request: AnalyzeRequest
+  request: AnalyzeRequest,
 ): Promise<AnalyzeResponse> {
-  return fetchJson<AnalyzeResponse>('/location/analyze', {
-    method: 'POST',
+  return fetchJson<AnalyzeResponse>("/location/analyze", {
+    method: "POST",
     body: JSON.stringify(request),
-  })
+  });
 }
 
 /**
@@ -133,5 +129,5 @@ export async function analyzeLocation(
  * @throws ApiError on network or server error
  */
 export async function getCategories(): Promise<Category[]> {
-  return fetchJson<Category[]>('/categories', { method: 'GET' })
+  return fetchJson<Category[]>("/categories", { method: "GET" });
 }
