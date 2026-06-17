@@ -27,6 +27,5 @@ async def search_address(
         raise HTTPException(status_code=404, detail="Address not found")
 
     return [
-        AddressResult(displayName=r["displayName"], lat=r["lat"], lon=r["lon"])
-        for r in results
+        AddressResult(displayName=r["displayName"], lat=r["lat"], lon=r["lon"]) for r in results
     ]

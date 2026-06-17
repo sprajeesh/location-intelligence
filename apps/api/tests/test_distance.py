@@ -57,9 +57,7 @@ class TestHaversine:
         dlon = math.radians(lon2 - lon1)
         a = (
             math.sin(dlat / 2) ** 2
-            + math.cos(math.radians(lat1))
-            * math.cos(math.radians(lat2))
-            * math.sin(dlon / 2) ** 2
+            + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dlon / 2) ** 2
         )
         expected = R * 2 * math.asin(math.sqrt(a))
         assert haversine_km(lat1, lon1, lat2, lon2) == pytest.approx(expected, rel=1e-9)
