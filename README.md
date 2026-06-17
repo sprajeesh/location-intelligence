@@ -28,7 +28,8 @@ echo "NEXT_PUBLIC_API_URL=http://localhost:8000" > apps/web/.env.local
 # IMPORTANT: Prepare OSRM data (required, ~5 min, downloads 500MB NZ road data)
 ./scripts/setup-osrm.sh
 
-# Start Docker services (Redis, Photon, OSRM)
+# Start Docker services (Redis, Photon built from source, OSRM)
+# Note: Photon builds on first run (~2 min), then caches. Subsequent runs are instant.
 docker compose up -d
 
 # Wait for services to be ready (~30 seconds)
@@ -72,6 +73,7 @@ curl "http://localhost:5000/route/v1/driving/174.76,-36.85;174.77,-36.84?steps=f
 | Issue | Solution |
 |---|---|
 | `docker compose up` fails on `osrm` | Run `./scripts/setup-osrm.sh` first (downloads NZ road data) |
+| Photon build takes long | Normal on first run (~2 min to build from source); subsequent runs use cache |
 | OSRM takes too long to start | Normal; OSRM loads large dataset into memory on startup (~1-2 min) |
 | `Cannot GET /` in browser | Ensure `pnpm dev` (not `pnpm build`) in `apps/web` terminal |
 | API errors / 404s | Check: `curl http://localhost:8000/health` and `docker compose ps` |
