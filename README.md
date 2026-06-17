@@ -14,22 +14,33 @@ A production-ready MVP for analyzing property locations in New Zealand. Enter an
 - Python 3.12 + uv
 - Node.js 20+ (for Next.js)
 
-### Setup (< 10 minutes)
+### Setup (< 15 minutes)
 
 ```bash
 # Clone repo
 git clone git@github.com:sprajeesh/location-intelligence.git
 cd location-intelligence
 
+# Copy env files
+cp .env.example apps/api/.env
+echo "NEXT_PUBLIC_API_URL=http://localhost:8000" > apps/web/.env.local
+
+# IMPORTANT: Prepare OSRM data (required, ~5 min, downloads 500MB NZ road data)
+./scripts/setup-osrm.sh
+
 # Start Docker services (Redis, Photon, OSRM)
 docker compose up -d
 
-# Backend
+# Wait for services to be ready (~30 seconds)
+# Check: docker compose ps (all should show "healthy")
+sleep 10
+
+# Backend (Terminal 1)
 cd apps/api
 uv sync
 uv run uvicorn app.main:app --reload
 
-# Frontend (in another terminal)
+# Frontend (Terminal 2)
 cd apps/web
 pnpm install
 pnpm dev
@@ -37,10 +48,36 @@ pnpm dev
 # Open http://localhost:3000
 ```
 
-**Verify backend health:**
+**Verify everything is running:**
 ```bash
+# Backend health
 curl http://localhost:8000/health
+
+# Photon geocoding
+curl "http://localhost:2322/api?q=auckland&country=nz"
+
+# OSRM route
+curl "http://localhost:5000/route/v1/driving/174.76,-36.85;174.77,-36.84?steps=false"
 ```
+
+⚠️ **Troubleshooting:**
+
+**Run diagnostics** (checks all services):
+```bash
+./scripts/diagnose.sh
+```
+
+**Common issues:**
+
+| Issue | Solution |
+|---|---|
+| `docker compose up` fails on `osrm` | Run `./scripts/setup-osrm.sh` first (downloads NZ road data) |
+| OSRM takes too long to start | Normal; OSRM loads large dataset into memory on startup (~1-2 min) |
+| `Cannot GET /` in browser | Ensure `pnpm dev` (not `pnpm build`) in `apps/web` terminal |
+| API errors / 404s | Check: `curl http://localhost:8000/health` and `docker compose ps` |
+| "Cannot find module" errors | Run `pnpm install` in `apps/web` |
+| "API_URL is not defined" | Add `.env.local` to `apps/web` with `NEXT_PUBLIC_API_URL=http://localhost:8000` |
+| CORS errors in console | Backend needs running; FastAPI CORS allows `localhost:3000` |
 
 ---
 
