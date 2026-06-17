@@ -13,18 +13,15 @@ services:
       retries: 3
 
   photon:
-    image: komoot/photon
+    build:
+      context: .
+      dockerfile: Dockerfile.photon
     ports:
       - "2322:2322"
     volumes:
       - photon-data:/photon/photon_data
-    command: >
-      java -jar photon.jar
-      -country-codes nz
-      -listen-ip 0.0.0.0
-      -listen-port 2322
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:2322/api?q=test || exit 1"]
+      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:2322/api?q=test || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3

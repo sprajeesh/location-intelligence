@@ -1,0 +1,20 @@
+FROM eclipse-temurin:11-jre-alpine
+
+WORKDIR /photon
+
+# Download pre-built Photon JAR from GitHub releases
+# Using version 0.3.3 (latest stable release with NZ support)
+RUN apk add --no-cache wget && \
+    wget -q https://github.com/komoot/photon/releases/download/0.3.3/photon-0.3.3.jar -O photon.jar && \
+    apk del wget
+
+# Create data directory
+RUN mkdir -p /photon/photon_data
+
+EXPOSE 2322
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=120s --retries=3 \
+  CMD wget --quiet --tries=1 --spider http://localhost:2322/api?q=test || exit 1
+
+ENTRYPOINT ["java", "-jar", "photon.jar"]
+CMD ["-country-codes", "nz", "-listen-ip", "0.0.0.0", "-listen-port", "2322"]

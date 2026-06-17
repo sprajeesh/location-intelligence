@@ -1,0 +1,57 @@
+{
+  "search": {
+    "placeholder": "[MI] search.placeholder",
+    "loading": "[MI] search.loading",
+    "noResults": "[MI] search.noResults"
+  },
+  "radius": {
+    "label": "[MI] radius.label",
+    "options": {
+      "1km": "[MI] radius.options.1km",
+      "5km": "[MI] radius.options.5km",
+      "10km": "[MI] radius.options.10km",
+      "20km": "[MI] radius.options.20km",
+      "custom": "[MI] radius.options.custom"
+    }
+  },
+  "analyze": {
+    "button": "[MI] analyze.button",
+    "loading": "[MI] analyze.loading"
+  },
+  "results": {
+    "title": "[MI] results.title",
+    "noFacilities": "[MI] results.noFacilities",
+    "schools": "[MI] results.schools",
+    "busStops": "[MI] results.busStops"
+  },
+  "score": {
+    "title": "[MI] score.title",
+    "overall": "[MI] score.overall",
+    "coverage": "[MI] score.coverage",
+    "education": "[MI] score.education",
+    "transport": "[MI] score.transport",
+    "healthcare": "[MI] score.healthcare",
+    "shopping": "[MI] score.shopping"
+  },
+  "distance": {
+    "driving": "[MI] distance.driving",
+    "walking": "[MI] distance.walking",
+    "km": "[MI] distance.km"
+  },
+  "errors": {
+    "generic": "[MI] errors.generic",
+    "apiDown": "[MI] errors.apiDown",
+    "rateLimit": "[MI] errors.rateLimit"
+  },
+  "map": {
+    "markerPopup": {
+      "name": "[MI] map.markerPopup.name",
+      "distance": "[MI] map.markerPopup.distance",
+      "category": "[MI] map.markerPopup.category"
+    }
+  },
+  "nav": {
+    "title": "[MI] nav.title",
+    "language": "[MI] nav.language"
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "search": {
+    "placeholder": "Search a New Zealand address...",
+    "loading": "Searching...",
+    "noResults": "No results found"
+  },
+  "radius": {
+    "label": "Radius",
+    "options": {
+      "1km": "1 km",
+      "5km": "5 km",
+      "10km": "10 km",
+      "20km": "20 km",
+      "custom": "Custom"
+    }
+  },
+  "analyze": {
+    "button": "Analyze",
+    "loading": "Analyzing..."
+  },
+  "results": {
+    "title": "Results",
+    "noFacilities": "No facilities found within {radius}km. Try increasing your search radius.",
+    "schools": "Schools",
+    "busStops": "Bus Stops"
+  },
+  "score": {
+    "title": "Location Score",
+    "overall": "Overall",
+    "coverage": "Based on {count} of {total} categories",
+    "education": "Education",
+    "transport": "Transport",
+    "healthcare": "Healthcare",
+    "shopping": "Shopping"
+  },
+  "distance": {
+    "driving": "Driving",
+    "walking": "Walking",
+    "km": "{distance} km"
+  },
+  "errors": {
+    "generic": "Something went wrong. Please try again.",
+    "apiDown": "Service temporarily unavailable.",
+    "rateLimit": "Too many requests. Please wait a moment."
+  },
+  "map": {
+    "markerPopup": {
+      "name": "Name",
+      "distance": "Distance",
+      "category": "Category"
+    }
+  },
+  "nav": {
+    "title": "Location Intelligence",
+    "language": "Language"
+  }
+}
