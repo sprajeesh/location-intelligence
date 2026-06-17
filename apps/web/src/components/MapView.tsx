@@ -15,8 +15,12 @@ import { useTranslations } from 'next-intl';
 
 /**
  * Fix Leaflet icon issue in Next.js (dynamic imports break default icon URLs)
+ * Called once on module load, not on every component mount
  */
+let leafletIconsFixed = false;
 const fixLeafletIcons = () => {
+  if (leafletIconsFixed) return;
+
   const iconRetinaUrl = require('leaflet/dist/images/marker-icon-2x.png').default;
   const iconUrl = require('leaflet/dist/images/marker-icon.png').default;
   const shadowUrl = require('leaflet/dist/images/marker-shadow.png').default;
@@ -26,7 +30,12 @@ const fixLeafletIcons = () => {
     iconUrl,
     shadowUrl,
   });
+
+  leafletIconsFixed = true;
 };
+
+// Fix icons on module load
+fixLeafletIcons();
 
 /**
  * Inner component that uses the map instance via useMap hook.
@@ -147,11 +156,6 @@ export function MapView() {
   const { selectedAddress, isAnalyzing } = useLocationStore();
   const mapRef = useRef<L.Map | null>(null);
 
-  // Fix Leaflet icons once on mount
-  useEffect(() => {
-    fixLeafletIcons();
-  }, []);
-
   // Default map center (central New Zealand) if no address selected
   const defaultCenter: [number, number] = [-41.2865, 172.9988];
   const initialCenter: [number, number] = selectedAddress
@@ -161,6 +165,7 @@ export function MapView() {
   return (
     <div className="relative w-full h-full">
       <MapContainer
+        key="map-container"
         ref={mapRef}
         center={initialCenter}
         zoom={12}
