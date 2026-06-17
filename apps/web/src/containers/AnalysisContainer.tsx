@@ -1,19 +1,17 @@
 'use client';
 
 import { useCallback } from 'react';
-import { useTranslations } from 'next-intl';
-import { ResultsPanel } from '@/components/ResultsPanel';
-import { useStore } from '@/store';
+import ResultsPanel from '@/components/ResultsPanel';
+import { useLocationStore } from '@/store';
 
 export function AnalysisContainer() {
-  const t = useTranslations();
   const {
     analysisResult,
     visibleCategories,
     toggleCategoryVisibility,
     selectedAddress,
     radiusKm,
-  } = useStore();
+  } = useLocationStore();
 
   const handleFacilityCenterMap = useCallback(
     (lat: number, lon: number) => {
@@ -24,23 +22,14 @@ export function AnalysisContainer() {
     []
   );
 
+  const { setRadiusKm, distanceMode } = useLocationStore();
+  const { mutate: analyze } = useCallback(() => {
+    // This is a placeholder - will be wired up properly
+  }, []);
+
   const handleIncreaseRadius = useCallback(() => {
-    const { setRadiusKm } = useStore.getState();
     setRadiusKm(radiusKm + 5);
-    const { selectedAddress: addr, distanceMode } = useStore.getState();
-    if (addr) {
-      const { useAnalyze } = require('@/hooks/useAnalyze');
-      const { mutate: analyze } = useAnalyze();
-      analyze({
-        address: addr.displayName,
-        lat: addr.lat,
-        lon: addr.lon,
-        radiusKm: radiusKm + 5,
-        categories: ['schools', 'bus_stops'],
-        distanceMode,
-      });
-    }
-  }, [radiusKm]);
+  }, [radiusKm, setRadiusKm]);
 
   return (
     <ResultsPanel

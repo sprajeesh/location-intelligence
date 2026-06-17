@@ -1,11 +1,9 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { useTranslations } from 'next-intl';
 import { SearchContainer } from '@/containers/SearchContainer';
 import { AnalysisContainer } from '@/containers/AnalysisContainer';
 import { DistanceToggle } from '@/components/DistanceToggle';
-import { Metadata } from 'next';
 
 const MapViewDynamic = dynamic(() => import('@/components/MapView'), {
   ssr: false,
@@ -13,8 +11,6 @@ const MapViewDynamic = dynamic(() => import('@/components/MapView'), {
 });
 
 export default function HomePage() {
-  const t = useTranslations();
-
   return (
     <div className="w-full h-screen flex flex-col bg-gray-900 text-white">
       {/* Top bar with search, radius, and distance mode */}

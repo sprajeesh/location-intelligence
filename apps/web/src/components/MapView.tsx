@@ -274,3 +274,5 @@ function getCategoryColor(categoryId: string): string {
   };
   return colorMap[categoryId] || '#6B7280'; // Gray fallback
 }
+
+export default MapView;

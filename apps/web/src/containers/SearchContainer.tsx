@@ -1,14 +1,12 @@
 'use client';
 
 import { useCallback } from 'react';
-import { useTranslations } from 'next-intl';
 import { SearchBar } from '@/components/SearchBar';
-import { useStore } from '@/store';
+import { useLocationStore } from '@/store';
 import { useAnalyze } from '@/hooks/useAnalyze';
 
 export function SearchContainer() {
-  const t = useTranslations();
-  const { setSelectedAddress, radiusKm, distanceMode } = useStore();
+  const { setSelectedAddress, radiusKm, distanceMode } = useLocationStore();
   const { mutate: analyze } = useAnalyze();
 
   const handleAddressSelect = useCallback(
