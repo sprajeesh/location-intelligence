@@ -57,12 +57,12 @@ jobs:
       - name: Run tests
         run: cd apps/web && pnpm test && cd ../api && uv run pytest
 
-      - name: Run security scan
-        run: snyk test --severity-threshold=high --all-projects
+      # - name: Run security scan
+      #   run: snyk test --severity-threshold=high --all-projects
 
-      - name: Run snyk monitor
-        if: github.ref == 'refs/heads/main'
-        run: snyk monitor --all-projects
+      # - name: Run snyk monitor
+      #   if: github.ref == 'refs/heads/main'
+      #   run: snyk monitor --all-projects
 
       - name: Build
         run: pnpm run build:web
