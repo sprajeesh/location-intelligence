@@ -31,6 +31,15 @@ jobs:
       - name: Install node dependencies
         run: cd apps/web && pnpm install
 
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Cache node modules
+        uses: actions/cache@v3
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+
       - name: Install uv
         run: curl -Ls https://uv.vc/install.sh | sh -s -- --git uv/uv
 
