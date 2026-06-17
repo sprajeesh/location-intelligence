@@ -1,0 +1,95 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Root variables for dark theme */
+:root {
+  --background: 15 23 42; /* slate-950 */
+  --foreground: 226 232 240; /* slate-100 */
+  --primary: 59 130 246; /* blue-500 */
+  --secondary: 148 163 184; /* slate-400 */
+  --accent: 239 68 68; /* red-500 */
+  --destructive: 239 68 68; /* red-500 */
+  --muted: 71 85 105; /* slate-700 */
+  --border: 30 41 59; /* slate-800 */
+}
+
+* {
+  @apply border-border;
+}
+
+body {
+  @apply bg-slate-950 text-slate-100;
+  color: rgb(var(--foreground));
+  background-color: rgb(var(--background));
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto',
+    'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans',
+    'Helvetica Neue', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Glassmorphism utilities */
+.glass {
+  @apply backdrop-blur-md bg-white/10 border border-white/20;
+}
+
+.glass-dark {
+  @apply backdrop-blur-lg bg-slate-900/40 border border-slate-700/30;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgb(var(--background));
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgb(var(--muted));
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgb(var(--secondary));
+}
+
+/* Smooth transitions */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Focus states for accessibility */
+:focus-visible {
+  @apply outline-none ring-2 ring-blue-500 ring-offset-2 ring-offset-slate-950;
+}
+
+button:focus-visible {
+  @apply outline-none ring-2 ring-blue-500;
+}
+
+input:focus-visible {
+  @apply outline-none ring-2 ring-blue-500 ring-inset;
+}
+
+/* Leaflet overrides */
+.leaflet-container {
+  @apply bg-slate-900;
+}
+
+.leaflet-popup-content-wrapper {
+  @apply glass-dark rounded-lg;
+  background-color: rgba(15, 23, 42, 0.9) !important;
+}
+
+.leaflet-popup-content {
+  @apply text-slate-100;
+  color: rgb(226, 232, 240) !important;
+}
+
+.leaflet-popup-tip {
+  background-color: rgba(15, 23, 42, 0.9) !important;
+}

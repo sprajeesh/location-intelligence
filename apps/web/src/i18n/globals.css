@@ -1,0 +1,47 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  @apply m-0 p-0 box-border;
+}
+
+html {
+  font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
+  scroll-behavior: smooth;
+}
+
+body {
+  background: linear-gradient(
+    135deg,
+    #0f1117 0%,
+    #1a1f2e 50%,
+    #0f1117 100%
+  );
+  min-height: 100vh;
+  position: relative;
+}
+
+/* Leaflet CSS override for dark mode */
+.leaflet-container {
+  @apply bg-slate-800;
+}
+
+.leaflet-control-attribution {
+  @apply bg-slate-800/80 text-slate-300 backdrop-blur-sm;
+}
+
+/* Smooth transitions */
+@layer utilities {
+  .transition-smooth {
+    @apply transition-all duration-200 ease-in-out;
+  }
+
+  .text-truncate {
+    @apply truncate;
+  }
+
+  .glass {
+    @apply bg-slate-900/40 backdrop-blur-md border border-slate-700/40;
+  }
+}
