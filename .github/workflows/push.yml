@@ -52,7 +52,7 @@ jobs:
         run: npm install -g snyk
 
       - name: Run linters
-        run: cd apps/web && pnpm run lint && cd ../api && uv run ruff check . && uv run ruff foramt --check .
+        run: cd apps/web && pnpm run lint && cd ../api && uv run ruff check . && uv run ruff format --check .
 
       - name: Run tests
         run: cd apps/web && pnpm test && cd ../api && uv run pytest
