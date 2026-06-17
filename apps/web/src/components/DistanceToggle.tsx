@@ -102,3 +102,5 @@ export function DistanceToggle() {
     </div>
   );
 }
+
+export default DistanceToggle;

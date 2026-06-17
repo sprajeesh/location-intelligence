@@ -3,7 +3,7 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useLocationStore } from '@/store/index';
-import type { Feature, ScoreResult } from '@/types/api';
+import type { Feature } from '@/types/api';
 import LoadingSkeleton from './LoadingSkeleton';
 import FacilityItem from './FacilityItem';
 import ScoreDisplay from './ScoreDisplay';

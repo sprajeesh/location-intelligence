@@ -1,13 +1,12 @@
 'use client';
 
-import React, { useEffect, useRef, useMemo, useCallback } from 'react';
+import React, { useEffect, useRef, useMemo } from 'react';
 import {
   MapContainer,
   TileLayer,
   Marker,
   Popup,
   useMap,
-  LayerGroup,
 } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -145,7 +144,7 @@ function MapContent() {
  * Renders a React Leaflet map with OpenStreetMap tiles and markers
  */
 export function MapView() {
-  const { selectedAddress, analysisResult, isAnalyzing } = useLocationStore();
+  const { selectedAddress, isAnalyzing } = useLocationStore();
   const mapRef = useRef<L.Map | null>(null);
 
   // Fix Leaflet icons once on mount
@@ -192,7 +191,7 @@ export function MapView() {
 /**
  * Create a red/accent colored icon for the main location marker
  */
-function createMainLocationIcon(): L.Icon {
+function createMainLocationIcon(): L.DivIcon {
   const html = `
     <div style="
       display: flex;
@@ -226,7 +225,7 @@ function createMainLocationIcon(): L.Icon {
 /**
  * Create a colored icon for category markers
  */
-function createCategoryIcon(color: string): L.Icon {
+function createCategoryIcon(color: string): L.DivIcon {
   const html = `
     <div style="
       display: flex;

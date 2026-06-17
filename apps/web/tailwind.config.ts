@@ -1,4 +1,5 @@
 import type { Config } from 'tailwindcss'
+import plugin from 'tailwindcss/plugin'
 
 const config: Config = {
   content: [
@@ -21,13 +22,15 @@ const config: Config = {
       },
     },
   },
-  plugins: [require('tailwindcss/plugin')(({ addUtilities }) => {
-    addUtilities({
-      '.glass': {
-        '@apply bg-opacity-20 backdrop-blur-md': {},
-      },
+  plugins: [
+    plugin(({ addUtilities }) => {
+      addUtilities({
+        '.glass': {
+          '@apply bg-opacity-20 backdrop-blur-md': {},
+        },
+      })
     })
-  })],
+  ],
 }
 
 export default config

@@ -17,7 +17,7 @@ import { useLocationStore } from '@/store';
  */
 
 // Default center: Auckland, New Zealand
-const DEFAULT_CENTER = [-36.8485, 174.7633] as const;
+const DEFAULT_CENTER: [number, number] = [-36.8485, 174.7633];
 const DEFAULT_ZOOM = 12;
 
 export function useMapState() {

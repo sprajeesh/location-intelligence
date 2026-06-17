@@ -3,7 +3,7 @@
 import dynamic from 'next/dynamic';
 import { SearchContainer } from '@/containers/SearchContainer';
 import { AnalysisContainer } from '@/containers/AnalysisContainer';
-import { DistanceToggle } from '@/components/DistanceToggle';
+import DistanceToggle from '@/components/DistanceToggle';
 
 const MapViewDynamic = dynamic(() => import('@/components/MapView'), {
   ssr: false,
