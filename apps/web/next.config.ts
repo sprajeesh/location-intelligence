@@ -9,8 +9,9 @@ const nextConfig: NextConfig = {
     unoptimized: true,
   },
 
-  // React strict mode for development
-  reactStrictMode: true,
+  // React strict mode disabled — incompatible with Leaflet's map initialization
+  // (strict mode double-mounts components, causing "map container already initialized" errors)
+  reactStrictMode: false,
 
   // Compression
   compress: true,

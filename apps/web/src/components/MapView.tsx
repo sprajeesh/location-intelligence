@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef, useMemo } from 'react';
+import React, { useEffect, useRef, useMemo, useId } from 'react';
 import {
   MapContainer,
   TileLayer,
@@ -155,6 +155,7 @@ function MapContent() {
 export function MapView() {
   const { selectedAddress, isAnalyzing } = useLocationStore();
   const mapRef = useRef<L.Map | null>(null);
+  const mapId = useId();
 
   // Default map center (central New Zealand) if no address selected
   const defaultCenter: [number, number] = [-41.2865, 172.9988];
@@ -162,10 +163,24 @@ export function MapView() {
     ? [selectedAddress.lat, selectedAddress.lon]
     : defaultCenter;
 
+  // Clean up map on unmount
+  useEffect(() => {
+    return () => {
+      try {
+        if (mapRef.current) {
+          mapRef.current.remove();
+          mapRef.current = null;
+        }
+      } catch (error) {
+        // Silently ignore cleanup errors
+      }
+    };
+  }, []);
+
   return (
-    <div className="relative w-full h-full">
+    <div className="relative w-full h-full" id={`map-wrapper-${mapId}`}>
       <MapContainer
-        key="map-container"
+        key={mapId}
         ref={mapRef}
         center={initialCenter}
         zoom={12}
