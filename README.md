@@ -14,7 +14,7 @@ A production-ready MVP for analyzing property locations in New Zealand. Enter an
 - pnpm 9.15+
 - Python 3.12 + uv
 - Node.js 20+ (for Next.js)
-- A [LINZ Data Service API key](https://data.linz.govt.nz/) (free, required to download NZ address data)
+- A pre-downloaded LINZ NZ addresses ZIP at `docker/data/lds-nz-addresses-CSV.zip` (see [PostGIS Address Data](#postgis-address-data))
 
 ### Setup
 
@@ -25,7 +25,7 @@ cd location-intelligence
 
 # Copy env files and fill in secrets
 cp .env.example .env
-# Edit .env and set: LINZ_API_KEY, DB_USER, DB_PASSWORD, DATABASE_URL
+# Edit .env and set: DB_USER, DB_PASSWORD, DATABASE_URL
 echo "NEXT_PUBLIC_API_URL=http://localhost:8000" > apps/web/.env.local
 
 # Copy backend env
@@ -35,8 +35,8 @@ cp .env apps/api/.env
 ./scripts/setup-osrm.sh
 
 # Build and start Docker services (Redis, PostGIS + LINZ data, OSRM)
-# NOTE: PostGIS build downloads ~2.6M NZ addresses and builds indexes.
-# First build takes 10–20 minutes depending on network speed.
+# NOTE: PostGIS build loads ~2.6M NZ addresses from docker/data/ and builds indexes.
+# First build takes 10–20 minutes.
 docker compose build postgis
 docker compose up -d
 
@@ -81,7 +81,7 @@ curl "http://localhost:5000/route/v1/driving/174.76,-36.85;174.77,-36.84?steps=f
 
 | Issue                                | Solution                                                                        |
 | ------------------------------------ | ------------------------------------------------------------------------------- |
-| `docker compose build postgis` fails | Ensure `LINZ_API_KEY` is set in `.env` and is valid                             |
+| `docker compose build postgis` fails | Ensure `docker/data/lds-nz-addresses-CSV.zip` exists (see [PostGIS Address Data](#postgis-address-data)) |
 | PostGIS build takes long             | Expected — downloads 2.6M addresses and builds indexes (~10–20 min)             |
 | `docker compose up` fails on `osrm`  | Run `./scripts/setup-osrm.sh` first (downloads NZ road data)                    |
 | OSRM takes too long to start         | Normal; OSRM loads large dataset into memory on startup (~1-2 min)              |
@@ -173,7 +173,6 @@ location-intelligence/
 │       └── README.md (planned)
 ├── docker/
 │   ├── Dockerfile.postgis    # PostGIS + LINZ NZ address data (layer 123113)
-│   ├── Dockerfile.photon     # Legacy Photon geocoder (not used)
 |   └── sql/
 │       ├── 01_schema.sql         # addresses table definition
 │       ├── 02_load.sql           # COPY command for LINZ CSV
@@ -258,7 +257,6 @@ cp .env.example .env
 **Docker build + services:**
 
 ```env
-LINZ_API_KEY=your_linz_api_key_here   # Required to download LINZ address data
 DB_USER=gisuser
 DB_PASSWORD=your_secure_password
 ```
@@ -354,14 +352,18 @@ Address search is powered by the [LINZ NZ Street Address](https://data.linz.govt
 
 ### How it works
 
-1. `docker compose build postgis` downloads the CSV from LINZ Data Service using your API key and bakes it into the image.
+1. `docker compose build postgis` extracts `docker/data/lds-nz-addresses-CSV.zip` and bakes the data into the image — no network access required at build time.
 2. The `addresses` table is indexed with a GIN trigram index on `full_address_ascii`, enabling fast `ILIKE` search that handles macrons (searching `Otahuhu` finds `Ōtāhuhu`).
 3. The `GeocodingService` queries PostGIS and caches results in Redis for 30 days.
+
+### Obtaining the address data
+
+Download the LINZ NZ Street Address dataset (layer 123113) from the [LINZ Data Service](https://data.linz.govt.nz/layer/123113-nz-street-addresses/) and save the ZIP as `docker/data/lds-nz-addresses-CSV.zip`. This file is gitignored due to its size (~100MB).
 
 ### Rebuilding with fresh data
 
 ```bash
-# Re-download latest LINZ data and rebuild the image
+# Replace docker/data/lds-nz-addresses-CSV.zip with a newer download, then:
 docker compose build --no-cache postgis
 docker compose up -d postgis
 ```

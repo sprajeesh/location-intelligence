@@ -32,6 +32,10 @@ Thumbs.db
 osrm-data/
 photon-data/
 
+# LINZ address data (large, downloaded separately)
+docker/data/*.zip
+docker/data/*.csv
+
 # Testing
 coverage/
 .coverage
