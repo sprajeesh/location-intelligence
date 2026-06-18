@@ -1,7 +1,7 @@
--- Populate geometry from xcoord/ycoord after CSV load.
+-- Populate geometry from shape_x (longitude) / shape_y (latitude) after CSV load.
 UPDATE addresses
-SET shape = ST_SetSRID(ST_MakePoint(xcoord::float, ycoord::float), 4326)
-WHERE xcoord IS NOT NULL AND ycoord IS NOT NULL;
+SET shape = ST_SetSRID(ST_MakePoint(shape_x::float, shape_y::float), 4326)
+WHERE shape_x IS NOT NULL AND shape_y IS NOT NULL;
 
 -- Indexes for address search queries.
 CREATE INDEX idx_addresses_full_address ON addresses(full_address);

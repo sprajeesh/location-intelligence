@@ -375,7 +375,7 @@ psql -h localhost -U $DB_USER -d gis -c "SELECT count(*) FROM addresses;"
 # Expected: ~2,600,000 rows
 
 psql -h localhost -U $DB_USER -d gis \
-  -c "SELECT full_address, xcoord, ycoord FROM addresses WHERE full_address_ascii ILIKE 'cuba%' LIMIT 5;"
+  -c "SELECT full_address, shape_x, shape_y FROM addresses WHERE full_address_ascii ILIKE 'cuba%' LIMIT 5;"
 ```
 
 > **Note on CSV column order:** `docker/02_load.sql` uses an explicit column list. If the LINZ export format changes, verify the CSV header order matches. Inspect with:

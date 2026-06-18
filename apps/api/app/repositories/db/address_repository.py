@@ -19,8 +19,8 @@ class AddressRepository:
         sql = """
             SELECT
                 full_address  AS display_name,
-                ycoord        AS lat,
-                xcoord        AS lon
+                shape_y       AS lat,
+                shape_x       AS lon
             FROM addresses
             WHERE full_address_ascii ILIKE '%' || $1 || '%'
             ORDER BY
