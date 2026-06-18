@@ -1,6 +1,5 @@
 import logging
 
-import httpx
 from fastapi import APIRouter, HTTPException, Query, Request
 
 from app.schemas.responses import AddressResult
@@ -20,7 +19,7 @@ async def search_address(
 
     try:
         results = await geocoding_svc.search(q, country=country)
-    except httpx.HTTPError:
+    except Exception:
         raise HTTPException(status_code=502, detail="Address search service unavailable")
 
     if not results:

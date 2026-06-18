@@ -6,7 +6,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     api_host: str = "0.0.0.0"
     api_port: int = 8000
-    photon_url: str = "http://localhost:2322"
+    database_url: str = "postgresql://gisuser:changeme@localhost:5432/gis"
     overpass_url: str = "https://overpass-api.de/api/interpreter"
     osrm_url: str = "http://localhost:5000"
     redis_url: str = "redis://localhost:6379"
