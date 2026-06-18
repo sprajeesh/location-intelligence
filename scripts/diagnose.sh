@@ -35,8 +35,15 @@ check_service() {
 # Check Docker services
 echo "─── Docker Services ───"
 check_service "Redis" "http://localhost:6379"
-check_service "Photon" "http://localhost:2322/api?q=test&country=nz" 5
 check_service "OSRM" "http://localhost:5000/health" 3
+
+echo -n "Checking PostGIS... "
+if pg_isready -h localhost -p 5432 -U "${DB_USER:-gisuser}" -d gis > /dev/null 2>&1; then
+  echo -e "${GREEN}✓ OK${NC}"
+else
+  echo -e "${RED}✗ FAILED${NC}"
+  ERRORS=$((ERRORS + 1))
+fi
 
 echo ""
 echo "─── Backend Service ───"
@@ -45,7 +52,7 @@ check_service "FastAPI" "http://localhost:8000/health"
 echo ""
 echo "─── Ports in Use ───"
 lsof -i :6379 > /dev/null 2>&1 && echo -e "  ${GREEN}✓${NC} 6379 (Redis)" || echo -e "  ${RED}✗${NC} 6379 (Redis)"
-lsof -i :2322 > /dev/null 2>&1 && echo -e "  ${GREEN}✓${NC} 2322 (Photon)" || echo -e "  ${RED}✗${NC} 2322 (Photon)"
+lsof -i :5432 > /dev/null 2>&1 && echo -e "  ${GREEN}✓${NC} 5432 (PostGIS)" || echo -e "  ${RED}✗${NC} 5432 (PostGIS)"
 lsof -i :5000 > /dev/null 2>&1 && echo -e "  ${GREEN}✓${NC} 5000 (OSRM)" || echo -e "  ${RED}✗${NC} 5000 (OSRM)"
 lsof -i :8000 > /dev/null 2>&1 && echo -e "  ${GREEN}✓${NC} 8000 (FastAPI)" || echo -e "  ${RED}✗${NC} 8000 (FastAPI)"
 lsof -i :3000 > /dev/null 2>&1 && echo -e "  ${GREEN}✓${NC} 3000 (Next.js)" || echo -e "  ${YELLOW}○${NC} 3000 (Next.js - may not be running yet)"

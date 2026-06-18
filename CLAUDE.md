@@ -18,7 +18,7 @@ location score. Target users: property buyers, real estate agents, renters in NZ
 ├── packages/         # Reserved
 ├── scripts/
 │   └── setup-osrm.sh
-├── docker-compose.yml   # Redis + Photon + OSRM (run via docker compose up -d)
+├── docker-compose.yml   # Redis + PostGIS + OSRM (run via docker compose up -d)
 ├── turbo.json
 ├── pnpm-workspace.yaml
 └── .env.example
@@ -28,7 +28,7 @@ location score. Target users: property buyers, real estate agents, renters in NZ
 directly on the host.
 
 ```bash
-docker compose up -d                                  # Redis, Photon, OSRM
+docker compose up -d                                  # Redis, PostGIS, OSRM
 cd apps/api && uv run uvicorn app.main:app --reload   # FastAPI on :8000
 cd apps/web && pnpm dev                               # Next.js on :3000
 ```
@@ -43,7 +43,7 @@ FastAPI + Python 3.12 + uv. All 45 tests pass, ruff clean.
 | Method | Path | Notes |
 |---|---|---|
 | GET | `/health` | `{"status": "ok", "version": "1.0.0"}` |
-| GET | `/search/address?q=&country=nz` | Photon autocomplete, top 5, NZ-filtered |
+| GET | `/search/address?q=&country=nz` | LINZ PostGIS address search, top 5, NZ addresses |
 | GET | `/categories` | All categories with `implemented` flag + marker `color` |
 | POST | `/location/analyze` | Full analysis — geocode + Overpass + OSRM + score |
 
@@ -354,7 +354,7 @@ Shows `"Analyzing..."` label while in-flight.
 # Backend (apps/api/.env or root .env)
 API_HOST=0.0.0.0
 API_PORT=8000
-PHOTON_URL=http://localhost:2322
+DATABASE_URL=postgresql://gisuser:changeme@localhost:5432/gis
 OVERPASS_URL=https://overpass-api.de/api/interpreter
 OSRM_URL=http://localhost:5000
 REDIS_URL=redis://localhost:6379

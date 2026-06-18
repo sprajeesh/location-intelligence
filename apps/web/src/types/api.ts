@@ -3,7 +3,7 @@
  */
 
 /**
- * Represents a geographic address result from Photon autocomplete.
+ * Represents a geographic address result from LINZ address search.
  */
 export interface AddressResult {
   displayName: string
