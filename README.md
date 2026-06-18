@@ -9,6 +9,7 @@ A production-ready MVP for analyzing property locations in New Zealand. Enter an
 ## Quick Start
 
 ### Prerequisites
+
 - Docker & Docker Compose
 - pnpm 9.15+
 - Python 3.12 + uv
@@ -56,6 +57,7 @@ pnpm dev
 ```
 
 **Verify everything is running:**
+
 ```bash
 # Backend health
 curl http://localhost:8000/health
@@ -70,23 +72,24 @@ curl "http://localhost:5000/route/v1/driving/174.76,-36.85;174.77,-36.84?steps=f
 ⚠️ **Troubleshooting:**
 
 **Run diagnostics** (checks all services):
+
 ```bash
 ./scripts/diagnose.sh
 ```
 
 **Common issues:**
 
-| Issue | Solution |
-|---|---|
-| `docker compose build postgis` fails | Ensure `LINZ_API_KEY` is set in `.env` and is valid |
-| PostGIS build takes long | Expected — downloads 2.6M addresses and builds indexes (~10–20 min) |
-| `docker compose up` fails on `osrm` | Run `./scripts/setup-osrm.sh` first (downloads NZ road data) |
-| OSRM takes too long to start | Normal; OSRM loads large dataset into memory on startup (~1-2 min) |
-| `Cannot GET /` in browser | Ensure `pnpm dev` (not `pnpm build`) in `apps/web` terminal |
-| API errors / 404s | Check: `curl http://localhost:8000/health` and `docker compose ps` |
-| "Cannot find module" errors | Run `pnpm install` in `apps/web` |
-| "API_URL is not defined" | Add `.env.local` to `apps/web` with `NEXT_PUBLIC_API_URL=http://localhost:8000` |
-| CORS errors in console | Backend needs running; FastAPI CORS allows `localhost:3000` |
+| Issue                                | Solution                                                                        |
+| ------------------------------------ | ------------------------------------------------------------------------------- |
+| `docker compose build postgis` fails | Ensure `LINZ_API_KEY` is set in `.env` and is valid                             |
+| PostGIS build takes long             | Expected — downloads 2.6M addresses and builds indexes (~10–20 min)             |
+| `docker compose up` fails on `osrm`  | Run `./scripts/setup-osrm.sh` first (downloads NZ road data)                    |
+| OSRM takes too long to start         | Normal; OSRM loads large dataset into memory on startup (~1-2 min)              |
+| `Cannot GET /` in browser            | Ensure `pnpm dev` (not `pnpm build`) in `apps/web` terminal                     |
+| API errors / 404s                    | Check: `curl http://localhost:8000/health` and `docker compose ps`              |
+| "Cannot find module" errors          | Run `pnpm install` in `apps/web`                                                |
+| "API_URL is not defined"             | Add `.env.local` to `apps/web` with `NEXT_PUBLIC_API_URL=http://localhost:8000` |
+| CORS errors in console               | Backend needs running; FastAPI CORS allows `localhost:3000`                     |
 
 ---
 
@@ -127,14 +130,14 @@ curl "http://localhost:5000/route/v1/driving/174.76,-36.85;174.77,-36.84?steps=f
 
 ### Layers
 
-| Layer | Tech | Purpose |
-|---|---|---|
-| **Frontend** | Next.js 15 + React 19 + TypeScript | UI, address search, map interaction, i18n |
-| **BFF** | Next.js API routes | Thin proxy to FastAPI, no auth/caching for MVP |
-| **Backend** | FastAPI + Python 3.12 | Orchestration, external service calls, scoring |
-| **Map** | React Leaflet + OpenStreetMap | Visualization |
-| **State** | Zustand + React Query | Client-side UI state + server state |
-| **Services** | Docker Compose | Redis (cache), PostGIS/LINZ (geocoding), OSRM (distance) |
+| Layer        | Tech                               | Purpose                                                  |
+| ------------ | ---------------------------------- | -------------------------------------------------------- |
+| **Frontend** | Next.js 15 + React 19 + TypeScript | UI, address search, map interaction, i18n                |
+| **BFF**      | Next.js API routes                 | Thin proxy to FastAPI, no auth/caching for MVP           |
+| **Backend**  | FastAPI + Python 3.12              | Orchestration, external service calls, scoring           |
+| **Map**      | React Leaflet + OpenStreetMap      | Visualization                                            |
+| **State**    | Zustand + React Query              | Client-side UI state + server state                      |
+| **Services** | Docker Compose                     | Redis (cache), PostGIS/LINZ (geocoding), OSRM (distance) |
 
 ---
 
@@ -171,9 +174,10 @@ location-intelligence/
 ├── docker/
 │   ├── Dockerfile.postgis    # PostGIS + LINZ NZ address data (layer 123113)
 │   ├── Dockerfile.photon     # Legacy Photon geocoder (not used)
-│   ├── 01_schema.sql         # addresses table definition
-│   ├── 02_load.sql           # COPY command for LINZ CSV
-│   └── 03_post_load.sql      # Geometry population + indexes
+|   └── sql/
+│       ├── 01_schema.sql         # addresses table definition
+│       ├── 02_load.sql           # COPY command for LINZ CSV
+│       └── 03_post_load.sql      # Geometry population + indexes
 ├── docker-compose.yml        # Redis + PostGIS + OSRM
 ├── scripts/
 │   ├── setup-osrm.sh         # Download NZ OSRM road data
@@ -190,32 +194,39 @@ location-intelligence/
 ## Features
 
 ### 🔍 Address Search
+
 - Autocomplete against official LINZ NZ Street Address dataset (~2.6M addresses)
 - Trigram-indexed PostgreSQL search — handles macrons and partial matches
 - 300ms debounce for responsive UX
 - Top 5 suggestions, results cached for 30 days in Redis
 
 ### 📍 Facility Discovery
+
 - **Schools** (OSM: `amenity=school`)
 - **Bus Stops** (OSM: `highway=bus_stop` or `public_transport=platform`)
 - Future: Hospitals, Universities, Supermarkets, Parks, Libraries, Pharmacies
 
 ### 📏 Distance Calculation
+
 - **Road distance** via OSRM (driving or walking)
 - **Haversine fallback** if OSRM unavailable
 - Configurable radius: 1km, 5km, 10km, 20km, or custom
 
 ### 🎯 Location Score
+
 Hybrid formula combining proximity and facility density:
+
 ```
 category_score = α × proximity_score + β × density_score
 overall_score  = weighted average of active categories (normalized)
 ```
+
 - **Education (Schools):** 40% weight
 - **Transport (Bus Stops):** 30% weight
 - **Healthcare, Shopping:** reserved for future categories
 
 ### 🗺️ Interactive Map
+
 - Leaflet-based with OpenStreetMap tiles
 - Category-colored markers
 - Marker clustering (>50 markers)
@@ -223,11 +234,13 @@ overall_score  = weighted average of active categories (normalized)
 - Popup with facility details on click
 
 ### 🌍 Internationalization (i18n)
+
 - **English** (en) — fully translated
 - **Māori** (mi) — placeholder structure for future localization
 - URL-based routing: `/en/...`, `/mi/...`
 
 ### 🎨 Dark Theme
+
 - Glassmorphism design (semi-transparent panels + blur)
 - Subtle micro-animations
 - Responsive (desktop panel + mobile bottom sheet)
@@ -237,11 +250,13 @@ overall_score  = weighted average of active categories (normalized)
 ## Environment Setup
 
 ### Copy and edit `.env` from template
+
 ```bash
 cp .env.example .env
 ```
 
 **Docker build + services:**
+
 ```env
 LINZ_API_KEY=your_linz_api_key_here   # Required to download LINZ address data
 DB_USER=gisuser
@@ -249,6 +264,7 @@ DB_PASSWORD=your_secure_password
 ```
 
 **Backend (FastAPI):**
+
 ```env
 API_HOST=0.0.0.0
 API_PORT=8000
@@ -262,6 +278,7 @@ SCORING_DENSITY_FACTOR=10
 ```
 
 **Frontend (Next.js):**
+
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:8000
 ```
@@ -273,6 +290,7 @@ NEXT_PUBLIC_API_URL=http://localhost:8000
 ## Development Workflow
 
 ### 1. Build and start services
+
 ```bash
 # Build PostGIS image (only needed once, or when SQL/CSV changes)
 docker compose build postgis
@@ -282,11 +300,13 @@ docker compose ps  # Verify all services are healthy
 ```
 
 **Service endpoints:**
+
 - Redis: `localhost:6379`
 - PostGIS: `localhost:5432` (database: `gis`, user: `$DB_USER`)
 - OSRM: `http://localhost:5000`
 
 ### 2. Run backend
+
 ```bash
 cd apps/api
 uv sync
@@ -294,6 +314,7 @@ uv run uvicorn app.main:app --reload
 ```
 
 **Test the API:**
+
 ```bash
 curl http://localhost:8000/health
 curl http://localhost:8000/categories
@@ -301,6 +322,7 @@ curl "http://localhost:8000/search/address?q=Cuba+Street+Wellington"
 ```
 
 ### 3. Run frontend
+
 ```bash
 cd apps/web
 pnpm install
@@ -310,6 +332,7 @@ pnpm dev
 Open http://localhost:3000
 
 ### 4. Run tests
+
 ```bash
 # Backend
 cd apps/api
@@ -330,11 +353,13 @@ pnpm lint
 Address search is powered by the [LINZ NZ Street Address](https://data.linz.govt.nz/layer/123113-nz-street-address/) dataset (layer 123113), loaded into PostGIS at Docker image build time.
 
 ### How it works
+
 1. `docker compose build postgis` downloads the CSV from LINZ Data Service using your API key and bakes it into the image.
 2. The `addresses` table is indexed with a GIN trigram index on `full_address_ascii`, enabling fast `ILIKE` search that handles macrons (searching `Otahuhu` finds `Ōtāhuhu`).
 3. The `GeocodingService` queries PostGIS and caches results in Redis for 30 days.
 
 ### Rebuilding with fresh data
+
 ```bash
 # Re-download latest LINZ data and rebuild the image
 docker compose build --no-cache postgis
@@ -342,6 +367,7 @@ docker compose up -d postgis
 ```
 
 ### Verifying the data loaded correctly
+
 ```bash
 psql -h localhost -U $DB_USER -d gis -c "SELECT count(*) FROM addresses;"
 # Expected: ~2,600,000 rows
@@ -351,6 +377,7 @@ psql -h localhost -U $DB_USER -d gis \
 ```
 
 > **Note on CSV column order:** `docker/02_load.sql` uses an explicit column list. If the LINZ export format changes, verify the CSV header order matches. Inspect with:
+>
 > ```bash
 > head -1 /path/to/downloaded.csv
 > ```
@@ -360,27 +387,39 @@ psql -h localhost -U $DB_USER -d gis \
 ## API Reference
 
 ### Health Check
+
 ```http
 GET /health
 ```
+
 Response: `{"status": "ok", "version": "1.0.0"}`
 
 ### Search Address (Autocomplete)
+
 ```http
 GET /search/address?q=Queen%20Street&country=nz
 ```
+
 Response:
+
 ```json
 [
-  {"displayName": "123 Queen Street, Auckland", "lat": -36.848, "lon": 174.763}
+  {
+    "displayName": "123 Queen Street, Auckland",
+    "lat": -36.848,
+    "lon": 174.763
+  }
 ]
 ```
 
 ### List Categories
+
 ```http
 GET /categories
 ```
+
 Response:
+
 ```json
 [
   {"id": "schools", "label": "Schools", "implemented": true, "color": "#F59E0B"},
@@ -390,10 +429,13 @@ Response:
 ```
 
 ### Analyze Location
+
 ```http
 POST /location/analyze
 ```
+
 Request:
+
 ```json
 {
   "address": "123 Queen Street, Auckland",
@@ -404,16 +446,34 @@ Request:
   "distanceMode": "driving"
 }
 ```
+
 Response:
+
 ```json
 {
-  "location": {"lat": -36.848, "lon": 174.763, "displayName": "123 Queen Street, Auckland"},
+  "location": {
+    "lat": -36.848,
+    "lon": 174.763,
+    "displayName": "123 Queen Street, Auckland"
+  },
   "features": [
-    {"id": "osm_node_12345", "name": "Auckland Grammar School", "category": "schools",
-     "lat": -36.852, "lon": 174.770, "distanceKm": 1.2}
+    {
+      "id": "osm_node_12345",
+      "name": "Auckland Grammar School",
+      "category": "schools",
+      "lat": -36.852,
+      "lon": 174.77,
+      "distanceKm": 1.2
+    }
   ],
-  "score": {"education": 72, "healthcare": null, "transport": 85, "shopping": null,
-            "overall": 77, "coverage": "2/4"},
+  "score": {
+    "education": 72,
+    "healthcare": null,
+    "transport": 85,
+    "shopping": null,
+    "overall": 77,
+    "coverage": "2/4"
+  },
   "warnings": []
 }
 ```
@@ -424,11 +484,11 @@ Response:
 
 ## Caching Strategy
 
-| Data | Cache Key | TTL |
-|---|---|---|
-| Geocoding results | `geocode:{query_hash}` | 30 days |
+| Data                | Cache Key                                  | TTL      |
+| ------------------- | ------------------------------------------ | -------- |
+| Geocoding results   | `geocode:{query_hash}`                     | 30 days  |
 | Overpass facilities | `overpass:{lat}:{lon}:{radius}:{category}` | 24 hours |
-| OSRM distances | `osrm:{origin_hash}:{dest_hash}:{mode}` | 24 hours |
+| OSRM distances      | `osrm:{origin_hash}:{dest_hash}:{mode}`    | 24 hours |
 
 - Scores are **NOT cached** (computed from cached facility data on-the-fly)
 - Redis unavailable: **graceful skip** — API still works without caching
@@ -437,14 +497,14 @@ Response:
 
 ## Error Handling
 
-| Scenario | Behavior |
-|---|---|
-| Address not found | 404 with friendly message |
-| No facilities in radius | 200 with empty features + suggestion |
+| Scenario                 | Behavior                                           |
+| ------------------------ | -------------------------------------------------- |
+| Address not found        | 404 with friendly message                          |
+| No facilities in radius  | 200 with empty features + suggestion               |
 | Overpass partial failure | Retry 2× with backoff → partial results + warnings |
-| Overpass total failure | 503 with sanitized message |
-| OSRM unavailable | Fallback to Haversine + warning |
-| Rate limits | 429 with `Retry-After` header |
+| Overpass total failure   | 503 with sanitized message                         |
+| OSRM unavailable         | Fallback to Haversine + warning                    |
+| Rate limits              | 429 with `Retry-After` header                      |
 
 **All error messages** are sanitized — no stack traces, internal URLs, or service names leak to clients.
 
@@ -453,6 +513,7 @@ Response:
 ## Testing
 
 ### Backend
+
 ```bash
 cd apps/api
 uv run pytest                          # All 45 tests
@@ -463,6 +524,7 @@ uv run ruff check app/                 # Lint
 ```
 
 **Test coverage:**
+
 - LocationScoringService formula (edge cases, zero facilities, null weights)
 - Haversine distance calculation
 - `/health` and `/categories` endpoint integration tests
@@ -471,6 +533,7 @@ uv run ruff check app/                 # Lint
 Tests use a mocked `AddressRepository` — no live database connection required.
 
 ### Frontend
+
 ```bash
 cd apps/web
 pnpm test
@@ -481,22 +544,22 @@ pnpm lint
 
 ## Performance
 
-| Metric | Target | Notes |
-|---|---|---|
+| Metric               | Target  | Notes                                |
+| -------------------- | ------- | ------------------------------------ |
 | Address autocomplete | < 1 sec | PostGIS trigram search + Redis cache |
-| Full analysis | < 3 sec | Parallel Overpass queries |
-| Map render | < 2 sec | Client-side only |
-| Max markers | 500 | Clustering > 50 |
+| Full analysis        | < 3 sec | Parallel Overpass queries            |
+| Map render           | < 2 sec | Client-side only                     |
+| Max markers          | 500     | Clustering > 50                      |
 
 ---
 
 ## Deployment
 
-| Component | Target | Notes |
-|---|---|---|
-| Frontend | Vercel | `next build` → auto-deploy on main |
-| Backend | AWS ECS Fargate | Docker image, FastAPI |
-| Services | Managed | Redis (ElastiCache), PostGIS (container), OSRM (container) |
+| Component | Target          | Notes                                                      |
+| --------- | --------------- | ---------------------------------------------------------- |
+| Frontend  | Vercel          | `next build` → auto-deploy on main                         |
+| Backend   | AWS ECS Fargate | Docker image, FastAPI                                      |
+| Services  | Managed         | Redis (ElastiCache), PostGIS (container), OSRM (container) |
 
 (Not yet deployed; MVP runs locally)
 
@@ -528,6 +591,7 @@ pnpm lint
 ## Troubleshooting
 
 ### Backend won't start
+
 ```bash
 # Check PostGIS is ready
 pg_isready -h localhost -p 5432 -U $DB_USER -d gis
@@ -540,16 +604,19 @@ redis-cli ping
 ```
 
 ### Map not rendering
+
 - Ensure `ssr: false` on MapView dynamic import
 - Check browser console for Leaflet CSS import errors
 - Verify `NEXT_PUBLIC_API_URL` env var is set
 
 ### Autocomplete returns no results
+
 - Verify PostGIS is running: `docker compose ps`
 - Check data loaded: `psql -h localhost -U $DB_USER -d gis -c "SELECT count(*) FROM addresses;"`
 - Check PostGIS logs: `docker compose logs postgis`
 
 ### Distances show as straight-line (Haversine)
+
 - OSRM likely unavailable (check `docker compose logs osrm`)
 - API returns warning: check response `warnings` array
 

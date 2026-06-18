@@ -18,9 +18,9 @@ RUN apt-get update && apt-get -y dist-upgrade && \
   rm -rf /var/lib/apt/lists/*
 
 # Copy SQL init scripts
-COPY docker/01_schema.sql /tmp/sql/01_schema.sql
-COPY docker/02_load.sql /tmp/sql/02_load.sql
-COPY docker/03_post_load.sql /tmp/sql/03_post_load.sql
+COPY docker/sql/01_schema.sql /tmp/sql/01_schema.sql
+COPY docker/sql/02_load.sql /tmp/sql/02_load.sql
+COPY docker/sql/03_post_load.sql /tmp/sql/03_post_load.sql
 
 # Download LINZ NZ Street Address CSV (layer 123113).
 # LINZ Data Service requires an API key passed via the Authorization header.
@@ -30,12 +30,12 @@ RUN curl -L --fail \
   "https://data.linz.govt.nz/layer/123113-nz-street-addresses/data/csv/" \
   -o /tmp/nz_addresses_raw \
   && if unzip -t /tmp/nz_addresses_raw > /dev/null 2>&1; then \
-       unzip /tmp/nz_addresses_raw -d /tmp/linz_extract && \
-       find /tmp/linz_extract -name "*.csv" | head -1 | xargs -I{} cp {} /tmp/nz_addresses.csv && \
-       rm -rf /tmp/linz_extract; \
-     else \
-       mv /tmp/nz_addresses_raw /tmp/nz_addresses.csv; \
-     fi \
+  unzip /tmp/nz_addresses_raw -d /tmp/linz_extract && \
+  find /tmp/linz_extract -name "*.csv" | head -1 | xargs -I{} cp {} /tmp/nz_addresses.csv && \
+  rm -rf /tmp/linz_extract; \
+  else \
+  mv /tmp/nz_addresses_raw /tmp/nz_addresses.csv; \
+  fi \
   && rm -f /tmp/nz_addresses_raw
 
 # Initialize PostgreSQL, create database and user, load LINZ data.
