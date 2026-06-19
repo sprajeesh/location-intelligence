@@ -1,14 +1,9 @@
 'use client';
 
-import dynamic from 'next/dynamic';
 import { SearchContainer } from '@/containers/SearchContainer';
 import { AnalysisContainer } from '@/containers/AnalysisContainer';
+import { MapContainerDynamic } from '@/containers/MapContainer';
 import DistanceToggle from '@/components/DistanceToggle';
-
-const MapViewDynamic = dynamic(() => import('@/components/MapView'), {
-  ssr: false,
-  loading: () => <div className="w-full h-full bg-gray-900 flex items-center justify-center">Loading map...</div>,
-});
 
 export default function HomePage() {
   return (
@@ -31,7 +26,7 @@ export default function HomePage() {
 
         {/* Map - full width behind panels */}
         <div className="flex-1 relative">
-          <MapViewDynamic />
+          <MapContainerDynamic />
         </div>
 
         {/* Mobile bottom sheet - shown on smaller screens */}

@@ -9,10 +9,9 @@
 
 'use client';
 
-import React, { useRef } from 'react';
-import { MapContainer } from 'react-leaflet';
+import React from 'react';
 import ResultsPanel from './ResultsPanel';
-import MapView from './MapView';
+import { MapContainer } from '@/containers/MapContainer';
 import { SearchContainer } from '@/containers/SearchContainer';
 import { useLocationStore } from '@/store/index';
 import type { Feature } from '@/types/api';
@@ -21,17 +20,11 @@ import type { Feature } from '@/types/api';
  * Example layout: Desktop (panel left + map right) / Mobile (stack)
  */
 export default function LocationAnalysisPage() {
-  const mapRef = useRef<L.Map | null>(null);
   const { radiusKm, setRadiusKm } = useLocationStore();
 
   // Handle facility click: center map and open popup
   const handleFacilityClick = (feature: Feature) => {
-    if (mapRef.current) {
-      mapRef.current.setView([feature.lat, feature.lon], 15);
-      
-      // Optional: programmatically open popup at that marker
-      // (depends on how MapView exposes marker references)
-    }
+    // Map container handles centering when a feature is selected
   };
 
   // Handle increase radius: bump by 5km and re-analyze
@@ -65,14 +58,7 @@ export default function LocationAnalysisPage() {
       {/* Right side - Map + Mobile bottom sheet */}
       <div className="flex-1 flex flex-col relative">
         {/* Map */}
-        <MapContainer
-          ref={mapRef}
-          center={[-41.2865, 174.886]} // Default to Auckland
-          zoom={13}
-          className="flex-1"
-        >
-          <MapView />
-        </MapContainer>
+        <MapContainer />
 
         {/* Mobile bottom sheet - Results panel slides up */}
         <div className="md:hidden absolute bottom-0 left-0 right-0 max-h-[80vh]">
@@ -96,13 +82,10 @@ export default function LocationAnalysisPage() {
  * Alternative: Using Tailwind's flex layout for better responsiveness
  */
 export function LocationAnalysisPageV2() {
-  const mapRef = useRef<L.Map | null>(null);
   const { radiusKm, setRadiusKm } = useLocationStore();
 
   const handleFacilityClick = (feature: Feature) => {
-    if (mapRef.current) {
-      mapRef.current.setView([feature.lat, feature.lon], 15);
-    }
+    // Map container handles centering when a feature is selected
   };
 
   const handleIncreaseRadius = () => {
@@ -126,9 +109,7 @@ export function LocationAnalysisPageV2() {
 
       {/* Map */}
       <div className="flex-1 flex flex-col relative">
-        <MapContainer ref={mapRef} center={[-41.2865, 174.886]} zoom={13}>
-          <MapView />
-        </MapContainer>
+        <MapContainer />
 
         {/* Mobile overlay */}
         <div className="md:hidden absolute inset-0 pointer-events-none">
