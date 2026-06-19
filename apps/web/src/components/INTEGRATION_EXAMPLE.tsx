@@ -13,7 +13,7 @@ import React, { useRef } from 'react';
 import { MapContainer } from 'react-leaflet';
 import ResultsPanel from './ResultsPanel';
 import MapView from './MapView';
-import SearchBar from './SearchBar';
+import { SearchContainer } from '@/containers/SearchContainer';
 import { useLocationStore } from '@/store/index';
 import type { Feature } from '@/types/api';
 
@@ -49,7 +49,7 @@ export default function LocationAnalysisPage() {
       <div className="hidden md:flex md:w-80 md:flex-col md:border-r md:border-slate-700/30 md:bg-slate-900/40">
         {/* Search bar in panel header */}
         <div className="flex-shrink-0 border-b border-slate-700/30 p-4">
-          <SearchBar />
+          <SearchContainer />
         </div>
 
         {/* Results panel */}
@@ -85,7 +85,7 @@ export default function LocationAnalysisPage() {
 
         {/* Mobile search bar - Top floating */}
         <div className="md:hidden absolute top-4 left-4 right-4 z-20">
-          <SearchBar />
+          <SearchContainer />
         </div>
       </div>
     </div>
@@ -114,7 +114,7 @@ export function LocationAnalysisPageV2() {
       {/* Left Panel */}
       <div className="hidden md:flex md:w-80 md:flex-col md:border-r md:border-slate-700/30">
         <div className="flex-shrink-0 border-b border-slate-700/30 p-4">
-          <SearchBar />
+          <SearchContainer />
         </div>
         <div className="flex-1 overflow-hidden">
           <ResultsPanel
@@ -134,7 +134,7 @@ export function LocationAnalysisPageV2() {
         <div className="md:hidden absolute inset-0 pointer-events-none">
           {/* Search bar */}
           <div className="absolute top-4 left-4 right-4 z-20 pointer-events-auto">
-            <SearchBar />
+            <SearchContainer />
           </div>
 
           {/* Results bottom sheet */}
