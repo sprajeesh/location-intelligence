@@ -57,7 +57,11 @@ class OverpassClient:
                 response = await self._http.post(
                     self._base_url,
                     content=query,
-                    headers={"Content-Type": "text/plain"},
+                    headers={
+                        "Content-Type": "text/plain",
+                        "Accept": "application/json",
+                        "User-Agent": "LocationIntelligence/1.0",
+                    },
                     timeout=30.0,
                 )
                 response.raise_for_status()
