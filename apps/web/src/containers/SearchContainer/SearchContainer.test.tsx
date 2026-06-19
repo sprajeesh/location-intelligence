@@ -5,6 +5,7 @@ import { SearchContainer } from './SearchContainer';
 import type { AddressResult } from '@/types/api';
 
 jest.mock('@/hooks/useAddressSearch');
+jest.mock('@/hooks/useAnalyze');
 jest.mock('@/store');
 jest.mock('@/components/SearchBar', () => ({
   SearchBar: ({
@@ -47,11 +48,13 @@ jest.mock('@/components/SearchBar', () => ({
 }));
 
 import { useAddressSearch } from '@/hooks/useAddressSearch';
+import { useAnalyze } from '@/hooks/useAnalyze';
 import { useLocationStore } from '@/store';
 
 const mockUseAddressSearch = useAddressSearch as jest.MockedFunction<
   typeof useAddressSearch
 >;
+const mockUseAnalyze = useAnalyze as jest.MockedFunction<typeof useAnalyze>;
 const mockUseLocationStore = useLocationStore as jest.MockedFunction<
   typeof useLocationStore
 >;
@@ -86,6 +89,15 @@ describe('SearchContainer', () => {
       isLoading: false,
       error: null,
     });
+
+    mockUseAnalyze.mockReturnValue({
+      mutate: jest.fn(),
+      mutateAsync: jest.fn(),
+      isPending: false,
+      isError: false,
+      error: null,
+      data: undefined,
+    } as any);
 
     mockUseLocationStore.mockReturnValue({
       selectedAddress: null,
