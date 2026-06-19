@@ -1,7 +1,7 @@
 # Location Intelligence — FastAPI Backend
 
 Production-ready FastAPI service for location-based facility analysis and scoring.
-Handles geocoding, Overpass queries, distance calculation, caching, and hybrid scoring.
+Handles geocoding (LINZ PostGIS), Overpass queries, distance calculation, caching, and hybrid scoring.
 
 **Framework:** FastAPI 0.115+  
 **Language:** Python 3.12  
@@ -60,19 +60,20 @@ curl http://localhost:8000/health
          │
 ┌────────▼────────────────────────────────┐
 │      Repository & Client Layer          │
-│ ┌──────────┐  ┌──────────┐  ┌────────┐ │
-│ │ Photon   │  │ Overpass │  │ OSRM   │ │
-│ │ Client   │  │ Client   │  │ Client │ │
-│ └──────────┘  └──────────┘  └────────┘ │
-│                                        │
-│ ┌────────────────────────────────────┐ │
-│ │ Cache Repository (Redis)           │ │
-│ └────────────────────────────────────┘ │
-└────────────────────────────────────────┘
+│ ┌────────────────┐  ┌──────────┐  ┌────────┐ │
+│ │ Address        │  │ Overpass │  │ OSRM   │ │
+│ │ Repository     │  │ Client   │  │ Client │ │
+│ │ (PostGIS)      │  │          │  │        │ │
+│ └────────────────┘  └──────────┘  └────────┘ │
+│                                              │
+│ ┌──────────────────────────────────────────┐ │
+│ │ Cache Repository (Redis)                 │ │
+│ └──────────────────────────────────────────┘ │
+└──────────────────────────────────────────────┘
          │
 ┌────────▼────────────────────────────────┐
 │      External Services                  │
-│ Photon  Overpass API  OSRM  Redis       │
+│ PostGIS  Overpass API  OSRM  Redis      │
 └─────────────────────────────────────────┘
 ```
 
@@ -90,19 +91,21 @@ app/
 │   └── analyze.py          # POST /location/analyze
 ├── services/               # Business logic (pure, no HTTP)
 │   ├── __init__.py
-│   ├── geocoding.py        # Orchestrates Photon + cache
+│   ├── geocoding.py        # Orchestrates PostGIS address search + cache
 │   ├── facilities.py       # Orchestrates Overpass (parallel) + cache
 │   ├── distance.py         # Orchestrates OSRM + fallback
 │   └── scoring.py          # LocationScoringService (isolated formula)
 ├── clients/                # HTTP clients for external services
 │   ├── __init__.py
-│   ├── photon.py           # Geocoding autocomplete
 │   ├── overpass.py         # OverpassQL facility queries
 │   ├── osrm.py             # Road distance routing
 │   └── redis_client.py     # Redis async singleton
 ├── repositories/           # Data access abstractions
 │   ├── __init__.py
-│   └── cache.py            # Redis-backed caching
+│   ├── cache.py            # Redis-backed caching
+│   └── db/
+│       ├── connection.py           # asyncpg pool create/close
+│       └── address_repository.py  # LINZ address search (PostGIS)
 ├── schemas/                # Pydantic models (request/response)
 │   ├── __init__.py
 │   ├── requests.py         # AnalyzeRequest, etc.
@@ -133,7 +136,7 @@ Pydantic BaseSettings with env var support:
 class Settings(BaseSettings):
     api_host: str = "0.0.0.0"
     api_port: int = 8000
-    photon_url: str = "http://localhost:2322"
+    database_url: str = "postgresql://gisuser:changeme@localhost:5432/gis"
     overpass_url: str = "https://overpass-api.de/api/interpreter"
     osrm_url: str = "http://localhost:5000"
     redis_url: str = "redis://localhost:6379"
@@ -158,8 +161,9 @@ Access via: `settings = get_settings()` (cached singleton).
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     # Startup
     await redis_module.init_redis(settings.redis_url)
+    db_pool = await create_pool(settings.database_url)
     http_client = httpx.AsyncClient()
-    app.state.geocoding_svc = GeocodingService(...)
+    app.state.geocoding_svc = GeocodingService(AddressRepository(db_pool), cache)
     app.state.facilities_svc = FacilitiesService(...)
     app.state.distance_svc = DistanceService(...)
     app.state.scoring_svc = LocationScoringService(...)
@@ -167,21 +171,26 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     yield
     
     # Cleanup
+    await close_pool(db_pool)
     await http_client.aclose()
     await redis_module.close_redis_client()
 ```
 
-### 3. Clients
+### 3. Address Repository (`app/repositories/db/address_repository.py`)
 
-#### PhotonClient (`app/clients/photon.py`)
-- Calls Photon REST API for geocoding + autocomplete
-- Restricted to New Zealand (`countrycodes=nz`)
-- Returns top 5 suggestions
+Queries the LINZ NZ Street Address table in PostGIS via asyncpg. Uses a GIN
+trigram index on `full_address_ascii` so ILIKE searches are fast and macron
+variants match (e.g. `Otahuhu` finds `Ōtāhuhu`).
 
 ```python
-await client.autocomplete("Queen Street", limit=5)
-# → [AddressResult(displayName="...", lat=-36.848, lon=174.763), ...]
+results = await repo.search("Cuba Street Wellington", limit=5)
+# → [{"displayName": "1 Cuba Street, Wellington", "lat": -41.294, "lon": 174.776}, ...]
 ```
+
+The pool is created once in `lifespan()` and injected into `GeocodingService`
+via `AddressRepository(pool)`.
+
+### 4. Clients
 
 #### OverpassClient (`app/clients/overpass.py`)
 - Posts OverpassQL queries to Overpass API
@@ -253,8 +262,8 @@ class CacheRepository:
 ### 5. Services
 
 #### GeocodingService (`app/services/geocoding.py`)
-- Caches Photon results (30 days)
-- Deduplicates by display name
+- Delegates to `AddressRepository` for PostGIS lookup
+- Caches results in Redis (30 days)
 - Returns top 5 suggestions
 
 #### FacilitiesService (`app/services/facilities.py`)
@@ -400,7 +409,7 @@ class CategoryScore:
 ### Sanitization Layer
 All error messages are **scrubbed** before returning to client:
 - ❌ No stack traces
-- ❌ No service names (Photon, Overpass, OSRM)
+- ❌ No service names (Overpass, OSRM, PostGIS)
 - ❌ No internal URLs
 - ✅ Friendly, user-safe messages only
 
@@ -455,7 +464,7 @@ uv run pytest tests/test_distance.py -v
 Integration tests via `httpx` TestClient:
 - `GET /health` returns correct schema + status 200
 - `GET /categories` returns all categories with `implemented` flags
-- Fixtures mock external service responses (Photon, Overpass, OSRM)
+- Fixtures mock `AddressRepository`, Overpass, and OSRM responses
 
 ```bash
 uv run pytest tests/test_api.py -v
@@ -517,7 +526,7 @@ select = ["E", "F", "I", "UP"]
 ### Caching Strategy
 | Data | TTL | Rationale |
 |---|---|---|
-| Photon (geocoding) | 30 days | Addresses rarely change |
+| PostGIS address search (geocoding) | 30 days | LINZ addresses rarely change |
 | Overpass (facilities) | 24 hours | OSM data updates slowly |
 | OSRM (distances) | 24 hours | Routes stable, but roads may change |
 | **Scores** | **NOT cached** | Computed on-the-fly from cached facility data |
@@ -527,7 +536,7 @@ select = ["E", "F", "I", "UP"]
 - OSRM distance requests can be batched
 
 ### Timeouts
-- Photon: 10s default
+- PostGIS (asyncpg pool): configurable via `create_pool` min/max size
 - Overpass: 25s (specified in OverpassQL `[timeout:25]`)
 - OSRM: 10s default
 - Redis: 5s default
@@ -551,7 +560,7 @@ Ensure these are set in production:
 ```env
 API_HOST=0.0.0.0
 API_PORT=8000
-PHOTON_URL=https://your-photon-instance
+DATABASE_URL=postgresql://gisuser:secret@your-postgis-host:5432/gis
 OVERPASS_URL=https://your-overpass-instance
 OSRM_URL=https://your-osrm-instance
 REDIS_URL=redis://your-redis-instance
@@ -591,13 +600,17 @@ redis-cli ping
 # Should return: PONG
 ```
 
-### Photon returns no results
+### Address search returns no results
 ```bash
-# Check Photon is running
-curl http://localhost:2322/api?q=test
+# Check PostGIS is ready
+pg_isready -h localhost -p 5432 -U gisuser -d gis
 
-# Verify NZ data is indexed
-curl "http://localhost:2322/api?q=Auckland&countrycodes=nz"
+# Verify data loaded
+psql -h localhost -U gisuser -d gis -c "SELECT count(*) FROM addresses;"
+
+# Test a search directly
+psql -h localhost -U gisuser -d gis \
+  -c "SELECT full_address FROM addresses WHERE full_address_ascii ILIKE 'cuba%' LIMIT 5;"
 ```
 
 ### Overpass queries timeout or fail
@@ -683,7 +696,7 @@ Open http://localhost:8000/docs and test endpoints interactively.
 
 - [FastAPI Docs](https://fastapi.tiangolo.com)
 - [Pydantic Docs](https://docs.pydantic.dev)
-- [Photon Geocoding](https://photon.komoot.io)
+- [LINZ NZ Street Address (layer 123113)](https://data.linz.govt.nz/layer/123113-nz-street-addresses/)
 - [Overpass API](https://overpass-api.de)
 - [OSRM Docs](http://project-osrm.org)
 - [Redis Py](https://github.com/redis/redis-py)

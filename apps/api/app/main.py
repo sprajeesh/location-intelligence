@@ -9,9 +9,10 @@ from app.api import analyze, categories, health, search
 from app.clients import redis_client as redis_module
 from app.clients.osrm import OSRMClient
 from app.clients.overpass import OverpassClient
-from app.clients.photon import PhotonClient
 from app.config.settings import get_settings
 from app.repositories.cache import CacheRepository
+from app.repositories.db.address_repository import AddressRepository
+from app.repositories.db.connection import close_pool, create_pool
 from app.services.distance import DistanceService
 from app.services.facilities import FacilitiesService
 from app.services.geocoding import GeocodingService
@@ -27,16 +28,18 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     redis_client = await redis_module.get_client()
     cache = CacheRepository(redis_client)
 
-    # Shared HTTP client for all external services
+    # Connect PostGIS
+    db_pool = await create_pool(settings.database_url)
+
+    # Shared HTTP client for Overpass and OSRM
     http_client = httpx.AsyncClient()
 
     # Wire up clients
-    photon = PhotonClient(settings.photon_url, http_client)
     overpass = OverpassClient(settings.overpass_url, http_client)
     osrm = OSRMClient(settings.osrm_url, http_client)
 
     # Wire up services
-    app.state.geocoding_svc = GeocodingService(photon, cache)
+    app.state.geocoding_svc = GeocodingService(AddressRepository(db_pool), cache)
     app.state.facilities_svc = FacilitiesService(overpass, cache)
     app.state.distance_svc = DistanceService(osrm, cache)
     app.state.scoring_svc = LocationScoringService(
@@ -48,6 +51,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     yield
 
     # Cleanup
+    await close_pool(db_pool)
     await http_client.aclose()
     await redis_module.close_redis_client()
 

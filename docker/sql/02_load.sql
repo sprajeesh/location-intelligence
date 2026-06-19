@@ -1,0 +1,35 @@
+-- Load LINZ NZ Street Address CSV (layer 123113).
+-- Column list must match the CSV column ORDER exactly (COPY is positional; HEADER is discarded).
+-- CSV columns: WKT,address_id,road_id,full_address_number,full_road_name,full_address,
+--   territorial_authority,unit,address_number,address_number_suffix,address_number_high,
+--   road_name,road_name_type,road_name_suffix,suburb_locality,town_city,is_land,
+--   address_lifecycle,full_road_name_ascii,full_address_ascii,territorial_authority_ascii,
+--   road_name_ascii,suburb_locality_ascii,town_city_ascii,shape_X,shape_Y
+COPY addresses (
+    wkt,
+    address_id,
+    road_id,
+    full_address_number,
+    full_road_name,
+    full_address,
+    territorial_authority,
+    unit,
+    address_number,
+    address_number_suffix,
+    address_number_high,
+    road_name,
+    road_name_type,
+    road_name_suffix,
+    suburb_locality,
+    town_city,
+    is_land,
+    address_lifecycle,
+    full_road_name_ascii,
+    full_address_ascii,
+    territorial_authority_ascii,
+    road_name_ascii,
+    suburb_locality_ascii,
+    town_city_ascii,
+    shape_x,
+    shape_y
+) FROM '/tmp/nz_addresses.csv' WITH (FORMAT csv, HEADER true, NULL '');

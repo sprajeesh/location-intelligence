@@ -7,9 +7,9 @@ from fastapi.testclient import TestClient
 
 from app.clients.osrm import OSRMClient
 from app.clients.overpass import OverpassClient
-from app.clients.photon import PhotonClient
 from app.main import create_app
 from app.repositories.cache import CacheRepository
+from app.repositories.db.address_repository import AddressRepository
 from app.services.distance import DistanceService
 from app.services.facilities import FacilitiesService
 from app.services.geocoding import GeocodingService
@@ -22,16 +22,21 @@ def client() -> TestClient:
     cache = CacheRepository(client=None)
     mock_http = MagicMock()
 
-    photon = PhotonClient("http://mock-photon", mock_http)
+    mock_addr_repo = MagicMock(spec=AddressRepository)
+    mock_addr_repo.search = AsyncMock(return_value=[])
     overpass = OverpassClient("http://mock-overpass", mock_http)
     osrm = OSRMClient("http://mock-osrm", mock_http)
 
-    with TestClient(application) as c:
-        application.state.geocoding_svc = GeocodingService(photon, cache)
-        application.state.facilities_svc = FacilitiesService(overpass, cache)
-        application.state.distance_svc = DistanceService(osrm, cache)
-        application.state.scoring_svc = LocationScoringService()
-        yield c
+    with (
+        patch("app.main.create_pool", new=AsyncMock(return_value=MagicMock())),
+        patch("app.main.close_pool", new=AsyncMock()),
+    ):
+        with TestClient(application) as c:
+            application.state.geocoding_svc = GeocodingService(mock_addr_repo, cache)
+            application.state.facilities_svc = FacilitiesService(overpass, cache)
+            application.state.distance_svc = DistanceService(osrm, cache)
+            application.state.scoring_svc = LocationScoringService()
+            yield c
 
 
 class TestHealthEndpoint:

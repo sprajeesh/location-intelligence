@@ -1,10 +1,8 @@
 import hashlib
 import logging
 
-import httpx
-
-from app.clients.photon import PhotonClient
 from app.repositories.cache import CacheRepository
+from app.repositories.db.address_repository import AddressRepository
 
 logger = logging.getLogger(__name__)
 
@@ -17,15 +15,16 @@ def _cache_key(query: str) -> str:
 
 
 class GeocodingService:
-    def __init__(self, photon: PhotonClient, cache: CacheRepository) -> None:
-        self._photon = photon
+    def __init__(self, address_repo: AddressRepository, cache: CacheRepository) -> None:
+        self._repo = address_repo
         self._cache = cache
 
     async def search(self, query: str, country: str = "nz") -> list[dict]:
         """Return list of address suggestions for `query`.
 
         Each entry has: displayName, lat, lon.
-        Raises HTTPException(404) if nothing found.
+        The `country` parameter is accepted for API compatibility but ignored —
+        the LINZ PostGIS database is NZ-only.
         """
         key = _cache_key(f"{country}:{query}")
         cached = await self._cache.get(key)
@@ -34,9 +33,9 @@ class GeocodingService:
             return cached  # type: ignore[return-value]
 
         try:
-            results = await self._photon.search(query, country=country)
-        except httpx.HTTPError as exc:
-            logger.error("Photon request failed: %s", exc)
+            results = await self._repo.search(query)
+        except Exception as exc:
+            logger.error("Address DB query failed: %s", exc)
             raise
 
         if results:

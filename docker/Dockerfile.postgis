@@ -1,0 +1,58 @@
+FROM ubuntu:22.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV SHELL=/bin/bash
+ARG POSTGRES_VERSION=15
+ARG DB_USER
+ARG DB_PASSWORD
+# TODO: Inject DB_USER and DB_PASSWORD at runtime (env/secrets)
+
+RUN apt-get update && apt-get -y dist-upgrade && \
+  apt-get install -y --no-install-recommends \
+  wget gnupg2 ca-certificates gdal-bin sudo vim lsb-release unzip && \
+  sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list' && \
+  wget -qO- https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo tee /etc/apt/trusted.gpg.d/postgresql.asc && \
+  apt-get update && apt-get install -y --no-install-recommends \
+  postgresql-${POSTGRES_VERSION} postgresql-${POSTGRES_VERSION}-postgis-3 postgis && \
+  apt-get clean && \
+  rm -rf /var/lib/apt/lists/*
+
+# Copy SQL init scripts
+COPY docker/sql/01_schema.sql /tmp/sql/01_schema.sql
+COPY docker/sql/02_load.sql /tmp/sql/02_load.sql
+COPY docker/sql/03_post_load.sql /tmp/sql/03_post_load.sql
+
+# Extract pre-downloaded LINZ NZ Street Address CSV (layer 123113)
+COPY docker/data/lds-nz-addresses-CSV.zip /tmp/nz_addresses.zip
+RUN unzip /tmp/nz_addresses.zip -d /tmp/linz_extract \
+  && find /tmp/linz_extract -name "*.csv" | head -1 | xargs -I{} cp {} /tmp/nz_addresses.csv \
+  && rm -rf /tmp/nz_addresses.zip /tmp/linz_extract
+
+# Initialize PostgreSQL, create database and user, load LINZ data.
+RUN service postgresql start && \
+  sudo -u postgres psql -c 'create database gis;' && \
+  sudo -u postgres psql -d gis -c 'create extension postgis;' && \
+  sudo -u postgres psql -d gis -c 'create extension postgis_raster;' && \
+  sudo -u postgres psql -d gis -c 'create extension postgis_sfcgal;' && \
+  sudo -u postgres psql -d gis -c 'create extension postgis_topology;' && \
+  sudo -u postgres psql -d gis -c 'create extension pg_trgm;' && \
+  sudo -u postgres psql -d gis -c "SET postgis.gdal_enabled_drivers = 'ENABLE_ALL';" && \
+  sudo -u postgres psql -c "create user ${DB_USER};" && \
+  sudo -u postgres psql -c "alter user ${DB_USER} with encrypted password '${DB_PASSWORD}';" && \
+  sudo -u postgres psql -c "grant all privileges on database gis to ${DB_USER};" && \
+  sudo -u postgres psql -d gis -f /tmp/sql/01_schema.sql && \
+  sudo -u postgres psql -d gis -c "grant all privileges on all tables in schema public to ${DB_USER};" && \
+  sudo -u postgres psql -d gis -c "grant all privileges on all sequences in schema public to ${DB_USER};" && \
+  sudo -u postgres psql -d gis -f /tmp/sql/02_load.sql && \
+  sudo -u postgres psql -d gis -f /tmp/sql/03_post_load.sql && \
+  rm -rf /tmp/nz_addresses.csv /tmp/sql && \
+  printf "\tlisten_addresses='*'\t" >> /etc/postgresql/${POSTGRES_VERSION}/main/postgresql.conf && \
+  sed -i -E '/local +all +all +peer/ s/peer/scram-sha-256/' /etc/postgresql/${POSTGRES_VERSION}/main/pg_hba.conf && \
+  sed -i -E '/host +all +all +127.0.0.1\/32 +scram-sha-256/ s/127.0.0.1\/32/0.0.0.0\/0   /' /etc/postgresql/${POSTGRES_VERSION}/main/pg_hba.conf && \
+  sed -i -E '/host +all +all +::1\/128 +scram-sha-256/ s/::1\/128/::0\/0  /' /etc/postgresql/${POSTGRES_VERSION}/main/pg_hba.conf && \
+  printf "localhost:5432:gis:${DB_USER}:${DB_PASSWORD}" >> /root/.pgpass && \
+  chmod 0600 /root/.pgpass
+
+EXPOSE 5432
+
+CMD ["su", "-", "postgres", "-c", "/usr/lib/postgresql/15/bin/postgres -D /var/lib/postgresql/15/main -c config_file=/etc/postgresql/15/main/postgresql.conf"]
