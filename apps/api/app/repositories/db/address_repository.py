@@ -1,5 +1,5 @@
-import unicodedata
 import logging
+import unicodedata
 
 import asyncpg
 
