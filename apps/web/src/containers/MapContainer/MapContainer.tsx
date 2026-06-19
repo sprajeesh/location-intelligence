@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useMemo, useId } from 'react';
 import {
-  MapContainer,
+  MapContainer as LeafletMapContainer,
   TileLayer,
   Marker,
   Popup,
@@ -153,10 +153,11 @@ function MapContent() {
 }
 
 /**
- * Main MapView component
- * Renders a React Leaflet map with OpenStreetMap tiles and markers
+ * Main MapContainer component
+ * Container that manages map state and renders markers based on Zustand store.
+ * Business logic: reads from store, manages map effects, handles marker rendering.
  */
-export function MapView() {
+export function MapContainer() {
   const { selectedAddress, isAnalyzing } = useLocationStore();
   const mapRef = useRef<L.Map | null>(null);
   const mapId = useId();
@@ -183,7 +184,7 @@ export function MapView() {
 
   return (
     <div className="relative w-full h-full" id={`map-wrapper-${mapId}`}>
-      <MapContainer
+      <LeafletMapContainer
         key={mapId}
         ref={mapRef}
         center={initialCenter}
@@ -195,7 +196,7 @@ export function MapView() {
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         <MapContent />
-      </MapContainer>
+      </LeafletMapContainer>
 
       {/* Loading overlay */}
       {isAnalyzing && (
@@ -298,4 +299,4 @@ function getCategoryColor(categoryId: string): string {
   return colorMap[categoryId] || '#6B7280'; // Gray fallback
 }
 
-export default MapView;
+export default MapContainer;
