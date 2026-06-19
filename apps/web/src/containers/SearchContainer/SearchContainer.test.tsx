@@ -134,7 +134,7 @@ describe('SearchContainer', () => {
       expect(input.value).toBe('Main Street');
     });
 
-    it('passes selectedAddress displayName as query when address is selected', () => {
+    it('displays current query even when address is selected', () => {
       mockUseAddressSearch.mockReturnValue({
         query: 'Main',
         setQuery: jest.fn(),
@@ -164,7 +164,8 @@ describe('SearchContainer', () => {
 
       render(<SearchContainer />);
       const input = screen.getByTestId('search-input') as HTMLInputElement;
-      expect(input.value).toBe(mockAddressResult.displayName);
+      // displayValue is always the current query, not selectedAddress displayName
+      expect(input.value).toBe('Main');
     });
 
     it('falls back to query from hook when no selectedAddress', () => {
@@ -349,10 +350,13 @@ describe('SearchContainer', () => {
   });
 
   describe('Business Logic', () => {
-    it('prioritizes selectedAddress over query for display', () => {
+    it('displays current query and clears selectedAddress when user types different value', async () => {
+      const setQuery = jest.fn();
+      const setSelectedAddress = jest.fn();
+
       mockUseAddressSearch.mockReturnValue({
-        query: 'old query',
-        setQuery: jest.fn(),
+        query: 'Main',
+        setQuery,
         suggestions: [],
         isLoading: false,
         error: null,
@@ -365,7 +369,7 @@ describe('SearchContainer', () => {
         analysisResult: null,
         isAnalyzing: false,
         visibleCategories: new Set(),
-        setSelectedAddress: jest.fn(),
+        setSelectedAddress,
         setRadiusKm: jest.fn(),
         setDistanceMode: jest.fn(),
         setAnalysisResult: jest.fn(),
@@ -378,9 +382,16 @@ describe('SearchContainer', () => {
       });
 
       render(<SearchContainer />);
-      const input = screen.getByTestId('search-input') as HTMLInputElement;
-      expect(input.value).toBe(mockAddressResult.displayName);
-      expect(input.value).not.toBe('old query');
+      const input = screen.getByTestId('search-input');
+
+      // displayValue is always the current query
+      expect((input as HTMLInputElement).value).toBe('Main');
+
+      // Typing something different from selectedAddress displayName clears the selectedAddress
+      fireEvent.change(input, { target: { value: 'Different' } });
+
+      expect(setQuery).toHaveBeenCalledWith('Different');
+      expect(setSelectedAddress).toHaveBeenCalledWith(null);
     });
 
     it('maintains selectedAddress through multiple operations', async () => {

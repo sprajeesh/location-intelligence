@@ -431,7 +431,12 @@ describe('SearchBar', () => {
       );
 
       const listbox = screen.getByRole('listbox');
-      expect(listbox).toHaveAttribute('id', 'search-dropdown');
+      expect(listbox).toHaveAttribute('role', 'listbox');
+
+      // Verify aria-controls connects input to listbox
+      const input = screen.getByLabelText('Search address');
+      const listboxId = listbox.getAttribute('id');
+      expect(input).toHaveAttribute('aria-controls', listboxId);
     });
   });
 });
