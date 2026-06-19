@@ -18,9 +18,7 @@ class AddressRepository:
         but returns full_address as displayName for correct NZ spelling.
         """
         normalized_query = (
-            unicodedata.normalize("NFKD", query)
-            .encode("ascii", "ignore")
-            .decode("ascii")
+            unicodedata.normalize("NFKD", query).encode("ascii", "ignore").decode("ascii")
         )
         sql = """
             SELECT
