@@ -30,7 +30,6 @@ Thumbs.db
 
 # Docker volumes
 osrm-data/
-photon-data/
 
 # LINZ address data (large, downloaded separately)
 docker/data/*.zip
