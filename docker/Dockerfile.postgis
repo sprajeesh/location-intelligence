@@ -5,6 +5,7 @@ ENV SHELL=/bin/bash
 ARG POSTGRES_VERSION=15
 ARG DB_USER
 ARG DB_PASSWORD
+# TODO: Inject DB_USER and DB_PASSWORD at runtime (env/secrets)
 
 RUN apt-get update && apt-get -y dist-upgrade && \
   apt-get install -y --no-install-recommends \
@@ -54,5 +55,4 @@ RUN service postgresql start && \
 
 EXPOSE 5432
 
-CMD service postgresql start && \
-  tail -f /dev/null
+CMD ["su", "-", "postgres", "-c", "/usr/lib/postgresql/15/bin/postgres -D /var/lib/postgresql/15/main -c config_file=/etc/postgresql/15/main/postgresql.conf"]
