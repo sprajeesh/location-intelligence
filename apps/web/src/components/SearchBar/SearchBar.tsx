@@ -1,34 +1,36 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useId } from "react";
 import { useTranslations } from "next-intl";
-import { useLocationStore } from "@/store";
-import { useAddressSearch } from "@/hooks/useAddressSearch";
 import type { AddressResult } from "@/types/api";
 
-/**
- * SearchBar component
- *
- * Floating search input with autocomplete dropdown.
- * Features:
- * - 300ms debounced address search
- * - Shows top 5 suggestions in dropdown
- * - Click to select address → updates store
- * - Click outside to close dropdown
- * - Keyboard navigation (arrow keys, Enter, Escape)
- */
+interface SearchBarProps {
+  query: string;
+  suggestions: AddressResult[];
+  isLoading: boolean;
+  error: string | null;
+  onQueryChange: (value: string) => void;
+  onSelectAddress: (address: AddressResult) => void;
+  onClear: () => void;
+}
 
-export function SearchBar() {
+export function SearchBar({
+  query,
+  suggestions,
+  isLoading,
+  error,
+  onQueryChange,
+  onSelectAddress,
+  onClear,
+}: SearchBarProps) {
   const t = useTranslations();
-  const { query, setQuery, suggestions, isLoading, error } = useAddressSearch();
-  const { selectedAddress, setSelectedAddress } = useLocationStore();
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState<number | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const dropdownId = useId();
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (
@@ -45,7 +47,6 @@ export function SearchBar() {
     };
   }, []);
 
-  // Show/hide dropdown based on suggestions
   useEffect(() => {
     const hasQuery = query.trim().length > 0;
     if (!hasQuery) {
@@ -61,28 +62,13 @@ export function SearchBar() {
   }, [suggestions, query, error, isLoading]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setQuery(e.target.value);
+    onQueryChange(e.target.value);
   };
 
   const handleInputFocus = () => {
     if (query.trim() && suggestions.length > 0) {
       setIsDropdownOpen(true);
     }
-  };
-
-  const handleSelectAddress = (address: AddressResult) => {
-    setSelectedAddress(address);
-    setQuery(address.displayName);
-    setIsDropdownOpen(false);
-    setHighlightedIndex(null);
-  };
-
-  const handleClear = () => {
-    setQuery("");
-    setSelectedAddress(null);
-    setIsDropdownOpen(false);
-    setHighlightedIndex(null);
-    inputRef.current?.focus();
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -111,7 +97,9 @@ export function SearchBar() {
       case "Enter": {
         e.preventDefault();
         if (highlightedIndex !== null && suggestions[highlightedIndex]) {
-          handleSelectAddress(suggestions[highlightedIndex]);
+          onSelectAddress(suggestions[highlightedIndex]);
+          setIsDropdownOpen(false);
+          setHighlightedIndex(null);
         }
         break;
       }
@@ -126,13 +114,9 @@ export function SearchBar() {
     }
   };
 
-  const displayValue = selectedAddress?.displayName || query;
-
   return (
     <div ref={dropdownRef} className="relative">
-      {/* Search Input Container */}
       <div className="relative flex items-center gap-2">
-        {/* Search Icon */}
         <div className="absolute left-3 pointer-events-none flex items-center justify-center">
           <svg
             className="w-5 h-5 text-gray-400"
@@ -150,11 +134,10 @@ export function SearchBar() {
           </svg>
         </div>
 
-        {/* Input Field */}
         <input
           ref={inputRef}
           type="text"
-          value={displayValue}
+          value={query}
           onChange={handleInputChange}
           onFocus={handleInputFocus}
           onKeyDown={handleKeyDown}
@@ -162,14 +145,18 @@ export function SearchBar() {
           aria-label="Search address"
           aria-autocomplete="list"
           aria-expanded={isDropdownOpen}
-          aria-controls="search-dropdown"
+          aria-controls={dropdownId}
+          aria-activedescendant={
+            highlightedIndex !== null
+              ? `search-option-${highlightedIndex}`
+              : undefined
+          }
           className="w-full bg-gray-900/80 backdrop-blur border border-gray-700 rounded-lg py-2.5 pl-10 pr-10 text-sm text-gray-100 placeholder-gray-500 transition-all duration-150 focus:outline-none focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/20 hover:border-gray-600"
         />
 
-        {/* Clear/Loading Button */}
-        {displayValue && !isLoading && (
+        {query && !isLoading && (
           <button
-            onClick={handleClear}
+            onClick={onClear}
             className="absolute right-3 p-1 text-gray-400 hover:text-gray-200 transition-colors duration-150"
             aria-label="Clear search"
             type="button"
@@ -198,10 +185,9 @@ export function SearchBar() {
         )}
       </div>
 
-      {/* Autocomplete Dropdown */}
       {isDropdownOpen && (
         <div
-          id="search-dropdown"
+          id={dropdownId}
           className="absolute top-full left-0 right-0 mt-2 bg-gray-800 border border-gray-700 rounded-lg shadow-lg z-50 overflow-hidden"
           role="listbox"
         >
@@ -222,7 +208,11 @@ export function SearchBar() {
                   aria-selected={highlightedIndex === index}
                 >
                   <button
-                    onClick={() => handleSelectAddress(suggestion)}
+                    onClick={() => {
+                      onSelectAddress(suggestion);
+                      setIsDropdownOpen(false);
+                      setHighlightedIndex(null);
+                    }}
                     onMouseEnter={() => setHighlightedIndex(index)}
                     className={`w-full text-left px-4 py-2.5 text-sm transition-colors duration-150 flex items-start gap-2 ${
                       highlightedIndex === index
@@ -231,7 +221,6 @@ export function SearchBar() {
                     }`}
                     type="button"
                   >
-                    {/* Location Icon */}
                     <svg
                       className="w-4 h-4 flex-shrink-0 mt-0.5"
                       fill="none"
@@ -253,7 +242,6 @@ export function SearchBar() {
                       />
                     </svg>
 
-                    {/* Address Text */}
                     <div className="flex-1 min-w-0">
                       <p className="truncate font-medium">
                         {suggestion.displayName}
@@ -270,7 +258,6 @@ export function SearchBar() {
         </div>
       )}
 
-      {/* Loading State Message */}
       {isLoading && query.trim() && (
         <div className="absolute top-full left-0 right-0 mt-2 px-4 py-2.5 text-sm text-gray-400 bg-gray-800/50 border border-gray-700 rounded-lg">
           {t("search.loading")}
