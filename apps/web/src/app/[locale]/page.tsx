@@ -7,32 +7,26 @@ import DistanceToggle from '@/components/DistanceToggle';
 
 export default function HomePage() {
   return (
-    <div className="w-full h-screen flex flex-col bg-gray-900 text-white">
-      {/* Top bar with search, radius, and distance mode */}
-      <div className="absolute top-0 left-0 right-0 z-10 p-4 flex items-center justify-between gap-4">
-        <div className="flex-1 max-w-md">
+    <div className="relative w-full h-screen overflow-hidden">
+      {/* Map fills the entire viewport — rendered first so it is the base layer */}
+      <div className="absolute inset-0 z-0">
+        <MapContainerDynamic />
+      </div>
+
+      {/* Floating top bar: search left, distance toggle right */}
+      <div className="absolute top-0 left-0 right-0 z-10 p-4 flex items-center gap-4 pointer-events-none">
+        <div className="flex-1 max-w-md pointer-events-auto">
           <SearchContainer />
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex-shrink-0 pointer-events-auto">
           <DistanceToggle />
         </div>
       </div>
 
-      <div className="flex-1 flex">
-        {/* Results panel - left side (desktop) or bottom sheet (mobile) */}
-        <div className="hidden lg:block lg:w-80 bg-gray-800 bg-opacity-95 backdrop-blur-sm border-r border-gray-700 overflow-y-auto">
-          <AnalysisContainer />
-        </div>
-
-        {/* Map - full width behind panels */}
-        <div className="flex-1 relative">
-          <MapContainerDynamic />
-        </div>
-
-        {/* Mobile bottom sheet - shown on smaller screens */}
-        <div className="lg:hidden fixed bottom-0 left-0 right-0 max-h-96 bg-gray-800 bg-opacity-95 backdrop-blur-sm border-t border-gray-700 rounded-t-lg overflow-y-auto shadow-2xl">
-          <AnalysisContainer />
-        </div>
+      {/* Floating results panel: top-left, below the search bar */}
+      {/* AnalysisContainer handles its own visibility via selectedAddress */}
+      <div className="absolute top-[4.5rem] left-4 z-10 w-80 max-w-[calc(100vw-2rem)] max-h-[calc(100vh-7rem)] pointer-events-auto">
+        <AnalysisContainer />
       </div>
     </div>
   );
