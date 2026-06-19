@@ -1,3 +1,4 @@
+import unicodedata
 import logging
 
 import asyncpg
@@ -16,6 +17,11 @@ class AddressRepository:
         Uses full_address_ascii for matching (handles macrons/diacritics),
         but returns full_address as displayName for correct NZ spelling.
         """
+        normalized_query = (
+            unicodedata.normalize("NFKD", query)
+            .encode("ascii", "ignore")
+            .decode("ascii")
+        )
         sql = """
             SELECT
                 full_address  AS display_name,
@@ -29,7 +35,7 @@ class AddressRepository:
             LIMIT $2
         """
         async with self._pool.acquire() as conn:
-            rows = await conn.fetch(sql, query, limit)
+            rows = await conn.fetch(sql, normalized_query, limit)
 
         return [
             {
