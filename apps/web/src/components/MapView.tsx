@@ -68,6 +68,12 @@ function MapContent() {
     return colors;
   }, [analysisResult]);
 
+  // Fly to selected address when it changes (before analysis)
+  useEffect(() => {
+    if (!selectedAddress) return;
+    map.flyTo([selectedAddress.lat, selectedAddress.lon], 14);
+  }, [selectedAddress, map]);
+
   // Fit map bounds to all features when analysis result changes
   useEffect(() => {
     if (!analysisResult?.features || analysisResult.features.length === 0) {
@@ -92,29 +98,27 @@ function MapContent() {
     }
   }, [analysisResult, map, selectedAddress]);
 
-  if (!selectedAddress || !analysisResult) {
-    return null;
-  }
-
   return (
     <>
-      {/* Main location marker (red/accent color) */}
-      <Marker
-        position={[selectedAddress.lat, selectedAddress.lon]}
-        icon={createMainLocationIcon()}
-      >
-        <Popup>
-          <div className="text-sm font-semibold">
-            {selectedAddress.displayName}
-          </div>
-          <div className="text-xs text-gray-600">
-            {selectedAddress.lat.toFixed(4)}, {selectedAddress.lon.toFixed(4)}
-          </div>
-        </Popup>
-      </Marker>
+      {/* Main location marker - show immediately on address selection */}
+      {selectedAddress && (
+        <Marker
+          position={[selectedAddress.lat, selectedAddress.lon]}
+          icon={createMainLocationIcon()}
+        >
+          <Popup>
+            <div className="text-sm font-semibold">
+              {selectedAddress.displayName}
+            </div>
+            <div className="text-xs text-gray-600">
+              {selectedAddress.lat.toFixed(4)}, {selectedAddress.lon.toFixed(4)}
+            </div>
+          </Popup>
+        </Marker>
+      )}
 
-      {/* Category markers grouped by visibility */}
-      {analysisResult.features.map((feature) => {
+      {/* Category markers - show after analysis */}
+      {analysisResult?.features.map((feature) => {
         // Only render if category is visible
         if (!visibleCategories.has(feature.category)) {
           return null;
