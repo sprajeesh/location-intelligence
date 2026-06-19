@@ -148,8 +148,8 @@ export default function ResultsPanel({
       <div
         className={`
           pointer-events-auto
-          h-full max-h-[80vh] w-full max-w-md overflow-y-auto
-          glass-dark rounded-lg p-4 sm:p-6
+          w-full h-full overflow-y-auto
+          bg-gray-900/80 backdrop-blur border border-gray-700 rounded-lg shadow-2xl p-4 sm:p-6
           flex flex-col gap-4
           ${className}
         `}
@@ -168,8 +168,8 @@ export default function ResultsPanel({
       <div
         className={`
           pointer-events-auto
-          h-full max-h-[80vh] w-full max-w-md
-          glass-dark rounded-lg p-4 sm:p-6
+          w-full h-full
+          bg-gray-900/80 backdrop-blur border border-gray-700 rounded-lg shadow-2xl p-4 sm:p-6
           flex flex-col items-center justify-center gap-4
           text-center
           ${className}
@@ -205,8 +205,8 @@ export default function ResultsPanel({
       <div
         className={`
           pointer-events-auto
-          h-full max-h-[80vh] w-full max-w-md
-          glass-dark rounded-lg p-4 sm:p-6
+          w-full h-full
+          bg-gray-900/80 backdrop-blur border border-gray-700 rounded-lg shadow-2xl p-4 sm:p-6
           flex flex-col items-center justify-center gap-4
           text-center
           ${className}
@@ -260,14 +260,14 @@ export default function ResultsPanel({
     <div
       className={`
         pointer-events-auto
-        h-full max-h-[80vh] w-full max-w-md overflow-y-auto
-        glass-dark rounded-lg
+        w-full h-full overflow-y-auto
+        bg-gray-900/80 backdrop-blur border border-gray-700 rounded-lg shadow-2xl
         flex flex-col
         ${className}
       `}
     >
       {/* Header */}
-      <div className="sticky top-0 z-10 glass-dark rounded-t-lg border-b border-slate-700/30 px-4 sm:px-6 py-3 sm:py-4">
+      <div className="sticky top-0 z-10 bg-gray-900/80 backdrop-blur border-b border-gray-700 rounded-t-lg px-4 sm:px-6 py-3 sm:py-4">
         <h2 className="text-lg font-semibold text-slate-100">
           {t('results.title', { defaultValue: 'Results' })}
         </h2>
@@ -297,7 +297,7 @@ export default function ResultsPanel({
               >
                 {isExpanded && (
                   <div className="space-y-2 pl-4 mt-2">
-                    {section.features.map((feature) => (
+                    {section.features.slice(0, 3).map((feature) => (
                       <FacilityItem
                         key={feature.id}
                         feature={feature}
@@ -305,6 +305,11 @@ export default function ResultsPanel({
                         onClick={() => handleFacilityClick(feature)}
                       />
                     ))}
+                    {section.features.length > 3 && (
+                      <p className="px-3 py-1 text-xs text-slate-500">
+                        +{section.features.length - 3} more nearby
+                      </p>
+                    )}
                   </div>
                 )}
               </CategoryGroup>
