@@ -93,3 +93,50 @@ input:focus-visible {
 .leaflet-popup-tip {
   background-color: rgba(15, 23, 42, 0.9) !important;
 }
+
+/* Custom Zoom Control Styling matching the app aesthetics */
+.leaflet-bar {
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.leaflet-control-zoom {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+  background: transparent !important;
+  border: none !important;
+}
+
+.leaflet-control-zoom a,
+.leaflet-control-zoom-in,
+.leaflet-control-zoom-out {
+  @apply rounded-lg transition-all duration-150 flex items-center justify-center;
+  background-color: rgba(17, 24, 39, 0.8) !important; /* bg-gray-900/80 */
+  backdrop-filter: blur(8px) !important;
+  border: 1px solid rgb(55, 65, 81) !important; /* border border-gray-700 */
+  color: rgb(243, 244, 246) !important; /* text-gray-100 */
+  width: 38px !important;
+  height: 38px !important;
+  line-height: 38px !important;
+  font-size: 18px !important;
+  font-weight: 500 !important;
+  border-radius: 8px !important; /* rounded-lg */
+}
+
+.leaflet-control-zoom a:hover,
+.leaflet-control-zoom-in:hover,
+.leaflet-control-zoom-out:hover {
+  border-color: rgb(75, 85, 99) !important; /* border-gray-600 */
+  background-color: rgba(17, 24, 39, 0.95) !important;
+  color: rgb(255, 255, 255) !important;
+}
+
+.leaflet-control-zoom a:focus-visible,
+.leaflet-control-zoom-in:focus-visible,
+.leaflet-control-zoom-out:focus-visible {
+  outline: none !important;
+  border-color: rgba(16, 185, 129, 0.5) !important; /* border-emerald-500/50 */
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2) !important; /* ring-2 ring-emerald-500/20 */
+}
+

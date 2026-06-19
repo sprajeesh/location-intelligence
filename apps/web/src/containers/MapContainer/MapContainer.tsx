@@ -7,6 +7,7 @@ import {
   Marker,
   Popup,
   useMap,
+  ZoomControl,
 } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -190,11 +191,13 @@ export function MapContainer() {
         center={initialCenter}
         zoom={12}
         className="w-full h-full"
+        zoomControl={false}
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
+        <ZoomControl position="bottomright" />
         <MapContent />
       </LeafletMapContainer>
 
