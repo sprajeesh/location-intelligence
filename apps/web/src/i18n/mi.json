@@ -8,9 +8,9 @@
     "label": "[MI] radius.label",
     "options": {
       "1km": "[MI] radius.options.1km",
+      "2km": "[MI] radius.options.2km",
+      "3km": "[MI] radius.options.3km",
       "5km": "[MI] radius.options.5km",
-      "10km": "[MI] radius.options.10km",
-      "20km": "[MI] radius.options.20km",
       "custom": "[MI] radius.options.custom"
     }
   },
