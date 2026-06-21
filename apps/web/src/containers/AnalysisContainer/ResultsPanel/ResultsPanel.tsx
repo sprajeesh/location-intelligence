@@ -4,10 +4,10 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useLocationStore } from '@/store/index';
 import type { Feature } from '@/types/api';
-import LoadingSkeleton from './LoadingSkeleton';
-import FacilityItem from './FacilityItem';
-import ScoreDisplay from './ScoreDisplay';
-import CategoryGroup from './CategoryGroup';
+import LoadingSkeleton from '@/components/LoadingSkeleton';
+import FacilityItem from '@/components/FacilityItem';
+import ScoreDisplay from '@/components/ScoreDisplay';
+import CategoryGroup from '@/components/CategoryGroup';
 
 /**
  * ResultsPanel — Left side panel (desktop) or bottom sheet (mobile).
