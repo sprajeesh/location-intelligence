@@ -112,6 +112,7 @@ describe('SearchContainer', () => {
       setAnalysisResult: jest.fn(),
       setIsAnalyzing: jest.fn(),
       toggleCategoryVisibility: jest.fn(),
+      clearVisibleCategories: jest.fn(),
       toasts: [],
       addToast: jest.fn(),
       removeToast: jest.fn(),
