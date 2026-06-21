@@ -30,6 +30,7 @@ export interface LocationIntelligenceStore {
   setAnalysisResult: (result: AnalyzeResponse | null) => void
   setIsAnalyzing: (isAnalyzing: boolean) => void
   toggleCategoryVisibility: (categoryId: string) => void
+  clearVisibleCategories: () => void
   addToast: (toast: Omit<Toast, 'id'>) => void
   removeToast: (id: string) => void
   clearToasts: () => void
@@ -38,7 +39,7 @@ export interface LocationIntelligenceStore {
 export const useLocationStore = create<LocationIntelligenceStore>((set) => ({
   // Initial state
   selectedAddress: null,
-  radiusKm: 10,
+  radiusKm: 5,
   distanceMode: 'driving',
   analysisResult: null,
   isAnalyzing: false,
@@ -72,6 +73,9 @@ export const useLocationStore = create<LocationIntelligenceStore>((set) => ({
       }
       return { visibleCategories: updated }
     }),
+
+  clearVisibleCategories: () =>
+    set({ visibleCategories: new Set() }),
 
   // Toast management
   addToast: (toast) =>

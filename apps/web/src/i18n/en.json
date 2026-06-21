@@ -8,9 +8,9 @@
     "label": "Radius",
     "options": {
       "1km": "1 km",
+      "2km": "2 km",
+      "3km": "3 km",
       "5km": "5 km",
-      "10km": "10 km",
-      "20km": "20 km",
       "custom": "Custom"
     }
   },

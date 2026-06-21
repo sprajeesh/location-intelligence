@@ -111,6 +111,7 @@ const makeStoreState = (overrides = {}) => ({
   radiusKm: 10,
   visibleCategories: new Set<string>(),
   toggleCategoryVisibility: jest.fn(),
+  clearVisibleCategories: jest.fn(),
   selectedAddress: null,
   distanceMode: 'driving' as const,
   setSelectedAddress: jest.fn(),
