@@ -1,18 +1,11 @@
 import { ReactNode } from 'react';
 import { Inter } from 'next/font/google';
-import { getMessages } from 'next-intl/server';
-import { NextIntlClientProvider } from 'next-intl';
 import '../i18n/globals.css';
 
 const inter = Inter({
   subsets: ['latin'],
   variable: '--font-inter',
 });
-
-interface RootLayoutProps {
-  children: ReactNode;
-  params: Promise<{ locale: string }>;
-}
 
 export const metadata = {
   title: 'Location Intelligence',
@@ -23,19 +16,11 @@ export const metadata = {
   },
 };
 
-export default async function RootLayout({
-  children,
-  params,
-}: RootLayoutProps) {
-  const { locale } = await params;
-  const messages = await getMessages();
-
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang={locale} className={inter.variable} suppressHydrationWarning>
+    <html className={inter.variable} suppressHydrationWarning>
       <body className="bg-slate-950 text-slate-50">
-        <NextIntlClientProvider messages={messages}>
-          {children}
-        </NextIntlClientProvider>
+        {children}
       </body>
     </html>
   );
