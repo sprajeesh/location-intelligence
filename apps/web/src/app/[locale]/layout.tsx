@@ -1,23 +1,24 @@
-'use client';
-
 import { ReactNode } from 'react';
+import { getMessages } from 'next-intl/server';
+import { NextIntlClientProvider } from 'next-intl';
 import { Providers } from '@/components/Providers';
 import { ToastContainer } from '@/components/Toast';
 
 interface LocaleLayoutProps {
   children: ReactNode;
+  params: Promise<{ locale: string }>;
 }
 
-/**
- * Locale layout wraps children with React Query and Zustand providers.
- * This is a Client Component to enable use of client-side hooks and providers.
- * The root layout handles HTML structure and next-intl setup.
- */
-export default function LocaleLayout({ children }: LocaleLayoutProps) {
+export default async function LocaleLayout({ children, params }: LocaleLayoutProps) {
+  const { locale } = await params;
+  const messages = await getMessages();
+
   return (
-    <Providers>
-      {children}
-      <ToastContainer />
-    </Providers>
+    <NextIntlClientProvider locale={locale} messages={messages}>
+      <Providers>
+        {children}
+        <ToastContainer />
+      </Providers>
+    </NextIntlClientProvider>
   );
 }

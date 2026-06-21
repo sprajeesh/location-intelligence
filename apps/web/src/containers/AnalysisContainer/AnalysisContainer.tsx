@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback } from 'react';
-import ResultsPanel from '@/components/ResultsPanel';
+import ResultsPanel from './ResultsPanel';
 import { useLocationStore } from '@/store';
 
 export function AnalysisContainer() {
