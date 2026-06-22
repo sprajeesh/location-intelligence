@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { useTranslations } from 'next-intl';
-import type { Feature } from '@/types/api';
+import React from "react";
+import { useTranslations } from "next-intl";
+import type { Feature } from "@/types/api";
 
 export interface FacilityItemProps {
   feature: Feature;
@@ -43,7 +43,7 @@ export default function FacilityItem({
             </span>
           </div>
           <span className="text-xs font-semibold text-slate-400 group-hover:text-slate-300 flex-shrink-0 whitespace-nowrap ml-2">
-            {t('distance.km', {
+            {t("distance.km", {
               distance: feature.distanceKm.toFixed(1),
               defaultValue: `${feature.distanceKm.toFixed(1)} km`,
             })}
@@ -64,8 +64,14 @@ export default function FacilityItem({
             transition-colors duration-200
             focus:outline-none focus:ring-2 focus:ring-blue-500
           `}
-          aria-label={`Navigate to ${feature.name}`}
-          title="Show route"
+          aria-label={t("results.navigateTo", {
+            name: feature.name,
+            defaultValue: `Navigate to ${feature.name}`,
+          })}
+          title={t("results.showRoute", {
+            name: feature.name,
+            defaultValue: `Show route to ${feature.name}`,
+          })}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
