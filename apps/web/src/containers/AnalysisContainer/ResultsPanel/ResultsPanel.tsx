@@ -105,7 +105,7 @@ export default function ResultsPanel({
         id,
         label: data.label,
         color: data.color,
-        features: data.features,
+        features: data.features.sort((a, b) => a.distanceKm - b.distanceKm),
       }))
       .sort((a, b) => a.label.localeCompare(b.label));
   }, [analysisResult?.features]);
