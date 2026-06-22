@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import React, { useCallback, useMemo, useState } from 'react';
-import { useTranslations } from 'next-intl';
-import { useLocationStore } from '@/store/index';
-import type { Feature } from '@/types/api';
-import LoadingSkeleton from '@/components/LoadingSkeleton';
-import FacilityItem from '@/components/FacilityItem';
-import ScoreDisplay from '@/components/ScoreDisplay';
-import CategoryGroup from '@/components/CategoryGroup';
-import { useNavigate } from '@/hooks/useNavigate';
+import React, { useCallback, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
+import { useLocationStore } from "@/store/index";
+import type { Feature } from "@/types/api";
+import LoadingSkeleton from "@/components/LoadingSkeleton";
+import FacilityItem from "@/components/FacilityItem";
+import ScoreDisplay from "@/components/ScoreDisplay";
+import CategoryGroup from "@/components/CategoryGroup";
+import { useNavigate } from "@/hooks/useNavigate";
 
 /**
  * ResultsPanel — Left side panel (desktop) or bottom sheet (mobile).
@@ -43,7 +43,7 @@ export interface ResultsPanelProps {
 export default function ResultsPanel({
   onFacilityClick,
   onIncreaseRadius,
-  className = '',
+  className = "",
 }: ResultsPanelProps) {
   const t = useTranslations();
 
@@ -54,12 +54,13 @@ export default function ResultsPanel({
     radiusKm,
     visibleCategories,
     toggleCategoryVisibility,
+    setActiveRoute,
     setSelectedFeature,
   } = useLocationStore();
 
   // Local UI state for expanded/collapsed categories
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
-    new Set()
+    new Set(),
   );
 
   // Group features by category
@@ -83,14 +84,14 @@ export default function ResultsPanel({
         // Infer label from category ID (kebab-case to Title Case)
         const label =
           feature.category
-            .split('_')
+            .split("_")
             .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-            .join(' ') || feature.category;
+            .join(" ") || feature.category;
 
         categoryMap.set(feature.category, {
           features: [],
           label,
-          color: '#10B981', // Default green, will be overridden by API if available
+          color: "#10B981", // Default green, will be overridden by API if available
         });
       }
 
@@ -128,16 +129,17 @@ export default function ResultsPanel({
       e.stopPropagation();
       toggleCategoryVisibility(categoryId);
     },
-    [toggleCategoryVisibility]
+    [toggleCategoryVisibility],
   );
 
   // Handle facility click
   const handleFacilityClick = useCallback(
     (feature: Feature) => {
       setSelectedFeature(feature);
+      setActiveRoute(null);
       onFacilityClick?.(feature);
     },
-    [onFacilityClick, setSelectedFeature]
+    [onFacilityClick, setSelectedFeature, setActiveRoute],
   );
 
   const navigate = useNavigate();
@@ -193,8 +195,8 @@ export default function ResultsPanel({
           </svg>
         </div>
         <p className="text-sm text-slate-300">
-          {t('results.searchPrompt', {
-            defaultValue: 'Search an address to get started',
+          {t("results.searchPrompt", {
+            defaultValue: "Search an address to get started",
           })}
         </p>
       </div>
@@ -230,7 +232,7 @@ export default function ResultsPanel({
           </svg>
         </div>
         <p className="text-sm text-slate-300">
-          {t('results.noFacilities', {
+          {t("results.noFacilities", {
             radius: radiusKm,
             defaultValue: `No facilities found within ${radiusKm}km. Try increasing your search radius.`,
           })}
@@ -245,12 +247,12 @@ export default function ResultsPanel({
             focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
             focus:ring-offset-slate-950
           `}
-          aria-label={t('results.increaseRadius', {
-            defaultValue: 'Increase search radius',
+          aria-label={t("results.increaseRadius", {
+            defaultValue: "Increase search radius",
           })}
         >
-          {t('results.increaseRadius', {
-            defaultValue: 'Increase Radius',
+          {t("results.increaseRadius", {
+            defaultValue: "Increase Radius",
           })}
         </button>
       </div>
