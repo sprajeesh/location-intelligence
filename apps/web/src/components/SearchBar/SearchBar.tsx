@@ -40,7 +40,6 @@ export function SearchBar({
         setIsDropdownOpen(false);
       }
     }
-
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
@@ -54,7 +53,6 @@ export function SearchBar({
       setHighlightedIndex(null);
       return;
     }
-
     setIsDropdownOpen(true);
     if (suggestions.length > 0) {
       setHighlightedIndex(null);
@@ -73,28 +71,23 @@ export function SearchBar({
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (!isDropdownOpen || suggestions.length === 0) {
-      if (e.key === "Enter") {
-        e.preventDefault();
-      }
+      if (e.key === "Enter") e.preventDefault();
       return;
     }
-
     switch (e.key) {
-      case "ArrowDown": {
+      case "ArrowDown":
         e.preventDefault();
         setHighlightedIndex((prev) =>
           prev === null ? 0 : Math.min(prev + 1, suggestions.length - 1),
         );
         break;
-      }
-      case "ArrowUp": {
+      case "ArrowUp":
         e.preventDefault();
         setHighlightedIndex((prev) =>
           prev === null ? suggestions.length - 1 : Math.max(prev - 1, 0),
         );
         break;
-      }
-      case "Enter": {
+      case "Enter":
         e.preventDefault();
         if (highlightedIndex !== null && suggestions[highlightedIndex]) {
           onSelectAddress(suggestions[highlightedIndex]);
@@ -102,13 +95,11 @@ export function SearchBar({
           setHighlightedIndex(null);
         }
         break;
-      }
-      case "Escape": {
+      case "Escape":
         e.preventDefault();
         setIsDropdownOpen(false);
         setHighlightedIndex(null);
         break;
-      }
       default:
         break;
     }
@@ -208,6 +199,7 @@ export function SearchBar({
                   aria-selected={highlightedIndex === index}
                 >
                   <button
+                    id={`search-option-${index}`}
                     onClick={() => {
                       onSelectAddress(suggestion);
                       setIsDropdownOpen(false);
@@ -241,7 +233,6 @@ export function SearchBar({
                         d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
                       />
                     </svg>
-
                     <div className="flex-1 min-w-0">
                       <p className="truncate font-medium">
                         {suggestion.displayName}

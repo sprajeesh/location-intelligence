@@ -2,18 +2,22 @@
 
 import { useCallback } from 'react';
 import ResultsPanel from './ResultsPanel';
+import { NavigateContainer } from '@/containers/NavigateContainer';
 import { useLocationStore } from '@/store';
 
 export function AnalysisContainer() {
-  const { radiusKm, setRadiusKm, selectedAddress } = useLocationStore();
+  const { radiusKm, setRadiusKm, selectedAddress, isNavigating } = useLocationStore();
 
   const handleIncreaseRadius = useCallback(() => {
     setRadiusKm(radiusKm + 5);
   }, [radiusKm, setRadiusKm]);
 
-  // Panel is invisible until the user selects an address
   if (!selectedAddress) {
     return null;
+  }
+
+  if (isNavigating) {
+    return <NavigateContainer />;
   }
 
   return (

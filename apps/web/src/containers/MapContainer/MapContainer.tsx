@@ -54,6 +54,7 @@ function MapContent() {
     activeRoute,
     navigatingFeatureId,
     selectedFeature,
+    routeMode,
   } = useLocationStore();
 
   const navigate = useNavigate();
@@ -209,11 +210,20 @@ function MapContent() {
         );
       })}
 
-      {/* Active route polyline */}
+      {/* Active route polyline — colour varies by transport mode */}
       {activeRoute && activeRoute.length >= 2 && (
         <Polyline
           positions={activeRoute}
-          pathOptions={{ color: "#3B82F6", weight: 4, opacity: 0.8 }}
+          pathOptions={{
+            color:
+              routeMode === "walking"
+                ? "#10B981"
+                : routeMode === "cycling"
+                  ? "#F59E0B"
+                  : "#3B82F6",
+            weight: 4,
+            opacity: 0.85,
+          }}
         />
       )}
 
