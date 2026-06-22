@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import React, { useEffect, useRef, useMemo, useId } from 'react';
+import React, { useEffect, useRef, useMemo, useId } from "react";
 import {
   MapContainer as LeafletMapContainer,
   TileLayer,
@@ -9,12 +9,12 @@ import {
   Polyline,
   useMap,
   ZoomControl,
-} from 'react-leaflet';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
-import { useLocationStore } from '@/store/index';
-import { useNavigate } from '@/hooks/useNavigate';
-import { useTranslations } from 'next-intl';
+} from "react-leaflet";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
+import { useLocationStore } from "@/store/index";
+import { useNavigate } from "@/hooks/useNavigate";
+import { useTranslations } from "next-intl";
 
 /**
  * Fix Leaflet icon issue in Next.js (dynamic imports break default icon URLs)
@@ -24,9 +24,10 @@ let leafletIconsFixed = false;
 const fixLeafletIcons = () => {
   if (leafletIconsFixed) return;
 
-  const iconRetinaUrl = require('leaflet/dist/images/marker-icon-2x.png').default;
-  const iconUrl = require('leaflet/dist/images/marker-icon.png').default;
-  const shadowUrl = require('leaflet/dist/images/marker-shadow.png').default;
+  const iconRetinaUrl =
+    require("leaflet/dist/images/marker-icon-2x.png").default;
+  const iconUrl = require("leaflet/dist/images/marker-icon.png").default;
+  const shadowUrl = require("leaflet/dist/images/marker-shadow.png").default;
 
   L.Icon.Default.mergeOptions({
     iconRetinaUrl,
@@ -93,7 +94,8 @@ function MapContent() {
     const bounds = L.latLngBounds(activeRoute);
     // Extend to include actual marker positions — OSRM snaps to roads so
     // route endpoints may not exactly match the marker coordinates.
-    const { selectedAddress: addr, selectedFeature: feat } = useLocationStore.getState();
+    const { selectedAddress: addr, selectedFeature: feat } =
+      useLocationStore.getState();
     if (addr) bounds.extend([addr.lat, addr.lon]);
     if (feat) bounds.extend([feat.lat, feat.lon]);
     if (bounds.isValid()) {
@@ -150,7 +152,7 @@ function MapContent() {
           return null;
         }
 
-        const color = categoryColorMap[feature.category] || '#6B7280';
+        const color = categoryColorMap[feature.category] || "#6B7280";
 
         return (
           <Marker
@@ -161,32 +163,43 @@ function MapContent() {
             <Popup>
               <div className="text-sm font-semibold mb-1">{feature.name}</div>
               <div className="text-xs text-gray-600 mb-2">
-                <strong>{t('map.markerPopup.distance')}:</strong>{' '}
+                <strong>{t("map.markerPopup.distance")}:</strong>{" "}
                 {feature.distanceKm.toFixed(2)} km
               </div>
               <button
                 onClick={() => navigate(feature)}
-                disabled={navigatingFeatureId === feature.id}
+                disabled={Boolean(navigatingFeatureId)}
                 style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  width: '28px',
-                  height: '28px',
-                  borderRadius: '6px',
-                  border: '1px solid #d1d5db',
-                  background: navigatingFeatureId === feature.id ? '#e5e7eb' : '#f9fafb',
-                  cursor: navigatingFeatureId === feature.id ? 'not-allowed' : 'pointer',
-                  color: '#374151',
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  width: "28px",
+                  height: "28px",
+                  borderRadius: "6px",
+                  border: "1px solid #d1d5db",
+                  background:
+                    navigatingFeatureId === feature.id
+                      ? "#e5e7eb"
+                      : "#f9fafb",
+                  cursor:
+                    navigatingFeatureId
+                      ? "not-allowed"
+                      : "pointer",
+                  color: "#374151",
                   padding: 0,
                 }}
                 title="Show route"
                 aria-label={`Navigate to ${feature.name}`}
               >
                 {navigatingFeatureId === feature.id ? (
-                  <span style={{ fontSize: '10px' }}>…</span>
+                  <span style={{ fontSize: "10px" }}>…</span>
                 ) : (
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style={{ width: '14px', height: '14px' }}>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    style={{ width: "14px", height: "14px" }}
+                  >
                     <path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" />
                   </svg>
                 )}
@@ -200,7 +213,7 @@ function MapContent() {
       {activeRoute && activeRoute.length >= 2 && (
         <Polyline
           positions={activeRoute}
-          pathOptions={{ color: '#3B82F6', weight: 4, opacity: 0.8 }}
+          pathOptions={{ color: "#3B82F6", weight: 4, opacity: 0.8 }}
         />
       )}
 
@@ -209,7 +222,9 @@ function MapContent() {
         <Marker
           key={`selected-${selectedFeature.id}`}
           position={[selectedFeature.lat, selectedFeature.lon]}
-          icon={createSelectedFeatureIcon(categoryColorMap[selectedFeature.category] || '#6B7280')}
+          icon={createSelectedFeatureIcon(
+            categoryColorMap[selectedFeature.category] || "#6B7280",
+          )}
           zIndexOffset={1000}
         />
       )}
@@ -307,7 +322,7 @@ function createMainLocationIcon(): L.DivIcon {
 
   return L.divIcon({
     html,
-    className: 'leaflet-main-marker',
+    className: "leaflet-main-marker",
     iconSize: [32, 32],
     iconAnchor: [16, 16],
     popupAnchor: [0, -16],
@@ -341,7 +356,7 @@ function createCategoryIcon(color: string): L.DivIcon {
 
   return L.divIcon({
     html,
-    className: 'leaflet-category-marker',
+    className: "leaflet-category-marker",
     iconSize: [28, 28],
     iconAnchor: [14, 14],
     popupAnchor: [0, -14],
@@ -369,7 +384,7 @@ function createSelectedFeatureIcon(color: string): L.DivIcon {
         border-radius: 50%;
         background: ${color}33;
         border: 2px solid ${color};
-        animation: pulse 1.5s ease-in-out infinite;
+        animation: leaflet-selected-pulse 1.5s ease-in-out infinite;
       "></div>
       <div style="
         position: relative;
@@ -396,7 +411,7 @@ function createSelectedFeatureIcon(color: string): L.DivIcon {
 
   return L.divIcon({
     html,
-    className: 'leaflet-selected-marker',
+    className: "leaflet-selected-marker",
     iconSize: [38, 38],
     iconAnchor: [19, 19],
     popupAnchor: [0, -19],
@@ -409,16 +424,16 @@ function createSelectedFeatureIcon(color: string): L.DivIcon {
  */
 function getCategoryColor(categoryId: string): string {
   const colorMap: Record<string, string> = {
-    schools: '#F59E0B',
-    bus_stops: '#14B8A6',
-    hospitals: '#EF4444',
-    universities: '#8B5CF6',
-    supermarkets: '#10B981',
-    parks: '#22C55E',
-    libraries: '#3B82F6',
-    pharmacies: '#EC4899',
+    schools: "#F59E0B",
+    bus_stops: "#14B8A6",
+    hospitals: "#EF4444",
+    universities: "#8B5CF6",
+    supermarkets: "#10B981",
+    parks: "#22C55E",
+    libraries: "#3B82F6",
+    pharmacies: "#EC4899",
   };
-  return colorMap[categoryId] || '#6B7280'; // Gray fallback
+  return colorMap[categoryId] || "#6B7280"; // Gray fallback
 }
 
 export default MapContainer;
