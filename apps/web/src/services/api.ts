@@ -131,3 +131,27 @@ export async function analyzeLocation(
 export async function getCategories(): Promise<Category[]> {
   return fetchJson<Category[]>("/categories", { method: "GET" });
 }
+
+export interface RouteResult {
+  coordinates: [number, number][];
+  fallback?: boolean;
+}
+
+/**
+ * Fetch a route between two points from OSRM via BFF proxy.
+ * Returns [lat, lon] pairs for Leaflet Polyline.
+ */
+export async function fetchRoute(
+  fromLat: number,
+  fromLon: number,
+  toLat: number,
+  toLon: number,
+): Promise<RouteResult> {
+  const params = new URLSearchParams({
+    fromLat: String(fromLat),
+    fromLon: String(fromLon),
+    toLat: String(toLat),
+    toLon: String(toLon),
+  });
+  return fetchJson<RouteResult>(`/route?${params}`, { method: "GET" });
+}

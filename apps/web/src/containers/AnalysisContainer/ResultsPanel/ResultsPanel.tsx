@@ -8,6 +8,7 @@ import LoadingSkeleton from '@/components/LoadingSkeleton';
 import FacilityItem from '@/components/FacilityItem';
 import ScoreDisplay from '@/components/ScoreDisplay';
 import CategoryGroup from '@/components/CategoryGroup';
+import { useNavigate } from '@/hooks/useNavigate';
 
 /**
  * ResultsPanel — Left side panel (desktop) or bottom sheet (mobile).
@@ -53,6 +54,7 @@ export default function ResultsPanel({
     radiusKm,
     visibleCategories,
     toggleCategoryVisibility,
+    setSelectedFeature,
   } = useLocationStore();
 
   // Local UI state for expanded/collapsed categories
@@ -132,10 +134,13 @@ export default function ResultsPanel({
   // Handle facility click
   const handleFacilityClick = useCallback(
     (feature: Feature) => {
+      setSelectedFeature(feature);
       onFacilityClick?.(feature);
     },
-    [onFacilityClick]
+    [onFacilityClick, setSelectedFeature]
   );
+
+  const navigate = useNavigate();
 
   // Handle increase radius
   const handleIncreaseRadius = useCallback(() => {
@@ -149,14 +154,11 @@ export default function ResultsPanel({
         className={`
           pointer-events-auto
           w-full h-full overflow-y-auto
-          bg-gray-900/80 backdrop-blur border border-gray-700 rounded-lg shadow-2xl p-4 sm:p-6
+          bg-slate-900/90 backdrop-blur border border-slate-700/60 rounded-lg shadow-2xl p-4 sm:p-6
           flex flex-col gap-4
           ${className}
         `}
       >
-        <h2 className="text-lg font-semibold text-slate-100">
-          {t('results.title')}
-        </h2>
         <LoadingSkeleton count={3} />
       </div>
     );
@@ -169,7 +171,7 @@ export default function ResultsPanel({
         className={`
           pointer-events-auto
           w-full h-full
-          bg-gray-900/80 backdrop-blur border border-gray-700 rounded-lg shadow-2xl p-4 sm:p-6
+          bg-slate-900/90 backdrop-blur border border-slate-700/60 rounded-lg shadow-2xl p-4 sm:p-6
           flex flex-col items-center justify-center gap-4
           text-center
           ${className}
@@ -206,7 +208,7 @@ export default function ResultsPanel({
         className={`
           pointer-events-auto
           w-full h-full
-          bg-gray-900/80 backdrop-blur border border-gray-700 rounded-lg shadow-2xl p-4 sm:p-6
+          bg-slate-900/90 backdrop-blur border border-slate-700/60 rounded-lg shadow-2xl p-4 sm:p-6
           flex flex-col items-center justify-center gap-4
           text-center
           ${className}
@@ -261,18 +263,11 @@ export default function ResultsPanel({
       className={`
         pointer-events-auto
         w-full h-full overflow-y-auto
-        bg-gray-900/80 backdrop-blur border border-gray-700 rounded-lg shadow-2xl
+        bg-slate-900/90 backdrop-blur border border-slate-700/60 rounded-lg shadow-2xl
         flex flex-col
         ${className}
       `}
     >
-      {/* Header */}
-      <div className="sticky top-0 z-10 bg-gray-900/80 backdrop-blur border-b border-gray-700 rounded-t-lg px-4 sm:px-6 py-3 sm:py-4">
-        <h2 className="text-lg font-semibold text-slate-100">
-          {t('results.title', { defaultValue: 'Results' })}
-        </h2>
-      </div>
-
       {/* Content */}
       <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-3 sm:py-4 space-y-3">
         {/* Category Sections */}
@@ -303,6 +298,7 @@ export default function ResultsPanel({
                         feature={feature}
                         markerColor={section.color}
                         onClick={() => handleFacilityClick(feature)}
+                        onNavigate={navigate}
                       />
                     ))}
                     {section.features.length > 3 && (

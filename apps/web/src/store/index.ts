@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { AddressResult, AnalyzeResponse } from '@/types/api'
+import type { AddressResult, AnalyzeResponse, Feature } from '@/types/api'
 
 /**
  * Global application state for the Location Intelligence web app.
@@ -22,6 +22,9 @@ export interface LocationIntelligenceStore {
   isAnalyzing: boolean
   visibleCategories: Set<string>
   toasts: Toast[]
+  activeRoute: [number, number][] | null
+  navigatingFeatureId: string | null
+  selectedFeature: Feature | null
 
   // Actions
   setSelectedAddress: (address: AddressResult | null) => void
@@ -34,6 +37,9 @@ export interface LocationIntelligenceStore {
   addToast: (toast: Omit<Toast, 'id'>) => void
   removeToast: (id: string) => void
   clearToasts: () => void
+  setActiveRoute: (route: [number, number][] | null) => void
+  setNavigatingFeatureId: (id: string | null) => void
+  setSelectedFeature: (feature: Feature | null) => void
 }
 
 export const useLocationStore = create<LocationIntelligenceStore>((set) => ({
@@ -45,6 +51,9 @@ export const useLocationStore = create<LocationIntelligenceStore>((set) => ({
   isAnalyzing: false,
   visibleCategories: new Set(),
   toasts: [],
+  activeRoute: null,
+  navigatingFeatureId: null,
+  selectedFeature: null,
 
   // Setters
   setSelectedAddress: (address) =>
@@ -93,4 +102,13 @@ export const useLocationStore = create<LocationIntelligenceStore>((set) => ({
 
   clearToasts: () =>
     set({ toasts: [] }),
+
+  setActiveRoute: (route) =>
+    set({ activeRoute: route }),
+
+  setNavigatingFeatureId: (id) =>
+    set({ navigatingFeatureId: id }),
+
+  setSelectedFeature: (feature) =>
+    set({ selectedFeature: feature }),
 }))

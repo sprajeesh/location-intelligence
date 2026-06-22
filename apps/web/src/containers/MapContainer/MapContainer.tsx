@@ -6,12 +6,14 @@ import {
   TileLayer,
   Marker,
   Popup,
+  Polyline,
   useMap,
   ZoomControl,
 } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useLocationStore } from '@/store/index';
+import { useNavigate } from '@/hooks/useNavigate';
 import { useTranslations } from 'next-intl';
 
 /**
@@ -48,8 +50,12 @@ function MapContent() {
     selectedAddress,
     analysisResult,
     visibleCategories,
+    activeRoute,
+    navigatingFeatureId,
+    selectedFeature,
   } = useLocationStore();
 
+  const navigate = useNavigate();
   const t = useTranslations();
 
   // Create category color map from analysis result
@@ -74,6 +80,26 @@ function MapContent() {
     if (!selectedAddress) return;
     map.flyTo([selectedAddress.lat, selectedAddress.lon], 14);
   }, [selectedAddress, map]);
+
+  // Pan to selected facility without changing zoom
+  useEffect(() => {
+    if (!selectedFeature) return;
+    map.panTo([selectedFeature.lat, selectedFeature.lon]);
+  }, [selectedFeature, map]);
+
+  // Fit map to active route when it changes
+  useEffect(() => {
+    if (!activeRoute || activeRoute.length < 2) return;
+    const bounds = L.latLngBounds(activeRoute);
+    // Extend to include actual marker positions — OSRM snaps to roads so
+    // route endpoints may not exactly match the marker coordinates.
+    const { selectedAddress: addr, selectedFeature: feat } = useLocationStore.getState();
+    if (addr) bounds.extend([addr.lat, addr.lon]);
+    if (feat) bounds.extend([feat.lat, feat.lon]);
+    if (bounds.isValid()) {
+      map.flyToBounds(bounds, { padding: [60, 60] });
+    }
+  }, [activeRoute, map]);
 
   // Fit map bounds to all features when analysis result changes
   useEffect(() => {
@@ -120,7 +146,6 @@ function MapContent() {
 
       {/* Category markers - show after analysis */}
       {analysisResult?.features.map((feature) => {
-        // Only render if category is visible
         if (!visibleCategories.has(feature.category)) {
           return null;
         }
@@ -134,21 +159,60 @@ function MapContent() {
             icon={createCategoryIcon(color)}
           >
             <Popup>
-              <div className="text-sm font-semibold">{feature.name}</div>
-              <div className="text-xs text-gray-600">
-                <div>
-                  <strong>{t('map.markerPopup.category')}:</strong>{' '}
-                  {feature.category}
-                </div>
-                <div>
-                  <strong>{t('map.markerPopup.distance')}:</strong>{' '}
-                  {feature.distanceKm.toFixed(2)} km
-                </div>
+              <div className="text-sm font-semibold mb-1">{feature.name}</div>
+              <div className="text-xs text-gray-600 mb-2">
+                <strong>{t('map.markerPopup.distance')}:</strong>{' '}
+                {feature.distanceKm.toFixed(2)} km
               </div>
+              <button
+                onClick={() => navigate(feature)}
+                disabled={navigatingFeatureId === feature.id}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '28px',
+                  height: '28px',
+                  borderRadius: '6px',
+                  border: '1px solid #d1d5db',
+                  background: navigatingFeatureId === feature.id ? '#e5e7eb' : '#f9fafb',
+                  cursor: navigatingFeatureId === feature.id ? 'not-allowed' : 'pointer',
+                  color: '#374151',
+                  padding: 0,
+                }}
+                title="Show route"
+                aria-label={`Navigate to ${feature.name}`}
+              >
+                {navigatingFeatureId === feature.id ? (
+                  <span style={{ fontSize: '10px' }}>…</span>
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style={{ width: '14px', height: '14px' }}>
+                    <path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" />
+                  </svg>
+                )}
+              </button>
             </Popup>
           </Marker>
         );
       })}
+
+      {/* Active route polyline */}
+      {activeRoute && activeRoute.length >= 2 && (
+        <Polyline
+          positions={activeRoute}
+          pathOptions={{ color: '#3B82F6', weight: 4, opacity: 0.8 }}
+        />
+      )}
+
+      {/* Highlighted selected facility marker — rendered on top of category markers */}
+      {selectedFeature && (
+        <Marker
+          key={`selected-${selectedFeature.id}`}
+          position={[selectedFeature.lat, selectedFeature.lon]}
+          icon={createSelectedFeatureIcon(categoryColorMap[selectedFeature.category] || '#6B7280')}
+          zIndexOffset={1000}
+        />
+      )}
     </>
   );
 }
@@ -281,6 +345,61 @@ function createCategoryIcon(color: string): L.DivIcon {
     iconSize: [28, 28],
     iconAnchor: [14, 14],
     popupAnchor: [0, -14],
+  });
+}
+
+/**
+ * Create a highlighted icon for the currently selected facility.
+ * Renders a larger version with a glowing ring to distinguish it from regular markers.
+ */
+function createSelectedFeatureIcon(color: string): L.DivIcon {
+  const html = `
+    <div style="
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 38px;
+      height: 38px;
+    ">
+      <div style="
+        position: absolute;
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        background: ${color}33;
+        border: 2px solid ${color};
+        animation: pulse 1.5s ease-in-out infinite;
+      "></div>
+      <div style="
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        background: ${color};
+        border: 3px solid white;
+        border-radius: 50%;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+        z-index: 1;
+      ">
+        <div style="
+          width: 6px;
+          height: 6px;
+          background: white;
+          border-radius: 50%;
+        "></div>
+      </div>
+    </div>
+  `;
+
+  return L.divIcon({
+    html,
+    className: 'leaflet-selected-marker',
+    iconSize: [38, 38],
+    iconAnchor: [19, 19],
+    popupAnchor: [0, -19],
   });
 }
 

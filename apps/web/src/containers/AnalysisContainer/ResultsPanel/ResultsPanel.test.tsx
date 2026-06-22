@@ -123,6 +123,12 @@ const makeStoreState = (overrides = {}) => ({
   addToast: jest.fn(),
   removeToast: jest.fn(),
   clearToasts: jest.fn(),
+  activeRoute: null,
+  navigatingFeatureId: null,
+  selectedFeature: null,
+  setActiveRoute: jest.fn(),
+  setNavigatingFeatureId: jest.fn(),
+  setSelectedFeature: jest.fn(),
   ...overrides,
 });
 
