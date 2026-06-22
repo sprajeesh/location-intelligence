@@ -27,9 +27,8 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Floating results panel: top-left, below the search bar */}
-      {/* AnalysisContainer handles its own visibility via selectedAddress */}
-      <div className="absolute top-[4.5rem] left-4 z-10 w-80 max-w-[calc(100vw-2rem)] max-h-[calc(100vh-7rem)] pointer-events-auto">
+      {/* Floating results panel: top-left, below the search bar — matches search bar width */}
+      <div className="absolute top-[4.5rem] left-4 z-10 w-[calc(100vw-2rem)] max-w-md max-h-[calc(100vh-7rem)] pointer-events-auto">
         <AnalysisContainer />
       </div>
     </div>
