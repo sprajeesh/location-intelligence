@@ -59,3 +59,25 @@ export interface Category {
   implemented: boolean
   color: string // hex color code for map markers
 }
+
+export type RouteTransportMode = 'driving' | 'walking' | 'cycling'
+
+export interface RouteStep {
+  instruction: string
+  name: string
+  distanceM: number
+  durationS: number
+}
+
+export interface RouteOption {
+  coordinates: [number, number][]
+  durationS: number
+  distanceM: number
+  summary: string
+  steps: RouteStep[]
+}
+
+export interface RouteResult {
+  routes: RouteOption[]
+  fallback?: boolean
+}

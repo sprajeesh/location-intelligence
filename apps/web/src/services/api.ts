@@ -4,7 +4,13 @@
  * which in turn forward requests to the FastAPI backend.
  */
 
-import { AddressResult, AnalyzeResponse, Category } from "@/types/api";
+import {
+  AddressResult,
+  AnalyzeResponse,
+  Category,
+  RouteResult,
+  RouteTransportMode,
+} from "@/types/api";
 
 /**
  * Base URL for API calls. Uses NEXT_PUBLIC_API_URL if set,
@@ -132,26 +138,23 @@ export async function getCategories(): Promise<Category[]> {
   return fetchJson<Category[]>("/categories", { method: "GET" });
 }
 
-export interface RouteResult {
-  coordinates: [number, number][];
-  fallback?: boolean;
-}
-
 /**
  * Fetch a route between two points from OSRM via BFF proxy.
- * Returns [lat, lon] pairs for Leaflet Polyline.
+ * Returns up to 3 route alternatives with turn-by-turn steps.
  */
 export async function fetchRoute(
   fromLat: number,
   fromLon: number,
   toLat: number,
   toLon: number,
+  mode: RouteTransportMode = "driving",
 ): Promise<RouteResult> {
   const params = new URLSearchParams({
     fromLat: String(fromLat),
     fromLon: String(fromLon),
     toLat: String(toLat),
     toLon: String(toLon),
+    mode,
   });
   return fetchJson<RouteResult>(`/route?${params}`, { method: "GET" });
 }
