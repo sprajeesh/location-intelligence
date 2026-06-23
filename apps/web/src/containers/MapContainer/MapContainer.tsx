@@ -52,7 +52,6 @@ function MapContent() {
     analysisResult,
     visibleCategories,
     activeRoute,
-    navigatingFeatureId,
     selectedFeature,
     routeMode,
   } = useLocationStore();
@@ -169,7 +168,6 @@ function MapContent() {
               </div>
               <button
                 onClick={() => navigate(feature)}
-                disabled={Boolean(navigatingFeatureId)}
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -178,32 +176,22 @@ function MapContent() {
                   height: "28px",
                   borderRadius: "6px",
                   border: "1px solid #d1d5db",
-                  background:
-                    navigatingFeatureId === feature.id
-                      ? "#e5e7eb"
-                      : "#f9fafb",
-                  cursor:
-                    navigatingFeatureId
-                      ? "not-allowed"
-                      : "pointer",
+                  background: "#f9fafb",
+                  cursor: "pointer",
                   color: "#374151",
                   padding: 0,
                 }}
                 title="Show route"
                 aria-label={`Navigate to ${feature.name}`}
               >
-                {navigatingFeatureId === feature.id ? (
-                  <span style={{ fontSize: "10px" }}>…</span>
-                ) : (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                    style={{ width: "14px", height: "14px" }}
-                  >
-                    <path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" />
-                  </svg>
-                )}
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  style={{ width: "14px", height: "14px" }}
+                >
+                  <path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" />
+                </svg>
               </button>
             </Popup>
           </Marker>

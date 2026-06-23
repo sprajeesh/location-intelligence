@@ -4,11 +4,6 @@ import { useCallback } from "react";
 import { useLocationStore } from "@/store/index";
 import type { Feature } from "@/types/api";
 
-/**
- * Returns a navigate handler that enters navigation mode for the given facility.
- * Seeds navigateFrom from the current selectedAddress and navigateTo from the
- * facility's coordinates. Route fetching is handled by NavigateContainer.
- */
 export function useNavigate() {
   const {
     selectedAddress,
@@ -16,7 +11,6 @@ export function useNavigate() {
     setSelectedFeature,
     setRouteMode,
     setActiveRoute,
-    setNavigatingFeatureId,
     setNavigateFrom,
     setNavigateTo,
   } = useLocationStore();
@@ -27,7 +21,6 @@ export function useNavigate() {
       setIsNavigating(true);
       setRouteMode("driving");
       setActiveRoute(null);
-      setNavigatingFeatureId(null);
       setNavigateFrom(selectedAddress);
       setNavigateTo({
         displayName: feature.name,
@@ -41,7 +34,6 @@ export function useNavigate() {
       setSelectedFeature,
       setRouteMode,
       setActiveRoute,
-      setNavigatingFeatureId,
       setNavigateFrom,
       setNavigateTo,
     ],
