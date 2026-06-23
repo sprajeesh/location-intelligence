@@ -31,7 +31,7 @@ jest.mock('@/components/RoutePanel', () => ({
       <button data-testid="change-mode" onClick={() => onModeChange('walking')}>
         change
       </button>
-      {routes?.map((r, i) => <div key={i} data-testid={`route-${i}`} />)}
+      {routes?.map((_, i) => <div key={i} data-testid={`route-${i}`} />)}
     </div>
   ),
 }));
@@ -209,7 +209,7 @@ describe('NavigateContainer', () => {
 
       render(<NavigateContainer />);
       // fastest is durationS: 150 at index 1
-      expect(setActiveRoute).toHaveBeenCalledWith(routes[1].coordinates);
+      expect(setActiveRoute).toHaveBeenCalledWith(routes[1]!.coordinates);
     });
 
     it('does not call setActiveRoute when data is null', () => {

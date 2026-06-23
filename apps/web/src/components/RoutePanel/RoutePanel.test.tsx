@@ -117,7 +117,7 @@ describe('RoutePanel', () => {
       render(<RoutePanel {...defaultProps} routes={routes} />);
       const expandedBadges = screen.getAllByTestId('expanded-badge');
       expect(expandedBadges).toHaveLength(1);
-      expect(screen.getByTestId('route-card-300')).toContainElement(expandedBadges[0]);
+      expect(screen.getByTestId('route-card-300')).toContainElement(expandedBadges[0] ?? null);
     });
 
     it('clicking a toggle expands a different card', async () => {
