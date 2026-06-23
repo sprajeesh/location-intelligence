@@ -15,7 +15,7 @@ import { routing } from "./i18n/routing";
  * - /mi/* → Māori locale
  * - /* → Defaults to 'en'
  */
-export default createMiddleware(routing);
+export const proxy = createMiddleware(routing);
 
 /**
  * Config: specify which routes the middleware applies to
