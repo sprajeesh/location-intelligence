@@ -150,21 +150,21 @@ Response:
 
 ---
 
-## Frontend — COMPLETE (`apps/web/`)
+## Frontend — (`apps/web/`)
 
 ### Tech stack
 
-| Layer           | Choice                                                      |
-| --------------- | ----------------------------------------------------------- |
-| Framework       | Next.js 16.2.9 (Active LTS, App Router)                    |
-| Language        | TypeScript + React 19.0.0                                   |
-| Map             | React Leaflet 4 + Leaflet 1.9 + OpenStreetMap tiles         |
-| Server state    | TanStack React Query v5.101.1                               |
-| UI state        | Zustand v5                                                  |
-| i18n            | next-intl v3 (URL-based: `/en/...`, `/mi/...`)              |
-| Testing         | Jest 29 + @testing-library/react v16.3.2                    |
-| Linting         | ESLint 9.20 + eslint-config-next 16.2.9                     |
-| Package manager | pnpm                                                        |
+| Layer           | Choice                                              |
+| --------------- | --------------------------------------------------- |
+| Framework       | Next.js 16.2.9 (Active LTS, App Router)             |
+| Language        | TypeScript + React 19.0.0                           |
+| Map             | React Leaflet 4 + Leaflet 1.9 + OpenStreetMap tiles |
+| Server state    | TanStack React Query v5.101.1                       |
+| UI state        | Zustand v5                                          |
+| i18n            | next-intl v3 (URL-based: `/en/...`, `/mi/...`)      |
+| Testing         | Jest 29 + @testing-library/react v16.3.2            |
+| Linting         | ESLint 9.20 + eslint-config-next 16.2.9             |
+| Package manager | pnpm                                                |
 
 ### Directory structure to create
 
@@ -474,6 +474,6 @@ NEXT_PUBLIC_API_URL=http://localhost:8000
 
 ### Changelog
 
-| Date | Branch | Description |
-| ---------- | ------------------------- | ----------- |
+| Date       | Branch                | Description                                                                                                                                             |
+| ---------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 2026-06-23 | `upgrade/next-16-lts` | Upgraded Next.js 15 → 16.2.9 (Active LTS); migrated `middleware.ts` → `proxy.ts`; updated peer dependencies; resolved all TypeScript strict-mode errors |
