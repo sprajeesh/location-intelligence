@@ -178,9 +178,9 @@ export async function GET(request: NextRequest) {
 
   if (!routes) {
     try {
-      const publicBase = PUBLIC_OSRM_BASE[profile] ?? PUBLIC_OSRM_BASE.car;
+      const publicBase = PUBLIC_OSRM_BASE[profile] ?? "https://router.project-osrm.org";
       routes = await fetchOsrmRoutes(publicBase, profile, coords);
-      fallback = mode !== "driving" ? false : true;
+      fallback = mode === "driving";
     } catch {
       // Both failed
     }

@@ -6,13 +6,6 @@ import { useAddressSearch } from "@/hooks/useAddressSearch";
 import NavigateSearchBar from "@/components/NavigateSearchBar";
 import type { AddressResult } from "@/types/api";
 
-/**
- * NavigateSearchContainer
- *
- * Manages the two editable address fields shown when navigation mode is active.
- * Runs independent useAddressSearch instances for the From and To fields.
- * On selection, updates the store so NavigateContainer re-fetches the route.
- */
 export function NavigateSearchContainer() {
   const { navigateFrom, navigateTo, setNavigateFrom, setNavigateTo, exitNavigation } =
     useLocationStore();

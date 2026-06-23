@@ -6,14 +6,6 @@ import { useRoute } from "@/hooks/useRoute";
 import RoutePanel from "@/components/RoutePanel";
 import type { RouteTransportMode } from "@/types/api";
 
-/**
- * NavigateContainer
- *
- * Fetches route alternatives whenever the origin, destination, or transport mode
- * changes. Uses navigateFrom / navigateTo from the store so that edits made via
- * NavigateSearchContainer immediately trigger a re-fetch. Syncs the fastest
- * route's coordinates into activeRoute for the MapContainer polyline.
- */
 export function NavigateContainer() {
   const {
     navigateFrom,
