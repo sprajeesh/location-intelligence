@@ -303,7 +303,7 @@ describe('useToast hook', () => {
     render(<TestComponent />);
 
     const state = useLocationStore.getState();
-    expect(state.toasts[0].type).toBe('error');
+    expect(state.toasts[0]?.type).toBe('error');
   });
 
   it('generates unique IDs for each toast', () => {
@@ -322,6 +322,6 @@ describe('useToast hook', () => {
 
     const state = useLocationStore.getState();
     expect(state.toasts).toHaveLength(2);
-    expect(state.toasts[0].id).not.toBe(state.toasts[1].id);
+    expect(state.toasts[0]?.id).not.toBe(state.toasts[1]?.id);
   });
 });
