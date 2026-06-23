@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import { useTranslations } from "next-intl";
 import type { RouteOption } from "@/types/api";
 import TurnByTurnStep from "@/components/TurnByTurnStep";

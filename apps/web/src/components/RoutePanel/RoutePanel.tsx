@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import type { RouteOption, RouteTransportMode } from "@/types/api";
 import RouteModeSelector from "@/components/RouteModeSelector";
 import RouteOptionCard from "@/components/RouteOptionCard";

@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 
 /**
  * LoadingSkeleton — Placeholder skeletons while analyzing.
