@@ -13,7 +13,7 @@ A production-ready MVP for analyzing property locations in New Zealand. Enter an
 - Docker & Docker Compose
 - pnpm 9.15+
 - Python 3.12 + uv
-- Node.js 20+ (for Next.js)
+- Node.js 22+ (required for Next.js 16)
 - A pre-downloaded LINZ NZ addresses ZIP at `docker/data/lds-nz-addresses-CSV.zip` (see [PostGIS Address Data](#postgis-address-data))
 
 ### Setup
@@ -132,7 +132,7 @@ curl "http://localhost:5000/route/v1/driving/174.76,-36.85;174.77,-36.84?steps=f
 
 | Layer        | Tech                               | Purpose                                                  |
 | ------------ | ---------------------------------- | -------------------------------------------------------- |
-| **Frontend** | Next.js 15 + React 19 + TypeScript | UI, address search, map interaction, i18n                |
+| **Frontend** | Next.js 16 (Active LTS) + React 19 + TypeScript | UI, address search, map interaction, i18n |
 | **BFF**      | Next.js API routes                 | Thin proxy to FastAPI, no auth/caching for MVP           |
 | **Backend**  | FastAPI + Python 3.12              | Orchestration, external service calls, scoring           |
 | **Map**      | React Leaflet + OpenStreetMap      | Visualization                                            |
@@ -159,7 +159,7 @@ location-intelligence/
 │   │   ├── tests/            # pytest suite (45 tests)
 │   │   ├── pyproject.toml
 │   │   └── README.md
-│   └── web/                  # Next.js frontend (not yet built)
+│   └── web/                  # Next.js 16.2.9 frontend
 │       ├── src/
 │       │   ├── app/          # App Router pages + layouts
 │       │   ├── components/   # Reusable UI components
@@ -338,7 +338,7 @@ uv run pytest                      # All tests
 uv run pytest -xvs                 # Verbose
 uv run ruff check app/             # Linting
 
-# Frontend (when built)
+# Frontend
 cd apps/web
 pnpm test
 pnpm lint

@@ -14,7 +14,7 @@ location score. Target users: property buyers, real estate agents, renters in NZ
 /
 ├── apps/
 │   ├── api/          # FastAPI backend — DONE
-│   └── web/          # Next.js frontend — NOT YET BUILT
+│   └── web/          # Next.js 16.2.9 frontend — BUILT
 ├── packages/         # Reserved
 ├── scripts/
 │   └── setup-osrm.sh
@@ -150,20 +150,20 @@ Response:
 
 ---
 
-## Frontend — NOT YET BUILT (`apps/web/`)
+## Frontend — (`apps/web/`)
 
 ### Tech stack
 
 | Layer           | Choice                                              |
 | --------------- | --------------------------------------------------- |
-| Framework       | Next.js 15 (App Router)                             |
-| Language        | TypeScript + React 19                               |
+| Framework       | Next.js 16.2.9 (Active LTS, App Router)             |
+| Language        | TypeScript + React 19.0.0                           |
 | Map             | React Leaflet 4 + Leaflet 1.9 + OpenStreetMap tiles |
-| Server state    | TanStack React Query v5                             |
+| Server state    | TanStack React Query v5.101.1                       |
 | UI state        | Zustand v5                                          |
 | i18n            | next-intl v3 (URL-based: `/en/...`, `/mi/...`)      |
-| Testing         | Jest 29 + @testing-library/react                    |
-| Linting         | ESLint 9 + eslint-config-next                       |
+| Testing         | Jest 29 + @testing-library/react v16.3.2            |
+| Linting         | ESLint 9.20 + eslint-config-next 16.2.9             |
 | Package manager | pnpm                                                |
 
 ### Directory structure to create
@@ -177,7 +177,7 @@ apps/web/
 ├── jest.config.ts
 ├── jest.setup.ts
 ├── src/
-│   ├── middleware.ts              # next-intl routing middleware
+│   ├── proxy.ts               # next-intl routing proxy (Next.js 16 convention)
 │   ├── app/
 │   │   ├── layout.tsx             # Root layout (minimal, for next-intl)
 │   │   ├── api/
@@ -470,4 +470,10 @@ NEXT_PUBLIC_API_URL=http://localhost:8000
 
 - Remote: `git@github.com:sprajeesh/location-intelligence.git`
 - Default branch: `main`
-- Committed so far: monorepo scaffolding + full backend (7 commits)
+- Committed so far: monorepo scaffolding + full backend + full frontend (Next.js 16)
+
+### Changelog
+
+| Date       | Branch                | Description                                                                                                                                             |
+| ---------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-06-23 | `upgrade/next-16-lts` | Upgraded Next.js 15 → 16.2.9 (Active LTS); migrated `middleware.ts` → `proxy.ts`; updated peer dependencies; resolved all TypeScript strict-mode errors |

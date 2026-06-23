@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef } from "react";
+import { useRef } from "react";
 import { useTranslations } from "next-intl";
 import type { AddressResult } from "@/types/api";
 import { AddressSearchField } from "./AddressSearchField";

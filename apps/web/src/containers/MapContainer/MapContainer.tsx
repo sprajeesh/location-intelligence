@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useMemo, useId } from "react";
+import { useEffect, useRef, useMemo, useId } from "react";
 import {
   MapContainer as LeafletMapContainer,
   TileLayer,

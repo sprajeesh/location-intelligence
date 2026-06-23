@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { SearchBar } from './SearchBar';
@@ -368,7 +367,7 @@ describe('SearchBar', () => {
 
   describe('Click Outside Behavior', () => {
     it('closes dropdown when clicking outside', async () => {
-      const { container } = render(
+      render(
         <SearchBar
           {...defaultProps}
           query="Main"

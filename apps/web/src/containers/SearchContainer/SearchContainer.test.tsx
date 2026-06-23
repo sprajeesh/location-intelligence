@@ -1,5 +1,4 @@
-import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { SearchContainer } from './SearchContainer';
 import type { AddressResult } from '@/types/api';
@@ -311,14 +310,15 @@ describe('SearchContainer', () => {
       });
 
       render(<SearchContainer />);
+      const firstSuggestion = mockSuggestions[0]!;
       const suggestionButton = screen.getByTestId(
-        `suggestion-${mockSuggestions[0].displayName}`
+        `suggestion-${firstSuggestion.displayName}`
       );
 
       await userEvent.click(suggestionButton);
 
-      expect(setSelectedAddress).toHaveBeenCalledWith(mockSuggestions[0]);
-      expect(setQuery).toHaveBeenCalledWith(mockSuggestions[0].displayName);
+      expect(setSelectedAddress).toHaveBeenCalledWith(firstSuggestion);
+      expect(setQuery).toHaveBeenCalledWith(firstSuggestion.displayName);
     });
 
     it('calls both setQuery and setSelectedAddress on onClear', async () => {
@@ -440,13 +440,14 @@ describe('SearchContainer', () => {
 
       render(<SearchContainer />);
 
+      const firstSuggestion = mockSuggestions[0]!;
       const suggestionButton = screen.getByTestId(
-        `suggestion-${mockSuggestions[0].displayName}`
+        `suggestion-${firstSuggestion.displayName}`
       );
       await userEvent.click(suggestionButton);
 
-      expect(setSelectedAddress).toHaveBeenCalledWith(mockSuggestions[0]);
-      expect(setQuery).toHaveBeenCalledWith(mockSuggestions[0].displayName);
+      expect(setSelectedAddress).toHaveBeenCalledWith(firstSuggestion);
+      expect(setQuery).toHaveBeenCalledWith(firstSuggestion.displayName);
     });
   });
 });

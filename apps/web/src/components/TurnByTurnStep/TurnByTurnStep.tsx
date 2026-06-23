@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import type { RouteStep } from "@/types/api";
 import { formatDistance } from "@/utils/routeFormat";
 
