@@ -46,3 +46,4 @@ htmlcov/
 
 # Misc
 *.log
+*.tsbuildinfo
