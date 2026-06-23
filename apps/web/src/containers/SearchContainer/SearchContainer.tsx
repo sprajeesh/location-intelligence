@@ -9,10 +9,9 @@ import type { AddressResult } from "@/types/api";
 
 export function SearchContainer() {
   const { query, setQuery, suggestions, isLoading, error } = useAddressSearch();
-  const { selectedAddress, setSelectedAddress, radiusKm, distanceMode } = useLocationStore();
+  const { selectedAddress, setSelectedAddress, radiusKm, distanceMode } =
+    useLocationStore();
   const { mutate: analyze } = useAnalyze();
-
-  const displayValue = query;
 
   const handleQueryChange = (value: string) => {
     setQuery(value);
@@ -21,20 +20,21 @@ export function SearchContainer() {
     }
   };
 
-  const handleSelectAddress = useCallback((address: AddressResult) => {
-    setSelectedAddress(address);
-    setQuery(address.displayName);
-
-    // Trigger analysis with the selected address
-    analyze({
-      address: address.displayName,
-      lat: address.lat,
-      lon: address.lon,
-      radiusKm,
-      categories: ['schools', 'bus_stops'],
-      distanceMode,
-    });
-  }, [setSelectedAddress, setQuery, analyze, radiusKm, distanceMode]);
+  const handleSelectAddress = useCallback(
+    (address: AddressResult) => {
+      setSelectedAddress(address);
+      setQuery(address.displayName);
+      analyze({
+        address: address.displayName,
+        lat: address.lat,
+        lon: address.lon,
+        radiusKm,
+        categories: ["schools", "bus_stops"],
+        distanceMode,
+      });
+    },
+    [setSelectedAddress, setQuery, analyze, radiusKm, distanceMode],
+  );
 
   const handleClear = () => {
     setQuery("");
@@ -43,7 +43,7 @@ export function SearchContainer() {
 
   return (
     <SearchBar
-      query={displayValue}
+      query={query}
       suggestions={suggestions}
       isLoading={isLoading}
       error={error}

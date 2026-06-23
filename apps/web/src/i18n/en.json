@@ -53,5 +53,16 @@
   "nav": {
     "title": "Location Intelligence",
     "language": "Language"
+  },
+  "navigate": {
+    "from": "From",
+    "to": "To",
+    "back": "Back",
+    "driving": "Driving",
+    "walking": "Walking",
+    "cycling": "Cycling",
+    "arrives": "Arrives",
+    "via": "via",
+    "fastest": "Fastest"
   }
 }

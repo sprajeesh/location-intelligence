@@ -1,35 +1,46 @@
 'use client';
 
 import { SearchContainer } from '@/containers/SearchContainer';
+import { NavigateSearchContainer } from '@/containers/NavigateSearchContainer';
 import { AnalysisContainer } from '@/containers/AnalysisContainer';
 import { RadiusSelectorContainer } from '@/containers/RadiusSelectorContainer';
 import { MapContainerDynamic } from '@/containers/MapContainer';
 import DistanceToggle from '@/components/DistanceToggle';
+import { useLocationStore } from '@/store';
 
 export default function HomePage() {
+  const { isNavigating } = useLocationStore();
+
   return (
     <div className="relative w-full h-screen overflow-hidden">
-      {/* Map fills the entire viewport — rendered first so it is the base layer */}
+      {/* Map fills the entire viewport */}
       <div className="absolute inset-0 z-0">
         <MapContainerDynamic />
       </div>
 
-      {/* Floating top bar: search | radius | distance */}
-      <div className="absolute top-0 left-0 right-0 z-10 p-4 flex items-center gap-4 pointer-events-none">
-        <div className="flex-1 max-w-md pointer-events-auto">
-          <SearchContainer />
-        </div>
-        <div className="flex-shrink-0 pointer-events-auto">
-          <RadiusSelectorContainer />
-        </div>
-        <div className="flex-shrink-0 pointer-events-auto">
-          <DistanceToggle />
-        </div>
-      </div>
+      {/* Overlay */}
+      <div className="absolute inset-0 z-10 p-4 flex items-start gap-3 pointer-events-none overflow-hidden">
 
-      {/* Floating results panel: top-left, below the search bar — matches search bar width */}
-      <div className="absolute top-[4.5rem] left-4 z-10 w-[calc(100vw-2rem)] max-w-md max-h-[calc(100vh-7rem)] pointer-events-auto">
-        <AnalysisContainer />
+        {/* Left column: search bar stacked above the results / route panel */}
+        <div className="flex flex-col gap-2 flex-1 max-w-md h-full min-h-0">
+          {/* Search bar — swaps between single-field and two-field navigate bar */}
+          <div className="pointer-events-auto flex-shrink-0">
+            {isNavigating ? <NavigateSearchContainer /> : <SearchContainer />}
+          </div>
+
+          {/* Results / route panel — fills remaining height */}
+          <div className="pointer-events-auto flex-1 min-h-0 overflow-hidden">
+            <AnalysisContainer />
+          </div>
+        </div>
+
+        {/* Right-side controls — hidden during navigation */}
+        {!isNavigating && (
+          <div className="flex items-start gap-3 flex-shrink-0 pointer-events-auto">
+            <RadiusSelectorContainer />
+            <DistanceToggle />
+          </div>
+        )}
       </div>
     </div>
   );

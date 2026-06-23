@@ -53,5 +53,16 @@
   "nav": {
     "title": "[MI] nav.title",
     "language": "[MI] nav.language"
+  },
+  "navigate": {
+    "from": "[MI] navigate.from",
+    "to": "[MI] navigate.to",
+    "back": "[MI] navigate.back",
+    "driving": "[MI] navigate.driving",
+    "walking": "[MI] navigate.walking",
+    "cycling": "[MI] navigate.cycling",
+    "arrives": "[MI] navigate.arrives",
+    "via": "[MI] navigate.via",
+    "fastest": "[MI] navigate.fastest"
   }
 }

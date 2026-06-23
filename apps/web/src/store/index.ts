@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { AddressResult, AnalyzeResponse, Feature } from '@/types/api'
+import type { AddressResult, AnalyzeResponse, Feature, RouteTransportMode } from '@/types/api'
 
 /**
  * Global application state for the Location Intelligence web app.
@@ -23,8 +23,11 @@ export interface LocationIntelligenceStore {
   visibleCategories: Set<string>
   toasts: Toast[]
   activeRoute: [number, number][] | null
-  navigatingFeatureId: string | null
   selectedFeature: Feature | null
+  isNavigating: boolean
+  routeMode: RouteTransportMode
+  navigateFrom: AddressResult | null
+  navigateTo: AddressResult | null
 
   // Actions
   setSelectedAddress: (address: AddressResult | null) => void
@@ -38,8 +41,12 @@ export interface LocationIntelligenceStore {
   removeToast: (id: string) => void
   clearToasts: () => void
   setActiveRoute: (route: [number, number][] | null) => void
-  setNavigatingFeatureId: (id: string | null) => void
   setSelectedFeature: (feature: Feature | null) => void
+  setIsNavigating: (isNavigating: boolean) => void
+  setRouteMode: (mode: RouteTransportMode) => void
+  setNavigateFrom: (address: AddressResult | null) => void
+  setNavigateTo: (address: AddressResult | null) => void
+  exitNavigation: () => void
 }
 
 export const useLocationStore = create<LocationIntelligenceStore>((set) => ({
@@ -52,8 +59,11 @@ export const useLocationStore = create<LocationIntelligenceStore>((set) => ({
   visibleCategories: new Set(),
   toasts: [],
   activeRoute: null,
-  navigatingFeatureId: null,
   selectedFeature: null,
+  isNavigating: false,
+  routeMode: 'driving' as RouteTransportMode,
+  navigateFrom: null,
+  navigateTo: null,
 
   // Setters
   setSelectedAddress: (address) =>
@@ -106,9 +116,28 @@ export const useLocationStore = create<LocationIntelligenceStore>((set) => ({
   setActiveRoute: (route) =>
     set({ activeRoute: route }),
 
-  setNavigatingFeatureId: (id) =>
-    set({ navigatingFeatureId: id }),
-
   setSelectedFeature: (feature) =>
     set({ selectedFeature: feature }),
+
+  setIsNavigating: (isNavigating) =>
+    set({ isNavigating }),
+
+  setRouteMode: (mode) =>
+    set({ routeMode: mode }),
+
+  setNavigateFrom: (address) =>
+    set({ navigateFrom: address }),
+
+  setNavigateTo: (address) =>
+    set({ navigateTo: address }),
+
+  exitNavigation: () =>
+    set({
+      isNavigating: false,
+      selectedFeature: null,
+      activeRoute: null,
+      routeMode: 'driving',
+      navigateFrom: null,
+      navigateTo: null,
+    }),
 }))
