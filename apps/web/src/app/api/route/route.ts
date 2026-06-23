@@ -2,7 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import type { RouteOption, RouteStep } from "@/types/api";
 
 const LOCAL_OSRM = process.env.OSRM_URL || "http://localhost:5000";
-const PUBLIC_OSRM = "https://router.project-osrm.org";
+// Each profile runs on its own public OSRM host — router.project-osrm.org is car-only
+const PUBLIC_OSRM_BASE: Record<string, string> = {
+  car:  "https://router.project-osrm.org",
+  foot: "https://routing.openstreetmap.de/routed-foot",
+  bike: "https://routing.openstreetmap.de/routed-bike",
+};
 
 const OSRM_PROFILE: Record<string, string> = {
   driving: "car",
@@ -173,7 +178,8 @@ export async function GET(request: NextRequest) {
 
   if (!routes) {
     try {
-      routes = await fetchOsrmRoutes(PUBLIC_OSRM, profile, coords);
+      const publicBase = PUBLIC_OSRM_BASE[profile] ?? PUBLIC_OSRM_BASE.car;
+      routes = await fetchOsrmRoutes(publicBase, profile, coords);
       fallback = mode !== "driving" ? false : true;
     } catch {
       // Both failed
