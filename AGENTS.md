@@ -196,8 +196,7 @@ apps/web/
 │   │   ├── FacilityItem.tsx       # Single facility row (name + distance)
 │   │   ├── ScoreDisplay.tsx       # Score section in panel
 │   │   ├── LoadingSkeleton.tsx    # Skeleton loaders for panel
-│   │   ├── Toast.tsx              # Global error toast (top-right, auto-dismiss)
-│   │   └── DistanceToggle.tsx     # Driving / Walking toggle
+│   │   └── Toast.tsx              # Global error toast (top-right, auto-dismiss)
 │   ├── containers/
 │   │   ├── SearchContainer.tsx    # Wires SearchBar ↔ store ↔ analyze mutation
 │   │   └── AnalysisContainer.tsx  # Wires ResultsPanel ↔ store ↔ map

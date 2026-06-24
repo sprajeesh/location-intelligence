@@ -1,12 +1,11 @@
-'use client';
+"use client";
 
-import { SearchContainer } from '@/containers/SearchContainer';
-import { NavigateSearchContainer } from '@/containers/NavigateSearchContainer';
-import { AnalysisContainer } from '@/containers/AnalysisContainer';
-import { RadiusSelectorContainer } from '@/containers/RadiusSelectorContainer';
-import { MapContainerDynamic } from '@/containers/MapContainer';
-import DistanceToggle from '@/components/DistanceToggle';
-import { useLocationStore } from '@/store';
+import { SearchContainer } from "@/containers/SearchContainer";
+import { NavigateSearchContainer } from "@/containers/NavigateSearchContainer";
+import { AnalysisContainer } from "@/containers/AnalysisContainer";
+import { RadiusSelectorContainer } from "@/containers/RadiusSelectorContainer";
+import { MapContainerDynamic } from "@/containers/MapContainer";
+import { useLocationStore } from "@/store";
 
 export default function HomePage() {
   const { isNavigating } = useLocationStore();
@@ -20,7 +19,6 @@ export default function HomePage() {
 
       {/* Overlay */}
       <div className="absolute inset-0 z-10 p-4 flex items-start gap-3 pointer-events-none overflow-hidden">
-
         {/* Left column: search bar stacked above the results / route panel */}
         <div className="flex flex-col gap-2 flex-1 max-w-md h-full min-h-0">
           {/* Search bar — swaps between single-field and two-field navigate bar */}
@@ -38,7 +36,6 @@ export default function HomePage() {
         {!isNavigating && (
           <div className="flex items-start gap-3 flex-shrink-0 pointer-events-auto">
             <RadiusSelectorContainer />
-            <DistanceToggle />
           </div>
         )}
       </div>
