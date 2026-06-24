@@ -33,7 +33,7 @@ services:
     ports:
       - "5000:5000"
     volumes:
-      - osrm-data:/data
+      - ./osrm-data:/data
     command: osrm-routed --algorithm mld /data/new-zealand-latest.osrm
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:5000/health || exit 1"]
@@ -44,4 +44,3 @@ services:
 
 volumes:
   redis-data:
-  osrm-data:
