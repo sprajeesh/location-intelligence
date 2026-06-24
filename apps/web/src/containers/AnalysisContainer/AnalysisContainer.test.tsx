@@ -13,6 +13,10 @@ jest.mock('./ResultsPanel', () => ({
     </div>
   ),
 }));
+jest.mock('@/containers/NavigateContainer', () => ({
+  __esModule: true,
+  NavigateContainer: () => <div data-testid="navigate-container-mock" />,
+}));
 
 import { useLocationStore } from '@/store';
 
