@@ -7,6 +7,7 @@ import {
   Marker,
   Popup,
   Polyline,
+  ScaleControl,
   useMap,
 } from "react-leaflet";
 import L from "leaflet";
@@ -149,6 +150,9 @@ function MapContent() {
         activeLayer={activeLayer}
         onLayerChange={setActiveLayer}
       />
+
+      {/* Scale control - bottom left */}
+      <ScaleControl position="bottomleft" imperial={false} metric={true} />
 
       {/* Main location marker - show immediately on address selection */}
       {selectedAddress && (
