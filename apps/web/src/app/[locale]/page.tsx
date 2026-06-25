@@ -18,26 +18,34 @@ export default function HomePage() {
       </div>
 
       {/* Overlay */}
-      <div className="absolute inset-0 z-10 p-4 flex items-start gap-3 pointer-events-none overflow-hidden">
-        {/* Left column: search bar stacked above the results / route panel */}
-        <div className="flex flex-col gap-2 flex-1 max-w-md h-full min-h-0">
-          {/* Search bar — swaps between single-field and two-field navigate bar */}
-          <div className="pointer-events-auto flex-shrink-0">
+      <div className="absolute inset-0 z-10 p-4 pointer-events-none overflow-hidden">
+        {/* Mobile: full-height flex column — toolbar at top, results at bottom, map visible in between */}
+        {/* Desktop: flex column capped at 75vh */}
+        <div className="flex flex-col h-full pointer-events-auto
+                        max-w-md
+                        md:h-[75vh] md:gap-2">
+          {/* Search bar + radius selector — always at the top */}
+          <div className="flex-shrink-0 relative z-20">
             {isNavigating ? <NavigateSearchContainer /> : <SearchContainer />}
+            {!isNavigating && (
+              <div className="mt-2">
+                <RadiusSelectorContainer />
+              </div>
+            )}
           </div>
 
-          {/* Results / route panel — fills remaining height */}
-          <div className="pointer-events-auto flex-1 min-h-0 overflow-hidden">
+          {/* Spacer — pushes results panel to the bottom on mobile, hidden on desktop */}
+          <div className="flex-1 md:hidden" />
+
+          {/* Results / route panel
+              mobile: fixed 50vh at the bottom
+              desktop: fills remaining height */}
+          <div className="min-h-0 overflow-hidden
+                          h-[50vh]
+                          md:h-auto md:flex-1 md:mt-0">
             <AnalysisContainer />
           </div>
         </div>
-
-        {/* Right-side controls — hidden during navigation */}
-        {!isNavigating && (
-          <div className="flex items-start gap-3 flex-shrink-0 pointer-events-auto">
-            <RadiusSelectorContainer />
-          </div>
-        )}
       </div>
     </div>
   );
