@@ -25,11 +25,19 @@ echo ""
 mkdir -p "$DATA_DIR"
 
 # Step 1: Download NZ OSM data
-if [ -f "$PBF_FILE" ]; then
+MIN_PBF_SIZE=$((100 * 1024 * 1024))  # 100MB minimum — real file is ~380MB
+if [ -f "$PBF_FILE" ] && [ "$(stat -c%s "$PBF_FILE" 2>/dev/null || stat -f%z "$PBF_FILE" 2>/dev/null)" -ge "$MIN_PBF_SIZE" ]; then
   echo "✓ NZ PBF file already exists, skipping download."
 else
   echo "↓ Downloading NZ OSM data from Geofabrik..."
-  curl -L -o "$PBF_FILE" "$GEOFABRIK_URL"
+  rm -f "$PBF_FILE"
+  curl -L --retry 3 -o "$PBF_FILE" "$GEOFABRIK_URL"
+  FILE_SIZE=$(stat -c%s "$PBF_FILE" 2>/dev/null || stat -f%z "$PBF_FILE" 2>/dev/null)
+  if [ "$FILE_SIZE" -lt "$MIN_PBF_SIZE" ]; then
+    echo "✗ Download failed — file is only ${FILE_SIZE} bytes (expected ~380MB)."
+    echo "  Check your network connection and try again."
+    exit 1
+  fi
   echo "✓ Download complete."
 fi
 
