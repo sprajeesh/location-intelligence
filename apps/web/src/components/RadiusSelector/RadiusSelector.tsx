@@ -64,11 +64,11 @@ export function RadiusSelector({ value, onChange, disabled = false }: RadiusSele
   const activeClass = 'bg-blue-500/30 text-blue-100 border border-blue-500/50';
   const inactiveClass = 'text-gray-400 hover:text-gray-200';
   const disabledClass = 'opacity-50 cursor-not-allowed';
-  const baseButtonClass = 'px-3 py-2 text-sm font-medium rounded transition-all duration-150';
+  const baseButtonClass = 'px-2 py-1.5 sm:px-3 sm:py-2 text-xs sm:text-sm font-medium rounded transition-all duration-150';
 
   return (
     <div
-      className="inline-flex items-center gap-1 bg-gray-900/80 backdrop-blur border border-gray-700 rounded-lg p-1 transition-all duration-150 hover:border-gray-600"
+      className="flex flex-wrap items-center gap-1 bg-gray-900/80 backdrop-blur border border-gray-700 rounded-lg p-1 transition-all duration-150 hover:border-gray-600"
       role="group"
       aria-label="Search radius"
     >
@@ -109,7 +109,7 @@ export function RadiusSelector({ value, onChange, disabled = false }: RadiusSele
             onKeyDown={handleKeyDown}
             disabled={disabled}
             aria-label="Custom radius in kilometres"
-            className={`w-12 bg-gray-800 border border-gray-600 rounded px-2 py-1.5 text-sm text-center text-gray-100 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20 ${disabled ? disabledClass : ''}`}
+            className={`w-12 bg-gray-800 border border-gray-600 rounded px-2 py-1 sm:py-1.5 text-xs sm:text-sm text-center text-gray-100 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20 ${disabled ? disabledClass : ''}`}
           />
           <span className="text-xs text-gray-400">km</span>
         </div>
