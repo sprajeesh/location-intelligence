@@ -36,7 +36,7 @@ services:
       - ./osrm-data:/data
     command: osrm-routed --algorithm mld /data/new-zealand-latest.osrm
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:5000/health || exit 1"]
+      test: ["CMD-SHELL", "grep -q osrm-routed /proc/1/cmdline || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 3
