@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useMemo, useId } from "react";
+import { useEffect, useRef, useMemo, useId, useState } from "react";
 import {
   MapContainer as LeafletMapContainer,
   TileLayer,
@@ -8,13 +8,18 @@ import {
   Popup,
   Polyline,
   useMap,
-  ZoomControl,
 } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { useLocationStore } from "@/store/index";
 import { useNavigate } from "@/hooks/useNavigate";
 import { useTranslations } from "next-intl";
+import {
+  MapToolbarContainer,
+  TILE_LAYER_URLS,
+  TILE_LAYER_ATTRIBUTIONS,
+  type MapLayerId,
+} from "@/containers/MapToolbarContainer";
 
 /**
  * Fix Leaflet icon issue in Next.js (dynamic imports break default icon URLs)
@@ -44,6 +49,7 @@ fixLeafletIcons();
 /**
  * Inner component that uses the map instance via useMap hook.
  * Handles fitting bounds to features when data changes.
+ * Renders the map toolbar container.
  */
 function MapContent() {
   const map = useMap();
@@ -58,6 +64,8 @@ function MapContent() {
 
   const navigate = useNavigate();
   const t = useTranslations();
+
+  const [activeLayer, setActiveLayer] = useState<MapLayerId>("default");
 
   // Create category color map from analysis result
   const categoryColorMap = useMemo(() => {
@@ -129,6 +137,19 @@ function MapContent() {
 
   return (
     <>
+      {/* Dynamic tile layer based on selected map layer */}
+      <TileLayer
+        key={activeLayer}
+        attribution={TILE_LAYER_ATTRIBUTIONS[activeLayer]}
+        url={TILE_LAYER_URLS[activeLayer]}
+      />
+
+      {/* Map toolbar */}
+      <MapToolbarContainer
+        activeLayer={activeLayer}
+        onLayerChange={setActiveLayer}
+      />
+
       {/* Main location marker - show immediately on address selection */}
       {selectedAddress && (
         <Marker
@@ -270,11 +291,6 @@ export function MapContainer() {
         className="w-full h-full"
         zoomControl={false}
       >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-        <ZoomControl position="bottomright" />
         <MapContent />
       </LeafletMapContainer>
 
