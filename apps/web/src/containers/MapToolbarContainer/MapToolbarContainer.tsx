@@ -102,7 +102,7 @@ export function MapToolbarContainer({
   return (
     <div
       className="
-        absolute top-1/2 right-3 -translate-y-1/2 z-[1000]
+        absolute md:top-1/2 top-1/4 right-3 -translate-y-1/2 z-[1000]
         flex flex-col items-center gap-0.5
         bg-slate-900/90 backdrop-blur-md
         border border-slate-700/60
