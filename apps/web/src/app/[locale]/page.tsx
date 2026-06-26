@@ -41,8 +41,8 @@ export default function HomePage() {
               mobile: fixed 50vh at the bottom
               desktop: fills remaining height */}
           <div className="min-h-0 overflow-hidden
-                          h-[50vh]
-                          md:h-auto md:flex-1 md:mt-0">
+                          h-[50vh] bottom-0 left-0 right-0 absolute sm:w-full
+                          md:relative md:h-auto md:flex-1 md:mt-0">
             <AnalysisContainer />
           </div>
         </div>
