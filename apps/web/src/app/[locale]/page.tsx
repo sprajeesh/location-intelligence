@@ -21,11 +21,11 @@ export default function HomePage() {
       <div className="absolute inset-0 z-10 p-4 pointer-events-none overflow-hidden">
         {/* Mobile: full-height flex column — toolbar at top, results at bottom, map visible in between */}
         {/* Desktop: flex column capped at 75vh */}
-        <div className="flex flex-col h-full pointer-events-auto
+        <div className="flex flex-col h-full pointer-events-none
                         max-w-md
                         md:h-[75vh] md:gap-2">
           {/* Search bar + radius selector — always at the top */}
-          <div className="flex-shrink-0 relative z-20">
+          <div className="flex-shrink-0 relative z-20 pointer-events-auto">
             {isNavigating ? <NavigateSearchContainer /> : <SearchContainer />}
             {!isNavigating && (
               <div className="mt-2">
@@ -40,7 +40,7 @@ export default function HomePage() {
           {/* Results / route panel
               mobile: fixed 50vh at the bottom
               desktop: fills remaining height */}
-          <div className="min-h-0 overflow-hidden
+          <div className="min-h-0 overflow-hidden pointer-events-auto
                           h-[50vh] bottom-0 left-0 right-0 absolute sm:w-full
                           md:relative md:h-auto md:flex-1 md:mt-0">
             <AnalysisContainer />
