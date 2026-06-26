@@ -234,8 +234,8 @@ function MapContent() {
                 : routeMode === "cycling"
                   ? "#F59E0B"
                   : "#3B82F6",
-            weight: 4,
-            opacity: 0.85,
+            weight: 12,
+            opacity: 0.75,
           }}
         />
       )}
