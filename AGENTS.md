@@ -37,7 +37,7 @@ cd apps/web && pnpm dev                               # Next.js on :3000
 
 ## Backend — COMPLETE (`apps/api/`)
 
-FastAPI + Python 3.12 + uv. All 45 tests pass, ruff clean.
+FastAPI + Python 3.13 + uv. All 45 tests pass, ruff clean.
 
 ### Endpoints
 
