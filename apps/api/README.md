@@ -4,16 +4,17 @@ Production-ready FastAPI service for location-based facility analysis and scorin
 Handles geocoding (LINZ PostGIS), Overpass queries, distance calculation, caching, and hybrid scoring.
 
 **Framework:** FastAPI 0.115+  
-**Language:** Python 3.12  
+**Language:** Python 3.13  
 **Package Manager:** uv  
 **Testing:** pytest (45 tests)  
-**Linting:** Ruff  
+**Linting:** Ruff
 
 ---
 
 ## Quick Start
 
 ### Setup
+
 ```bash
 # Install dependencies
 uv sync
@@ -28,12 +29,14 @@ uv run uvicorn app.main:app --reload
 Server runs on http://localhost:8000
 
 ### Test Health
+
 ```bash
 curl http://localhost:8000/health
 # {"status": "ok", "version": "1.0.0"}
 ```
 
 ### View API Docs
+
 - Swagger UI: http://localhost:8000/docs
 - ReDoc: http://localhost:8000/redoc
 
@@ -132,6 +135,7 @@ tests/
 ### 1. Settings (`app/config/settings.py`)
 
 Pydantic BaseSettings with env var support:
+
 ```python
 class Settings(BaseSettings):
     api_host: str = "0.0.0.0"
@@ -143,7 +147,7 @@ class Settings(BaseSettings):
     scoring_alpha: float = 0.6
     scoring_beta: float = 0.4
     scoring_density_factor: float = 10.0
-    
+
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 ```
 
@@ -167,9 +171,9 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     app.state.facilities_svc = FacilitiesService(...)
     app.state.distance_svc = DistanceService(...)
     app.state.scoring_svc = LocationScoringService(...)
-    
+
     yield
-    
+
     # Cleanup
     await close_pool(db_pool)
     await http_client.aclose()
@@ -193,6 +197,7 @@ via `AddressRepository(pool)`.
 ### 4. Clients
 
 #### OverpassClient (`app/clients/overpass.py`)
+
 - Posts OverpassQL queries to Overpass API
 - Supports parallel queries per category
 - **Retry logic:** 2× attempts with 1s/2s exponential backoff
@@ -205,6 +210,7 @@ facilities = await client.query_facilities(lat, lon, radius_km=10, categories=["
 ```
 
 **OverpassQL example:**
+
 ```
 [out:json][timeout:25];
 (
@@ -215,14 +221,15 @@ out center;
 ```
 
 #### OSRMClient (`app/clients/osrm.py`)
+
 - Calls OSRM for road distance (driving/walking)
 - **Fallback:** Automatically falls back to Haversine if OSRM unavailable
 - **Returns:** Distance in km + boolean `used_haversine`
 
 ```python
 distance_km, used_haversine = await client.distance(
-    origin=(lat1, lon1), 
-    destination=(lat2, lon2), 
+    origin=(lat1, lon1),
+    destination=(lat2, lon2),
     mode="driving"
 )
 ```
@@ -230,6 +237,7 @@ distance_km, used_haversine = await client.distance(
 **OSRM endpoint:** `GET /route/v1/{mode}/{lon},{lat};{dest_lon},{dest_lat}?overview=false`
 
 #### RedisClient (`app/clients/redis_client.py`)
+
 - **Singleton pattern:** Module-level client
 - **Graceful degradation:** If Redis unavailable, `client = None` and cache operations silently skip
 - **Used by:** CacheRepository
@@ -247,7 +255,7 @@ Redis-backed caching with graceful skip:
 class CacheRepository:
     async def get(self, key: str) -> T | None:
         # Returns None if Redis unavailable or miss
-    
+
     async def set(self, key: str, value: T, ttl_seconds: int) -> None:
         # Silently skips if Redis unavailable
 ```
@@ -262,11 +270,13 @@ class CacheRepository:
 ### 5. Services
 
 #### GeocodingService (`app/services/geocoding.py`)
+
 - Delegates to `AddressRepository` for PostGIS lookup
 - Caches results in Redis (30 days)
 - Returns top 5 suggestions
 
 #### FacilitiesService (`app/services/facilities.py`)
+
 - **Parallel queries:** Uses `asyncio.gather()` for all categories
 - **Retry:** Overpass failures retry 2× with backoff
 - **Deduplication:** By OSM id (removes duplicate nodes/ways)
@@ -274,6 +284,7 @@ class CacheRepository:
 - **Caches:** Per category + radius + location (24h)
 
 #### DistanceService (`app/services/distance.py`)
+
 - Fetches road distances from OSRM
 - **Batch requests:** Can request distances for multiple origin/destination pairs
 - **Fallback:** Automatically uses Haversine if OSRM unavailable
@@ -281,6 +292,7 @@ class CacheRepository:
 - **Returns:** Distances in km + warning flags
 
 #### LocationScoringService (`app/services/scoring.py`)
+
 **Isolated, stateless, formula-swappable:**
 
 ```python
@@ -290,6 +302,7 @@ score = service.score(facilities, categories=["schools", "bus_stops"], radius_km
 ```
 
 **Formula:**
+
 ```
 proximity_score = max(0, 100 × (1 - nearest_distance_km / radius_km))
 density_score   = min(100, count × density_factor)
@@ -299,6 +312,7 @@ overall = weighted average of active categories (normalized by sum of active wei
 ```
 
 **Category → Dimension Mapping:**
+
 ```
 schools       → education (40%)
 bus_stops     → transport (30%)
@@ -311,6 +325,7 @@ libraries     → education
 ```
 
 **Scoring rules:**
+
 - Only requested categories contribute
 - If multiple categories map to same dimension, takes max
 - Overall score normalized to active categories only
@@ -319,6 +334,7 @@ libraries     → education
 ### 6. API Endpoints
 
 #### GET /health
+
 ```python
 @router.get("/health")
 async def health():
@@ -326,6 +342,7 @@ async def health():
 ```
 
 #### GET /search/address
+
 ```python
 @router.get("/search/address")
 async def search_address(q: str, country: str = "nz"):
@@ -333,6 +350,7 @@ async def search_address(q: str, country: str = "nz"):
 ```
 
 #### GET /categories
+
 ```python
 @router.get("/categories")
 async def get_categories():
@@ -340,6 +358,7 @@ async def get_categories():
 ```
 
 #### POST /location/analyze
+
 ```python
 @router.post("/location/analyze")
 async def analyze_location(req: AnalyzeRequest):
@@ -351,6 +370,7 @@ async def analyze_location(req: AnalyzeRequest):
 ```
 
 **Request schema:**
+
 ```python
 class AnalyzeRequest(BaseModel):
     address: str | None = None
@@ -362,6 +382,7 @@ class AnalyzeRequest(BaseModel):
 ```
 
 **Response schema:**
+
 ```python
 class AnalyzeResponse(BaseModel):
     location: LocationResult
@@ -407,7 +428,9 @@ class CategoryScore:
 ## Error Handling
 
 ### Sanitization Layer
+
 All error messages are **scrubbed** before returning to client:
+
 - ❌ No stack traces
 - ❌ No service names (Overpass, OSRM, PostGIS)
 - ❌ No internal URLs
@@ -415,21 +438,22 @@ All error messages are **scrubbed** before returning to client:
 
 ### Scenarios
 
-| Scenario | Status | Body |
-|---|---|---|
-| Address not found | 404 | `{"detail": "Address not found"}` |
-| No facilities in radius | 200 | Empty `features[]` + warning in response |
-| Overpass partial failure | 200 | Partial facilities + `warnings[]` |
-| Overpass total failure | 503 | Safe message (no technical details) |
-| OSRM unavailable | 200 | Haversine distances + warning in response |
-| Rate limit (Overpass) | 429 | `Retry-After: 60` header |
-| Invalid input | 422 | Pydantic validation errors |
+| Scenario                 | Status | Body                                      |
+| ------------------------ | ------ | ----------------------------------------- |
+| Address not found        | 404    | `{"detail": "Address not found"}`         |
+| No facilities in radius  | 200    | Empty `features[]` + warning in response  |
+| Overpass partial failure | 200    | Partial facilities + `warnings[]`         |
+| Overpass total failure   | 503    | Safe message (no technical details)       |
+| OSRM unavailable         | 200    | Haversine distances + warning in response |
+| Rate limit (Overpass)    | 429    | `Retry-After: 60` header                  |
+| Invalid input            | 422    | Pydantic validation errors                |
 
 ---
 
 ## Testing
 
 ### Run All Tests
+
 ```bash
 uv run pytest                  # Run all
 uv run pytest -v              # Verbose
@@ -439,7 +463,9 @@ uv run pytest -xvs            # Stop on first failure, show output
 ### Test Files
 
 #### `tests/test_scoring.py` (18 tests)
+
 Unit tests for `LocationScoringService`:
+
 - Formula correctness (proximity + density weights)
 - Edge cases (zero facilities, no active categories)
 - Dimension mapping (schools → education, bus_stops → transport)
@@ -451,7 +477,9 @@ uv run pytest tests/test_scoring.py -v
 ```
 
 #### `tests/test_distance.py` (10 tests)
+
 Unit tests for distance calculations:
+
 - Haversine formula correctness (against known distances)
 - Edge cases (same lat/lon, antipodal points)
 - Unit conversions (meters ↔ km)
@@ -461,7 +489,9 @@ uv run pytest tests/test_distance.py -v
 ```
 
 #### `tests/test_api.py` (17 tests)
+
 Integration tests via `httpx` TestClient:
+
 - `GET /health` returns correct schema + status 200
 - `GET /categories` returns all categories with `implemented` flags
 - Fixtures mock `AddressRepository`, Overpass, and OSRM responses
@@ -471,6 +501,7 @@ uv run pytest tests/test_api.py -v
 ```
 
 ### Coverage
+
 ```bash
 uv run pytest --cov=app --cov-report=html
 # Open htmlcov/index.html
@@ -481,18 +512,21 @@ uv run pytest --cov=app --cov-report=html
 ## Linting & Formatting
 
 ### Ruff (Lint + Format)
+
 ```bash
 uv run ruff check app/              # Check
 uv run ruff format app/             # Auto-fix
 ```
 
 **Rules enabled:**
+
 - `E` — pycodestyle errors
 - `F` — Pyflakes
 - `I` — isort (import sorting)
-- `UP` — pyupgrade (Python 3.12 idioms)
+- `UP` — pyupgrade (Python 3.13 idioms)
 
 **Config:** `pyproject.toml`
+
 ```toml
 [tool.ruff]
 line-length = 100
@@ -507,6 +541,7 @@ select = ["E", "F", "I", "UP"]
 ## Dependencies
 
 ### Runtime (`pyproject.toml`)
+
 - **fastapi** (0.115+) — Web framework
 - **uvicorn[standard]** (0.32+) — ASGI server
 - **httpx** (0.27+) — Async HTTP client
@@ -515,6 +550,7 @@ select = ["E", "F", "I", "UP"]
 - **redis** (5.2+) — Async Redis client
 
 ### Dev/Test
+
 - **pytest** (8.0+) — Test framework
 - **pytest-asyncio** (0.24+) — Async test support
 - **ruff** (0.8+) — Linting
@@ -524,18 +560,21 @@ select = ["E", "F", "I", "UP"]
 ## Performance Considerations
 
 ### Caching Strategy
-| Data | TTL | Rationale |
-|---|---|---|
-| PostGIS address search (geocoding) | 30 days | LINZ addresses rarely change |
-| Overpass (facilities) | 24 hours | OSM data updates slowly |
-| OSRM (distances) | 24 hours | Routes stable, but roads may change |
-| **Scores** | **NOT cached** | Computed on-the-fly from cached facility data |
+
+| Data                               | TTL            | Rationale                                     |
+| ---------------------------------- | -------------- | --------------------------------------------- |
+| PostGIS address search (geocoding) | 30 days        | LINZ addresses rarely change                  |
+| Overpass (facilities)              | 24 hours       | OSM data updates slowly                       |
+| OSRM (distances)                   | 24 hours       | Routes stable, but roads may change           |
+| **Scores**                         | **NOT cached** | Computed on-the-fly from cached facility data |
 
 ### Parallel Execution
+
 - Overpass queries run **in parallel** (one per category) via `asyncio.gather()`
 - OSRM distance requests can be batched
 
 ### Timeouts
+
 - PostGIS (asyncpg pool): configurable via `create_pool` min/max size
 - Overpass: 25s (specified in OverpassQL `[timeout:25]`)
 - OSRM: 10s default
@@ -546,8 +585,9 @@ select = ["E", "F", "I", "UP"]
 ## Deployment
 
 ### Docker Build
+
 ```dockerfile
-FROM python:3.12-slim
+FROM python:3.13-slim
 WORKDIR /app
 COPY pyproject.toml .
 RUN pip install uv && uv sync
@@ -556,7 +596,9 @@ CMD ["uv", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "800
 ```
 
 ### Environment Variables
+
 Ensure these are set in production:
+
 ```env
 API_HOST=0.0.0.0
 API_PORT=8000
@@ -571,16 +613,20 @@ REDIS_URL=redis://your-redis-instance
 ## Logging & Observability
 
 ### Structured Logging
+
 FastAPI logs are JSON-formatted (via Uvicorn):
+
 ```bash
 uv run uvicorn app.main:app --log-config logging.yaml
 ```
 
 ### Health Checks
+
 - `GET /health` — Returns 200 if API is running
 - Includes external service availability checks (future enhancement)
 
 ### Metrics (Future)
+
 - Response times per endpoint
 - Cache hit/miss rates
 - Overpass retry counts
@@ -591,6 +637,7 @@ uv run uvicorn app.main:app --log-config logging.yaml
 ## Troubleshooting
 
 ### Redis connection fails
+
 ```bash
 # Check Redis is running
 docker compose ps redis
@@ -601,6 +648,7 @@ redis-cli ping
 ```
 
 ### Address search returns no results
+
 ```bash
 # Check PostGIS is ready
 pg_isready -h localhost -p 5432 -U gisuser -d gis
@@ -614,6 +662,7 @@ psql -h localhost -U gisuser -d gis \
 ```
 
 ### Overpass queries timeout or fail
+
 ```bash
 # Check if Overpass API is responding
 curl -X POST https://overpass-api.de/api/interpreter \
@@ -624,6 +673,7 @@ curl -X POST https://overpass-api.de/api/interpreter \
 ```
 
 ### OSRM distances unavailable
+
 ```bash
 # Check OSRM is running
 curl http://localhost:5000/health
@@ -652,11 +702,13 @@ curl "http://localhost:5000/route/v1/driving/174.763,-36.848;174.770,-36.852?ove
 ## Development Tips
 
 ### Debug Mode
+
 ```bash
 uv run uvicorn app.main:app --reload --log-level debug
 ```
 
 ### Interactive API Testing
+
 ```bash
 # Terminal 1: Run server
 uv run uvicorn app.main:app --reload
@@ -677,6 +729,7 @@ curl -X POST http://localhost:8000/location/analyze \
 ```
 
 ### Swagger UI
+
 Open http://localhost:8000/docs and test endpoints interactively.
 
 ---

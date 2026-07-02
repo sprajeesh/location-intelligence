@@ -12,7 +12,7 @@ A production-ready MVP for analyzing property locations in New Zealand. Enter an
 
 - Docker & Docker Compose
 - pnpm 9.15+
-- Python 3.12 + uv
+- Python 3.13 + uv
 - Node.js 22+ (required for Next.js 16)
 - A pre-downloaded LINZ NZ addresses ZIP at `docker/data/lds-nz-addresses-CSV.zip` (see [PostGIS Address Data](#postgis-address-data))
 
@@ -79,17 +79,17 @@ curl "http://localhost:5000/route/v1/driving/174.76,-36.85;174.77,-36.84?steps=f
 
 **Common issues:**
 
-| Issue                                | Solution                                                                        |
-| ------------------------------------ | ------------------------------------------------------------------------------- |
+| Issue                                | Solution                                                                                                 |
+| ------------------------------------ | -------------------------------------------------------------------------------------------------------- |
 | `docker compose build postgis` fails | Ensure `docker/data/lds-nz-addresses-CSV.zip` exists (see [PostGIS Address Data](#postgis-address-data)) |
-| PostGIS build takes long             | Expected — downloads 2.6M addresses and builds indexes (~10–20 min)             |
-| `docker compose up` fails on `osrm`  | Run `./scripts/setup-osrm.sh` first (downloads NZ road data)                    |
-| OSRM takes too long to start         | Normal; OSRM loads large dataset into memory on startup (~1-2 min)              |
-| `Cannot GET /` in browser            | Ensure `pnpm dev` (not `pnpm build`) in `apps/web` terminal                     |
-| API errors / 404s                    | Check: `curl http://localhost:8000/health` and `docker compose ps`              |
-| "Cannot find module" errors          | Run `pnpm install` in `apps/web`                                                |
-| "API_URL is not defined"             | Add `.env.local` to `apps/web` with `NEXT_PUBLIC_API_URL=http://localhost:8000` |
-| CORS errors in console               | Backend needs running; FastAPI CORS allows `localhost:3000`                     |
+| PostGIS build takes long             | Expected — downloads 2.6M addresses and builds indexes (~10–20 min)                                      |
+| `docker compose up` fails on `osrm`  | Run `./scripts/setup-osrm.sh` first (downloads NZ road data)                                             |
+| OSRM takes too long to start         | Normal; OSRM loads large dataset into memory on startup (~1-2 min)                                       |
+| `Cannot GET /` in browser            | Ensure `pnpm dev` (not `pnpm build`) in `apps/web` terminal                                              |
+| API errors / 404s                    | Check: `curl http://localhost:8000/health` and `docker compose ps`                                       |
+| "Cannot find module" errors          | Run `pnpm install` in `apps/web`                                                                         |
+| "API_URL is not defined"             | Add `.env.local` to `apps/web` with `NEXT_PUBLIC_API_URL=http://localhost:8000`                          |
+| CORS errors in console               | Backend needs running; FastAPI CORS allows `localhost:3000`                                              |
 
 ---
 
@@ -130,14 +130,14 @@ curl "http://localhost:5000/route/v1/driving/174.76,-36.85;174.77,-36.84?steps=f
 
 ### Layers
 
-| Layer        | Tech                               | Purpose                                                  |
-| ------------ | ---------------------------------- | -------------------------------------------------------- |
-| **Frontend** | Next.js 16 (Active LTS) + React 19 + TypeScript | UI, address search, map interaction, i18n |
-| **BFF**      | Next.js API routes                 | Thin proxy to FastAPI, no auth/caching for MVP           |
-| **Backend**  | FastAPI + Python 3.12              | Orchestration, external service calls, scoring           |
-| **Map**      | React Leaflet + OpenStreetMap      | Visualization                                            |
-| **State**    | Zustand + React Query              | Client-side UI state + server state                      |
-| **Services** | Docker Compose                     | Redis (cache), PostGIS/LINZ (geocoding), OSRM (distance) |
+| Layer        | Tech                                            | Purpose                                                  |
+| ------------ | ----------------------------------------------- | -------------------------------------------------------- |
+| **Frontend** | Next.js 16 (Active LTS) + React 19 + TypeScript | UI, address search, map interaction, i18n                |
+| **BFF**      | Next.js API routes                              | Thin proxy to FastAPI, no auth/caching for MVP           |
+| **Backend**  | FastAPI + Python 3.13                           | Orchestration, external service calls, scoring           |
+| **Map**      | React Leaflet + OpenStreetMap                   | Visualization                                            |
+| **State**    | Zustand + React Query                           | Client-side UI state + server state                      |
+| **Services** | Docker Compose                                  | Redis (cache), PostGIS/LINZ (geocoding), OSRM (distance) |
 
 ---
 
