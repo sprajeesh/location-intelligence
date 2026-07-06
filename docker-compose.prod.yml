@@ -1,0 +1,42 @@
+# Production overlay -- combined with the base docker-compose.yml via:
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+#
+# Kept separate from docker-compose.yml so local dev (which runs FastAPI
+# directly on the host, per AGENTS.md) is unaffected by the api service
+# added here.
+services:
+  api:
+    build:
+      context: apps/api
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    depends_on:
+      postgis:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python3",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  postgis:
+    restart: unless-stopped
+
+  redis:
+    restart: unless-stopped
+
+  osrm:
+    restart: unless-stopped

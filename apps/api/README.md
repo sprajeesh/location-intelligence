@@ -586,13 +586,11 @@ select = ["E", "F", "I", "UP"]
 
 ### Docker Build
 
-```dockerfile
-FROM python:3.13-slim
-WORKDIR /app
-COPY pyproject.toml .
-RUN pip install uv && uv sync
-COPY app app/
-CMD ["uv", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+See `apps/api/Dockerfile` (multi-stage, `uv`-based, non-root runtime user).
+Build/run it as part of the repo-root `docker-compose.prod.yml` overlay:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
 ```
 
 ### Environment Variables
