@@ -3,7 +3,6 @@
 import { SearchContainer } from "@/containers/SearchContainer";
 import { NavigateSearchContainer } from "@/containers/NavigateSearchContainer";
 import { AnalysisContainer } from "@/containers/AnalysisContainer";
-import { RadiusSelectorContainer } from "@/containers/RadiusSelectorContainer";
 import { MapContainerDynamic } from "@/containers/MapContainer";
 import { useLocationStore } from "@/store";
 
@@ -24,14 +23,9 @@ export default function HomePage() {
         <div className="flex flex-col h-full pointer-events-none
                         max-w-md
                         md:h-[75vh] md:gap-2">
-          {/* Search bar + radius selector — always at the top */}
+          {/* Search bar — always at the top */}
           <div className="flex-shrink-0 relative z-20 pointer-events-auto">
             {isNavigating ? <NavigateSearchContainer /> : <SearchContainer />}
-            {!isNavigating && (
-              <div className="mt-2">
-                <RadiusSelectorContainer />
-              </div>
-            )}
           </div>
 
           {/* Spacer — pushes results panel to the bottom on mobile, hidden on desktop */}
