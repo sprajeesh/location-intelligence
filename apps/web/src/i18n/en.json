@@ -22,7 +22,14 @@
     "title": "Results",
     "noFacilities": "No facilities found within {radius}km. Try increasing your search radius.",
     "schools": "Schools",
-    "busStops": "Bus Stops"
+    "busStops": "Bus Stops",
+    "adjustRadius": {
+      "caption": "Not seeing expected results? Adjust the search radius",
+      "label": "Search radius",
+      "increase": "Increase radius",
+      "decrease": "Decrease radius",
+      "search": "Search"
+    }
   },
   "score": {
     "title": "Location Score",

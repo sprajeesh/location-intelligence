@@ -5,6 +5,7 @@ import ResultsPanel from './ResultsPanel';
 import type { AnalyzeResponse, Feature, ScoreResult } from '@/types/api';
 
 jest.mock('@/store');
+jest.mock('@/hooks/useAnalyze');
 jest.mock('next-intl', () => ({
   useTranslations: () => (key: string, opts?: { defaultValue?: string }) => {
     if (opts?.defaultValue) return opts.defaultValue;
@@ -13,6 +14,29 @@ jest.mock('next-intl', () => ({
     };
     return map[key] ?? key;
   },
+}));
+jest.mock('@/components/RadiusAdjuster', () => ({
+  __esModule: true,
+  RadiusAdjuster: ({
+    initialValue,
+    defaultExpanded,
+    disabled,
+    onSearch,
+  }: {
+    initialValue?: number;
+    defaultExpanded?: boolean;
+    disabled?: boolean;
+    onSearch: (radius: number) => void;
+  }) => (
+    <div data-testid="radius-adjuster-mock">
+      <span data-testid="radius-adjuster-value">{initialValue}</span>
+      <span data-testid="radius-adjuster-expanded">{String(!!defaultExpanded)}</span>
+      <span data-testid="radius-adjuster-disabled">{String(!!disabled)}</span>
+      <button data-testid="radius-adjuster-search" onClick={() => onSearch(8)}>
+        Search
+      </button>
+    </div>
+  ),
 }));
 jest.mock('@/components/LoadingSkeleton', () => ({
   __esModule: true,
@@ -67,8 +91,16 @@ jest.mock('@/components/CategoryGroup', () => ({
 }));
 
 import { useLocationStore } from '@/store';
+import { useAnalyze } from '@/hooks/useAnalyze';
 
 const mockUseLocationStore = useLocationStore as jest.MockedFunction<typeof useLocationStore>;
+const mockUseAnalyze = useAnalyze as jest.MockedFunction<typeof useAnalyze>;
+
+const MOCK_ADDRESS = {
+  displayName: '123 Main Street, Auckland',
+  lat: -36.8485,
+  lon: 174.7633,
+};
 
 const mockScore: ScoreResult = {
   education: 72,
@@ -136,6 +168,14 @@ describe('ResultsPanel', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseLocationStore.mockReturnValue(makeStoreState());
+    mockUseAnalyze.mockReturnValue({
+      mutate: jest.fn(),
+      mutateAsync: jest.fn(),
+      isPending: false,
+      isError: false,
+      error: null,
+      data: undefined,
+    } as any);
   });
 
   describe('Loading state', () => {
@@ -178,18 +218,67 @@ describe('ResultsPanel', () => {
       ).toBeInTheDocument();
     });
 
-    it('calls onIncreaseRadius when the increase radius button is clicked', async () => {
-      const onIncreaseRadius = jest.fn();
+    it('renders the radius adjuster pre-expanded', () => {
       mockUseLocationStore.mockReturnValue(
         makeStoreState({ analysisResult: { ...mockAnalysisResult, features: [] } })
       );
-      render(<ResultsPanel onIncreaseRadius={onIncreaseRadius} />);
-      await userEvent.click(screen.getByRole('button', { name: /increase/i }));
-      expect(onIncreaseRadius).toHaveBeenCalledTimes(1);
+      render(<ResultsPanel />);
+      expect(screen.getByTestId('radius-adjuster-expanded')).toHaveTextContent('true');
+    });
+
+    it('re-analyzes with the new radius when the adjuster search is triggered', async () => {
+      const analyze = jest.fn();
+      const setRadiusKm = jest.fn();
+      const setAnalysisResult = jest.fn();
+      const clearVisibleCategories = jest.fn();
+      mockUseAnalyze.mockReturnValue({ mutate: analyze } as any);
+      mockUseLocationStore.mockReturnValue(
+        makeStoreState({
+          analysisResult: { ...mockAnalysisResult, features: [] },
+          selectedAddress: MOCK_ADDRESS,
+          setRadiusKm,
+          setAnalysisResult,
+          clearVisibleCategories,
+        })
+      );
+      render(<ResultsPanel />);
+      await userEvent.click(screen.getByTestId('radius-adjuster-search'));
+
+      expect(setRadiusKm).toHaveBeenCalledWith(8);
+      expect(setAnalysisResult).toHaveBeenCalledWith(null);
+      expect(clearVisibleCategories).toHaveBeenCalledTimes(1);
+      expect(analyze).toHaveBeenCalledWith({
+        address: MOCK_ADDRESS.displayName,
+        lat: MOCK_ADDRESS.lat,
+        lon: MOCK_ADDRESS.lon,
+        radiusKm: 8,
+        categories: ['schools', 'bus_stops'],
+        distanceMode: 'driving',
+      });
+    });
+
+    it('does not call analyze when no address is selected', async () => {
+      const analyze = jest.fn();
+      mockUseAnalyze.mockReturnValue({ mutate: analyze } as any);
+      mockUseLocationStore.mockReturnValue(
+        makeStoreState({
+          analysisResult: { ...mockAnalysisResult, features: [] },
+          selectedAddress: null,
+        })
+      );
+      render(<ResultsPanel />);
+      await userEvent.click(screen.getByTestId('radius-adjuster-search'));
+      expect(analyze).not.toHaveBeenCalled();
     });
   });
 
   describe('Results state', () => {
+    it('renders the radius adjuster collapsed by default', () => {
+      mockUseLocationStore.mockReturnValue(makeStoreState({ analysisResult: mockAnalysisResult }));
+      render(<ResultsPanel />);
+      expect(screen.getByTestId('radius-adjuster-expanded')).toHaveTextContent('false');
+    });
+
     it('renders a CategoryGroup for each distinct category', () => {
       mockUseLocationStore.mockReturnValue(makeStoreState({ analysisResult: mockAnalysisResult }));
       render(<ResultsPanel />);

@@ -8,7 +8,9 @@ import LoadingSkeleton from "@/components/LoadingSkeleton";
 import FacilityItem from "@/components/FacilityItem";
 import ScoreDisplay from "@/components/ScoreDisplay";
 import CategoryGroup from "@/components/CategoryGroup";
+import { RadiusAdjuster } from "@/components/RadiusAdjuster";
 import { useNavigate } from "@/hooks/useNavigate";
+import { useAnalyze } from "@/hooks/useAnalyze";
 
 /**
  * ResultsPanel — Left side panel (desktop) or bottom sheet (mobile).
@@ -34,15 +36,12 @@ interface CategorySection {
 export interface ResultsPanelProps {
   // Optional callback when a facility is clicked
   onFacilityClick?: (feature: Feature) => void;
-  // Optional callback when radius should increase
-  onIncreaseRadius?: () => void;
   // Optional custom className for the container
   className?: string;
 }
 
 export default function ResultsPanel({
   onFacilityClick,
-  onIncreaseRadius,
   className = "",
 }: ResultsPanelProps) {
   const t = useTranslations();
@@ -56,7 +55,14 @@ export default function ResultsPanel({
     toggleCategoryVisibility,
     setActiveRoute,
     setSelectedFeature,
+    selectedAddress,
+    distanceMode,
+    setRadiusKm,
+    setAnalysisResult,
+    clearVisibleCategories,
   } = useLocationStore();
+
+  const { mutate: analyze } = useAnalyze();
 
   // Local UI state for expanded/collapsed categories
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
@@ -144,10 +150,31 @@ export default function ResultsPanel({
 
   const navigate = useNavigate();
 
-  // Handle increase radius
-  const handleIncreaseRadius = useCallback(() => {
-    onIncreaseRadius?.();
-  }, [onIncreaseRadius]);
+  // Re-run the analysis at a user-adjusted radius for the current address
+  const handleRadiusSearch = useCallback(
+    (newRadius: number) => {
+      setRadiusKm(newRadius);
+      setAnalysisResult(null);
+      clearVisibleCategories();
+
+      if (selectedAddress) {
+        analyze({
+          address: selectedAddress.displayName,
+          lat: selectedAddress.lat,
+          lon: selectedAddress.lon,
+          radiusKm: newRadius,
+          categories: ["schools", "bus_stops"],
+          distanceMode,
+        });
+      }
+    },
+    [selectedAddress, distanceMode, setRadiusKm, setAnalysisResult, clearVisibleCategories, analyze],
+  );
+
+  // Remount the adjuster (collapsing it and resetting its draft value) whenever the address changes
+  const addressKey = selectedAddress
+    ? `${selectedAddress.lat},${selectedAddress.lon}`
+    : "no-address";
 
   // Render loading state
   if (isAnalyzing) {
@@ -237,24 +264,15 @@ export default function ResultsPanel({
             defaultValue: `No facilities found within ${radiusKm}km. Try increasing your search radius.`,
           })}
         </p>
-        <button
-          onClick={handleIncreaseRadius}
-          className={`
-            mt-2 px-4 py-2 rounded-lg font-medium text-sm
-            glass-dark hover:glass
-            text-blue-400 hover:text-blue-300
-            transition-colors
-            focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
-            focus:ring-offset-slate-950
-          `}
-          aria-label={t("results.increaseRadius", {
-            defaultValue: "Increase search radius",
-          })}
-        >
-          {t("results.increaseRadius", {
-            defaultValue: "Increase Radius",
-          })}
-        </button>
+        <div className="w-full mt-2">
+          <RadiusAdjuster
+            key={addressKey}
+            initialValue={radiusKm}
+            defaultExpanded
+            disabled={isAnalyzing}
+            onSearch={handleRadiusSearch}
+          />
+        </div>
       </div>
     );
   }
@@ -324,6 +342,16 @@ export default function ResultsPanel({
             />
           </div>
         )}
+
+        {/* Radius adjuster */}
+        <div className="pt-3 border-t border-slate-700/30">
+          <RadiusAdjuster
+            key={addressKey}
+            initialValue={radiusKm}
+            disabled={isAnalyzing}
+            onSearch={handleRadiusSearch}
+          />
+        </div>
       </div>
     </div>
   );

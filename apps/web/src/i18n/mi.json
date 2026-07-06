@@ -22,7 +22,14 @@
     "title": "[MI] results.title",
     "noFacilities": "[MI] results.noFacilities",
     "schools": "[MI] results.schools",
-    "busStops": "[MI] results.busStops"
+    "busStops": "[MI] results.busStops",
+    "adjustRadius": {
+      "caption": "[MI] results.adjustRadius.caption",
+      "label": "[MI] results.adjustRadius.label",
+      "increase": "[MI] results.adjustRadius.increase",
+      "decrease": "[MI] results.adjustRadius.decrease",
+      "search": "[MI] results.adjustRadius.search"
+    }
   },
   "score": {
     "title": "[MI] score.title",
