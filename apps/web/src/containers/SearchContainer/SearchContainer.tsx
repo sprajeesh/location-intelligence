@@ -5,11 +5,12 @@ import { SearchBar } from "@/components/SearchBar";
 import { useAddressSearch } from "@/hooks/useAddressSearch";
 import { useAnalyze } from "@/hooks/useAnalyze";
 import { useLocationStore } from "@/store";
+import { DEFAULT_RADIUS_KM } from "@/constants/radius";
 import type { AddressResult } from "@/types/api";
 
 export function SearchContainer() {
   const { query, setQuery, suggestions, isLoading, error } = useAddressSearch();
-  const { selectedAddress, setSelectedAddress, radiusKm, distanceMode } =
+  const { selectedAddress, setSelectedAddress, setRadiusKm, distanceMode } =
     useLocationStore();
   const { mutate: analyze } = useAnalyze();
 
@@ -24,16 +25,17 @@ export function SearchContainer() {
     (address: AddressResult) => {
       setSelectedAddress(address);
       setQuery(address.displayName);
+      setRadiusKm(DEFAULT_RADIUS_KM);
       analyze({
         address: address.displayName,
         lat: address.lat,
         lon: address.lon,
-        radiusKm,
+        radiusKm: DEFAULT_RADIUS_KM,
         categories: ["schools", "bus_stops"],
         distanceMode,
       });
     },
-    [setSelectedAddress, setQuery, analyze, radiusKm, distanceMode],
+    [setSelectedAddress, setQuery, setRadiusKm, analyze, distanceMode],
   );
 
   const handleClear = () => {
