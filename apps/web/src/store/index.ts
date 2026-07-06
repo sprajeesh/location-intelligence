@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import type { AddressResult, AnalyzeResponse, Feature, RouteTransportMode } from '@/types/api'
+import { DEFAULT_RADIUS_KM } from '@/constants/radius'
 
 /**
  * Global application state for the Location Intelligence web app.
@@ -52,7 +53,7 @@ export interface LocationIntelligenceStore {
 export const useLocationStore = create<LocationIntelligenceStore>((set) => ({
   // Initial state
   selectedAddress: null,
-  radiusKm: 5,
+  radiusKm: DEFAULT_RADIUS_KM,
   distanceMode: 'driving',
   analysisResult: null,
   isAnalyzing: false,
