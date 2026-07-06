@@ -1,17 +1,10 @@
 import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import { AnalysisContainer } from './AnalysisContainer';
 
 jest.mock('@/store');
 jest.mock('./ResultsPanel', () => ({
   __esModule: true,
-  default: ({ onIncreaseRadius }: { onIncreaseRadius?: () => void }) => (
-    <div data-testid="results-panel-mock">
-      <button data-testid="increase-radius-button" onClick={onIncreaseRadius}>
-        Increase Radius
-      </button>
-    </div>
-  ),
+  default: () => <div data-testid="results-panel-mock" />,
 }));
 jest.mock('@/containers/NavigateContainer', () => ({
   __esModule: true,
@@ -28,6 +21,7 @@ const makeStoreState = (overrides = {}) => ({
   distanceMode: 'driving' as const,
   analysisResult: null,
   isAnalyzing: false,
+  isNavigating: false,
   visibleCategories: new Set<string>(),
   setSelectedAddress: jest.fn(),
   setRadiusKm: jest.fn(),
@@ -64,35 +58,17 @@ describe('AnalysisContainer', () => {
       render(<AnalysisContainer />);
       expect(screen.getByTestId('results-panel-mock')).toBeInTheDocument();
     });
-  });
 
-  describe('Radius increase', () => {
-    it('calls setRadiusKm with radiusKm + 5 when onIncreaseRadius is triggered', async () => {
-      const setRadiusKm = jest.fn();
+    it('renders NavigateContainer when isNavigating is true', () => {
       mockUseLocationStore.mockReturnValue(
         makeStoreState({
           selectedAddress: { displayName: '123 Main St, Auckland', lat: -36.85, lon: 174.76 },
-          radiusKm: 10,
-          setRadiusKm,
+          isNavigating: true,
         })
       );
       render(<AnalysisContainer />);
-      await userEvent.click(screen.getByTestId('increase-radius-button'));
-      expect(setRadiusKm).toHaveBeenCalledWith(15);
-    });
-
-    it('increments correctly from a non-default radiusKm', async () => {
-      const setRadiusKm = jest.fn();
-      mockUseLocationStore.mockReturnValue(
-        makeStoreState({
-          selectedAddress: { displayName: '123 Main St, Auckland', lat: -36.85, lon: 174.76 },
-          radiusKm: 20,
-          setRadiusKm,
-        })
-      );
-      render(<AnalysisContainer />);
-      await userEvent.click(screen.getByTestId('increase-radius-button'));
-      expect(setRadiusKm).toHaveBeenCalledWith(25);
+      expect(screen.getByTestId('navigate-container-mock')).toBeInTheDocument();
+      expect(screen.queryByTestId('results-panel-mock')).not.toBeInTheDocument();
     });
   });
 });

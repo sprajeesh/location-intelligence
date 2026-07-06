@@ -450,4 +450,59 @@ describe('SearchContainer', () => {
       expect(setQuery).toHaveBeenCalledWith(firstSuggestion.displayName);
     });
   });
+
+  describe('Radius reset on new address', () => {
+    it('resets radiusKm to the default and analyzes at the default, even if a wider radius was previously set', async () => {
+      const setRadiusKm = jest.fn();
+      const analyze = jest.fn();
+
+      mockUseAddressSearch.mockReturnValue({
+        query: '',
+        setQuery: jest.fn(),
+        suggestions: mockSuggestions,
+        isLoading: false,
+        error: null,
+      });
+
+      mockUseAnalyze.mockReturnValue({
+        mutate: analyze,
+        mutateAsync: jest.fn(),
+        isPending: false,
+        isError: false,
+        error: null,
+        data: undefined,
+      } as any);
+
+      mockUseLocationStore.mockReturnValue({
+        selectedAddress: null,
+        radiusKm: 8,
+        distanceMode: 'driving',
+        analysisResult: null,
+        isAnalyzing: false,
+        visibleCategories: new Set(),
+        setSelectedAddress: jest.fn(),
+        setRadiusKm,
+        setDistanceMode: jest.fn(),
+        setAnalysisResult: jest.fn(),
+        setIsAnalyzing: jest.fn(),
+        toggleCategoryVisibility: jest.fn(),
+        clearVisibleCategories: jest.fn(),
+        toasts: [],
+        addToast: jest.fn(),
+        removeToast: jest.fn(),
+        clearToasts: jest.fn(),
+      });
+
+      render(<SearchContainer />);
+      const firstSuggestion = mockSuggestions[0]!;
+      await userEvent.click(
+        screen.getByTestId(`suggestion-${firstSuggestion.displayName}`)
+      );
+
+      expect(setRadiusKm).toHaveBeenCalledWith(5);
+      expect(analyze).toHaveBeenCalledWith(
+        expect.objectContaining({ radiusKm: 5 })
+      );
+    });
+  });
 });

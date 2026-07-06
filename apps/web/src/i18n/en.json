@@ -4,16 +4,6 @@
     "loading": "Searching...",
     "noResults": "No results found"
   },
-  "radius": {
-    "label": "Radius",
-    "options": {
-      "1km": "1 km",
-      "2km": "2 km",
-      "3km": "3 km",
-      "5km": "5 km",
-      "custom": "Custom"
-    }
-  },
   "analyze": {
     "button": "Analyze",
     "loading": "Analyzing..."
@@ -22,7 +12,14 @@
     "title": "Results",
     "noFacilities": "No facilities found within {radius}km. Try increasing your search radius.",
     "schools": "Schools",
-    "busStops": "Bus Stops"
+    "busStops": "Bus Stops",
+    "adjustRadius": {
+      "caption": "Not seeing expected results? Adjust the search radius",
+      "label": "Search radius",
+      "increase": "Increase radius",
+      "decrease": "Decrease radius",
+      "search": "Search"
+    }
   },
   "score": {
     "title": "Location Score",

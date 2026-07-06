@@ -4,16 +4,6 @@
     "loading": "[MI] search.loading",
     "noResults": "[MI] search.noResults"
   },
-  "radius": {
-    "label": "[MI] radius.label",
-    "options": {
-      "1km": "[MI] radius.options.1km",
-      "2km": "[MI] radius.options.2km",
-      "3km": "[MI] radius.options.3km",
-      "5km": "[MI] radius.options.5km",
-      "custom": "[MI] radius.options.custom"
-    }
-  },
   "analyze": {
     "button": "[MI] analyze.button",
     "loading": "[MI] analyze.loading"
@@ -22,7 +12,14 @@
     "title": "[MI] results.title",
     "noFacilities": "[MI] results.noFacilities",
     "schools": "[MI] results.schools",
-    "busStops": "[MI] results.busStops"
+    "busStops": "[MI] results.busStops",
+    "adjustRadius": {
+      "caption": "[MI] results.adjustRadius.caption",
+      "label": "[MI] results.adjustRadius.label",
+      "increase": "[MI] results.adjustRadius.increase",
+      "decrease": "[MI] results.adjustRadius.decrease",
+      "search": "[MI] results.adjustRadius.search"
+    }
   },
   "score": {
     "title": "[MI] score.title",

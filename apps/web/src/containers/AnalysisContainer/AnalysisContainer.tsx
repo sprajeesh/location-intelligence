@@ -1,16 +1,11 @@
 'use client';
 
-import { useCallback } from 'react';
 import ResultsPanel from './ResultsPanel';
 import { NavigateContainer } from '@/containers/NavigateContainer';
 import { useLocationStore } from '@/store';
 
 export function AnalysisContainer() {
-  const { radiusKm, setRadiusKm, selectedAddress, isNavigating } = useLocationStore();
-
-  const handleIncreaseRadius = useCallback(() => {
-    setRadiusKm(radiusKm + 5);
-  }, [radiusKm, setRadiusKm]);
+  const { selectedAddress, isNavigating } = useLocationStore();
 
   if (!selectedAddress) {
     return null;
@@ -20,9 +15,5 @@ export function AnalysisContainer() {
     return <NavigateContainer />;
   }
 
-  return (
-    <ResultsPanel
-      onIncreaseRadius={handleIncreaseRadius}
-    />
-  );
+  return <ResultsPanel />;
 }
