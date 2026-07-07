@@ -25,8 +25,13 @@ problem, so this step is manual and done once.
      --name li-terraform-state --versioning Enabled
    ```
 2. **Note the Object Storage namespace** (shown on the bucket's details page,
-   e.g. `axabc1def2gh`) and put it into `backend.tf`'s `endpoint` value,
-   replacing `REPLACE_WITH_OCI_NAMESPACE`. This is not secret.
+   e.g. `axabc1def2gh`) and build the full endpoint URL:
+   `https://<namespace>.compat.objectstorage.<region>.oraclecloud.com`
+   (e.g. `https://axabc1def2gh.compat.objectstorage.ap-sydney-1.oraclecloud.com`).
+   Store it as the `OCI_S3_ENDPOINT` GitHub secret -- not actually sensitive
+   (it's a fixed per-tenancy hostname), but passed the same way as the
+   credentials below since `backend.tf` can't hardcode it (see that file's
+   comment for why).
 3. **Generate a Customer Secret Key** (S3-compatible credentials, distinct from
    the OCI API signing key used by the provider itself): Console -> Identity &
    Security -> Users -> (your user) -> Customer Secret Keys -> Generate Secret
@@ -49,6 +54,7 @@ same values before trusting CI to apply blind:
 cd infra/oci
 cp terraform.tfvars.example terraform.tfvars   # fill in your real values, do not commit
 terraform init \
+  -backend-config="endpoint=<OCI_S3_ENDPOINT>" \
   -backend-config="access_key=<OCI_S3_ACCESS_KEY>" \
   -backend-config="secret_key=<OCI_S3_SECRET_KEY>"
 terraform plan
