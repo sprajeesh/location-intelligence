@@ -35,7 +35,9 @@ resource "oci_core_route_table" "public" {
 # IP range to allowlist -- narrowing this default would break the deployed
 # app. Restrict it via terraform.tfvars if you front the API with a proxy
 # that has a stable source IP, or drop this rule entirely once port 80/443
-# carry real traffic instead.
+# carry real traffic instead. Since this can't be closed off at the network
+# layer, every route except /health also requires an X-Internal-Api-Key
+# header (API_SHARED_SECRET) -- see README.md's "API access control" section.
 resource "oci_core_security_list" "public" {
   compartment_id = var.compartment_ocid
   vcn_id         = oci_core_vcn.main.id

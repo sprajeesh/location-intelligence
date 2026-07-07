@@ -46,6 +46,9 @@ problem, so this step is manual and done once.
    secret's private key (`ssh-keygen -y -f <private-key-file>`) and store the
    output as the `DEPLOY_SSH_PUBLIC_KEY` GitHub secret. Terraform bakes this
    into the instance; it never generates its own keypair.
+6. **Generate the API shared secret**: any random string works, e.g.
+   `openssl rand -hex 32`. Store it as the `API_SHARED_SECRET` GitHub secret
+   -- see "API access control" below for what it's for.
 
 Recommended: run `terraform init` / `terraform plan` once locally with these
 same values before trusting CI to apply blind:
@@ -101,6 +104,27 @@ password rotation just means: taint `random_password.db_password`, `terraform
 apply`, then redeploy -- the next `docker compose ... up -d --build` rebuilds
 `postgis` with the new password baked in, matching what the API reads from
 the freshly-written `.env`.
+
+## API access control
+
+Port 8000 (the FastAPI backend) has to stay reachable from the whole internet
+(`var.api_ingress_cidr` in `network.tf`, default `0.0.0.0/0`): the only caller
+is the Cloudflare Worker running `apps/web`, which has no fixed egress IP to
+allowlist at the network layer, and TLS termination isn't viable without an
+owned domain (see `network.tf`'s comment for the full reasoning). So the
+backstop is app-layer: every route except `/health` requires an
+`X-Internal-Api-Key` header matching `API_SHARED_SECRET`
+(`apps/api/app/api/deps.py`).
+
+Unlike the DB password, this one isn't Vault-backed -- it's a plain GitHub
+secret passed to both sides directly: `deploy-api` forwards it to
+`scripts/fetch-secrets.sh`, which writes it into the VM's `.env`; `deploy-web`
+sets it on the Worker via `wrangler secret put` (never as `NEXT_PUBLIC_*`, so
+it's never in the client bundle -- `apps/web/src/utils/apiAuth.ts` reads it
+server-side only). Enforcement is opt-in on the API side: if
+`API_SHARED_SECRET` is unset (e.g. local dev), every request passes through
+unchanged, matching the app's existing graceful-degradation pattern for
+optional services.
 
 ## Known gap: OSRM data file
 

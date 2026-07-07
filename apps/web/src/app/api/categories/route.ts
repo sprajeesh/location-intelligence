@@ -1,11 +1,14 @@
 import { NextResponse } from 'next/server'
+import { apiKeyHeaders } from '@/utils/apiAuth'
 
 export async function GET() {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
   const fastApiUrl = `${apiUrl}/categories`
 
   try {
-    const response = await fetch(fastApiUrl)
+    const response = await fetch(fastApiUrl, {
+      headers: apiKeyHeaders(),
+    })
 
     if (!response.ok) {
       return NextResponse.json(

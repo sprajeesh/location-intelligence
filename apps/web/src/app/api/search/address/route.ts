@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiKeyHeaders } from '@/utils/apiAuth'
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams
@@ -15,7 +16,9 @@ export async function GET(request: NextRequest) {
   const fastApiUrl = `${apiUrl}/search/address?q=${encodeURIComponent(q)}&country=nz`
 
   try {
-    const response = await fetch(fastApiUrl)
+    const response = await fetch(fastApiUrl, {
+      headers: apiKeyHeaders(),
+    })
 
     if (!response.ok) {
       return NextResponse.json(

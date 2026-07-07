@@ -86,13 +86,13 @@ jobs:
       db_user: ${{ steps.tf_outputs.outputs.db_user }}
       db_password_secret_id: ${{ steps.tf_outputs.outputs.db_password_secret_id }}
     env:
-      TF_VAR_tenancy_ocid:        ${{ secrets.OCI_TENANCY_OCID }}
-      TF_VAR_user_ocid:           ${{ secrets.OCI_USER_OCID }}
-      TF_VAR_fingerprint:         ${{ secrets.OCI_FINGERPRINT }}
+      TF_VAR_tenancy_ocid: ${{ secrets.OCI_TENANCY_OCID }}
+      TF_VAR_user_ocid: ${{ secrets.OCI_USER_OCID }}
+      TF_VAR_fingerprint: ${{ secrets.OCI_FINGERPRINT }}
       TF_VAR_oci_private_key_pem: ${{ secrets.OCI_PRIVATE_KEY }}
-      TF_VAR_region:              ${{ secrets.OCI_REGION }}
-      TF_VAR_compartment_ocid:    ${{ secrets.OCI_COMPARTMENT_OCID }}
-      TF_VAR_ssh_public_key:      ${{ secrets.DEPLOY_SSH_PUBLIC_KEY }}
+      TF_VAR_region: ${{ secrets.OCI_REGION }}
+      TF_VAR_compartment_ocid: ${{ secrets.OCI_COMPARTMENT_OCID }}
+      TF_VAR_ssh_public_key: ${{ secrets.DEPLOY_SSH_PUBLIC_KEY }}
     steps:
       - name: Checkout code
         uses: actions/checkout@2d1c1198e79c30cca5c3957b1e3b65ce95b5356e
@@ -118,7 +118,7 @@ jobs:
 
       - name: Terraform Apply (retries on OCI capacity errors)
         working-directory: infra/oci
-        run: ./scripts/apply-with-retry.sh
+        run: ./scripts/apply-with-retry.sh tfplan
 
       - name: Export outputs
         id: tf_outputs
@@ -153,11 +153,12 @@ jobs:
       - name: Sync repo and restart services
         shell: bash
         env:
-          SERVER_HOST:           ${{ needs.terraform.outputs.instance_ip }}
-          APP_DIR:               ${{ secrets.DEPLOY_APP_DIR }}
-          GIT_SHA:               ${{ github.sha }}
-          DB_USER:               ${{ needs.terraform.outputs.db_user }}
+          SERVER_HOST: ${{ needs.terraform.outputs.instance_ip }}
+          APP_DIR: ${{ secrets.DEPLOY_APP_DIR }}
+          GIT_SHA: ${{ github.sha }}
+          DB_USER: ${{ needs.terraform.outputs.db_user }}
           DB_PASSWORD_SECRET_ID: ${{ needs.terraform.outputs.db_password_secret_id }}
+          API_SHARED_SECRET: ${{ secrets.API_SHARED_SECRET }}
         run: |
           ssh -o StrictHostKeyChecking=yes "ubuntu@$SERVER_HOST" bash -s <<REMOTE
             set -euo pipefail
@@ -173,7 +174,7 @@ jobs:
             git checkout --detach "$GIT_SHA"
 
             echo "==> Fetching DB secrets from OCI Vault"
-            bash scripts/fetch-secrets.sh "$DB_USER" "$DB_PASSWORD_SECRET_ID" .env
+            bash scripts/fetch-secrets.sh "$DB_USER" "$DB_PASSWORD_SECRET_ID" "$API_SHARED_SECRET" .env
 
             echo "==> Rebuilding and restarting all services"
             docker compose -f docker-compose.yml -f docker-compose.prod.yml pull --quiet || true
@@ -240,3 +241,14 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: apps/web
           command: deploy
+
+      # Server-only secret the BFF Route Handlers send as X-Internal-Api-Key
+      # (see src/utils/apiAuth.ts) -- set via `wrangler secret put`, not
+      # NEXT_PUBLIC_*, so it never ends up in the client bundle. Must run
+      # after the Worker exists (first deploy above creates it).
+      - name: Set API shared secret on the Worker
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          API_SHARED_SECRET: ${{ secrets.API_SHARED_SECRET }}
+        run: echo "$API_SHARED_SECRET" | pnpm exec wrangler secret put API_SHARED_SECRET

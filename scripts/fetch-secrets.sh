@@ -3,14 +3,17 @@
 # Writes the .env file docker-compose needs, pulling the DB password out of
 # OCI Vault via this instance's own identity (instance principal -- granted
 # read access by infra/oci/vault.tf's dynamic group + policy) rather than any
-# credential stored on the box or in GitHub Secrets.
+# credential stored on the box or in GitHub Secrets. api_shared_secret is a
+# plain pass-through (not Vault-backed) from the API_SHARED_SECRET GitHub
+# secret -- see app/api/deps.py for what it guards and why it's optional.
 #
-# Usage: fetch-secrets.sh <db_user> <db_password_secret_id> [env_file]
+# Usage: fetch-secrets.sh <db_user> <db_password_secret_id> [api_shared_secret] [env_file]
 set -euo pipefail
 
 DB_USER="${1:?db_user required}"
 DB_PASSWORD_SECRET_ID="${2:?db_password_secret_id required}"
-ENV_FILE="${3:-.env}"
+API_SHARED_SECRET="${3:-}"
+ENV_FILE="${4:-.env}"
 
 # Retries: right after `terraform apply` creates the dynamic group + policy
 # granting this instance read access, OCI's IAM propagation can lag a few
@@ -52,6 +55,7 @@ REDIS_URL=redis://redis:6379
 SCORING_ALPHA=0.6
 SCORING_BETA=0.4
 SCORING_DENSITY_FACTOR=10
+API_SHARED_SECRET=${API_SHARED_SECRET}
 EOF
 chmod 600 "$ENV_FILE"
 

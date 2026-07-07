@@ -14,6 +14,10 @@ class Settings(BaseSettings):
     scoring_alpha: float = 0.6
     scoring_beta: float = 0.4
     scoring_density_factor: float = 10.0
+    # Shared secret checked against the X-Internal-Api-Key header (see
+    # app/api/deps.py). None (the default, e.g. local dev) skips enforcement
+    # entirely; set in production from the API_SHARED_SECRET GitHub secret.
+    api_shared_secret: str | None = None
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
