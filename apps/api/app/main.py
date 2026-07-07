@@ -2,10 +2,11 @@ from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
 import httpx
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api import analyze, categories, health, search
+from app.api.deps import verify_api_key
 from app.clients import redis_client as redis_module
 from app.clients.osrm import OSRMClient
 from app.clients.overpass import OverpassClient
@@ -72,10 +73,12 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
 
+    # health stays unauthenticated -- the docker-compose healthcheck (and any
+    # external uptime monitor) doesn't have the shared secret.
     app.include_router(health.router)
-    app.include_router(search.router)
-    app.include_router(categories.router)
-    app.include_router(analyze.router)
+    app.include_router(search.router, dependencies=[Depends(verify_api_key)])
+    app.include_router(categories.router, dependencies=[Depends(verify_api_key)])
+    app.include_router(analyze.router, dependencies=[Depends(verify_api_key)])
 
     return app
 

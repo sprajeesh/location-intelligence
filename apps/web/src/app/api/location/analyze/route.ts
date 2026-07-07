@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiKeyHeaders } from '@/utils/apiAuth'
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,6 +20,7 @@ export async function POST(request: NextRequest) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        ...apiKeyHeaders(),
       },
       body: JSON.stringify(body),
     })

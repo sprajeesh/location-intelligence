@@ -1,0 +1,29 @@
+# Copy to terraform.tfvars for local runs (do not commit terraform.tfvars).
+# In CI, these values come from TF_VAR_* environment variables instead --
+# see .github/workflows/push.yml.
+
+region              = "ap-sydney-1"
+compartment_ocid    = "ocid1.compartment.oc1..xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+instance_shape      = "VM.Standard.A1.Flex"
+instance_ocpus      = 2
+instance_memory_gbs = 12
+ssh_ingress_cidr    = "0.0.0.0/0"
+api_ingress_cidr    = "0.0.0.0/0" # must stay open -- the Cloudflare Worker caller has no fixed IP
+db_user             = "gisuser"
+
+# The DB password is NOT a variable here -- Terraform generates it
+# (random_password.db_password in vault.tf) and stores it in OCI Vault.
+# See README.md's "Database secrets" section.
+
+# ── Fallback if A1.Flex remains out of capacity after CI retries ──
+# This is a MANUAL override only -- the pipeline must never switch shapes
+# automatically. Uncomment and adjust if you decide to accept the tradeoffs
+# of the much smaller Always Free x86 shape (1 OCPU / 1GB RAM): you'd need
+# to drop OSRM and/or Redis from docker-compose.prod.yml to fit, relying on
+# the app's existing graceful degradation (Haversine fallback, cache skip).
+# instance_shape      = "VM.Standard.E2.1.Micro"
+# instance_ocpus      = null
+# instance_memory_gbs = null
+# NOTE: E2.1.Micro is a fixed (non-flex) shape -- you must also remove the
+# shape_config block from compute.tf's oci_core_instance resource, since
+# that block is only valid for *.Flex shapes.

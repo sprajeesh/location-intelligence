@@ -15,7 +15,7 @@ import { routing } from "./i18n/routing";
  * - /mi/* → Māori locale
  * - /* → Defaults to 'en'
  */
-export const proxy = createMiddleware(routing);
+export const middleware = createMiddleware(routing);
 
 /**
  * Config: specify which routes the middleware applies to
@@ -30,4 +30,8 @@ export const config = {
     // - api/* (API routes are not processed by this middleware)
     "/((?!api|_next|favicon.ico|.*\\..*).*)",
   ],
+  // Next.js 16 defaults middleware to the Node.js runtime, but the
+  // OpenNext Cloudflare adapter only supports Edge middleware. next-intl's
+  // middleware has no Node.js-only dependencies, so Edge is safe here.
+  runtime: "experimental-edge",
 };
