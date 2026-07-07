@@ -76,9 +76,8 @@ jobs:
     name: Provision OCI Infrastructure
     needs: [test]
     if: |
-      github.ref == 'refs/heads/main' ||
-      startsWith(github.ref, 'refs/heads/release/') ||
-      startsWith(github.ref, 'refs/heads/release--')
+      github.ref == 'refs/heads/main' &&
+      startsWith(github.event.head_commit.message, 'release:')
     runs-on: ubuntu-latest
     environment: production
     outputs:
@@ -134,6 +133,9 @@ jobs:
   deploy-api:
     name: Deploy API to OCI VM
     needs: [terraform]
+    if: |
+      github.ref == 'refs/heads/main' &&
+      startsWith(github.event.head_commit.message, 'release:')
     runs-on: ubuntu-latest
     environment: production
     steps:
@@ -204,9 +206,8 @@ jobs:
     name: Deploy Web to Cloudflare
     needs: [test]
     if: |
-      github.ref == 'refs/heads/main' ||
-      startsWith(github.ref, 'refs/heads/release/') ||
-      startsWith(github.ref, 'refs/heads/release--')
+      github.ref == 'refs/heads/main' &&
+      startsWith(github.event.head_commit.message, 'release:')
     runs-on: ubuntu-latest
     environment: production
     defaults:
