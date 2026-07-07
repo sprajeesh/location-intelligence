@@ -149,6 +149,7 @@ jobs:
         env:
           SERVER_HOST: ${{ needs.terraform.outputs.instance_ip }}
           APP_DIR:     ${{ secrets.DEPLOY_APP_DIR }}
+          GIT_SHA:     ${{ github.sha }}
         run: |
           ssh -o StrictHostKeyChecking=yes "ubuntu@$SERVER_HOST" bash -s <<REMOTE
             set -euo pipefail
@@ -159,10 +160,9 @@ jobs:
             fi
             cd "$APP_DIR"
 
-            echo "==> Pulling latest commits"
+            echo "==> Checking out the exact commit that was tested"
             git fetch --all --prune
-            git checkout main
-            git pull origin main
+            git checkout --detach "$GIT_SHA"
 
             echo "==> Rebuilding and restarting all services"
             docker compose -f docker-compose.yml -f docker-compose.prod.yml pull --quiet || true
