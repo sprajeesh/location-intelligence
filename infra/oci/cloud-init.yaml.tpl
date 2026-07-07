@@ -6,6 +6,7 @@ packages:
   - ca-certificates
   - curl
   - gnupg
+  - python3-pip
 
 write_files:
   - path: /opt/setup.sh
@@ -41,6 +42,11 @@ write_files:
         DEBIAN_FRONTEND=noninteractive apt-get install -y iptables-persistent
       fi
       netfilter-persistent save
+
+      # ── Install OCI CLI so scripts/fetch-secrets.sh can read the DB
+      #    password from Vault via this instance's own identity (instance
+      #    principal) -- no embedded credentials needed on the box.
+      pip3 install --break-system-packages --quiet oci-cli
 
       # ── Prepare app directory for the deploy step to clone/pull into ──
       mkdir -p /opt/location-intelligence

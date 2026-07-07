@@ -4,6 +4,14 @@ Provisions the Oracle Cloud VM that hosts the FastAPI API + PostGIS + Redis + OS
 docker-compose for the location-intelligence demo. The Next.js web app is deployed
 separately to Cloudflare (see `apps/web/`) and is not managed here.
 
+This also provisions an OCI Vault holding the Postgres password (`vault.tf`).
+Terraform generates the password once and stores it in Vault; nothing else --
+not GitHub Secrets, not a file in this repo -- ever holds it. At deploy time,
+`scripts/fetch-secrets.sh` runs on the VM itself and reads the password
+straight out of Vault using the VM's own identity (an OCI "instance
+principal", granted read access by the dynamic group + policy in `vault.tf`),
+then writes it into `.env` for docker-compose. See "Database secrets" below.
+
 ## One-time bootstrap (do this before the pipeline can run)
 
 Terraform needs a place to store its state file, but that place (an OCI Object
@@ -61,6 +69,32 @@ only way forward is to either try a different region/availability domain, or
 manually switch to `VM.Standard.E2.1.Micro` in `terraform.tfvars` (see the
 commented-out block in `terraform.tfvars.example` and its notes on what else
 needs to change).
+
+## Database secrets
+
+The Postgres password is never set by hand and never stored in GitHub
+Secrets. Terraform's `random_password.db_password` resource (`vault.tf`)
+generates it once on first `apply` and stores it in OCI Vault
+(`oci_vault_secret.db_password`) -- it stays stable across re-applies unless
+that resource is explicitly replaced. `outputs.tf` exposes only the secret's
+OCID (a non-sensitive identifier, safe to log) as `db_password_secret_id`,
+never the password itself.
+
+At deploy time, the `deploy-api` job in `push.yml` passes that OCID (and the
+non-secret `db_user`) to the VM and runs `scripts/fetch-secrets.sh`, which
+uses the OCI CLI with `--auth instance_principal` -- i.e. the VM authenticates
+as itself, via the dynamic group + IAM policy in `vault.tf`, with no
+credential file on disk -- to read the password from Vault and write it into
+a fresh `.env` alongside the other (non-secret) service URLs. `docker compose`
+then picks that `.env` up for both the `api` service's runtime env and the
+`postgis` image's build args.
+
+Because there's no persistent Postgres volume (the `postgis` image bakes in
+the LINZ dataset and creates the DB user at *build* time, not first-boot), a
+password rotation just means: taint `random_password.db_password`, `terraform
+apply`, then redeploy -- the next `docker compose ... up -d --build` rebuilds
+`postgis` with the new password baked in, matching what the API reads from
+the freshly-written `.env`.
 
 ## Known gap: OSRM data file
 

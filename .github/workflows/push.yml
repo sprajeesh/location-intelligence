@@ -83,6 +83,8 @@ jobs:
     environment: production
     outputs:
       instance_ip: ${{ steps.tf_outputs.outputs.instance_ip }}
+      db_user: ${{ steps.tf_outputs.outputs.db_user }}
+      db_password_secret_id: ${{ steps.tf_outputs.outputs.db_password_secret_id }}
     env:
       TF_VAR_tenancy_ocid:        ${{ secrets.OCI_TENANCY_OCID }}
       TF_VAR_user_ocid:           ${{ secrets.OCI_USER_OCID }}
@@ -120,7 +122,10 @@ jobs:
       - name: Export outputs
         id: tf_outputs
         working-directory: infra/oci
-        run: echo "instance_ip=$(terraform output -raw instance_public_ip)" >> "$GITHUB_OUTPUT"
+        run: |
+          echo "instance_ip=$(terraform output -raw instance_public_ip)" >> "$GITHUB_OUTPUT"
+          echo "db_user=$(terraform output -raw db_user)" >> "$GITHUB_OUTPUT"
+          echo "db_password_secret_id=$(terraform output -raw db_password_secret_id)" >> "$GITHUB_OUTPUT"
 
   # ───────────────────────────────────────────────────────────────────────────
   # Deploy the API + PostGIS + Redis + OSRM to the OCI VM via docker-compose.
@@ -147,9 +152,11 @@ jobs:
       - name: Sync repo and restart services
         shell: bash
         env:
-          SERVER_HOST: ${{ needs.terraform.outputs.instance_ip }}
-          APP_DIR:     ${{ secrets.DEPLOY_APP_DIR }}
-          GIT_SHA:     ${{ github.sha }}
+          SERVER_HOST:           ${{ needs.terraform.outputs.instance_ip }}
+          APP_DIR:               ${{ secrets.DEPLOY_APP_DIR }}
+          GIT_SHA:               ${{ github.sha }}
+          DB_USER:               ${{ needs.terraform.outputs.db_user }}
+          DB_PASSWORD_SECRET_ID: ${{ needs.terraform.outputs.db_password_secret_id }}
         run: |
           ssh -o StrictHostKeyChecking=yes "ubuntu@$SERVER_HOST" bash -s <<REMOTE
             set -euo pipefail
@@ -163,6 +170,9 @@ jobs:
             echo "==> Checking out the exact commit that was tested"
             git fetch --all --prune
             git checkout --detach "$GIT_SHA"
+
+            echo "==> Fetching DB secrets from OCI Vault"
+            bash scripts/fetch-secrets.sh "$DB_USER" "$DB_PASSWORD_SECRET_ID" .env
 
             echo "==> Rebuilding and restarting all services"
             docker compose -f docker-compose.yml -f docker-compose.prod.yml pull --quiet || true

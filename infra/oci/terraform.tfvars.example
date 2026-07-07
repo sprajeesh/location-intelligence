@@ -8,6 +8,11 @@ instance_shape      = "VM.Standard.A1.Flex"
 instance_ocpus      = 2
 instance_memory_gbs = 12
 ssh_ingress_cidr    = "0.0.0.0/0"
+db_user             = "gisuser"
+
+# The DB password is NOT a variable here -- Terraform generates it
+# (random_password.db_password in vault.tf) and stores it in OCI Vault.
+# See README.md's "Database secrets" section.
 
 # ── Fallback if A1.Flex remains out of capacity after CI retries ──
 # This is a MANUAL override only -- the pipeline must never switch shapes
