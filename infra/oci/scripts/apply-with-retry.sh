@@ -6,6 +6,8 @@
 # first attempt so it never gets masked by the retry loop.
 set -uo pipefail # no -e: we need to inspect terraform's exit code ourselves
 
+PLAN_FILE="$1"
+
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 
 MAX_ATTEMPTS=6
@@ -13,7 +15,7 @@ BASE_DELAY=60 # seconds; backoff is BASE_DELAY * attempt: 60,120,180,240,300,360
 
 for attempt in $(seq 1 "$MAX_ATTEMPTS"); do
   echo "=== terraform apply attempt ${attempt}/${MAX_ATTEMPTS} ==="
-  OUTPUT=$(terraform apply -auto-approve -input=false -no-color 2>&1)
+  OUTPUT=$(terraform apply -auto-approve -input=false -no-color "$PLAN_FILE" 2>&1)
   STATUS=$?
   echo "$OUTPUT"
 
