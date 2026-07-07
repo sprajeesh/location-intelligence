@@ -26,9 +26,16 @@ resource "oci_core_route_table" "public" {
 
 # Ports 80/443 are opened for a future reverse proxy / TLS upgrade (see
 # infra/oci/README.md) even though nothing listens on them yet. Port 8000
-# is the FastAPI backend, exposed directly since the Next.js BFF calls it
-# server-side only (never from the browser) -- see repo root README for
-# the mixed-content analysis behind that decision.
+# is the FastAPI backend, exposed directly (plain HTTP, no TLS) since the
+# Next.js BFF calls it server-side only (never from the browser) -- see
+# repo root README for the mixed-content analysis behind that decision.
+#
+# var.api_ingress_cidr defaults to 0.0.0.0/0 because the only caller is a
+# Cloudflare Worker (apps/web's Route Handlers), which has no fixed egress
+# IP range to allowlist -- narrowing this default would break the deployed
+# app. Restrict it via terraform.tfvars if you front the API with a proxy
+# that has a stable source IP, or drop this rule entirely once port 80/443
+# carry real traffic instead.
 resource "oci_core_security_list" "public" {
   compartment_id = var.compartment_ocid
   vcn_id         = oci_core_vcn.main.id
@@ -68,7 +75,7 @@ resource "oci_core_security_list" "public" {
 
   ingress_security_rules {
     protocol = "6"
-    source   = "0.0.0.0/0"
+    source   = var.api_ingress_cidr
     tcp_options {
       min = 8000
       max = 8000

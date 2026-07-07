@@ -8,6 +8,7 @@ instance_shape      = "VM.Standard.A1.Flex"
 instance_ocpus      = 2
 instance_memory_gbs = 12
 ssh_ingress_cidr    = "0.0.0.0/0"
+api_ingress_cidr    = "0.0.0.0/0" # must stay open -- the Cloudflare Worker caller has no fixed IP
 db_user             = "gisuser"
 
 # The DB password is NOT a variable here -- Terraform generates it
