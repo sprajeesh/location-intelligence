@@ -242,6 +242,8 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: apps/web
           command: deploy
+        env:
+          ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
 
       # Server-only secret the BFF Route Handlers send as X-Internal-Api-Key
       # (see src/utils/apiAuth.ts) -- set via `wrangler secret put`, not
