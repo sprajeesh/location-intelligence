@@ -108,15 +108,12 @@ jobs:
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          # Pinned to a recent release, not "1.9.x": older Terraform lines
-          # bundle an aws-sdk-go-v2 build that predates the SDK's
-          # AWS_REQUEST_CHECKSUM_CALCULATION / AWS_RESPONSE_CHECKSUM_VALIDATION
-          # opt-out support (added ~mid-2024), so those env vars above are
-          # silently ignored and the S3 backend still sends a checksum
-          # trailer via chunked encoding that OCI Object Storage rejects
-          # with "501 NotImplemented". "latest" keeps picking up a line
-          # HashiCorp actively backports SDK fixes to.
-          terraform_version: "latest"
+          # Pinned to 1.10.x for OCI S3 compatibility: newer than 1.9.x
+          # (which has SDK issues with chunked-encoding checksums on
+          # Object Storage), but older than "latest" which has other
+          # regressions. 1.10.x bundles aws-sdk-go-v2 with proper checksum
+          # calculation control and has been tested with OCI.
+          terraform_version: "1.10.x"
 
       - name: Terraform Init
         working-directory: infra/oci
