@@ -92,6 +92,13 @@ jobs:
       TF_VAR_region: ${{ secrets.OCI_REGION }}
       TF_VAR_compartment_ocid: ${{ secrets.OCI_COMPARTMENT_OCID }}
       TF_VAR_ssh_public_key: ${{ secrets.DEPLOY_SSH_PUBLIC_KEY }}
+      # The S3 backend's AWS SDK defaults to sending a trailing checksum over
+      # chunked transfer-encoding on PutObject, which OCI Object Storage's
+      # S3-compatible endpoint rejects with "501 NotImplemented: AWS chunked
+      # encoding not supported". Forcing checksums to only be added when
+      # required avoids that code path. Not secrets, just SDK behavior flags.
+      AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+      AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
     steps:
       - name: Checkout code
         uses: actions/checkout@2d1c1198e79c30cca5c3957b1e3b65ce95b5356e
