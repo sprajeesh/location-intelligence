@@ -118,12 +118,12 @@ jobs:
       - name: Terraform Init
         working-directory: infra/oci
         run: |
-          echo "yes" | terraform init \
+          terraform init \
             -migrate-state \
             -input=true \
             -backend-config="endpoint=${{ secrets.OCI_S3_ENDPOINT }}" \
             -backend-config="access_key=${{ secrets.OCI_S3_ACCESS_KEY }}" \
-            -backend-config="secret_key=${{ secrets.OCI_S3_SECRET_KEY }}"
+            -backend-config="secret_key=${{ secrets.OCI_S3_SECRET_KEY }}" <<< "yes"
 
       - name: Terraform Plan
         working-directory: infra/oci
