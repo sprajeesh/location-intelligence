@@ -120,7 +120,7 @@ jobs:
         run: |
           terraform init \
             -migrate-state \
-            -backend-config="endpoints.s3=${{ secrets.OCI_S3_ENDPOINT }}" \
+            -backend-config="endpoint=${{ secrets.OCI_S3_ENDPOINT }}" \
             -backend-config="access_key=${{ secrets.OCI_S3_ACCESS_KEY }}" \
             -backend-config="secret_key=${{ secrets.OCI_S3_SECRET_KEY }}"
 

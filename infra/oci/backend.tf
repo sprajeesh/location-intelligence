@@ -21,7 +21,5 @@ terraform {
     skip_metadata_api_check     = true
     skip_requesting_account_id  = true
     use_path_style              = true
-    # Note: endpoints.s3 is supplied via -backend-config flag on terraform init
-    # (was previously "endpoint" which is now deprecated)
   }
 }
