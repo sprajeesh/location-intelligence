@@ -133,13 +133,55 @@ def _facility_score_best_of_both(
     return score, "drive", drive_nearest  # drive_nearest is not None on this branch
 
 
-def _explain(label: str, count: int, nearest_km: float, mode: str) -> str:
-    alternatives = count - 1
-    distance_str = f"{nearest_km:.1f} km"
+def _pluralize(label: str) -> str:
+    if label.endswith("y") and label[-2].lower() not in "aeiou":
+        return label[:-1] + "ies"
+    return label + "s"
+
+
+def _explain(
+    label: str,
+    poi_distances: list[float],
+    nearest_km: float,
+    mode: str,
+    reference_radius: float,
+    hard_cutoff: float,
+) -> str:
+    """Plain-language description of the same distance/count data facility_score
+    already used. `reference_radius` only shapes this text: POIs within it are
+    described as the "typical range" count, POIs beyond it but still within
+    `hard_cutoff` as an additional "further out" count. This is presentation
+    only — it doesn't change the score or introduce any cliff. A POI just past
+    reference_radius still contributes the same smoothly-decayed weight to
+    density as one just inside it; only how it's *described* differs.
+    """
+    within_ref = sorted(d for d in poi_distances if d <= reference_radius)
+    beyond_ref = sorted(d for d in poi_distances if reference_radius < d <= hard_cutoff)
+
+    if not within_ref and not beyond_ref:
+        return f"Nearest {label} is {nearest_km:.1f} km away by {mode}."
+
+    if within_ref and beyond_ref:
+        farthest = beyond_ref[-1]
+        return (
+            f"{len(within_ref)} {_pluralize(label)} within {reference_radius:.1f} km by {mode}, "
+            f"plus {len(beyond_ref)} more up to {farthest:.1f} km away."
+        )
+
+    if within_ref:
+        if len(within_ref) == 1:
+            return f"Nearest {label} is {nearest_km:.1f} km away by {mode}."
+        return f"{len(within_ref)} {_pluralize(label)} within {reference_radius:.1f} km by {mode}."
+
+    # Only far-bucket POIs — none within reference_radius.
+    alternatives = len(beyond_ref) - 1
     if alternatives <= 0:
-        return f"Nearest {label} is {distance_str} away by {mode}."
+        return f"Nearest {label} is {nearest_km:.1f} km away by {mode}."
     plural = "alternative" if alternatives == 1 else "alternatives"
-    return f"Nearest {label} is {distance_str} away by {mode}, {alternatives} {plural} in range."
+    return (
+        f"Nearest {label} is {nearest_km:.1f} km away by {mode}, "
+        f"{alternatives} {plural} beyond {reference_radius:.1f} km."
+    )
 
 
 class LocationScoringService:
@@ -230,13 +272,29 @@ class LocationScoringService:
                     explanation=f"No {label} found nearby.",
                 )
             score, leg, nearest = _facility_score_best_of_both(cfg, walk_distances, drive_distances)
+            if leg == "walk":
+                leg_distances, leg_reference_radius, leg_hard_cutoff = (
+                    walk_distances,
+                    cfg.reference_radius,
+                    cfg.hard_cutoff,
+                )
+            else:
+                assert cfg.drive_reference_radius is not None
+                assert cfg.drive_hard_cutoff is not None
+                leg_distances, leg_reference_radius, leg_hard_cutoff = (
+                    drive_distances,
+                    cfg.drive_reference_radius,
+                    cfg.drive_hard_cutoff,
+                )
             return FacilityScore(
                 facility_type=facility_type,
                 status="scored",
                 score=round(score, 1),
                 nearest_distance_km=round(nearest, 2),
                 count=count,
-                explanation=_explain(label, count, nearest, leg),
+                explanation=_explain(
+                    label, leg_distances, nearest, leg, leg_reference_radius, leg_hard_cutoff
+                ),
             )
 
         distances = [f.distance_km for f in group if f.distance_km is not None]
@@ -258,7 +316,9 @@ class LocationScoringService:
             score=round(score, 1),
             nearest_distance_km=round(nearest, 2),
             count=count,
-            explanation=_explain(label, count, nearest, cfg.distance_mode),
+            explanation=_explain(
+                label, distances, nearest, cfg.distance_mode, cfg.reference_radius, cfg.hard_cutoff
+            ),
         )
 
     def _score_category(

@@ -31,6 +31,17 @@ class FacilityConfig(BaseModel):
             raise ValueError("proximity_weight + density_weight must sum to 1.0")
         return self
 
+    @model_validator(mode="after")
+    def hard_cutoff_exceeds_reference_radius(self) -> "FacilityConfig":
+        if self.hard_cutoff <= self.reference_radius:
+            raise ValueError("hard_cutoff must be strictly greater than reference_radius")
+        if self.drive_hard_cutoff is not None and self.drive_reference_radius is not None:
+            if self.drive_hard_cutoff <= self.drive_reference_radius:
+                raise ValueError(
+                    "drive_hard_cutoff must be strictly greater than drive_reference_radius"
+                )
+        return self
+
 
 FACILITY_CONFIGS: dict[str, FacilityConfig] = {
     "schools": FacilityConfig(

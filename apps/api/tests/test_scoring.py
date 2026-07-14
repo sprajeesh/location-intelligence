@@ -1,17 +1,27 @@
 """Unit tests for the facility -> category -> composite scoring pipeline."""
 
+import itertools
 import math
 
 import pytest
+from pydantic import ValidationError
 
 from app.config.scoring_config import (
     CATEGORY_FACILITY_WEIGHTS,
     CATEGORY_WEIGHTS,
     FACILITY_CONFIGS,
+    FacilityConfig,
     fetch_radius_km,
 )
 from app.models.domain import Facility
 from app.services.scoring import LocationScoringService, dedupe_pois, facility_score
+
+# Distinct synthetic POIs must not collide under dedupe_pois (which matches on
+# real proximity, not on the test-double distance_km field), so give each
+# facility its own coordinate by default, ~1.1km apart — well past
+# DEDUPE_DISTANCE_KM (0.1km). Tests that specifically exercise dedup pass
+# lat/lon explicitly instead.
+_position_counter = itertools.count()
 
 
 def make_facility(
@@ -19,18 +29,21 @@ def make_facility(
     distance_km: float | None = None,
     fid: str | None = None,
     name: str = "Test Facility",
-    lat: float = -36.0,
-    lon: float = 174.0,
+    lat: float | None = None,
+    lon: float | None = None,
     walk_distance_km: float | None = None,
     drive_distance_km: float | None = None,
 ) -> Facility:
     fid = fid or f"osm_node_{category}_{name}_{distance_km}"
+    if lat is None and lon is None:
+        lat = -36.0 + next(_position_counter) * 0.01
+        lon = 174.0
     return Facility(
         id=fid,
         name=name,
         category=category,
-        lat=lat,
-        lon=lon,
+        lat=lat if lat is not None else -36.0,
+        lon=lon if lon is not None else 174.0,
         distance_km=distance_km,
         walk_distance_km=walk_distance_km,
         drive_distance_km=drive_distance_km,
@@ -235,3 +248,97 @@ class TestFetchRadiusKm:
 
     def test_unconfigured_facility_type_passes_through_requested_radius(self) -> None:
         assert fetch_radius_km("made_up_type", 7.0) == 7.0
+
+
+def _base_facility_config_kwargs() -> dict:
+    return {
+        "distance_mode": "walk",
+        "decay_constant": 0.4,
+        "reference_radius": 1.0,
+        "hard_cutoff": 3.0,
+        "saturation_point": 3,
+        "proximity_weight": 0.5,
+        "density_weight": 0.5,
+    }
+
+
+class TestReferenceRadiusValidator:
+    def test_hard_cutoff_equal_to_reference_radius_is_rejected(self) -> None:
+        with pytest.raises(ValidationError):
+            FacilityConfig(**{**_base_facility_config_kwargs(), "hard_cutoff": 1.0})
+
+    def test_hard_cutoff_below_reference_radius_is_rejected(self) -> None:
+        with pytest.raises(ValidationError):
+            FacilityConfig(**{**_base_facility_config_kwargs(), "hard_cutoff": 0.5})
+
+    def test_drive_hard_cutoff_must_exceed_drive_reference_radius(self) -> None:
+        with pytest.raises(ValidationError):
+            FacilityConfig(
+                **{
+                    **_base_facility_config_kwargs(),
+                    "distance_mode": "best_of_both",
+                    "drive_decay_constant": 3,
+                    "drive_reference_radius": 5,
+                    "drive_hard_cutoff": 5,  # not strictly greater -> invalid
+                }
+            )
+
+    def test_all_configured_facilities_satisfy_the_relationship(self) -> None:
+        for facility_type, cfg in FACILITY_CONFIGS.items():
+            assert cfg.hard_cutoff > cfg.reference_radius, facility_type
+            if cfg.drive_hard_cutoff is not None:
+                assert cfg.drive_hard_cutoff > cfg.drive_reference_radius, facility_type
+
+
+class TestExplanationBucketing:
+    """§2/§5 follow-up: reference_radius drives explanation-string bucketing
+    only — it must never reintroduce a cliff in the actual score."""
+
+    def test_schools_explanation_splits_near_and_far_buckets(
+        self, svc: LocationScoringService
+    ) -> None:
+        facilities = [
+            make_facility("schools", distance_km=0.2, fid="s1"),
+            make_facility("schools", distance_km=0.5, fid="s2"),
+            make_facility("schools", distance_km=0.9, fid="s3"),
+            make_facility("schools", distance_km=2.8, fid="s4"),  # beyond reference_radius (1.0km)
+        ]
+        score = svc.score(facilities, categories=["schools"], unavailable=set())
+        education = next(c for c in score.categories if c.category == "education")
+        schools_fs = next(f for f in education.facilities if f.facility_type == "schools")
+
+        assert "3 schools within 1.0 km" in schools_fs.explanation
+        assert "1 more up to 2.8 km away" in schools_fs.explanation
+
+    def test_poi_near_reference_radius_boundary_shifts_bucket_not_score(
+        self, svc: LocationScoringService
+    ) -> None:
+        cfg = FACILITY_CONFIGS["schools"]
+        just_inside = cfg.reference_radius - 0.01
+        just_outside = cfg.reference_radius + 0.01
+        anchor = 0.1  # always within reference_radius; keeps `nearest` identical in both cases
+
+        inside_facilities = [
+            make_facility("schools", distance_km=anchor, fid="anchor"),
+            make_facility("schools", distance_km=just_inside, fid="boundary"),
+        ]
+        outside_facilities = [
+            make_facility("schools", distance_km=anchor, fid="anchor"),
+            make_facility("schools", distance_km=just_outside, fid="boundary"),
+        ]
+
+        def schools_result(facilities: list[Facility]):
+            score = svc.score(facilities, categories=["schools"], unavailable=set())
+            education = next(c for c in score.categories if c.category == "education")
+            return next(f for f in education.facilities if f.facility_type == "schools")
+
+        inside_fs = schools_result(inside_facilities)
+        outside_fs = schools_result(outside_facilities)
+
+        # Different explanation buckets either side of reference_radius...
+        assert "2 schools within 1.0 km" in inside_fs.explanation
+        assert "plus 1 more up to" in outside_fs.explanation
+
+        # ...but no discontinuity in the actual score (hard_cutoff, not
+        # reference_radius, gates the density sum — both POIs are well within it).
+        assert abs(inside_fs.score - outside_fs.score) < 1.0
