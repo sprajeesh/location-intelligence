@@ -256,9 +256,7 @@ class LocationScoringService:
         count = len(group)
 
         if cfg.distance_mode == "best_of_both":
-            walk_distances = [
-                f.walk_distance_km for f in group if f.walk_distance_km is not None
-            ]
+            walk_distances = [f.walk_distance_km for f in group if f.walk_distance_km is not None]
             drive_distances = [
                 f.drive_distance_km for f in group if f.drive_distance_km is not None
             ]
