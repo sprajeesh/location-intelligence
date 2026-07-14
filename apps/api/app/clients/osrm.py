@@ -25,32 +25,52 @@ class OSRMClient:
         self._base_url = base_url.rstrip("/")
         self._http = http_client
 
-    async def route_distance_km(
+    async def table_distances_km(
         self,
-        lat1: float,
-        lon1: float,
-        lat2: float,
-        lon2: float,
-        mode: str = "driving",
-    ) -> tuple[float, bool]:
-        """Return (distance_km, used_fallback).
+        origin_lat: float,
+        origin_lon: float,
+        destinations: list[tuple[float, float]],
+        profile: str = "driving",
+    ) -> tuple[list[float], bool]:
+        """One-to-many routed distances from an origin to each destination.
 
-        Tries OSRM first; on connection error falls back to Haversine.
+        Uses OSRM's `table` service (one HTTP call per facility type per address)
+        rather than one `route` call per POI. Returns (distances_km, used_fallback);
+        used_fallback is True if the whole request failed, or any individual
+        origin-destination pair fell back to Haversine because OSRM reported it
+        as unreachable.
         """
-        url = f"{self._base_url}/route/v1/{mode}/{lon1},{lat1};{lon2},{lat2}"
-        params = {"overview": "false"}
+        if not destinations:
+            return [], False
+
+        coords = ";".join(
+            [f"{origin_lon},{origin_lat}"] + [f"{lon},{lat}" for lat, lon in destinations]
+        )
+        dest_indices = ";".join(str(i) for i in range(1, len(destinations) + 1))
+        url = f"{self._base_url}/table/v1/{profile}/{coords}"
+        params = {"sources": "0", "destinations": dest_indices, "annotations": "distance"}
+
         try:
-            response = await self._http.get(url, params=params, timeout=10.0)
+            response = await self._http.get(url, params=params, timeout=15.0)
             response.raise_for_status()
             data = response.json()
-            routes = data.get("routes", [])
-            if not routes:
-                raise ValueError("No routes returned by OSRM")
-            distance_m = routes[0]["distance"]
-            return distance_m / 1000.0, False
+            row = data.get("distances", [[]])[0]
+            distances: list[float] = []
+            used_fallback = False
+            for (lat, lon), meters in zip(destinations, row):
+                if meters is None:
+                    distances.append(haversine_km(origin_lat, origin_lon, lat, lon))
+                    used_fallback = True
+                else:
+                    distances.append(meters / 1000.0)
+            return distances, used_fallback
         except (httpx.ConnectError, httpx.TimeoutException, httpx.RemoteProtocolError) as exc:
             logger.warning("OSRM unavailable, falling back to Haversine: %s", exc)
-            return haversine_km(lat1, lon1, lat2, lon2), True
+            return [
+                haversine_km(origin_lat, origin_lon, lat, lon) for lat, lon in destinations
+            ], True
         except Exception as exc:
             logger.warning("OSRM request failed, falling back to Haversine: %s", exc)
-            return haversine_km(lat1, lon1, lat2, lon2), True
+            return [
+                haversine_km(origin_lat, origin_lon, lat, lon) for lat, lon in destinations
+            ], True

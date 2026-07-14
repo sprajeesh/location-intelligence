@@ -11,9 +11,6 @@ class Settings(BaseSettings):
     overpass_url: str = "https://overpass-api.de/api/interpreter"
     osrm_url: str = "http://localhost:5000"
     redis_url: str = "redis://localhost:6379"
-    scoring_alpha: float = 0.6
-    scoring_beta: float = 0.4
-    scoring_density_factor: float = 10.0
     # Shared secret checked against the X-Internal-Api-Key header (see
     # app/api/deps.py). None (the default, e.g. local dev) skips enforcement
     # entirely; set in production from the API_SHARED_SECRET GitHub secret.

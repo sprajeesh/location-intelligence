@@ -1,133 +1,217 @@
-"""Unit tests for LocationScoringService."""
+"""Unit tests for the facility -> category -> composite scoring pipeline."""
+
+import math
 
 import pytest
 
+from app.config.scoring_config import CATEGORY_FACILITY_WEIGHTS, CATEGORY_WEIGHTS, FACILITY_CONFIGS
 from app.models.domain import Facility
-from app.services.scoring import LocationScoringService
+from app.services.scoring import LocationScoringService, dedupe_pois, facility_score
 
 
 def make_facility(
     category: str,
-    distance_km: float,
+    distance_km: float | None = None,
     fid: str | None = None,
     name: str = "Test Facility",
+    lat: float = -36.0,
+    lon: float = 174.0,
+    walk_distance_km: float | None = None,
+    drive_distance_km: float | None = None,
 ) -> Facility:
-    fid = fid or f"osm_node_{category}_{int(distance_km * 100)}"
+    fid = fid or f"osm_node_{category}_{name}_{distance_km}"
     return Facility(
-        id=fid, name=name, category=category, lat=-36.0, lon=174.0, distance_km=distance_km
+        id=fid,
+        name=name,
+        category=category,
+        lat=lat,
+        lon=lon,
+        distance_km=distance_km,
+        walk_distance_km=walk_distance_km,
+        drive_distance_km=drive_distance_km,
     )
 
 
 @pytest.fixture
 def svc() -> LocationScoringService:
-    return LocationScoringService(alpha=0.6, beta=0.4, density_factor=10.0)
+    return LocationScoringService()
 
 
-class TestCategoryScore:
-    def test_perfect_score_one_facility_at_zero_distance(self, svc: LocationScoringService) -> None:
-        # proximity = 100, density = min(100, 1*10) = 10
-        # score = 0.6*100 + 0.4*10 = 64
-        f = make_facility("schools", distance_km=0.0)
-        result = svc._category_score([f], radius_km=10.0)
-        assert result == pytest.approx(64.0)
+class TestConfig:
+    def test_category_weights_sum_to_one(self) -> None:
+        assert sum(CATEGORY_WEIGHTS.values()) == pytest.approx(1.0)
 
-    def test_zero_facilities_returns_zero(self, svc: LocationScoringService) -> None:
-        result = svc._category_score([], radius_km=10.0)
-        assert result == 0.0
+    def test_facility_weights_sum_to_one(self) -> None:
+        for facility_type, cfg in FACILITY_CONFIGS.items():
+            assert cfg.proximity_weight + cfg.density_weight == pytest.approx(1.0), facility_type
 
-    def test_facility_at_radius_boundary(self, svc: LocationScoringService) -> None:
-        # proximity = max(0, 100*(1-10/10)) = 0
-        f = make_facility("schools", distance_km=10.0)
-        result = svc._category_score([f], radius_km=10.0)
-        # proximity=0, density=min(100, 1*10)=10 → score=0.6*0 + 0.4*10=4.0
-        assert result == pytest.approx(4.0)
+    def test_recreation_category_has_parks_and_libraries(self) -> None:
+        assert CATEGORY_FACILITY_WEIGHTS["recreation"] == {"parks": 0.55, "libraries": 0.45}
 
-    def test_facility_beyond_radius_clamps_proximity_to_zero(
+    def test_shopping_category_only_supermarkets(self) -> None:
+        assert CATEGORY_FACILITY_WEIGHTS["shopping"] == {"supermarkets": 1.0}
+
+    def test_railway_stations_use_best_of_both(self) -> None:
+        assert FACILITY_CONFIGS["railway_stations"].distance_mode == "best_of_both"
+
+
+class TestFacilityScoreFormula:
+    def test_matches_formula_at_zero_distance(self) -> None:
+        cfg = FACILITY_CONFIGS["schools"]
+        result = facility_score(0.0, [0.0], cfg)
+
+        proximity = math.exp(0.0) * 100
+        density_raw = math.exp(0.0)
+        density = 100 * (1 - math.exp(-density_raw / cfg.saturation_point))
+        expected = proximity * cfg.proximity_weight + density * cfg.density_weight
+
+        assert result == pytest.approx(expected)
+
+    def test_no_cliff_at_reference_radius(self) -> None:
+        cfg = FACILITY_CONFIGS["schools"]
+        near_ref = cfg.reference_radius * 0.9
+        at_ref = cfg.reference_radius
+
+        score_near = facility_score(near_ref, [near_ref], cfg)
+        score_at = facility_score(at_ref, [at_ref], cfg)
+
+        assert score_at > 0
+        assert score_near != pytest.approx(score_at)
+        assert abs(score_near - score_at) < 15  # smooth decay, no visible cliff
+
+    def test_hard_cutoff_only_gates_density_not_proximity(self) -> None:
+        cfg = FACILITY_CONFIGS["schools"]
+        near = 0.2
+        far_beyond_cutoff = cfg.hard_cutoff + 1.0
+
+        with_far_poi = facility_score(near, [near, far_beyond_cutoff], cfg)
+        without_far_poi = facility_score(near, [near], cfg)
+
+        assert with_far_poi == pytest.approx(without_far_poi)
+
+    def test_count_ceiling_caps_density_contribution(self) -> None:
+        cfg = FACILITY_CONFIGS["universities"]  # count_ceiling=1
+        # Both lists push raw density well past the ceiling of 1 — once capped,
+        # adding more nearby universities should not raise the score further.
+        many = facility_score(1.0, [0.1, 0.1, 0.1], cfg)
+        even_more = facility_score(1.0, [0.1, 0.1, 0.1, 0.1, 0.1], cfg)
+        assert even_more == pytest.approx(many)
+
+
+class TestDedupePOIs:
+    def test_near_duplicate_same_name_counts_once(self) -> None:
+        a = make_facility("bus_stops", fid="a", name="Queen St Stop", lat=-36.0000, lon=174.0)
+        b = make_facility("bus_stops", fid="b", name="Queen St Stop", lat=-36.0005, lon=174.0)
+        assert len(dedupe_pois([a, b])) == 1
+
+    def test_far_apart_same_name_counts_twice(self) -> None:
+        a = make_facility("bus_stops", fid="a", name="Queen St Stop", lat=-36.0000, lon=174.0)
+        b = make_facility("bus_stops", fid="b", name="Queen St Stop", lat=-36.0100, lon=174.0)
+        assert len(dedupe_pois([a, b])) == 2
+
+    def test_different_names_close_together_count_twice(self) -> None:
+        a = make_facility("bus_stops", fid="a", name="Alpha", lat=-36.0000, lon=174.0)
+        b = make_facility("bus_stops", fid="b", name="Zephyr Mart", lat=-36.0001, lon=174.0)
+        assert len(dedupe_pois([a, b])) == 2
+
+    def test_two_unnamed_close_together_count_once(self) -> None:
+        a = make_facility("bus_stops", fid="a", name="Unnamed Bus Stops", lat=-36.0000, lon=174.0)
+        b = make_facility("bus_stops", fid="b", name="Unnamed Bus Stops", lat=-36.0003, lon=174.0)
+        assert len(dedupe_pois([a, b])) == 1
+
+
+class TestNotCheckedVsCheckedZero:
+    """§4.1 — highest priority correctness check in the refactor spec."""
+
+    def test_checked_zero_hospitals_stays_in_composite_at_full_weight(
         self, svc: LocationScoringService
     ) -> None:
-        f = make_facility("schools", distance_km=15.0)
-        result = svc._category_score([f], radius_km=10.0)
-        # proximity = max(0, 100*(1-15/10)) = max(0, -50) = 0
-        assert result >= 0.0
+        score = svc.score([], categories=["hospitals", "pharmacies"], unavailable=set())
+        healthcare = next(c for c in score.categories if c.category == "healthcare")
+        hospitals_fs = next(f for f in healthcare.facilities if f.facility_type == "hospitals")
 
-    def test_density_caps_at_100(self, svc: LocationScoringService) -> None:
-        # 11 facilities * 10 = 110, capped to 100
-        facilities = [
-            make_facility("schools", distance_km=0.5, fid=f"osm_node_{i}") for i in range(11)
-        ]
-        result = svc._category_score(facilities, radius_km=10.0)
-        # proximity=95, density=100 → 0.6*95 + 0.4*100 = 57 + 40 = 97
-        assert result == pytest.approx(97.0)
+        assert hospitals_fs.status == "scored"
+        assert hospitals_fs.score == 0.0
+        assert healthcare.status == "scored"
+        assert healthcare.score == 0.0
 
-    def test_zero_radius_returns_zero(self, svc: LocationScoringService) -> None:
-        f = make_facility("schools", distance_km=0.0)
-        result = svc._category_score([f], radius_km=0.0)
-        assert result == 0.0
+    def test_missing_pharmacy_data_source_rebalances_to_hospitals_only(
+        self, svc: LocationScoringService
+    ) -> None:
+        hospital = make_facility("hospitals", distance_km=2.0, fid="h1")
+        # pharmacies fetch errored -> not_checked, distinct from "checked, zero found"
+        score = svc.score(
+            [hospital], categories=["hospitals", "pharmacies"], unavailable={"pharmacies"}
+        )
+        healthcare = next(c for c in score.categories if c.category == "healthcare")
+        pharmacies_fs = next(f for f in healthcare.facilities if f.facility_type == "pharmacies")
+        hospitals_fs = next(f for f in healthcare.facilities if f.facility_type == "hospitals")
+
+        assert pharmacies_fs.status == "not_checked"
+        assert hospitals_fs.status == "scored"
+        # fully renormalized onto hospitals alone
+        assert healthcare.score == pytest.approx(hospitals_fs.score)
+
+    def test_unrequested_category_is_not_checked(self, svc: LocationScoringService) -> None:
+        score = svc.score([], categories=["schools"], unavailable=set())
+        shopping = next(c for c in score.categories if c.category == "shopping")
+        assert shopping.status == "not_checked"
+        assert shopping.score is None
+
+    def test_coverage_counts_scored_categories_out_of_five(
+        self, svc: LocationScoringService
+    ) -> None:
+        score = svc.score([], categories=["schools"], unavailable=set())
+        assert score.coverage == "1/5"
 
 
-class TestOverallScore:
-    def test_single_category_schools_maps_to_education(self, svc: LocationScoringService) -> None:
-        f = make_facility("schools", distance_km=1.0)
-        score = svc.score([f], categories=["schools"], radius_km=10.0)
-        assert score.education is not None
-        assert score.transport is None
-        assert score.healthcare is None
-        assert score.shopping is None
+class TestBestOfBoth:
+    def test_walk_leg_wins_when_closer(self, svc: LocationScoringService) -> None:
+        station = make_facility(
+            "railway_stations", fid="r1", walk_distance_km=0.3, drive_distance_km=8.0
+        )
+        score = svc.score([station], categories=["railway_stations"], unavailable=set())
+        transport = next(c for c in score.categories if c.category == "transport")
+        rs = next(f for f in transport.facilities if f.facility_type == "railway_stations")
 
-    def test_single_category_bus_stops_maps_to_transport(self, svc: LocationScoringService) -> None:
-        f = make_facility("bus_stops", distance_km=1.0)
-        score = svc.score([f], categories=["bus_stops"], radius_km=10.0)
-        assert score.transport is not None
-        assert score.education is None
+        assert rs.status == "scored"
+        assert "walk" in rs.explanation
+        assert rs.nearest_distance_km == pytest.approx(0.3)
 
-    def test_no_facilities_returns_zero_scores(self, svc: LocationScoringService) -> None:
-        score = svc.score([], categories=["schools", "bus_stops"], radius_km=10.0)
-        assert score.education == pytest.approx(0.0)
-        assert score.transport == pytest.approx(0.0)
-        assert score.overall == pytest.approx(0.0)
+    def test_drive_leg_used_when_unreachable_on_foot(self, svc: LocationScoringService) -> None:
+        station = make_facility(
+            "railway_stations", fid="r2", walk_distance_km=None, drive_distance_km=4.0
+        )
+        score = svc.score([station], categories=["railway_stations"], unavailable=set())
+        transport = next(c for c in score.categories if c.category == "transport")
+        rs = next(f for f in transport.facilities if f.facility_type == "railway_stations")
 
-    def test_overall_is_weighted_average_of_active(self, svc: LocationScoringService) -> None:
+        assert rs.status == "scored"
+        assert "drive" in rs.explanation
+        assert rs.nearest_distance_km == pytest.approx(4.0)
+
+
+class TestOverallComposite:
+    def test_no_categories_requested_returns_none(self, svc: LocationScoringService) -> None:
+        score = svc.score([], categories=[], unavailable=set())
+        assert score.overall is None
+        assert score.coverage == "0/5"
+
+    def test_overall_is_weighted_average_of_scored_categories(
+        self, svc: LocationScoringService
+    ) -> None:
         school = make_facility("schools", distance_km=0.0, fid="s1")
         bus = make_facility("bus_stops", distance_km=0.0, fid="b1")
-        score = svc.score([school, bus], categories=["schools", "bus_stops"], radius_km=10.0)
+        score = svc.score([school, bus], categories=["schools", "bus_stops"], unavailable=set())
 
-        # Both have same raw score (proximity=100, density=10 → 64.0)
-        # weights: education=0.4, transport=0.3 → overall = (64*0.4 + 64*0.3)/(0.4+0.3) = 64.0
-        assert score.overall == pytest.approx(64.0, rel=1e-2)
+        education = next(c for c in score.categories if c.category == "education")
+        transport = next(c for c in score.categories if c.category == "transport")
+        assert education.status == "scored"
+        assert transport.status == "scored"
 
-    def test_unknown_category_skipped(self, svc: LocationScoringService) -> None:
-        score = svc.score([], categories=["unicorn"], radius_km=10.0)
-        assert score.overall is None
-
-    def test_coverage_format(self, svc: LocationScoringService) -> None:
-        score = svc.score([], categories=["schools", "bus_stops"], radius_km=10.0)
-        # "2/2" — 2 active dimensions requested, 2 unique dimensions
-        assert "/" in score.coverage
-
-    def test_all_weights_null_no_active_categories(self, svc: LocationScoringService) -> None:
-        score = svc.score([], categories=[], radius_km=10.0)
-        assert score.education is None
-        assert score.transport is None
-        assert score.healthcare is None
-        assert score.shopping is None
-        assert score.overall is None
-
-    def test_custom_alpha_beta(self) -> None:
-        svc = LocationScoringService(alpha=1.0, beta=0.0, density_factor=10.0)
-        f = make_facility("schools", distance_km=5.0)
-        # proximity=50, density=10, score=1.0*50+0.0*10=50
-        raw = svc._category_score([f], radius_km=10.0)
-        assert raw == pytest.approx(50.0)
-
-    def test_multiple_facilities_uses_nearest_for_proximity(
-        self, svc: LocationScoringService
-    ) -> None:
-        facilities = [
-            make_facility("schools", distance_km=1.0, fid="s1"),
-            make_facility("schools", distance_km=5.0, fid="s2"),
-            make_facility("schools", distance_km=9.0, fid="s3"),
-        ]
-        result = svc._category_score(facilities, radius_km=10.0)
-        # nearest=1.0km → proximity=90, density=min(100,30)=30
-        # score=0.6*90 + 0.4*30 = 54+12=66
-        assert result == pytest.approx(66.0)
+        weight_sum = CATEGORY_WEIGHTS["education"] + CATEGORY_WEIGHTS["transport"]
+        expected = (
+            education.score * CATEGORY_WEIGHTS["education"]
+            + transport.score * CATEGORY_WEIGHTS["transport"]
+        ) / weight_sum
+        assert score.overall == pytest.approx(expected, rel=1e-2)

@@ -54,7 +54,7 @@ class FacilitiesService:
             for item in raw
         ]
 
-        # Cache the serialisable form
+        # Cache the serialisable form (distances aren't computed yet at fetch time)
         await self._cache.set(
             key,
             [
@@ -64,7 +64,6 @@ class FacilitiesService:
                     "category": f.category,
                     "lat": f.lat,
                     "lon": f.lon,
-                    "distance_km": f.distance_km,
                 }
                 for f in facilities
             ],
@@ -79,24 +78,29 @@ class FacilitiesService:
         lat: float,
         lon: float,
         radius_km: float,
-    ) -> tuple[list[Facility], list[str]]:
+    ) -> tuple[list[Facility], list[str], set[str]]:
         """Fetch all requested categories in parallel.
 
-        Returns (all_facilities, warnings).
+        Returns (all_facilities, warnings, failed_categories). `failed_categories`
+        holds categories whose data source errored out — distinct from a category
+        that was successfully checked and legitimately found nothing (see scoring
+        service's not_checked vs. checked-zero handling).
         """
         tasks = [self.fetch_category(cat, lat, lon, radius_km) for cat in categories]
         results = await asyncio.gather(*tasks, return_exceptions=False)
 
         all_facilities: list[Facility] = []
         warnings: list[str] = []
+        failed_categories: set[str] = set()
         seen_ids: set[str] = set()
 
-        for facilities, warning in results:
+        for cat, (facilities, warning) in zip(categories, results):
             if warning:
                 warnings.append(warning)
+                failed_categories.add(cat)
             for f in facilities:
                 if f.id not in seen_ids:
                     seen_ids.add(f.id)
                     all_facilities.append(f)
 
-        return all_facilities, warnings
+        return all_facilities, warnings, failed_categories
