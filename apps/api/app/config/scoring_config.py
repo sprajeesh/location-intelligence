@@ -149,3 +149,27 @@ CATEGORY_WEIGHTS: dict[str, float] = {
 }
 
 assert abs(sum(CATEGORY_WEIGHTS.values()) - 1.0) < 1e-9, "CATEGORY_WEIGHTS must sum to 1.0"
+
+
+def fetch_radius_km(facility_type: str, requested_radius_km: float) -> float:
+    """The Overpass/OSM fetch bound for one facility type.
+
+    `hard_cutoff` is exactly what facility_score's density sum filters
+    against, so the fetch radius and the scoring cutoff must be the same
+    number per facility — otherwise we either truncate POIs that should
+    legitimately contribute a small decayed weight, or fetch data we'll
+    never use. The user's requested radius still narrows the search when
+    it's smaller than the facility's cutoff.
+
+    For best_of_both facilities, covers whichever leg (walk/drive) reaches
+    further, so a station only reachable by a longer drive isn't missed.
+    """
+    cfg = FACILITY_CONFIGS.get(facility_type)
+    if cfg is None:
+        return requested_radius_km
+
+    max_cutoff = cfg.hard_cutoff
+    if cfg.drive_hard_cutoff is not None:
+        max_cutoff = max(max_cutoff, cfg.drive_hard_cutoff)
+
+    return min(requested_radius_km, max_cutoff)

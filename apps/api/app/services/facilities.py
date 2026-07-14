@@ -2,6 +2,7 @@ import asyncio
 import logging
 
 from app.clients.overpass import OverpassClient
+from app.config.scoring_config import fetch_radius_km
 from app.models.domain import Facility
 from app.repositories.cache import CacheRepository
 
@@ -28,9 +29,15 @@ class FacilitiesService:
     ) -> tuple[list[Facility], str | None]:
         """Fetch facilities for a single category.
 
+        `radius_km` is the user's requested search radius; the actual Overpass
+        query is bounded by min(radius_km, this facility's hard_cutoff) — the
+        same cutoff the density scoring formula filters against, so we never
+        fetch data the scorer can't use, and never truncate data it could.
+
         Returns (facilities, warning_or_none).
         """
-        key = _cache_key(lat, lon, radius_km, category)
+        effective_radius_km = fetch_radius_km(category, radius_km)
+        key = _cache_key(lat, lon, effective_radius_km, category)
         cached = await self._cache.get(key)
         if cached is not None:
             logger.debug("Overpass cache hit: %s", key)
@@ -38,7 +45,7 @@ class FacilitiesService:
             return facilities, None
 
         try:
-            raw = await self._overpass.fetch_category(category, lat, lon, radius_km)
+            raw = await self._overpass.fetch_category(category, lat, lon, effective_radius_km)
         except Exception as exc:
             logger.error("Overpass failed for category %s: %s", category, exc)
             return [], f"Could not fetch {category} data"
