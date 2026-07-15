@@ -1,7 +1,6 @@
 """Unit tests for the facility -> category -> composite scoring pipeline."""
 
 import itertools
-import math
 
 import pytest
 from pydantic import ValidationError
@@ -14,7 +13,12 @@ from app.config.scoring_config import (
     fetch_radius_km,
 )
 from app.models.domain import Facility
-from app.services.scoring import LocationScoringService, dedupe_pois, facility_score
+from app.services.scoring import (
+    LocationScoringService,
+    _proximity_and_density,
+    dedupe_pois,
+    facility_score,
+)
 
 # Distinct synthetic POIs must not collide under dedupe_pois (which matches on
 # real proximity, not on the test-double distance_km field), so give each
@@ -78,12 +82,26 @@ class TestFacilityScoreFormula:
         cfg = FACILITY_CONFIGS["schools"]
         result = facility_score(0.0, [0.0], cfg)
 
-        proximity = math.exp(0.0) * 100
-        density_raw = math.exp(0.0)
-        density = 100 * (1 - math.exp(-density_raw / cfg.saturation_point))
+        proximity, density = _proximity_and_density(
+            0.0, [0.0], cfg.decay_constant, cfg.hard_cutoff, cfg.saturation_point, cfg.count_ceiling
+        )
         expected = proximity * cfg.proximity_weight + density * cfg.density_weight
 
         assert result == pytest.approx(expected)
+
+    def test_density_score_reaches_95_at_saturation_point(self) -> None:
+        cfg = FACILITY_CONFIGS["schools"]
+        assert cfg.count_ceiling is None  # so density_raw isn't clipped below saturation_point
+
+        # `saturation_point` facilities right on top of the address (distance 0)
+        # push density_raw to exactly saturation_point (each contributes e^0 == 1).
+        poi_distances = [0.0] * int(cfg.saturation_point)
+
+        _, density_score = _proximity_and_density(
+            0.0, poi_distances, cfg.decay_constant, cfg.hard_cutoff, cfg.saturation_point, None
+        )
+
+        assert density_score == pytest.approx(95, abs=0.1)
 
     def test_no_cliff_at_reference_radius(self) -> None:
         cfg = FACILITY_CONFIGS["schools"]

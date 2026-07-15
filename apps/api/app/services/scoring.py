@@ -14,6 +14,11 @@ from app.models.domain import CategoryScore, CompositeScore, Facility, FacilityS
 DEDUPE_DISTANCE_KM = 0.1  # ~100m
 NAME_SIMILARITY_THRESHOLD = 0.8
 
+# FacilityConfig.saturation_point is documented as the density_raw value where
+# density scoring reaches ~95/100. A bare 1 - e^-x only reaches ~63% at x=1,
+# so the exponent is scaled by -ln(0.05) to actually hit that target.
+SATURATION_CURVE_STEEPNESS = -math.log(0.05)
+
 FACILITY_LABELS: dict[str, str] = {
     "schools": "school",
     "universities": "university",
@@ -86,7 +91,9 @@ def _proximity_and_density(
     density_raw = sum(math.exp(-d / decay_constant) for d in poi_distances if d <= hard_cutoff)
     if count_ceiling is not None:
         density_raw = min(density_raw, count_ceiling)
-    density_score = 100 * (1 - math.exp(-density_raw / saturation_point))
+    density_score = 100 * (
+        1 - math.exp(-SATURATION_CURVE_STEEPNESS * density_raw / saturation_point)
+    )
 
     return proximity_score, density_score
 
