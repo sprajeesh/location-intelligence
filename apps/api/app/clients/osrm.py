@@ -54,7 +54,11 @@ class OSRMClient:
             response = await self._http.get(url, params=params, timeout=15.0)
             response.raise_for_status()
             data = response.json()
-            row = data.get("distances", [[]])[0]
+            row = data["distances"][0]
+            if len(row) != len(destinations):
+                raise ValueError(
+                    f"OSRM returned {len(row)} distances, expected {len(destinations)}"
+                )
             distances: list[float] = []
             used_fallback = False
             for (lat, lon), meters in zip(destinations, row):
