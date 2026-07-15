@@ -48,24 +48,25 @@ jobs:
       - name: Install Python dependencies
         run: cd apps/api && uv sync
 
-      - name: Install Snyk CLI
-        run: npm install -g snyk
-
       - name: Run linters
         run: cd apps/web && pnpm run lint && cd ../api && uv run ruff check . && uv run ruff format --check .
+
+      - name: Setup Snyk CLI
+        uses: snyk/actions/setup@master
+
+      - name: Run Snyk security scan
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        run: |
+          snyk test --all-projects --detection-depth=6 \
+            --exclude=node_modules,.venv,dist,build,coverage,docs,tests,examples \
+            --severity-threshold=high
 
       - name: Run tests
         run: cd apps/web && pnpm test && cd ../api && uv run pytest
 
-      # - name: Run security scan
-      #   run: snyk test --severity-threshold=high --all-projects
-
-      # - name: Run snyk monitor
-      #   if: github.ref == 'refs/heads/main'
-      #   run: snyk monitor --all-projects
-
-      # - name: Build
-      #   run: pnpm run build:web
+      - name: Build
+        run: pnpm run build:web
 
   # ───────────────────────────────────────────────────────────────────────────
   # Provision/update OCI infrastructure via Terraform. Idempotent -- a no-op
