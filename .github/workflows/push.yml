@@ -54,6 +54,9 @@ jobs:
       - name: Setup Snyk CLI
         uses: snyk/actions/setup@master
 
+      - name: Export Python dependencies for Snyk (uv.lock has no native Snyk support)
+        run: cd apps/api && uv export --format requirements.txt --no-hashes -o requirements.txt
+
       - name: Run Snyk security scan
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
