@@ -99,15 +99,16 @@ class FacilitiesService:
         all_facilities: list[Facility] = []
         warnings: list[str] = []
         failed_categories: set[str] = set()
-        seen_ids: set[str] = set()
+        seen_ids: set[tuple[str, str]] = set()
 
         for cat, (facilities, warning) in zip(categories, results):
             if warning:
                 warnings.append(warning)
                 failed_categories.add(cat)
             for f in facilities:
-                if f.id not in seen_ids:
-                    seen_ids.add(f.id)
+                key = (f.category, f.id)
+                if key not in seen_ids:
+                    seen_ids.add(key)
                     all_facilities.append(f)
 
         return all_facilities, warnings, failed_categories
