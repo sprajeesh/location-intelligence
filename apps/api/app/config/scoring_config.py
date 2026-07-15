@@ -33,6 +33,16 @@ class FacilityConfig(BaseModel):
 
     @model_validator(mode="after")
     def hard_cutoff_exceeds_reference_radius(self) -> "FacilityConfig":
+        drive_fields = (
+            self.drive_decay_constant,
+            self.drive_reference_radius,
+            self.drive_hard_cutoff,
+        )
+        if self.distance_mode == "best_of_both" and any(f is None for f in drive_fields):
+            raise ValueError(
+                "drive_decay_constant, drive_reference_radius, and drive_hard_cutoff "
+                "must all be set for best_of_both distance_mode"
+            )
         if self.hard_cutoff <= self.reference_radius:
             raise ValueError("hard_cutoff must be strictly greater than reference_radius")
         if self.drive_hard_cutoff is not None and self.drive_reference_radius is not None:
