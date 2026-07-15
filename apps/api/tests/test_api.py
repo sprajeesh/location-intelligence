@@ -68,7 +68,7 @@ class TestCategoriesEndpoint:
     def test_categories_count(self, client: TestClient) -> None:
         response = client.get("/categories")
         data = response.json()
-        assert len(data) == 8
+        assert len(data) == 9
 
     def test_categories_has_required_fields(self, client: TestClient) -> None:
         response = client.get("/categories")
@@ -88,10 +88,10 @@ class TestCategoriesEndpoint:
         bus_stops = next(c for c in response.json() if c["id"] == "bus_stops")
         assert bus_stops["implemented"] is True
 
-    def test_hospitals_not_implemented(self, client: TestClient) -> None:
+    def test_hospitals_implemented(self, client: TestClient) -> None:
         response = client.get("/categories")
         hospitals = next(c for c in response.json() if c["id"] == "hospitals")
-        assert hospitals["implemented"] is False
+        assert hospitals["implemented"] is True
 
     def test_category_ids_match_spec(self, client: TestClient) -> None:
         response = client.get("/categories")
@@ -99,6 +99,7 @@ class TestCategoriesEndpoint:
         expected = {
             "schools",
             "bus_stops",
+            "railway_stations",
             "hospitals",
             "universities",
             "supermarkets",
@@ -127,7 +128,7 @@ class TestAnalyzeEndpointWithCoords:
         with patch(
             "app.services.facilities.FacilitiesService.fetch_all",
             new_callable=AsyncMock,
-            return_value=([], []),
+            return_value=([], [], set()),
         ):
             response = client.post(
                 "/location/analyze",
@@ -151,7 +152,7 @@ class TestAnalyzeEndpointWithCoords:
         with patch(
             "app.services.facilities.FacilitiesService.fetch_all",
             new_callable=AsyncMock,
-            return_value=([], []),
+            return_value=([], [], set()),
         ):
             response = client.post(
                 "/location/analyze",
@@ -167,7 +168,7 @@ class TestAnalyzeEndpointWithCoords:
         with patch(
             "app.services.facilities.FacilitiesService.fetch_all",
             new_callable=AsyncMock,
-            return_value=([], []),
+            return_value=([], [], set()),
         ):
             response = client.post(
                 "/location/analyze",

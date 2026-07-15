@@ -9,6 +9,8 @@ Handles geocoding (LINZ PostGIS), Overpass queries, distance calculation, cachin
 **Testing:** pytest (45 tests)  
 **Linting:** Ruff
 
+**Docs:** [How an address gets scored](docs/SCORING.md) — a plain-language explanation of the scoring engine, no code required.
+
 ---
 
 ## Quick Start
@@ -292,6 +294,12 @@ class CacheRepository:
 - **Returns:** Distances in km + warning flags
 
 #### LocationScoringService (`app/services/scoring.py`)
+
+> For a plain-language walkthrough of how scoring actually works today
+> (facility → category → composite, not-checked vs. checked-zero, etc.),
+> see [`docs/SCORING.md`](docs/SCORING.md). The formula below is retained for
+> historical reference and predates the current per-facility config-driven
+> engine — treat `docs/SCORING.md` as the source of truth.
 
 **Isolated, stateless, formula-swappable:**
 

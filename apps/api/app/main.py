@@ -43,11 +43,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     app.state.geocoding_svc = GeocodingService(AddressRepository(db_pool), cache)
     app.state.facilities_svc = FacilitiesService(overpass, cache)
     app.state.distance_svc = DistanceService(osrm, cache)
-    app.state.scoring_svc = LocationScoringService(
-        alpha=settings.scoring_alpha,
-        beta=settings.scoring_beta,
-        density_factor=settings.scoring_density_factor,
-    )
+    app.state.scoring_svc = LocationScoringService()
 
     yield
 

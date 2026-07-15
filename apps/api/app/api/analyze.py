@@ -3,12 +3,29 @@ import logging
 import httpx
 from fastapi import APIRouter, HTTPException, Request
 
+from app.models.domain import Facility
 from app.schemas.requests import AnalyzeRequest
-from app.schemas.responses import AnalyzeResponse, FeatureResult, LocationResult, ScoreResult
+from app.schemas.responses import (
+    AnalyzeResponse,
+    CategoryScoreResult,
+    FacilityScoreResult,
+    FeatureResult,
+    LocationResult,
+    ScoreResult,
+)
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+
+def _effective_distance_km(facility: Facility) -> float | None:
+    """Best-effort distance for the raw feature list. Best_of_both facilities
+    (currently: railway stations) carry walk/drive legs instead of distance_km."""
+    if facility.distance_km is not None:
+        return facility.distance_km
+    legs = [d for d in (facility.walk_distance_km, facility.drive_distance_km) if d is not None]
+    return min(legs) if legs else None
 
 
 @router.post("/location/analyze", response_model=AnalyzeResponse)
@@ -49,15 +66,16 @@ async def analyze_location(
         display_name = body.address
 
     # --- Step 2: Fetch facilities for requested categories ---
-    facilities, facility_warnings = await facilities_svc.fetch_all(
+    facilities, facility_warnings, failed_categories = await facilities_svc.fetch_all(
         body.categories, lat, lon, body.radius_km
     )
     warnings.extend(facility_warnings)
 
-    if not facilities:
-        warnings.append(f"No facilities found within {body.radius_km}km")
+    successful_categories = set(body.categories) - failed_categories
+    if not facilities and successful_categories:
+        warnings.append("No facilities found within the configured scoring bounds")
 
-    # --- Step 3: Compute distances ---
+    # --- Step 3: Compute distances (per-facility-type mode, see FACILITY_CONFIGS) ---
     if facilities:
         distance_warnings = await distance_svc.attach_distances(
             facilities, lat, lon, mode=body.distance_mode
@@ -65,7 +83,7 @@ async def analyze_location(
         warnings.extend(distance_warnings)
 
     # --- Step 4: Compute score ---
-    domain_score = scoring_svc.score(facilities, body.categories, body.radius_km)
+    domain_score = scoring_svc.score(facilities, body.categories, unavailable=failed_categories)
 
     # --- Assemble response ---
     feature_results = [
@@ -75,18 +93,33 @@ async def analyze_location(
             category=f.category,
             lat=f.lat,
             lon=f.lon,
-            distanceKm=round(f.distance_km, 3),
+            distanceKm=_effective_distance_km(f),
         )
         for f in facilities
     ]
 
     score_result = ScoreResult(
-        education=domain_score.education,
-        healthcare=domain_score.healthcare,
-        transport=domain_score.transport,
-        shopping=domain_score.shopping,
         overall=domain_score.overall,
         coverage=domain_score.coverage,
+        categories=[
+            CategoryScoreResult(
+                category=cat.category,
+                status=cat.status,
+                score=cat.score,
+                facilities=[
+                    FacilityScoreResult(
+                        facility_type=fac.facility_type,
+                        status=fac.status,
+                        score=fac.score,
+                        nearest_distance_km=fac.nearest_distance_km,
+                        count=fac.count,
+                        explanation=fac.explanation,
+                    )
+                    for fac in cat.facilities
+                ],
+            )
+            for cat in domain_score.categories
+        ],
     )
 
     return AnalyzeResponse(

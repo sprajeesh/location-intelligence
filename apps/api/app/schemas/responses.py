@@ -1,4 +1,6 @@
-from pydantic import BaseModel
+from typing import Literal
+
+from pydantic import BaseModel, Field
 
 
 class AddressResult(BaseModel):
@@ -26,16 +28,31 @@ class FeatureResult(BaseModel):
     category: str
     lat: float
     lon: float
-    distanceKm: float
+    distanceKm: float | None = None
+
+
+class FacilityScoreResult(BaseModel):
+    facilityType: str = Field(alias="facility_type")
+    status: Literal["not_checked", "scored"]
+    score: float | None = None
+    nearestDistanceKm: float | None = Field(default=None, alias="nearest_distance_km")
+    count: int
+    explanation: str
+
+    model_config = {"populate_by_name": True}
+
+
+class CategoryScoreResult(BaseModel):
+    category: str
+    status: Literal["not_checked", "scored"]
+    score: float | None = None
+    facilities: list[FacilityScoreResult]
 
 
 class ScoreResult(BaseModel):
-    education: float | None = None
-    healthcare: float | None = None
-    transport: float | None = None
-    shopping: float | None = None
     overall: float | None = None
     coverage: str
+    categories: list[CategoryScoreResult]
 
 
 class AnalyzeResponse(BaseModel):

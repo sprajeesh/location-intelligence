@@ -38,11 +38,6 @@ def mock_cache() -> CacheRepository:
 
 
 @pytest.fixture
-def scoring_service() -> LocationScoringService:
-    return LocationScoringService(alpha=0.6, beta=0.4, density_factor=10.0)
-
-
-@pytest.fixture
 def test_client() -> TestClient:
     """Synchronous test client with mocked external dependencies."""
     application = create_app()
