@@ -1,4 +1,5 @@
 import math
+from dataclasses import replace
 from difflib import SequenceMatcher
 
 from app.clients.osrm import haversine_km
@@ -41,13 +42,34 @@ def _same_facility(a: Facility, b: Facility) -> bool:
     return SequenceMatcher(None, name_a, name_b).ratio() >= NAME_SIMILARITY_THRESHOLD
 
 
+def _min_non_null(a: float | None, b: float | None) -> float | None:
+    values = [v for v in (a, b) if v is not None]
+    return min(values) if values else None
+
+
 def dedupe_pois(facilities: list[Facility]) -> list[Facility]:
     """Collapse near-duplicate POIs (same facility, or opposite-direction stops
-    on the same route) into one entry each, so they count once for density."""
+    on the same route) into one entry each, so they count once for density.
+
+    When duplicates carry different distance values (e.g. distances computed
+    from different OSM nodes for what's really one place), the retained entry
+    keeps the minimum non-null distance per leg, independent of input order.
+    """
     deduped: list[Facility] = []
     for facility in facilities:
-        if not any(_same_facility(facility, kept) for kept in deduped):
+        match_index = next(
+            (i for i, kept in enumerate(deduped) if _same_facility(facility, kept)), None
+        )
+        if match_index is None:
             deduped.append(facility)
+            continue
+        kept = deduped[match_index]
+        deduped[match_index] = replace(
+            kept,
+            distance_km=_min_non_null(kept.distance_km, facility.distance_km),
+            walk_distance_km=_min_non_null(kept.walk_distance_km, facility.walk_distance_km),
+            drive_distance_km=_min_non_null(kept.drive_distance_km, facility.drive_distance_km),
+        )
     return deduped
 
 

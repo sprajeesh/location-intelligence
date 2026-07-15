@@ -137,6 +137,47 @@ class TestDedupePOIs:
         b = make_facility("bus_stops", fid="b", name="Unnamed Bus Stops", lat=-36.0003, lon=174.0)
         assert len(dedupe_pois([a, b])) == 1
 
+    def test_merge_keeps_minimum_distance_regardless_of_input_order(self) -> None:
+        near = make_facility(
+            "bus_stops", fid="near", name="Queen St Stop", lat=-36.0000, lon=174.0, distance_km=0.5
+        )
+        far = make_facility(
+            "bus_stops", fid="far", name="Queen St Stop", lat=-36.0005, lon=174.0, distance_km=2.0
+        )
+
+        forward = dedupe_pois([near, far])
+        reversed_order = dedupe_pois([far, near])
+
+        assert len(forward) == len(reversed_order) == 1
+        assert forward[0].distance_km == pytest.approx(0.5)
+        assert reversed_order[0].distance_km == pytest.approx(0.5)
+
+    def test_merge_keeps_minimum_walk_and_drive_distance_independently(self) -> None:
+        a = make_facility(
+            "railway_stations",
+            fid="a",
+            name="Central Station",
+            lat=-36.0000,
+            lon=174.0,
+            walk_distance_km=1.5,
+            drive_distance_km=4.0,
+        )
+        b = make_facility(
+            "railway_stations",
+            fid="b",
+            name="Central Station",
+            lat=-36.0005,
+            lon=174.0,
+            walk_distance_km=2.5,
+            drive_distance_km=3.0,
+        )
+
+        result = dedupe_pois([a, b])
+
+        assert len(result) == 1
+        assert result[0].walk_distance_km == pytest.approx(1.5)
+        assert result[0].drive_distance_km == pytest.approx(3.0)
+
 
 class TestNotCheckedVsCheckedZero:
     """§4.1 — highest priority correctness check in the refactor spec."""
