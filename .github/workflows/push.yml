@@ -48,24 +48,35 @@ jobs:
       - name: Install Python dependencies
         run: cd apps/api && uv sync
 
-      - name: Install Snyk CLI
-        run: npm install -g snyk
-
       - name: Run linters
         run: cd apps/web && pnpm run lint && cd ../api && uv run ruff check . && uv run ruff format --check .
+
+      - name: Setup Snyk CLI
+        uses: snyk/actions/setup@master
+
+      - name: Export Python dependencies for Snyk (uv.lock has no native Snyk support)
+        run: cd apps/api && uv export --format requirements.txt --no-hashes -o requirements.txt
+
+      - name: Prepare Python Deps for Snyk
+        run: |
+          python -m venv /tmp/snyk-venv
+          /tmp/snyk-venv/bin/pip install --quiet -r apps/api/requirements.txt
+
+      - name: Run Snyk security scan
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        run: |
+          snyk test --all-projects --detection-depth=6 \
+            --exclude=node_modules,.venv,dist,build,coverage,docs,tests,examples,requirements.txt \
+            --severity-threshold=high
+
+          snyk test --file=apps/api/requirements.txt --command=/tmp/snyk-venv/bin/python3 --severity-threshold=high
 
       - name: Run tests
         run: cd apps/web && pnpm test && cd ../api && uv run pytest
 
-      # - name: Run security scan
-      #   run: snyk test --severity-threshold=high --all-projects
-
-      # - name: Run snyk monitor
-      #   if: github.ref == 'refs/heads/main'
-      #   run: snyk monitor --all-projects
-
-      # - name: Build
-      #   run: pnpm run build:web
+      - name: Build
+        run: pnpm run build:web
 
   # ───────────────────────────────────────────────────────────────────────────
   # Provision/update OCI infrastructure via Terraform. Idempotent -- a no-op
