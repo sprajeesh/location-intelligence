@@ -71,8 +71,9 @@ async def analyze_location(
     )
     warnings.extend(facility_warnings)
 
-    if not facilities:
-        warnings.append(f"No facilities found within {body.radius_km}km")
+    successful_categories = set(body.categories) - failed_categories
+    if not facilities and successful_categories:
+        warnings.append("No facilities found within the configured scoring bounds")
 
     # --- Step 3: Compute distances (per-facility-type mode, see FACILITY_CONFIGS) ---
     if facilities:
