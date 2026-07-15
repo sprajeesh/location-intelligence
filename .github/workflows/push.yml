@@ -57,13 +57,20 @@ jobs:
       - name: Export Python dependencies for Snyk (uv.lock has no native Snyk support)
         run: cd apps/api && uv export --format requirements.txt --no-hashes -o requirements.txt
 
+      - name: Prepare pip projects for Snyk
+        run: |
+          python -m venv /tmp/snyk-venv
+          /tmp/snyk-venv/bin/pip install --quiet -r apps/api/requirements.txt
+
       - name: Run Snyk security scan
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         run: |
           snyk test --all-projects --detection-depth=6 \
-            --exclude=node_modules,.venv,dist,build,coverage,docs,tests,examples \
+            --exclude=node_modules,.venv,dist,build,coverage,docs,tests,examples,requirements.txt \
             --severity-threshold=high
+
+          snyk test --file=apps/api/requirements.txt --severity-threshold=high
 
       - name: Run tests
         run: cd apps/web && pnpm test && cd ../api && uv run pytest
