@@ -92,6 +92,7 @@ jest.mock('@/components/CategoryGroup', () => ({
 
 import { useLocationStore } from '@/store';
 import { useAnalyze } from '@/hooks/useAnalyze';
+import { ALL_FACILITY_TYPES } from '@/constants/facilityTypes';
 
 const mockUseLocationStore = useLocationStore as jest.MockedFunction<typeof useLocationStore>;
 const mockUseAnalyze = useAnalyze as jest.MockedFunction<typeof useAnalyze>;
@@ -103,12 +104,40 @@ const MOCK_ADDRESS = {
 };
 
 const mockScore: ScoreResult = {
-  education: 72,
-  healthcare: null,
-  transport: 85,
-  shopping: null,
   overall: 77,
-  coverage: '2/4',
+  coverage: '2/5',
+  categories: [
+    {
+      category: 'education',
+      status: 'scored',
+      score: 72,
+      facilities: [
+        {
+          facilityType: 'schools',
+          status: 'scored',
+          score: 72,
+          nearestDistanceKm: 0.5,
+          count: 3,
+          explanation: '3 schools within 1.0 km by walk.',
+        },
+      ],
+    },
+    {
+      category: 'transport',
+      status: 'scored',
+      score: 85,
+      facilities: [
+        {
+          facilityType: 'bus_stops',
+          status: 'scored',
+          score: 85,
+          nearestDistanceKm: 0.3,
+          count: 2,
+          explanation: '2 bus_stops within 1.0 km by walk.',
+        },
+      ],
+    },
+  ],
 };
 
 const mockFeatures: Feature[] = [
@@ -252,7 +281,7 @@ describe('ResultsPanel', () => {
         lat: MOCK_ADDRESS.lat,
         lon: MOCK_ADDRESS.lon,
         radiusKm: 8,
-        categories: ['schools', 'bus_stops'],
+        categories: ALL_FACILITY_TYPES,
         distanceMode: 'driving',
       });
     });
