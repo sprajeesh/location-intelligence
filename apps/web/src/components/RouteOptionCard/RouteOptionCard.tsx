@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { ChevronDown } from "lucide-react";
 import type { RouteOption } from "@/types/api";
 import TurnByTurnStep from "@/components/TurnByTurnStep";
 import { formatDuration, formatETA, formatDistance, getPrimaryRoad } from "@/utils/routeFormat";
@@ -54,22 +55,12 @@ export function RouteOptionCard({
             </p>
           )}
         </div>
-        <svg
+        <ChevronDown
           className={`w-4 h-4 text-slate-400 flex-shrink-0 mt-1 transition-transform duration-200 ${
             isExpanded ? "rotate-180" : ""
           }`}
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
           aria-hidden="true"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M19 9l-7 7-7-7"
-          />
-        </svg>
+        />
       </button>
 
       {isExpanded && route.steps.length > 0 && (

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { CircleAlert } from "lucide-react";
 import type { RouteOption, RouteTransportMode } from "@/types/api";
 import RouteModeSelector from "@/components/RouteModeSelector";
 import RouteOptionCard from "@/components/RouteOptionCard";
@@ -59,20 +60,11 @@ export function RoutePanel({
 
         {!isLoading && error && (
           <div className="flex flex-col items-center justify-center gap-2 py-10 text-center">
-            <svg
+            <CircleAlert
               className="w-8 h-8 text-slate-600 mb-1"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
+              strokeWidth={1.5}
               aria-hidden="true"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.5}
-                d="M12 9v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
+            />
             <p className="text-sm text-red-400">Could not find a route.</p>
             <p className="text-xs text-slate-500">
               Try a different transport mode.

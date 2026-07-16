@@ -1,6 +1,7 @@
 "use client";
 
 import React, { ReactNode } from "react";
+import { Eye, EyeOff, ChevronUp } from "lucide-react";
 
 /**
  * CategoryGroup — Collapsible category header with visibility toggle.
@@ -90,57 +91,21 @@ export default function CategoryGroup({
             title={`${isVisible ? "Hide" : "Show"} markers`}
           >
             {isVisible ? (
-              // Eye open icon
-              <svg
-                className="w-4 h-4"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-                aria-hidden="true"
-              >
-                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                <path
-                  fillRule="evenodd"
-                  d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
-                  clipRule="evenodd"
-                />
-              </svg>
+              <Eye className="w-4 h-4" aria-hidden="true" />
             ) : (
-              // Eye closed icon
-              <svg
-                className="w-4 h-4"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-                aria-hidden="true"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.958 9.958 0 00-4.512 1.074l-1.78-1.781zm4.261 4.26l1.514 1.515a2.003 2.003 0 012.45 2.45l1.514 1.514a4 4 0 00-5.478-5.478z"
-                  clipRule="evenodd"
-                />
-                <path d="M15.171 13.576l1.414 1.414A1 1 0 0018.414 13.17l-1.473-1.473A10.014 10.014 0 0019.542 10c-1.274-4.057-5.064-7-9.542-7a9.958 9.958 0 00-4.512 1.074l-1.78-1.781A1 1 0 003.707 2.293l14 14a1 1 0 001.414-1.414l-2.95-2.95z" />
-              </svg>
+              <EyeOff className="w-4 h-4" aria-hidden="true" />
             )}
           </button>
 
           {/* Expand/collapse chevron */}
           <div className="p-1">
-            <svg
+            <ChevronUp
               className={`
                 w-4 h-4 text-slate-400 transition-transform duration-200
                 ${isExpanded ? "rotate-180" : ""}
               `}
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
               aria-hidden="true"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M19 14l-7 7m0 0l-7-7m7 7V3"
-              />
-            </svg>
+            />
           </div>
         </div>
       </div>
