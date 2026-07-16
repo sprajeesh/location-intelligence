@@ -36,6 +36,7 @@ export function RouteModeSelector({
         return (
           <button
             key={mode}
+            type="button"
             onClick={() => onModeChange(mode)}
             className={`
               flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium

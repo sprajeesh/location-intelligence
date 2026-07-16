@@ -10,7 +10,7 @@ export default function HomePage() {
   const { isNavigating } = useLocationStore();
 
   return (
-    <div className="relative w-full h-screen overflow-hidden">
+    <main className="relative w-full h-screen overflow-hidden">
       {/* Map fills the entire viewport */}
       <div className="absolute inset-0 z-0">
         <MapContainerDynamic />
@@ -41,6 +41,6 @@ export default function HomePage() {
           </div>
         </div>
       </div>
-    </div>
+    </main>
   );
 }
