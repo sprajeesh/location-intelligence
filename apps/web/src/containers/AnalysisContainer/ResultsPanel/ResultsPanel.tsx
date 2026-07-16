@@ -11,6 +11,7 @@ import CategoryGroup from "@/components/CategoryGroup";
 import { RadiusAdjuster } from "@/components/RadiusAdjuster";
 import { useNavigate } from "@/hooks/useNavigate";
 import { useAnalyze } from "@/hooks/useAnalyze";
+import { ALL_FACILITY_TYPES } from "@/constants/facilityTypes";
 
 /**
  * ResultsPanel — Left side panel (desktop) or bottom sheet (mobile).
@@ -163,7 +164,7 @@ export default function ResultsPanel({
           lat: selectedAddress.lat,
           lon: selectedAddress.lon,
           radiusKm: newRadius,
-          categories: ["schools", "bus_stops"],
+          categories: ALL_FACILITY_TYPES,
           distanceMode,
         });
       }

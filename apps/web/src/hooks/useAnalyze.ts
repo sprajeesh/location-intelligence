@@ -28,7 +28,7 @@ import type { AnalyzeResponse } from '@/types/api';
  *   lat: -36.848,
  *   lon: 174.763,
  *   radiusKm: 10,
- *   categories: ['schools', 'bus_stops'],
+ *   categories: ['schools', 'universities', 'parks', 'libraries', 'bus_stops', 'railway_stations', 'hospitals', 'pharmacies', 'supermarkets'],
  *   distanceMode: 'driving',
  * });
  * ```
