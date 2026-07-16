@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { Navigation } from "lucide-react";
 import type { Feature } from "@/types/api";
+import { IconButton } from "@/components/ui/IconButton";
 
 export interface FacilityItemProps {
   feature: Feature;
@@ -22,6 +23,7 @@ export default function FacilityItem({
   return (
     <div className="flex items-center gap-1 group">
       <button
+        type="button"
         onClick={onClick}
         className={`
           flex-1 text-left px-3 py-2 rounded-lg
@@ -52,19 +54,15 @@ export default function FacilityItem({
       </button>
 
       {onNavigate && (
-        <button
+        <IconButton
+          icon={Navigation}
+          size="sm"
           onClick={(e) => {
             e.stopPropagation();
             onNavigate(feature);
           }}
-          className={`
-            flex-shrink-0 p-1.5 rounded-lg
-            text-slate-400 hover:text-blue-400
-            hover:bg-slate-700/30
-            transition-colors duration-200
-            focus:outline-none focus:ring-2 focus:ring-blue-500
-          `}
-          aria-label={t("results.navigateTo", {
+          className="text-slate-400 hover:text-blue-400 hover:bg-slate-700/30"
+          label={t("results.navigateTo", {
             name: feature.name,
             defaultValue: `Navigate to ${feature.name}`,
           })}
@@ -72,9 +70,7 @@ export default function FacilityItem({
             name: feature.name,
             defaultValue: `Show route to ${feature.name}`,
           })}
-        >
-          <Navigation className="w-4 h-4" />
-        </button>
+        />
       )}
     </div>
   );
