@@ -2,6 +2,7 @@
 
 import { useRef } from "react";
 import { useTranslations } from "next-intl";
+import { ChevronLeft } from "lucide-react";
 import type { AddressResult } from "@/types/api";
 import { AddressSearchField } from "./AddressSearchField";
 
@@ -54,20 +55,7 @@ export function NavigateSearchBar({
               focus:outline-none focus:ring-2 focus:ring-emerald-500/50
             "
           >
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2.5}
-                d="M15 19l-7-7 7-7"
-              />
-            </svg>
+            <ChevronLeft className="w-4 h-4" strokeWidth={2.5} aria-hidden="true" />
           </button>
           <AddressSearchField
             fieldId="from"

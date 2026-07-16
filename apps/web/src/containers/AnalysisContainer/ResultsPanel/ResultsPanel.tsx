@@ -2,6 +2,7 @@
 
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
+import { Search, FileText } from "lucide-react";
 import { useLocationStore } from "@/store/index";
 import type { Feature } from "@/types/api";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
@@ -208,19 +209,7 @@ export default function ResultsPanel({
         `}
       >
         <div className="text-slate-400">
-          <svg
-            className="mx-auto h-12 w-12 mb-2 opacity-50"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-            />
-          </svg>
+          <Search className="mx-auto h-12 w-12 mb-2 opacity-50" />
         </div>
         <p className="text-sm text-slate-300">
           {t("results.searchPrompt", {
@@ -245,19 +234,7 @@ export default function ResultsPanel({
         `}
       >
         <div className="text-slate-400">
-          <svg
-            className="mx-auto h-12 w-12 mb-2 opacity-50"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"
-            />
-          </svg>
+          <FileText className="mx-auto h-12 w-12 mb-2 opacity-50" />
         </div>
         <p className="text-sm text-slate-300">
           {t("results.noFacilities", {

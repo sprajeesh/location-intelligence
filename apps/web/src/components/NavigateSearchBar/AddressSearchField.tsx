@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
+import { X, MapPin } from "lucide-react";
 import type { AddressResult } from "@/types/api";
 
 interface AddressSearchFieldProps {
@@ -131,20 +132,7 @@ export function AddressSearchField({
           aria-label={clearLabel}
           tabIndex={-1}
         >
-          <svg
-            className="w-3.5 h-3.5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M6 18L18 6M6 6l12 12"
-            />
-          </svg>
+          <X className="w-3.5 h-3.5" aria-hidden="true" />
         </button>
       )}
 
@@ -176,26 +164,10 @@ export function AddressSearchField({
                         : "hover:bg-gray-700/50 text-gray-300"
                     }`}
                   >
-                    <svg
+                    <MapPin
                       className="w-4 h-4 flex-shrink-0 mt-0.5 text-gray-500"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
                       aria-hidden="true"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                      />
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                      />
-                    </svg>
+                    />
                     <span className="truncate">{s.displayName}</span>
                   </button>
                 </li>
