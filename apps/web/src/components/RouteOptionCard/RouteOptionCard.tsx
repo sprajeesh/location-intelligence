@@ -1,10 +1,11 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { ChevronDown } from "lucide-react";
 import type { RouteOption } from "@/types/api";
 import TurnByTurnStep from "@/components/TurnByTurnStep";
 import { formatDuration, formatETA, formatDistance, getPrimaryRoad } from "@/utils/routeFormat";
+import { Badge } from "@/components/ui/Badge";
+import { CollapsibleCard } from "@/components/ui/CollapsibleCard";
 
 export interface RouteOptionCardProps {
   route: RouteOption;
@@ -20,21 +21,19 @@ export function RouteOptionCard({
   onToggle,
 }: RouteOptionCardProps) {
   const t = useTranslations("navigate");
+  const contentId = `route-option-${route.durationS}-${route.distanceM}`;
 
   return (
-    <div className="rounded-lg border border-slate-700/50 overflow-hidden">
-      <button
-        onClick={onToggle}
-        className="w-full text-left px-4 py-3 flex items-start justify-between gap-3 hover:bg-slate-700/20 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset"
-        aria-expanded={isExpanded}
-      >
+    <CollapsibleCard
+      isExpanded={isExpanded}
+      onToggle={onToggle}
+      contentId={contentId}
+      className="border-slate-700/50 overflow-hidden"
+      headerClassName="items-start text-left px-4 py-3 gap-3 hover:bg-slate-700/20 transition-colors duration-150"
+      header={
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-0.5 flex-wrap">
-            {isFastest && (
-              <span className="text-xs font-medium text-emerald-400 bg-emerald-400/10 px-1.5 py-0.5 rounded">
-                {t("fastest")}
-              </span>
-            )}
+            {isFastest && <Badge label={t("fastest")} tone="success" />}
             <span className="text-xs text-slate-400 truncate">
               {t("via")} {getPrimaryRoad(route.summary)}
             </span>
@@ -55,28 +54,22 @@ export function RouteOptionCard({
             </p>
           )}
         </div>
-        <ChevronDown
-          className={`w-4 h-4 text-slate-400 flex-shrink-0 mt-1 transition-transform duration-200 ${
-            isExpanded ? "rotate-180" : ""
-          }`}
-          aria-hidden="true"
-        />
-      </button>
-
-      {isExpanded && route.steps.length > 0 && (
-        <div className="px-4 pb-3 pt-1 border-t border-slate-700/30">
+      }
+    >
+      {route.steps.length > 0 ? (
+        <ol className="px-4 pb-3 pt-1 border-t border-slate-700/30">
           {route.steps.map((step, index) => (
-            <TurnByTurnStep key={index} step={step} index={index} />
+            <li key={index}>
+              <TurnByTurnStep step={step} index={index} />
+            </li>
           ))}
-        </div>
-      )}
-
-      {isExpanded && route.steps.length === 0 && (
+        </ol>
+      ) : (
         <div className="px-4 pb-3 pt-2 border-t border-slate-700/30">
           <p className="text-xs text-slate-500">No step details available.</p>
         </div>
       )}
-    </div>
+    </CollapsibleCard>
   );
 }
 
