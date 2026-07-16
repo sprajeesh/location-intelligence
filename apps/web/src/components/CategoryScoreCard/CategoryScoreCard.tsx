@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { ChevronDown } from "lucide-react";
 import type { CategoryScoreResult } from "@/types/api";
 import { formatScoreValue, getScoreColorClass, sortFacilitiesForDisplay } from "@/utils/scoreDisplay";
 import { FacilityScoreRow } from "@/components/FacilityScoreRow";
@@ -43,16 +44,9 @@ export function CategoryScoreCard({
         ${isNotChecked ? "border-dashed border-slate-700/40 opacity-60" : "border-slate-700/60"}
       `}
     >
-      <div
+      <button
+        type="button"
         onClick={onToggleExpand}
-        role="button"
-        tabIndex={0}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            onToggleExpand();
-          }
-        }}
         className="w-full flex items-center justify-between px-3 py-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset rounded-lg"
         aria-expanded={isExpanded}
         aria-controls={`category-score-${category.category}`}
@@ -67,22 +61,12 @@ export function CategoryScoreCard({
               {formatScoreValue(category.score)}
             </span>
           )}
-          <svg
+          <ChevronDown
             className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`}
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
             aria-hidden="true"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M19 14l-7 7m0 0l-7-7m7 7V3"
-            />
-          </svg>
+          />
         </div>
-      </div>
+      </button>
 
       {isExpanded && (
         <div id={`category-score-${category.category}`} className="px-3 pb-3 space-y-2">

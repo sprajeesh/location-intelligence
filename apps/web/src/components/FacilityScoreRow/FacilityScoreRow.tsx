@@ -42,9 +42,11 @@ export function FacilityScoreRow({ facility }: FacilityScoreRowProps) {
           {displayStatus === "no_data_found" && (
             <StatusPill label={t("score.status.noDataFound", { defaultValue: "None found nearby" })} />
           )}
-          <span className={`text-sm font-semibold ${getScoreColorClass(facility.score)}`}>
-            {formatScoreValue(facility.score)}
-          </span>
+          {!isNotChecked && (
+            <span className={`text-sm font-semibold ${getScoreColorClass(facility.score)}`}>
+              {formatScoreValue(facility.score)}
+            </span>
+          )}
         </div>
       </div>
       <p className="text-xs text-slate-500 mt-1">{facility.explanation}</p>
