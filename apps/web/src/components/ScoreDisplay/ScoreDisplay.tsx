@@ -55,22 +55,23 @@ export function ScoreDisplay({ score, warnings = [] }: ScoreDisplayProps) {
       </div>
 
       {/* Category Breakdown */}
-      <div className="space-y-2 pt-2 border-t border-slate-700/30">
+      <ul className="space-y-2 pt-2 border-t border-slate-700/30">
         {orderedCategories.map((category) => (
-          <CategoryScoreCard
-            key={category.category}
-            category={category}
-            isExpanded={expandedCategories.has(category.category)}
-            onToggleExpand={() => toggleExpanded(category.category)}
-          />
+          <li key={category.category}>
+            <CategoryScoreCard
+              category={category}
+              isExpanded={expandedCategories.has(category.category)}
+              onToggleExpand={() => toggleExpanded(category.category)}
+            />
+          </li>
         ))}
-      </div>
+      </ul>
 
       {/* Warnings */}
       {warnings.length > 0 && (
-        <div className="pt-2 border-t border-slate-700/30 space-y-1">
+        <ul className="pt-2 border-t border-slate-700/30 space-y-1">
           {warnings.map((warning, idx) => (
-            <div
+            <li
               key={idx}
               className="text-xs text-amber-400 flex items-start gap-2"
             >
@@ -79,9 +80,9 @@ export function ScoreDisplay({ score, warnings = [] }: ScoreDisplayProps) {
                 aria-hidden="true"
               />
               <span>{warning}</span>
-            </div>
+            </li>
           ))}
-        </div>
+        </ul>
       )}
     </div>
   );
