@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { X, MapPin } from "lucide-react";
+import { X } from "lucide-react";
 import type { AddressResult } from "@/types/api";
+import { AddressSuggestionList } from "@/components/ui/AddressSuggestionList";
 
 interface AddressSearchFieldProps {
   query: string;
@@ -44,6 +45,7 @@ export function AddressSearchField({
 
   const { clearLabel, dropdownLabel } = FIELD_LABELS[fieldId];
   const dropdownId = `${fieldId}-dropdown`;
+  const inputId = `${fieldId}-address-input`;
 
   useEffect(() => {
     setHighlight(null);
@@ -94,13 +96,14 @@ export function AddressSearchField({
 
   const spinnerAccent = accent === "emerald" ? "border-t-emerald-400" : "border-t-rose-400";
 
-  const highlightClass =
-    accent === "emerald" ? "bg-emerald-500/20 text-emerald-100" : "bg-rose-500/20 text-rose-100";
-
   return (
     <div ref={wrapperRef} className="flex-1 min-w-0 flex items-center gap-2">
       <span className={dotClass} aria-hidden="true" />
+      <label htmlFor={inputId} className="sr-only">
+        {ariaLabel}
+      </label>
       <input
+        id={inputId}
         ref={resolvedRef}
         type="text"
         value={query}
@@ -108,7 +111,6 @@ export function AddressSearchField({
         onFocus={() => setIsOpen(true)}
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
-        aria-label={ariaLabel}
         aria-autocomplete="list"
         aria-expanded={showDropdown}
         aria-controls={dropdownId}
@@ -124,6 +126,7 @@ export function AddressSearchField({
       )}
       {query && !isLoading && (
         <button
+          type="button"
           onClick={() => {
             onQueryChange("");
             resolvedRef.current?.focus();
@@ -137,44 +140,26 @@ export function AddressSearchField({
       )}
 
       {showDropdown && (suggestions.length > 0 || isLoading) && (
-        <div
+        <AddressSuggestionList
           id={dropdownId}
-          role="listbox"
-          aria-label={dropdownLabel}
+          ariaLabel={dropdownLabel}
           className="absolute top-full left-0 right-0 mt-1.5 bg-gray-800/95 backdrop-blur-sm border border-gray-700 rounded-xl shadow-xl z-50 overflow-hidden"
-        >
-          {suggestions.length === 0 && isLoading ? (
-            <div className="px-4 py-3 text-sm text-gray-400">Searching…</div>
-          ) : (
-            <ul className="max-h-56 overflow-y-auto">
-              {suggestions.map((s, i) => (
-                <li
-                  key={`${s.lat}-${s.lon}`}
-                  role="option"
-                  aria-selected={highlight === i}
-                >
-                  <button
-                    id={`${fieldId}-option-${i}`}
-                    type="button"
-                    onMouseEnter={() => setHighlight(i)}
-                    onClick={() => handleSelect(s)}
-                    className={`w-full text-left flex items-start gap-2 px-4 py-2.5 text-sm transition-colors duration-100 ${
-                      highlight === i
-                        ? highlightClass
-                        : "hover:bg-gray-700/50 text-gray-300"
-                    }`}
-                  >
-                    <MapPin
-                      className="w-4 h-4 flex-shrink-0 mt-0.5 text-gray-500"
-                      aria-hidden="true"
-                    />
-                    <span className="truncate">{s.displayName}</span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+          listClassName="max-h-56 overflow-y-auto"
+          iconClassName="w-4 h-4 flex-shrink-0 mt-0.5 text-gray-500"
+          items={suggestions.map((s, i) => ({
+            key: `${s.lat}-${s.lon}`,
+            id: `${fieldId}-option-${i}`,
+            displayName: s.displayName,
+          }))}
+          highlightedIndex={highlight}
+          onHighlight={setHighlight}
+          onSelect={(i) => {
+            const suggestion = suggestions[i];
+            if (suggestion) handleSelect(suggestion);
+          }}
+          accent={accent}
+          loadingState={<div className="px-4 py-3 text-sm text-gray-400">Searching…</div>}
+        />
       )}
     </div>
   );
