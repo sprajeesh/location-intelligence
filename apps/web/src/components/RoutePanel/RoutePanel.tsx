@@ -5,6 +5,7 @@ import { CircleAlert } from "lucide-react";
 import type { RouteOption, RouteTransportMode } from "@/types/api";
 import RouteModeSelector from "@/components/RouteModeSelector";
 import RouteOptionCard from "@/components/RouteOptionCard";
+import { GlassPanel } from "@/components/ui/GlassPanel";
 
 export interface RoutePanelProps {
   routes: RouteOption[] | null;
@@ -35,7 +36,11 @@ export function RoutePanel({
   };
 
   return (
-    <div className="pointer-events-auto w-full h-full overflow-y-auto bg-slate-900/90 backdrop-blur border border-slate-700/60 rounded-lg shadow-2xl flex flex-col">
+    <GlassPanel
+      as="section"
+      aria-label="Route"
+      className="pointer-events-auto w-full h-full overflow-y-auto flex flex-col"
+    >
       {/* Destination header */}
       <div className="px-4 sm:px-6 pt-4 pb-3 border-b border-slate-700/30 flex-shrink-0">
         <p className="text-xs text-slate-400 mb-0.5">Route to</p>
@@ -73,17 +78,18 @@ export function RoutePanel({
         )}
 
         {!isLoading && !error && routes && routes.length > 0 && (
-          <div className="space-y-2">
+          <ul className="space-y-2">
             {routes.map((route, index) => (
-              <RouteOptionCard
-                key={index}
-                route={route}
-                isFastest={index === 0 && routes.length > 1}
-                isExpanded={expandedIndex === index}
-                onToggle={() => handleToggle(index)}
-              />
+              <li key={index}>
+                <RouteOptionCard
+                  route={route}
+                  isFastest={index === 0 && routes.length > 1}
+                  isExpanded={expandedIndex === index}
+                  onToggle={() => handleToggle(index)}
+                />
+              </li>
             ))}
-          </div>
+          </ul>
         )}
 
         {!isLoading && !error && routes !== null && routes.length === 0 && (
@@ -94,7 +100,7 @@ export function RoutePanel({
           </div>
         )}
       </div>
-    </div>
+    </GlassPanel>
   );
 }
 
