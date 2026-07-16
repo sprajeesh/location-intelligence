@@ -24,16 +24,51 @@ export interface Feature {
 }
 
 /**
- * Location scores for different categories and an overall score.
- * Null values indicate the category was not queried or had no data.
+ * Whether a facility type/category was evaluated for this request.
+ * "not_checked" means it was excluded and rebalanced out of the score;
+ * "scored" means it was evaluated (even if nothing was found, in which
+ * case count === 0 but it still counts toward the score at full weight).
+ */
+export type FacilityStatus = 'not_checked' | 'scored'
+
+export type CategoryId =
+  | 'education'
+  | 'transport'
+  | 'healthcare'
+  | 'shopping'
+  | 'recreation'
+
+/**
+ * Score breakdown for a single facility type (e.g. schools, bus_stops)
+ * within a category.
+ */
+export interface FacilityScoreResult {
+  facilityType: string
+  status: FacilityStatus
+  score: number | null
+  nearestDistanceKm: number | null
+  count: number
+  explanation: string
+}
+
+/**
+ * Score breakdown for one of the five composite categories, made up of
+ * one or more facility types.
+ */
+export interface CategoryScoreResult {
+  category: CategoryId
+  status: FacilityStatus
+  score: number | null
+  facilities: FacilityScoreResult[]
+}
+
+/**
+ * Composite location score, derived from the five category scores.
  */
 export interface ScoreResult {
-  education: number | null
-  healthcare: number | null
-  transport: number | null
-  shopping: number | null
   overall: number | null
-  coverage: string // e.g., "2/4" — count of categories with data / total queried
+  coverage: string // e.g., "4/5" — count of scored categories / total categories
+  categories: CategoryScoreResult[]
 }
 
 /**

@@ -25,10 +25,28 @@
     "title": "Location Score",
     "overall": "Overall",
     "coverage": "Based on {count} of {total} categories",
-    "education": "Education",
-    "transport": "Transport",
-    "healthcare": "Healthcare",
-    "shopping": "Shopping"
+    "status": {
+      "notAssessed": "Not assessed",
+      "noDataFound": "None found nearby"
+    },
+    "categories": {
+      "education": "Education",
+      "transport": "Transport",
+      "healthcare": "Healthcare",
+      "shopping": "Shopping",
+      "recreation": "Recreation"
+    },
+    "facilityTypes": {
+      "schools": "Schools",
+      "universities": "Universities",
+      "parks": "Parks",
+      "libraries": "Libraries",
+      "bus_stops": "Bus Stops",
+      "railway_stations": "Railway Stations",
+      "hospitals": "Hospitals",
+      "pharmacies": "Pharmacies",
+      "supermarkets": "Supermarkets"
+    }
   },
   "distance": {
     "driving": "Driving",

@@ -7,7 +7,9 @@
 import {
   AddressResult,
   AnalyzeResponse,
+  CategoryId,
   Category,
+  FacilityStatus,
   RouteResult,
   RouteTransportMode,
 } from "@/types/api";
@@ -111,6 +113,69 @@ export interface AnalyzeRequest {
 }
 
 /**
+ * Wire-format types — reflect exactly what FastAPI serializes for
+ * POST /location/analyze. FastAPI's default response serialization uses
+ * `by_alias=True`, so FacilityScoreResult's aliased fields go over the
+ * wire as snake_case (facility_type, nearest_distance_km) even though the
+ * Pydantic model's attribute names are camelCase. Every other field has
+ * no alias and is already camelCase/plain on the wire. These wire types
+ * (and normalizeAnalyzeResponse below) are the only place in the app that
+ * ever touches the snake_case field names.
+ */
+interface WireFacilityScoreResult {
+  facility_type: string;
+  status: FacilityStatus;
+  score: number | null;
+  nearest_distance_km: number | null;
+  count: number;
+  explanation: string;
+}
+
+interface WireCategoryScoreResult {
+  category: CategoryId;
+  status: FacilityStatus;
+  score: number | null;
+  facilities: WireFacilityScoreResult[];
+}
+
+interface WireScoreResult {
+  overall: number | null;
+  coverage: string;
+  categories: WireCategoryScoreResult[];
+}
+
+interface WireAnalyzeResponse extends Omit<AnalyzeResponse, "score"> {
+  score: WireScoreResult;
+}
+
+export function normalizeAnalyzeResponse(
+  raw: WireAnalyzeResponse,
+): AnalyzeResponse {
+  return {
+    location: raw.location,
+    features: raw.features,
+    warnings: raw.warnings,
+    score: {
+      overall: raw.score.overall,
+      coverage: raw.score.coverage,
+      categories: raw.score.categories.map((cat) => ({
+        category: cat.category,
+        status: cat.status,
+        score: cat.score,
+        facilities: cat.facilities.map((f) => ({
+          facilityType: f.facility_type,
+          status: f.status,
+          score: f.score,
+          nearestDistanceKm: f.nearest_distance_km,
+          count: f.count,
+          explanation: f.explanation,
+        })),
+      })),
+    },
+  };
+}
+
+/**
  * Analyze a location for nearby facilities and scores.
  * Calls POST /api/location/analyze
  *
@@ -121,10 +186,11 @@ export interface AnalyzeRequest {
 export async function analyzeLocation(
   request: AnalyzeRequest,
 ): Promise<AnalyzeResponse> {
-  return fetchJson<AnalyzeResponse>("/location/analyze", {
+  const raw = await fetchJson<WireAnalyzeResponse>("/location/analyze", {
     method: "POST",
     body: JSON.stringify(request),
   });
+  return normalizeAnalyzeResponse(raw);
 }
 
 /**

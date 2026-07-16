@@ -92,7 +92,7 @@ describe('MapToolbarContainer', () => {
         analysisResult: {
           location: { lat: 0, lon: 0, displayName: 'Test' },
           features: [],
-          score: { education: null, healthcare: null, transport: null, shopping: null, overall: null, coverage: '0/4' },
+          score: { overall: null, coverage: '0/5', categories: [] },
           warnings: [],
         },
       });
@@ -107,7 +107,7 @@ describe('MapToolbarContainer', () => {
           features: [
             { id: '1', name: 'Feature 1', category: 'schools', lat: -36.85, lon: 174.76, distanceKm: 1.2 },
           ],
-          score: { education: 72, healthcare: null, transport: null, shopping: null, overall: 72, coverage: '1/4' },
+          score: { overall: 72, coverage: '1/5', categories: [] },
           warnings: [],
         },
       });
@@ -125,7 +125,7 @@ describe('MapToolbarContainer', () => {
             { id: '1', name: 'Feature 1', category: 'schools', lat: -36.85, lon: 174.76, distanceKm: 1.2 },
             { id: '2', name: 'Feature 2', category: 'bus_stops', lat: -36.86, lon: 174.77, distanceKm: 2.0 },
           ],
-          score: { education: 72, healthcare: null, transport: 85, shopping: null, overall: 77, coverage: '2/4' },
+          score: { overall: 77, coverage: '2/5', categories: [] },
           warnings: [],
         },
       });
@@ -143,7 +143,7 @@ describe('MapToolbarContainer', () => {
         analysisResult: {
           location: { lat: 0, lon: 0, displayName: 'Test' },
           features: [],
-          score: { education: null, healthcare: null, transport: null, shopping: null, overall: null, coverage: '0/4' },
+          score: { overall: null, coverage: '0/5', categories: [] },
           warnings: [],
         },
       });

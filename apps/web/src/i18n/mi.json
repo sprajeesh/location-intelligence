@@ -25,10 +25,28 @@
     "title": "[MI] score.title",
     "overall": "[MI] score.overall",
     "coverage": "[MI] score.coverage",
-    "education": "[MI] score.education",
-    "transport": "[MI] score.transport",
-    "healthcare": "[MI] score.healthcare",
-    "shopping": "[MI] score.shopping"
+    "status": {
+      "notAssessed": "[MI] score.status.notAssessed",
+      "noDataFound": "[MI] score.status.noDataFound"
+    },
+    "categories": {
+      "education": "[MI] score.categories.education",
+      "transport": "[MI] score.categories.transport",
+      "healthcare": "[MI] score.categories.healthcare",
+      "shopping": "[MI] score.categories.shopping",
+      "recreation": "[MI] score.categories.recreation"
+    },
+    "facilityTypes": {
+      "schools": "[MI] score.facilityTypes.schools",
+      "universities": "[MI] score.facilityTypes.universities",
+      "parks": "[MI] score.facilityTypes.parks",
+      "libraries": "[MI] score.facilityTypes.libraries",
+      "bus_stops": "[MI] score.facilityTypes.bus_stops",
+      "railway_stations": "[MI] score.facilityTypes.railway_stations",
+      "hospitals": "[MI] score.facilityTypes.hospitals",
+      "pharmacies": "[MI] score.facilityTypes.pharmacies",
+      "supermarkets": "[MI] score.facilityTypes.supermarkets"
+    }
   },
   "distance": {
     "driving": "[MI] distance.driving",
