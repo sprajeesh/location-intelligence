@@ -2,8 +2,9 @@
 
 import React, { useState, useRef, useEffect, useId } from "react";
 import { useTranslations } from "next-intl";
-import { Search, X, MapPin } from "lucide-react";
+import { Search, X } from "lucide-react";
 import type { AddressResult } from "@/types/api";
+import { AddressSuggestionList } from "@/components/ui/AddressSuggestionList";
 
 interface SearchBarProps {
   query: string;
@@ -31,6 +32,7 @@ export function SearchBar({
   const dropdownRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownId = useId();
+  const inputId = useId();
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -113,7 +115,11 @@ export function SearchBar({
           <Search className="w-5 h-5 text-gray-400" aria-hidden="true" />
         </div>
 
+        <label htmlFor={inputId} className="sr-only">
+          Search address
+        </label>
         <input
+          id={inputId}
           ref={inputRef}
           type="text"
           value={query}
@@ -121,7 +127,6 @@ export function SearchBar({
           onFocus={handleInputFocus}
           onKeyDown={handleKeyDown}
           placeholder={t("search.placeholder")}
-          aria-label="Search address"
           aria-autocomplete="list"
           aria-expanded={isDropdownOpen}
           aria-controls={dropdownId}
@@ -152,57 +157,34 @@ export function SearchBar({
       </div>
 
       {isDropdownOpen && (
-        <div
+        <AddressSuggestionList
           id={dropdownId}
           className="absolute top-full left-0 right-0 mt-2 bg-gray-800 border border-gray-700 rounded-lg shadow-lg z-50 overflow-hidden"
-          role="listbox"
-        >
-          {error ? (
-            <div className="px-4 py-3 text-sm text-red-400">
-              {t("errors.generic")}
-            </div>
-          ) : suggestions.length === 0 ? (
-            <div className="px-4 py-3 text-sm text-gray-400">
-              {query.trim() ? t("search.noResults") : ""}
-            </div>
-          ) : (
-            <ul className="max-h-60 overflow-y-auto">
-              {suggestions.map((suggestion, index) => (
-                <li
-                  key={`${suggestion.lat}-${suggestion.lon}`}
-                  role="option"
-                  aria-selected={highlightedIndex === index}
-                >
-                  <button
-                    id={`search-option-${index}`}
-                    onClick={() => {
-                      onSelectAddress(suggestion);
-                      setIsDropdownOpen(false);
-                      setHighlightedIndex(null);
-                    }}
-                    onMouseEnter={() => setHighlightedIndex(index)}
-                    className={`w-full text-left px-4 py-2.5 text-sm transition-colors duration-150 flex items-start gap-2 ${
-                      highlightedIndex === index
-                        ? "bg-emerald-500/20 text-emerald-100"
-                        : "hover:bg-gray-700/50 text-gray-300"
-                    }`}
-                    type="button"
-                  >
-                    <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5" aria-hidden="true" />
-                    <div className="flex-1 min-w-0">
-                      <p className="truncate font-medium">
-                        {suggestion.displayName}
-                      </p>
-                      <p className="text-xs text-gray-500 mt-0.5">
-                        {suggestion.lat.toFixed(3)}, {suggestion.lon.toFixed(3)}
-                      </p>
-                    </div>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+          items={suggestions.map((suggestion, index) => ({
+            key: `${suggestion.lat}-${suggestion.lon}`,
+            id: `search-option-${index}`,
+            displayName: suggestion.displayName,
+            sublabel: `${suggestion.lat.toFixed(3)}, ${suggestion.lon.toFixed(3)}`,
+          }))}
+          highlightedIndex={highlightedIndex}
+          onHighlight={setHighlightedIndex}
+          onSelect={(index) => {
+            const suggestion = suggestions[index];
+            if (!suggestion) return;
+            onSelectAddress(suggestion);
+            setIsDropdownOpen(false);
+            setHighlightedIndex(null);
+          }}
+          emptyState={
+            error ? (
+              <div className="px-4 py-3 text-sm text-red-400">{t("errors.generic")}</div>
+            ) : (
+              <div className="px-4 py-3 text-sm text-gray-400">
+                {query.trim() ? t("search.noResults") : ""}
+              </div>
+            )
+          }
+        />
       )}
 
       {isLoading && query.trim() && (

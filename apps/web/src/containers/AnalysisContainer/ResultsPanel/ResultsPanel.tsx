@@ -10,6 +10,7 @@ import FacilityItem from "@/components/FacilityItem";
 import ScoreDisplay from "@/components/ScoreDisplay";
 import CategoryGroup from "@/components/CategoryGroup";
 import { RadiusAdjuster } from "@/components/RadiusAdjuster";
+import { GlassPanel } from "@/components/ui/GlassPanel";
 import { useNavigate } from "@/hooks/useNavigate";
 import { useAnalyze } from "@/hooks/useAnalyze";
 import { ALL_FACILITY_TYPES } from "@/constants/facilityTypes";
@@ -181,32 +182,17 @@ export default function ResultsPanel({
   // Render loading state
   if (isAnalyzing) {
     return (
-      <div
-        className={`
-          pointer-events-auto
-          w-full h-full overflow-y-auto
-          bg-slate-900/90 backdrop-blur border border-slate-700/60 rounded-lg shadow-2xl p-4 sm:p-6
-          flex flex-col gap-4
-          ${className}
-        `}
-      >
+      <GlassPanel className={`pointer-events-auto w-full h-full overflow-y-auto p-4 sm:p-6 flex flex-col gap-4 ${className}`}>
         <LoadingSkeleton count={3} />
-      </div>
+      </GlassPanel>
     );
   }
 
   // Render no analysis state
   if (!analysisResult) {
     return (
-      <div
-        className={`
-          pointer-events-auto
-          w-full h-full
-          bg-slate-900/90 backdrop-blur border border-slate-700/60 rounded-lg shadow-2xl p-4 sm:p-6
-          flex flex-col items-center justify-center gap-4
-          text-center
-          ${className}
-        `}
+      <GlassPanel
+        className={`pointer-events-auto w-full h-full p-4 sm:p-6 flex flex-col items-center justify-center gap-4 text-center ${className}`}
       >
         <div className="text-slate-400">
           <Search className="mx-auto h-12 w-12 mb-2 opacity-50" />
@@ -216,22 +202,15 @@ export default function ResultsPanel({
             defaultValue: "Search an address to get started",
           })}
         </p>
-      </div>
+      </GlassPanel>
     );
   }
 
   // Render empty results state
   if (categorySections.length === 0) {
     return (
-      <div
-        className={`
-          pointer-events-auto
-          w-full h-full
-          bg-slate-900/90 backdrop-blur border border-slate-700/60 rounded-lg shadow-2xl p-4 sm:p-6
-          flex flex-col items-center justify-center gap-4
-          text-center
-          ${className}
-        `}
+      <GlassPanel
+        className={`pointer-events-auto w-full h-full p-4 sm:p-6 flex flex-col items-center justify-center gap-4 text-center ${className}`}
       >
         <div className="text-slate-400">
           <FileText className="mx-auto h-12 w-12 mb-2 opacity-50" />
@@ -251,65 +230,63 @@ export default function ResultsPanel({
             onSearch={handleRadiusSearch}
           />
         </div>
-      </div>
+      </GlassPanel>
     );
   }
 
   // Render results
   return (
-    <div
-      className={`
-        pointer-events-auto
-        w-full h-full overflow-y-auto
-        bg-slate-900/90 backdrop-blur border border-slate-700/60 rounded-lg shadow-2xl
-        flex flex-col
-        ${className}
-      `}
+    <GlassPanel
+      as="section"
+      aria-label={t("results.title")}
+      className={`pointer-events-auto w-full h-full overflow-y-auto flex flex-col ${className}`}
     >
       {/* Content */}
       <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-3 sm:py-4 space-y-3">
         {/* Category Sections */}
-        <div className="space-y-3">
+        <ul className="space-y-3">
           {categorySections.map((section) => {
             const isExpanded = expandedCategories.has(section.id);
             const isVisible = visibleCategories.has(section.id);
 
             return (
-              <CategoryGroup
-                key={section.id}
-                id={section.id}
-                label={section.label}
-                color={section.color}
-                count={section.features.length}
-                isExpanded={isExpanded}
-                isVisible={isVisible}
-                onToggleExpand={() => toggleCategoryExpanded(section.id)}
-                onToggleVisibility={(e) =>
-                  handleToggleVisibility(section.id, e)
-                }
-              >
-                {isExpanded && (
-                  <div className="space-y-2 pl-4 mt-2">
-                    {section.features.slice(0, 3).map((feature) => (
-                      <FacilityItem
-                        key={feature.id}
-                        feature={feature}
-                        markerColor={section.color}
-                        onClick={() => handleFacilityClick(feature)}
-                        onNavigate={navigate}
-                      />
-                    ))}
-                    {section.features.length > 3 && (
-                      <p className="px-3 py-1 text-xs text-slate-500">
-                        +{section.features.length - 3} more nearby
-                      </p>
-                    )}
-                  </div>
-                )}
-              </CategoryGroup>
+              <li key={section.id}>
+                <CategoryGroup
+                  id={section.id}
+                  label={section.label}
+                  color={section.color}
+                  count={section.features.length}
+                  isExpanded={isExpanded}
+                  isVisible={isVisible}
+                  onToggleExpand={() => toggleCategoryExpanded(section.id)}
+                  onToggleVisibility={(e) =>
+                    handleToggleVisibility(section.id, e)
+                  }
+                >
+                  {isExpanded && (
+                    <ul className="space-y-2 pl-4 mt-2">
+                      {section.features.slice(0, 3).map((feature) => (
+                        <li key={feature.id}>
+                          <FacilityItem
+                            feature={feature}
+                            markerColor={section.color}
+                            onClick={() => handleFacilityClick(feature)}
+                            onNavigate={navigate}
+                          />
+                        </li>
+                      ))}
+                      {section.features.length > 3 && (
+                        <li className="px-3 py-1 text-xs text-slate-500">
+                          +{section.features.length - 3} more nearby
+                        </li>
+                      )}
+                    </ul>
+                  )}
+                </CategoryGroup>
+              </li>
             );
           })}
-        </div>
+        </ul>
 
         {/* Score Section */}
         {analysisResult?.score && (
@@ -331,6 +308,6 @@ export default function ResultsPanel({
           />
         </div>
       </div>
-    </div>
+    </GlassPanel>
   );
 }

@@ -193,6 +193,7 @@ function MapContent() {
                 {feature.distanceKm.toFixed(2)} km
               </div>
               <button
+                type="button"
                 onClick={() => navigate(feature)}
                 style={{
                   display: "flex",

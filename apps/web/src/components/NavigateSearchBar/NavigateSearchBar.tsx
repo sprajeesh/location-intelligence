@@ -44,6 +44,7 @@ export function NavigateSearchBar({
         {/* From row */}
         <div className="flex items-center gap-2 px-2 py-2">
           <button
+            type="button"
             onClick={onBack}
             aria-label={t("back")}
             className="

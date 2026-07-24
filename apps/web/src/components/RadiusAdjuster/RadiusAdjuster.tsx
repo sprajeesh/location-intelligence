@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useId, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { ChevronRight, Minus, Plus } from 'lucide-react';
 import { DEFAULT_RADIUS_KM, MIN_RADIUS_KM, MAX_RADIUS_KM, RADIUS_STEP_KM } from '@/constants/radius';
@@ -30,6 +30,7 @@ export function RadiusAdjuster({
   const t = useTranslations();
   const [expanded, setExpanded] = useState(defaultExpanded);
   const [draft, setDraft] = useState(initialValue);
+  const radiusInputId = useId();
 
   const clamp = (value: number) => Math.min(max, Math.max(min, value));
 
@@ -70,9 +71,9 @@ export function RadiusAdjuster({
 
   return (
     <div className="glass-dark border border-slate-700/60 rounded-lg p-3 flex flex-col gap-2">
-      <span className="text-xs text-slate-400">
+      <label htmlFor={radiusInputId} className="text-xs text-slate-400">
         {t('results.adjustRadius.label', { defaultValue: 'Search radius' })}
-      </span>
+      </label>
       <div className="flex items-center gap-2">
         <button
           type="button"
@@ -86,6 +87,7 @@ export function RadiusAdjuster({
           <Minus className="h-4 w-4" />
         </button>
         <input
+          id={radiusInputId}
           type="number"
           min={min}
           max={max}
@@ -94,9 +96,6 @@ export function RadiusAdjuster({
           onChange={handleInputChange}
           onBlur={handleInputBlur}
           disabled={disabled}
-          aria-label={t('results.adjustRadius.label', {
-            defaultValue: 'Search radius',
-          })}
           className="w-14 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-sm text-center text-slate-100 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
         />
         <span className="text-xs text-slate-400">km</span>

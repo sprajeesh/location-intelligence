@@ -7,6 +7,7 @@ import { Plus, Minus, Crosshair, Navigation } from "lucide-react";
 import { useLocationStore } from "@/store/index";
 import { ToolbarButton } from "@/components/ToolbarButton";
 import { LayerSelector, type MapLayerId } from "@/components/LayerSelector";
+import { GlassPanel } from "@/components/ui/GlassPanel";
 import type { Feature } from "@/types/api";
 
 export const TILE_LAYER_URLS: Record<MapLayerId, string> = {
@@ -100,13 +101,11 @@ export function MapToolbarContainer({
   const hasFeatures = (analysisResult?.features?.length ?? 0) > 0;
 
   return (
-    <div
+    <GlassPanel
+      variant="toolbar"
       className="
         absolute md:top-1/2 top-1/4 right-3 -translate-y-1/2 z-[1000]
         flex flex-col items-center gap-0.5
-        bg-slate-900/90 backdrop-blur-md
-        border border-slate-700/60
-        rounded-xl shadow-2xl
         p-1
       "
       role="toolbar"
@@ -135,7 +134,7 @@ export function MapToolbarContainer({
       <div className="w-5 h-px bg-slate-700/60 my-0.5" role="separator" />
 
       <LayerSelector activeLayer={activeLayer} onSelectLayer={onLayerChange} />
-    </div>
+    </GlassPanel>
   );
 }
 

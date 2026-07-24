@@ -90,6 +90,7 @@ function ToastItem({ toast }: { toast: ToastType }) {
       {/* Close button */}
       {toast.dismissible !== false && (
         <button
+          type="button"
           onClick={() => removeToast(toast.id)}
           className={`
             flex-shrink-0 ${textColor} hover:opacity-75 transition-smooth
