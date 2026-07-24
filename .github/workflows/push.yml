@@ -54,6 +54,11 @@ jobs:
       - name: Setup Snyk CLI
         uses: snyk/actions/setup@master
 
+      - name: Test source code for vulnerabilities
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        run: snyk test --all-projects --severity-threshold=high
+
       - name: Export Python dependencies for Snyk (uv.lock has no native Snyk support)
         run: cd apps/api && uv export --format requirements.txt --no-hashes -o requirements.txt
 
@@ -62,11 +67,11 @@ jobs:
           python -m venv /tmp/snyk-venv
           /tmp/snyk-venv/bin/pip install --quiet -r apps/api/requirements.txt
 
-      - name: Run Snyk security scan
+      - name: Test dependencies for vulnerabilities
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         run: |
-          snyk test --all-projects --detection-depth=6 \
+          snyk test --all-projects \
             --exclude=node_modules,.venv,dist,build,coverage,docs,tests,examples,requirements.txt \
             --severity-threshold=high
 
