@@ -68,12 +68,12 @@ describe('AddressSuggestionList', () => {
   describe('Accent', () => {
     it('applies emerald highlight classes by default', () => {
       render(<AddressSuggestionList {...baseProps} highlightedIndex={0} />);
-      expect(screen.getAllByRole('option')[0]?.querySelector('button')).toHaveClass('bg-emerald-500/20');
+      expect(screen.getAllByRole('option')[0]).toHaveClass('bg-emerald-500/20');
     });
 
     it('applies rose highlight classes when accent=rose', () => {
       render(<AddressSuggestionList {...baseProps} highlightedIndex={0} accent="rose" />);
-      expect(screen.getAllByRole('option')[0]?.querySelector('button')).toHaveClass('bg-rose-500/20');
+      expect(screen.getAllByRole('option')[0]).toHaveClass('bg-rose-500/20');
     });
   });
 

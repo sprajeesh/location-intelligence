@@ -51,20 +51,22 @@ export function AddressSuggestionList({
       {items.length === 0 ? (
         loadingState ?? emptyState ?? null
       ) : (
-        <ul className={listClassName}>
+        <ul role="presentation" className={listClassName}>
           {items.map((item, index) => (
-            <li key={item.key} role="option" aria-selected={highlightedIndex === index}>
-              <button
-                id={item.id}
-                type="button"
-                onMouseEnter={() => onHighlight(index)}
-                onClick={() => onSelect(index)}
-                className={`w-full text-left flex items-start gap-2 px-4 py-2.5 text-sm transition-colors duration-150 ${
-                  highlightedIndex === index
-                    ? HIGHLIGHT_CLASSES[accent]
-                    : "hover:bg-gray-700/50 text-gray-300"
-                }`}
-              >
+            <li
+              key={item.key}
+              id={item.id}
+              role="option"
+              aria-selected={highlightedIndex === index}
+              onMouseEnter={() => onHighlight(index)}
+              onClick={() => onSelect(index)}
+              className={`flex items-start gap-2 px-4 py-2.5 text-sm cursor-pointer transition-colors duration-150 ${
+                highlightedIndex === index
+                  ? HIGHLIGHT_CLASSES[accent]
+                  : "hover:bg-gray-700/50 text-gray-300"
+              }`}
+            >
+              <button type="button" tabIndex={-1} className="flex items-start gap-2 w-full text-left pointer-events-none">
                 <MapPin className={iconClassName} aria-hidden="true" />
                 {item.sublabel ? (
                   <div className="flex-1 min-w-0">
