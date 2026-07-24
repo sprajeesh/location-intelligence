@@ -238,7 +238,7 @@ export default function ResultsPanel({
   return (
     <GlassPanel
       as="section"
-      aria-label="Results"
+      aria-label={t("results.title")}
       className={`pointer-events-auto w-full h-full overflow-y-auto flex flex-col ${className}`}
     >
       {/* Content */}
