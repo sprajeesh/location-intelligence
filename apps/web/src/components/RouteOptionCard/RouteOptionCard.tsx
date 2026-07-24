@@ -1,5 +1,6 @@
 "use client";
 
+import { useId } from "react";
 import { useTranslations } from "next-intl";
 import type { RouteOption } from "@/types/api";
 import TurnByTurnStep from "@/components/TurnByTurnStep";
@@ -21,7 +22,8 @@ export function RouteOptionCard({
   onToggle,
 }: RouteOptionCardProps) {
   const t = useTranslations("navigate");
-  const contentId = `route-option-${route.durationS}-${route.distanceM}`;
+  const id = useId();
+  const contentId = `route-option-${id}`;
 
   return (
     <CollapsibleCard
