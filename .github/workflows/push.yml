@@ -79,6 +79,14 @@ jobs:
           snyk test --file=apps/api/requirements.txt --command=/tmp/snyk-venv/bin/python3 --severity-threshold=high
         continue-on-error: true
 
+      - name: Monitor dependencies for vulnerabilities
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        run: |
+          snyk monitor --all-projects --severity-threshold=high
+          snyk monitor --file=apps/api/requirements.txt --command=/tmp/snyk-venv/bin/python3 --severity-threshold=high
+        continue-on-error: true
+
       - name: Run tests
         run: cd apps/web && pnpm test && cd ../api && uv run pytest
 
