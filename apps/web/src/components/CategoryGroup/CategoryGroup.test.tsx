@@ -51,6 +51,17 @@ describe('CategoryGroup', () => {
       await userEvent.click(screen.getByText('Schools'));
       expect(onToggleExpand).toHaveBeenCalledTimes(1);
     });
+
+    it('calls onToggleExpand when the chevron is clicked', async () => {
+      const onToggleExpand = jest.fn();
+      const { container } = render(
+        <CategoryGroup {...defaultProps} onToggleExpand={onToggleExpand} />,
+      );
+      const chevron = container.querySelector('svg.lucide-chevron-up');
+      expect(chevron).toBeInTheDocument();
+      await userEvent.click(chevron!);
+      expect(onToggleExpand).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('Visibility toggle interaction', () => {
