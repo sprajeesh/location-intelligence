@@ -40,9 +40,9 @@ export default function CategoryGroup({
 }: CategoryGroupProps) {
   return (
     <div className="space-y-2">
-      {/* Header row — the expand/collapse button and the visibility toggle
-      are siblings (not nested), since a <button> cannot legally contain
-      another <button>. */}
+      {/* Header row — the expand/collapse button (which also contains the
+      chevron) and the visibility toggle are siblings (not nested), since a
+      <button> cannot legally contain another <button>. */}
       <div
         className={`
           w-full flex items-center justify-between px-3 py-2 rounded-lg
@@ -54,22 +54,33 @@ export default function CategoryGroup({
         <button
           type="button"
           onClick={onToggleExpand}
-          className="flex items-center gap-3 flex-1 min-w-0 text-left rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset"
+          className="flex items-center justify-between gap-3 flex-1 min-w-0 text-left rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-inset"
           aria-expanded={isExpanded}
           aria-controls={isExpanded ? `category-${id}` : undefined}
         >
-          {/* Color dot */}
-          <div
-            className="w-3 h-3 rounded-full flex-shrink-0"
-            style={{ backgroundColor: color }}
-            aria-label={`${label} marker color`}
-          />
+          <div className="flex items-center gap-3 min-w-0">
+            {/* Color dot */}
+            <div
+              className="w-3 h-3 rounded-full flex-shrink-0"
+              style={{ backgroundColor: color }}
+              aria-label={`${label} marker color`}
+            />
 
-          {/* Label and count */}
-          <div className="flex items-center gap-2 min-w-0">
-            <span className="font-medium text-slate-100 truncate">{label}</span>
-            <Badge label={count} tone="count" className="flex-shrink-0" />
+            {/* Label and count */}
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="font-medium text-slate-100 truncate">{label}</span>
+              <Badge label={count} tone="count" className="flex-shrink-0" />
+            </div>
           </div>
+
+          {/* Expand/collapse chevron */}
+          <ChevronUp
+            className={`
+              w-4 h-4 text-slate-400 transition-transform duration-200 flex-shrink-0
+              ${isExpanded ? "" : "rotate-180"}
+            `}
+            aria-hidden="true"
+          />
         </button>
 
         {/* Right side controls */}
@@ -88,17 +99,6 @@ export default function CategoryGroup({
                 : "text-slate-500 hover:text-slate-400 hover:bg-slate-700/20"
             }
           />
-
-          {/* Expand/collapse chevron (visual only — the button above handles the click) */}
-          <div className="p-1">
-            <ChevronUp
-              className={`
-                w-4 h-4 text-slate-400 transition-transform duration-200
-                ${isExpanded ? "" : "rotate-180"}
-              `}
-              aria-hidden="true"
-            />
-          </div>
         </div>
       </div>
       {/* Expanded content */}
