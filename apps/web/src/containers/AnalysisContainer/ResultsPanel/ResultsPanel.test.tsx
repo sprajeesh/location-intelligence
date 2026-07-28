@@ -60,7 +60,7 @@ jest.mock('@/components/ScoreDisplay', () => ({
 }));
 jest.mock('@/components/CategoryGroup', () => ({
   __esModule: true,
-  default: ({
+  CategoryGroup: ({
     id,
     label,
     count,
