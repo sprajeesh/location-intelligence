@@ -6,7 +6,7 @@ import { Search, FileText } from "lucide-react";
 import { useLocationStore } from "@/store/index";
 import type { Feature } from "@/types/api";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
-import FacilityItem from "@/components/FacilityItem";
+import { FacilityItem } from "@/components/FacilityItem";
 import ScoreDisplay from "@/components/ScoreDisplay";
 import CategoryGroup from "@/components/CategoryGroup";
 import { RadiusAdjuster } from "@/components/RadiusAdjuster";

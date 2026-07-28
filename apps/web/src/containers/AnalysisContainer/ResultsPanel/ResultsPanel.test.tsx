@@ -46,7 +46,7 @@ jest.mock('@/components/LoadingSkeleton', () => ({
 }));
 jest.mock('@/components/FacilityItem', () => ({
   __esModule: true,
-  default: ({ feature, onClick }: { feature: Feature; onClick: () => void }) => (
+  FacilityItem: ({ feature, onClick }: { feature: Feature; onClick: () => void }) => (
     <button data-testid={`facility-${feature.id}`} onClick={onClick}>
       {feature.name}
     </button>
