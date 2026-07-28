@@ -20,38 +20,52 @@ export default function FacilityItem({
 }: FacilityItemProps) {
   const t = useTranslations();
 
+  const rowLabel = `${feature.name}, ${feature.distanceKm.toFixed(1)} km away`;
+  const rowContent = (
+    <div className="flex items-start justify-between gap-2 min-w-0">
+      <div className="flex items-start gap-2 flex-1 min-w-0">
+        <div
+          className="w-2 h-2 rounded-full mt-1.5 flex-shrink-0"
+          style={{ backgroundColor: markerColor }}
+          aria-hidden="true"
+        />
+        <span className="text-sm text-slate-200 truncate group-hover:text-slate-100 transition-colors">
+          {feature.name}
+        </span>
+      </div>
+      <span className="text-xs font-semibold text-slate-400 group-hover:text-slate-300 flex-shrink-0 whitespace-nowrap ml-2">
+        {t("distance.km", {
+          distance: feature.distanceKm.toFixed(1),
+          defaultValue: `${feature.distanceKm.toFixed(1)} km`,
+        })}
+      </span>
+    </div>
+  );
+
   return (
     <div className="flex items-center gap-1 group">
-      <button
-        type="button"
-        onClick={onClick}
-        className={`
-          flex-1 text-left px-3 py-2 rounded-lg
-          transition-all duration-200
-          hover:bg-slate-700/30 hover:backdrop-blur-sm
-          focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset
-        `}
-        aria-label={`${feature.name}, ${feature.distanceKm.toFixed(1)} km away`}
-      >
-        <div className="flex items-start justify-between gap-2 min-w-0">
-          <div className="flex items-start gap-2 flex-1 min-w-0">
-            <div
-              className="w-2 h-2 rounded-full mt-1.5 flex-shrink-0"
-              style={{ backgroundColor: markerColor }}
-              aria-hidden="true"
-            />
-            <span className="text-sm text-slate-200 truncate group-hover:text-slate-100 transition-colors">
-              {feature.name}
-            </span>
-          </div>
-          <span className="text-xs font-semibold text-slate-400 group-hover:text-slate-300 flex-shrink-0 whitespace-nowrap ml-2">
-            {t("distance.km", {
-              distance: feature.distanceKm.toFixed(1),
-              defaultValue: `${feature.distanceKm.toFixed(1)} km`,
-            })}
-          </span>
+      {onClick ? (
+        <button
+          type="button"
+          onClick={onClick}
+          className={`
+            flex-1 text-left px-3 py-2 rounded-lg
+            transition-all duration-200
+            hover:bg-slate-700/30 hover:backdrop-blur-sm
+            focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset
+          `}
+          aria-label={rowLabel}
+        >
+          {rowContent}
+        </button>
+      ) : (
+        <div
+          className="flex-1 text-left px-3 py-2 rounded-lg"
+          aria-label={rowLabel}
+        >
+          {rowContent}
         </div>
-      </button>
+      )}
 
       {onNavigate && (
         <IconButton
