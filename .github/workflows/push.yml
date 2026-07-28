@@ -57,7 +57,7 @@ jobs:
       - name: Test source code for vulnerabilities
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        run: snyk test --all-projects --severity-threshold=high
+        run: snyk code test --all-projects --severity-threshold=high
 
       - name: Export Python dependencies for Snyk (uv.lock has no native Snyk support)
         run: cd apps/api && uv export --format requirements.txt --no-hashes -o requirements.txt
@@ -76,6 +76,15 @@ jobs:
             --severity-threshold=high
 
           snyk test --file=apps/api/requirements.txt --command=/tmp/snyk-venv/bin/python3 --severity-threshold=high
+        continue-on-error: true
+
+      - name: Monitor dependencies for vulnerabilities
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        run: |
+          snyk monitor --all-projects --severity-threshold=high
+          snyk monitor --file=apps/api/requirements.txt --command=/tmp/snyk-venv/bin/python3 --severity-threshold=high
+        continue-on-error: true
 
       - name: Run tests
         run: cd apps/web && pnpm test && cd ../api && uv run pytest
