@@ -56,7 +56,7 @@ export default function CategoryGroup({
           onClick={onToggleExpand}
           className="flex items-center gap-3 flex-1 min-w-0 text-left rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset"
           aria-expanded={isExpanded}
-          aria-controls={`category-${id}`}
+          aria-controls={isExpanded ? `category-${id}` : undefined}
         >
           {/* Color dot */}
           <div
@@ -94,7 +94,7 @@ export default function CategoryGroup({
             <ChevronUp
               className={`
                 w-4 h-4 text-slate-400 transition-transform duration-200
-                ${isExpanded ? "rotate-180" : ""}
+                ${isExpanded ? "" : "rotate-180"}
               `}
               aria-hidden="true"
             />

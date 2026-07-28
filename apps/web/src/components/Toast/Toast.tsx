@@ -13,13 +13,17 @@ function ToastItem({ toast }: { toast: ToastType }) {
   const removeToast = useLocationStore((state) => state.removeToast);
 
   useEffect(() => {
+    if (toast.dismissible === false) {
+      return;
+    }
+
     // Auto-dismiss after 3 seconds
     const timer = setTimeout(() => {
       removeToast(toast.id);
     }, 3000);
 
     return () => clearTimeout(timer);
-  }, [toast.id, removeToast]);
+  }, [toast.id, toast.dismissible, removeToast]);
 
   const bgColor =
     toast.type === 'error'

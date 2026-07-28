@@ -62,6 +62,16 @@ describe('FacilityItem', () => {
   describe('Accessibility', () => {
     it('gives the main row an accessible name with name and distance', () => {
       render(<FacilityItem feature={feature} markerColor="#10B981" />);
+      expect(screen.getByLabelText('Wellington East School, 1.2 km away')).toBeInTheDocument();
+    });
+
+    it('does not expose the main row as a button when onClick is not provided', () => {
+      render(<FacilityItem feature={feature} markerColor="#10B981" />);
+      expect(screen.queryByRole('button', { name: /wellington east school, 1.2 km away/i })).not.toBeInTheDocument();
+    });
+
+    it('exposes the main row as a button with the same accessible name when onClick is provided', () => {
+      render(<FacilityItem feature={feature} markerColor="#10B981" onClick={jest.fn()} />);
       expect(screen.getByRole('button', { name: 'Wellington East School, 1.2 km away' })).toBeInTheDocument();
     });
 
