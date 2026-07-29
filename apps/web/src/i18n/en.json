@@ -46,6 +46,7 @@
       "bus_stops": "Bus Stops",
       "railway_stations": "Railway Stations",
       "hospitals": "Hospitals",
+      "gps": "GPs",
       "pharmacies": "Pharmacies",
       "supermarkets": "Supermarkets"
     }

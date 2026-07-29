@@ -21,7 +21,7 @@ const FACILITY_DISPLAY_ORDER: Record<CategoryId, string[]> = {
   education: ["schools", "kindergartens", "universities"],
   recreation: ["parks", "playgrounds", "libraries"],
   transport: ["bus_stops", "railway_stations"],
-  healthcare: ["hospitals", "pharmacies"],
+  healthcare: ["gps", "hospitals", "pharmacies"],
   shopping: ["supermarkets"],
 };
 
