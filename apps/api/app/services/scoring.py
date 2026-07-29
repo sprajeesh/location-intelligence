@@ -29,6 +29,7 @@ FACILITY_LABELS: dict[str, str] = {
     "bus_stops": "bus stop",
     "railway_stations": "railway station",
     "hospitals": "hospital",
+    "gps": "GP",
     "pharmacies": "pharmacy",
     "supermarkets": "supermarket",
 }
@@ -279,7 +280,7 @@ class LocationScoringService:
                 score=None,
                 nearest_distance_km=None,
                 count=0,
-                explanation=f"{label.capitalize()} not checked for this address.",
+                explanation=f"{label[0].upper() + label[1:]} not checked for this address.",
             )
 
         cfg = FACILITY_CONFIGS[facility_type]
