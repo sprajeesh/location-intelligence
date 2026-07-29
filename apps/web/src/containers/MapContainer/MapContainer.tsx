@@ -441,6 +441,7 @@ function getCategoryColor(categoryId: string): string {
     kindergartens: "#FB923C",
     bus_stops: "#14B8A6",
     hospitals: "#EF4444",
+    gps: "#F97316",
     universities: "#8B5CF6",
     supermarkets: "#10B981",
     parks: "#22C55E",

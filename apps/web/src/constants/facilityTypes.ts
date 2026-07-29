@@ -14,6 +14,7 @@ export const ALL_FACILITY_TYPES: string[] = [
   "bus_stops",
   "railway_stations",
   "hospitals",
+  "gps",
   "pharmacies",
   "supermarkets",
 ];
