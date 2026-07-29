@@ -155,7 +155,8 @@ FACILITY_CONFIGS: dict[str, FacilityConfig] = {
         proximity_weight=0.6,
         density_weight=0.4,
         count_ceiling=2,
-        # tag coverage: amenity=doctors/clinic + healthcare=doctor/clinic (see overpass.py CATEGORY_TAGS)
+        # tag coverage: amenity=doctors/clinic + healthcare=doctor/clinic
+        # (see overpass.py CATEGORY_TAGS)
     ),
     "pharmacies": FacilityConfig(
         distance_mode="drive",
