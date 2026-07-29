@@ -21,9 +21,11 @@ SATURATION_CURVE_STEEPNESS = -math.log(0.05)
 
 FACILITY_LABELS: dict[str, str] = {
     "schools": "school",
+    "kindergartens": "kindergarten",
     "universities": "university",
     "libraries": "library",
     "parks": "park",
+    "playgrounds": "playground",
     "bus_stops": "bus stop",
     "railway_stations": "railway station",
     "hospitals": "hospital",
