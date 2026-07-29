@@ -12,7 +12,6 @@ CATEGORIES: list[CategoryInfo] = [
         id="railway_stations", label="Railway Stations", implemented=True, color="#0EA5E9"
     ),
     CategoryInfo(id="hospitals", label="Hospitals", implemented=True, color="#EF4444"),
-    CategoryInfo(id="gps", label="GPs", implemented=True, color="#F97316"),
     CategoryInfo(id="universities", label="Universities", implemented=True, color="#8B5CF6"),
     CategoryInfo(id="supermarkets", label="Supermarkets", implemented=True, color="#10B981"),
     CategoryInfo(id="parks", label="Parks", implemented=True, color="#22C55E"),

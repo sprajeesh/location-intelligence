@@ -68,7 +68,7 @@ class TestCategoriesEndpoint:
     def test_categories_count(self, client: TestClient) -> None:
         response = client.get("/categories")
         data = response.json()
-        assert len(data) == 12
+        assert len(data) == 11
 
     def test_categories_has_required_fields(self, client: TestClient) -> None:
         response = client.get("/categories")
@@ -102,7 +102,6 @@ class TestCategoriesEndpoint:
             "bus_stops",
             "railway_stations",
             "hospitals",
-            "gps",
             "universities",
             "supermarkets",
             "parks",

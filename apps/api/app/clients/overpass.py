@@ -16,12 +16,6 @@ CATEGORY_TAGS: dict[str, list[tuple[str, str]]] = {
     "bus_stops": [("highway", "bus_stop"), ("public_transport", "platform")],
     "railway_stations": [("railway", "station")],
     "hospitals": [("amenity", "hospital"), ("healthcare", "hospital")],
-    "gps": [
-        ("amenity", "doctors"),
-        ("amenity", "clinic"),
-        ("healthcare", "doctor"),
-        ("healthcare", "clinic"),
-    ],
     "pharmacies": [("amenity", "pharmacy")],
     "supermarkets": [("shop", "supermarket")],
 }
