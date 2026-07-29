@@ -63,6 +63,16 @@ FACILITY_CONFIGS: dict[str, FacilityConfig] = {
         proximity_weight=0.5,
         density_weight=0.5,
     ),
+    "kindergartens": FacilityConfig(
+        distance_mode="walk",
+        decay_constant=0.4,
+        reference_radius=1.0,
+        hard_cutoff=3.0,
+        saturation_point=2,
+        proximity_weight=0.6,
+        density_weight=0.4,
+        count_ceiling=2,
+    ),
     "universities": FacilityConfig(
         distance_mode="drive",
         decay_constant=5,
@@ -91,6 +101,15 @@ FACILITY_CONFIGS: dict[str, FacilityConfig] = {
         saturation_point=2,
         proximity_weight=0.6,
         density_weight=0.4,
+    ),
+    "playgrounds": FacilityConfig(
+        distance_mode="walk",
+        decay_constant=0.25,
+        reference_radius=0.5,
+        hard_cutoff=1.5,
+        saturation_point=2,
+        proximity_weight=0.55,
+        density_weight=0.45,
     ),
     "bus_stops": FacilityConfig(
         distance_mode="walk",
@@ -125,6 +144,19 @@ FACILITY_CONFIGS: dict[str, FacilityConfig] = {
         proximity_weight=0.85,
         density_weight=0.15,
         count_ceiling=2,
+        # tag coverage: amenity=hospital + healthcare=hospital (see overpass.py CATEGORY_TAGS)
+    ),
+    "gps": FacilityConfig(
+        distance_mode="drive",
+        decay_constant=2,
+        reference_radius=2.5,
+        hard_cutoff=9,
+        saturation_point=2,
+        proximity_weight=0.6,
+        density_weight=0.4,
+        count_ceiling=2,
+        # tag coverage: amenity=doctors/clinic + healthcare=doctor/clinic
+        # (see overpass.py CATEGORY_TAGS)
     ),
     "pharmacies": FacilityConfig(
         distance_mode="drive",
@@ -152,10 +184,14 @@ FACILITY_CONFIGS: dict[str, FacilityConfig] = {
 # Which facility types roll up into each of the five categories, and their
 # relative weight within that category.
 CATEGORY_FACILITY_WEIGHTS: dict[str, dict[str, float]] = {
-    "education": {"schools": 0.85, "universities": 0.15},
-    "recreation": {"parks": 0.55, "libraries": 0.45},
+    "education": {
+        "schools": 0.55,
+        "kindergartens": 0.20,
+        "universities": 0.25,
+    },
+    "recreation": {"parks": 0.40, "playgrounds": 0.20, "libraries": 0.40},
     "transport": {"bus_stops": 0.45, "railway_stations": 0.55},
-    "healthcare": {"hospitals": 0.65, "pharmacies": 0.35},
+    "healthcare": {"gps": 0.45, "hospitals": 0.35, "pharmacies": 0.20},
     "shopping": {"supermarkets": 1.0},
 }
 

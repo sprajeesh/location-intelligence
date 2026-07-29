@@ -438,11 +438,14 @@ function createSelectedFeatureIcon(color: string): L.DivIcon {
 function getCategoryColor(categoryId: string): string {
   const colorMap: Record<string, string> = {
     schools: "#F59E0B",
+    kindergartens: "#FB923C",
     bus_stops: "#14B8A6",
     hospitals: "#EF4444",
+    gps: "#F97316",
     universities: "#8B5CF6",
     supermarkets: "#10B981",
     parks: "#22C55E",
+    playgrounds: "#A3E635",
     libraries: "#3B82F6",
     pharmacies: "#EC4899",
   };

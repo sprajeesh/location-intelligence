@@ -38,12 +38,15 @@
     },
     "facilityTypes": {
       "schools": "[MI] score.facilityTypes.schools",
+      "kindergartens": "[MI] score.facilityTypes.kindergartens",
       "universities": "[MI] score.facilityTypes.universities",
       "parks": "[MI] score.facilityTypes.parks",
+      "playgrounds": "[MI] score.facilityTypes.playgrounds",
       "libraries": "[MI] score.facilityTypes.libraries",
       "bus_stops": "[MI] score.facilityTypes.bus_stops",
       "railway_stations": "[MI] score.facilityTypes.railway_stations",
       "hospitals": "[MI] score.facilityTypes.hospitals",
+      "gps": "[MI] score.facilityTypes.gps",
       "pharmacies": "[MI] score.facilityTypes.pharmacies",
       "supermarkets": "[MI] score.facilityTypes.supermarkets"
     }

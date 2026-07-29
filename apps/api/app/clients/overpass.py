@@ -8,12 +8,20 @@ logger = logging.getLogger(__name__)
 # OSM tag definitions per category
 CATEGORY_TAGS: dict[str, list[tuple[str, str]]] = {
     "schools": [("amenity", "school")],
+    "kindergartens": [("amenity", "kindergarten")],
     "universities": [("amenity", "university")],
     "libraries": [("amenity", "library")],
     "parks": [("leisure", "park")],
+    "playgrounds": [("leisure", "playground")],
     "bus_stops": [("highway", "bus_stop"), ("public_transport", "platform")],
     "railway_stations": [("railway", "station")],
-    "hospitals": [("amenity", "hospital")],
+    "hospitals": [("amenity", "hospital"), ("healthcare", "hospital")],
+    "gps": [
+        ("amenity", "doctors"),
+        ("amenity", "clinic"),
+        ("healthcare", "doctor"),
+        ("healthcare", "clinic"),
+    ],
     "pharmacies": [("amenity", "pharmacy")],
     "supermarkets": [("shop", "supermarket")],
 }
