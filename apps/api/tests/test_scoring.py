@@ -67,12 +67,8 @@ class TestConfig:
         for facility_type, cfg in FACILITY_CONFIGS.items():
             assert cfg.proximity_weight + cfg.density_weight == pytest.approx(1.0), facility_type
 
-    def test_recreation_category_has_parks_playgrounds_and_libraries(self) -> None:
-        assert CATEGORY_FACILITY_WEIGHTS["recreation"] == {
-            "parks": 0.40,
-            "playgrounds": 0.20,
-            "libraries": 0.40,
-        }
+    def test_recreation_category_has_parks_and_libraries(self) -> None:
+        assert CATEGORY_FACILITY_WEIGHTS["recreation"] == {"parks": 0.55, "libraries": 0.45}
 
     def test_shopping_category_only_supermarkets(self) -> None:
         assert CATEGORY_FACILITY_WEIGHTS["shopping"] == {"supermarkets": 1.0}
