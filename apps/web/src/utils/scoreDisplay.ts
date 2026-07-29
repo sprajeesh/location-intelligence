@@ -18,8 +18,8 @@ export const CATEGORY_DISPLAY_ORDER: CategoryId[] = [
  * CATEGORY_FACILITY_WEIGHTS in apps/api/app/config/scoring_config.py.
  */
 const FACILITY_DISPLAY_ORDER: Record<CategoryId, string[]> = {
-  education: ["schools", "kindergartens", "universities"],
-  recreation: ["parks", "playgrounds", "libraries"],
+  education: ["schools", "universities"],
+  recreation: ["parks", "libraries"],
   transport: ["bus_stops", "railway_stations"],
   healthcare: ["hospitals", "pharmacies"],
   shopping: ["supermarkets"],

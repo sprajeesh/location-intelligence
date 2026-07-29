@@ -38,10 +38,8 @@
     },
     "facilityTypes": {
       "schools": "Schools",
-      "kindergartens": "Kindergartens",
       "universities": "Universities",
       "parks": "Parks",
-      "playgrounds": "Playgrounds",
       "libraries": "Libraries",
       "bus_stops": "Bus Stops",
       "railway_stations": "Railway Stations",

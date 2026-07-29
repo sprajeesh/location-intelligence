@@ -6,10 +6,8 @@
  */
 export const ALL_FACILITY_TYPES: string[] = [
   "schools",
-  "kindergartens",
   "universities",
   "parks",
-  "playgrounds",
   "libraries",
   "bus_stops",
   "railway_stations",
