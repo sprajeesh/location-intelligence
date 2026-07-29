@@ -146,6 +146,17 @@ FACILITY_CONFIGS: dict[str, FacilityConfig] = {
         count_ceiling=2,
         # tag coverage: amenity=hospital + healthcare=hospital (see overpass.py CATEGORY_TAGS)
     ),
+    "gps": FacilityConfig(
+        distance_mode="drive",
+        decay_constant=2,
+        reference_radius=2.5,
+        hard_cutoff=9,
+        saturation_point=2,
+        proximity_weight=0.6,
+        density_weight=0.4,
+        count_ceiling=2,
+        # tag coverage: amenity=doctors/clinic + healthcare=doctor/clinic (see overpass.py CATEGORY_TAGS)
+    ),
     "pharmacies": FacilityConfig(
         distance_mode="drive",
         decay_constant=1.5,
@@ -179,7 +190,7 @@ CATEGORY_FACILITY_WEIGHTS: dict[str, dict[str, float]] = {
     },
     "recreation": {"parks": 0.40, "playgrounds": 0.20, "libraries": 0.40},
     "transport": {"bus_stops": 0.45, "railway_stations": 0.55},
-    "healthcare": {"hospitals": 0.65, "pharmacies": 0.35},
+    "healthcare": {"gps": 0.45, "hospitals": 0.35, "pharmacies": 0.20},
     "shopping": {"supermarkets": 1.0},
 }
 
