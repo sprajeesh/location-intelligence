@@ -3,12 +3,7 @@ from dataclasses import replace
 from difflib import SequenceMatcher
 
 from app.clients.osrm import haversine_km
-from app.config.scoring_config import (
-    CATEGORY_FACILITY_WEIGHTS,
-    CATEGORY_WEIGHTS,
-    FACILITY_CONFIGS,
-    FacilityConfig,
-)
+from app.config.scoring_config import FacilityConfig
 from app.models.domain import CategoryScore, CompositeScore, Facility, FacilityScore
 
 DEDUPE_DISTANCE_KM = 0.1  # ~100m
@@ -18,21 +13,6 @@ NAME_SIMILARITY_THRESHOLD = 0.8
 # density scoring reaches ~95/100. A bare 1 - e^-x only reaches ~63% at x=1,
 # so the exponent is scaled by -ln(0.05) to actually hit that target.
 SATURATION_CURVE_STEEPNESS = -math.log(0.05)
-
-FACILITY_LABELS: dict[str, str] = {
-    "schools": "school",
-    "kindergartens": "kindergarten",
-    "universities": "university",
-    "libraries": "library",
-    "parks": "park",
-    "playgrounds": "playground",
-    "bus_stops": "bus stop",
-    "railway_stations": "railway station",
-    "hospitals": "hospital",
-    "gps": "GP",
-    "pharmacies": "pharmacy",
-    "supermarkets": "supermarket",
-}
 
 
 def _same_facility(a: Facility, b: Facility) -> bool:
@@ -219,14 +199,24 @@ def _explain(
 class LocationScoringService:
     """Three-layer scoring: facility -> category -> composite.
 
-    - Facility layer: proximity/density blend per facility type, per FACILITY_CONFIGS.
-    - Category layer: weighted blend of member facility scores, per CATEGORY_FACILITY_WEIGHTS.
-    - Composite layer: weighted blend of category scores, per CATEGORY_WEIGHTS.
+    - Facility layer: proximity/density blend per facility type, per facility_configs.
+    - Category layer: weighted blend of member facility scores, per category_facility_weights.
+    - Composite layer: weighted blend of category scores, per category_weights.
 
     At every layer, "not checked" (no data source available) is excluded and the
     remaining weights are renormalized. "Checked, zero found" is real signal — it
     scores 0 and stays in at full weight. See refactor spec §4.1.
     """
+
+    def __init__(
+        self,
+        facility_configs: dict[str, FacilityConfig],
+        category_facility_weights: dict[str, dict[str, float]],
+        category_weights: dict[str, float],
+    ) -> None:
+        self._facility_configs = facility_configs
+        self._category_facility_weights = category_facility_weights
+        self._category_weights = category_weights
 
     def score(
         self,
@@ -242,7 +232,7 @@ class LocationScoringService:
             by_type.setdefault(facility.category, []).append(facility)
 
         facility_scores: dict[str, FacilityScore] = {}
-        for facility_type in FACILITY_CONFIGS:
+        for facility_type in self._facility_configs:
             checked = facility_type in requested and facility_type not in unavailable
             facility_scores[facility_type] = self._score_facility(
                 facility_type, by_type.get(facility_type, []), checked
@@ -250,28 +240,29 @@ class LocationScoringService:
 
         category_results = [
             self._score_category(category, facility_scores)
-            for category in CATEGORY_FACILITY_WEIGHTS
+            for category in self._category_facility_weights
         ]
 
         scored_categories = [c for c in category_results if c.status == "scored"]
         overall: float | None = None
         if scored_categories:
-            weight_sum = sum(CATEGORY_WEIGHTS[c.category] for c in scored_categories)
+            weight_sum = sum(self._category_weights[c.category] for c in scored_categories)
             if weight_sum > 0:
                 weighted_total = sum(
-                    c.score * CATEGORY_WEIGHTS[c.category]  # type: ignore[operator]
+                    c.score * self._category_weights[c.category]  # type: ignore[operator]
                     for c in scored_categories
                 )
                 overall = round(weighted_total / weight_sum, 1)
 
-        coverage = f"{len(scored_categories)}/{len(CATEGORY_WEIGHTS)}"
+        coverage = f"{len(scored_categories)}/{len(self._category_weights)}"
 
         return CompositeScore(overall=overall, coverage=coverage, categories=category_results)
 
     def _score_facility(
         self, facility_type: str, group: list[Facility], checked: bool
     ) -> FacilityScore:
-        label = FACILITY_LABELS.get(facility_type, facility_type.replace("_", " "))
+        cfg = self._facility_configs[facility_type]
+        label = cfg.singular_label
 
         if not checked:
             return FacilityScore(
@@ -283,7 +274,6 @@ class LocationScoringService:
                 explanation=f"{label[0].upper() + label[1:]} not checked for this address.",
             )
 
-        cfg = FACILITY_CONFIGS[facility_type]
         group = dedupe_pois(group)
         count = len(group)
 
@@ -354,7 +344,7 @@ class LocationScoringService:
     def _score_category(
         self, category: str, facility_scores: dict[str, FacilityScore]
     ) -> CategoryScore:
-        members = CATEGORY_FACILITY_WEIGHTS[category]
+        members = self._category_facility_weights[category]
         member_results = [facility_scores[facility_type] for facility_type in members]
         scored = [fs for fs in member_results if fs.status == "scored"]
 

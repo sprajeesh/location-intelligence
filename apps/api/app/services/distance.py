@@ -1,7 +1,7 @@
 import logging
 
 from app.clients.osrm import WARNING_STRAIGHT_LINE, OSRMClient
-from app.config.scoring_config import FACILITY_CONFIGS, DistanceMode
+from app.config.scoring_config import DistanceMode, FacilityConfig
 from app.models.domain import Facility
 from app.repositories.cache import CacheRepository
 
@@ -23,9 +23,15 @@ def _cache_key(lat1: float, lon1: float, lat2: float, lon2: float, mode: str) ->
 
 
 class DistanceService:
-    def __init__(self, osrm: OSRMClient, cache: CacheRepository) -> None:
+    def __init__(
+        self,
+        osrm: OSRMClient,
+        cache: CacheRepository,
+        facility_configs: dict[str, FacilityConfig],
+    ) -> None:
         self._osrm = osrm
         self._cache = cache
+        self._facility_configs = facility_configs
 
     async def attach_distances(
         self,
@@ -48,7 +54,7 @@ class DistanceService:
             by_type.setdefault(facility.category, []).append(facility)
 
         for facility_type, group in by_type.items():
-            cfg = FACILITY_CONFIGS.get(facility_type)
+            cfg = self._facility_configs.get(facility_type)
             facility_mode: DistanceMode = (
                 cfg.distance_mode if cfg else _REQUEST_MODE_FALLBACK.get(mode, "drive")
             )

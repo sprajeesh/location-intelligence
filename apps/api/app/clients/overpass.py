@@ -5,27 +5,6 @@ import httpx
 
 logger = logging.getLogger(__name__)
 
-# OSM tag definitions per category
-CATEGORY_TAGS: dict[str, list[tuple[str, str]]] = {
-    "schools": [("amenity", "school")],
-    "kindergartens": [("amenity", "kindergarten")],
-    "universities": [("amenity", "university")],
-    "libraries": [("amenity", "library")],
-    "parks": [("leisure", "park")],
-    "playgrounds": [("leisure", "playground")],
-    "bus_stops": [("highway", "bus_stop"), ("public_transport", "platform")],
-    "railway_stations": [("railway", "station")],
-    "hospitals": [("amenity", "hospital"), ("healthcare", "hospital")],
-    "gps": [
-        ("amenity", "doctors"),
-        ("amenity", "clinic"),
-        ("healthcare", "doctor"),
-        ("healthcare", "clinic"),
-    ],
-    "pharmacies": [("amenity", "pharmacy")],
-    "supermarkets": [("shop", "supermarket")],
-}
-
 
 def _build_query(tags: list[tuple[str, str]], radius_m: int, lat: float, lon: float) -> str:
     """Build an OverpassQL query for the given tags and bounding circle."""
@@ -40,9 +19,15 @@ def _build_query(tags: list[tuple[str, str]], radius_m: int, lat: float, lon: fl
 
 
 class OverpassClient:
-    def __init__(self, base_url: str, http_client: httpx.AsyncClient) -> None:
+    def __init__(
+        self,
+        base_url: str,
+        http_client: httpx.AsyncClient,
+        category_tags: dict[str, list[tuple[str, str]]],
+    ) -> None:
         self._base_url = base_url.rstrip("/")
         self._http = http_client
+        self._category_tags = category_tags
 
     async def fetch_category(
         self,
@@ -58,7 +43,7 @@ class OverpassClient:
         Retries up to `retries` times with exponential backoff (1s, 2s).
         Raises on final failure.
         """
-        tags = CATEGORY_TAGS.get(category, [])
+        tags = self._category_tags.get(category, [])
         if not tags:
             logger.warning("Unknown category: %s", category)
             return []

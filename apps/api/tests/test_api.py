@@ -14,6 +14,7 @@ from app.services.distance import DistanceService
 from app.services.facilities import FacilitiesService
 from app.services.geocoding import GeocodingService
 from app.services.scoring import LocationScoringService
+from tests.conftest import build_test_scoring_config
 
 
 @pytest.fixture(scope="module")
@@ -24,18 +25,27 @@ def client() -> TestClient:
 
     mock_addr_repo = MagicMock(spec=AddressRepository)
     mock_addr_repo.search = AsyncMock(return_value=[])
-    overpass = OverpassClient("http://mock-overpass", mock_http)
+    scoring_config = build_test_scoring_config()
+    overpass = OverpassClient("http://mock-overpass", mock_http, scoring_config.category_tags)
     osrm = OSRMClient("http://mock-osrm", mock_http)
 
     with (
         patch("app.main.create_pool", new=AsyncMock(return_value=MagicMock())),
         patch("app.main.close_pool", new=AsyncMock()),
+        patch("app.main.load_scoring_config", new=AsyncMock(return_value=scoring_config)),
     ):
         with TestClient(application) as c:
+            application.state.scoring_config = scoring_config
             application.state.geocoding_svc = GeocodingService(mock_addr_repo, cache)
-            application.state.facilities_svc = FacilitiesService(overpass, cache)
-            application.state.distance_svc = DistanceService(osrm, cache)
-            application.state.scoring_svc = LocationScoringService()
+            application.state.facilities_svc = FacilitiesService(overpass, cache, scoring_config)
+            application.state.distance_svc = DistanceService(
+                osrm, cache, scoring_config.facility_configs
+            )
+            application.state.scoring_svc = LocationScoringService(
+                scoring_config.facility_configs,
+                scoring_config.category_facility_weights,
+                scoring_config.category_weights,
+            )
             yield c
 
 

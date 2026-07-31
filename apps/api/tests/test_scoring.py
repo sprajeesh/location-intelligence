@@ -56,7 +56,7 @@ def make_facility(
 
 @pytest.fixture
 def svc() -> LocationScoringService:
-    return LocationScoringService()
+    return LocationScoringService(FACILITY_CONFIGS, CATEGORY_FACILITY_WEIGHTS, CATEGORY_WEIGHTS)
 
 
 class TestConfig:

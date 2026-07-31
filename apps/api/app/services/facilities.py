@@ -2,7 +2,7 @@ import asyncio
 import logging
 
 from app.clients.overpass import OverpassClient
-from app.config.scoring_config import fetch_radius_km
+from app.config.scoring_config_loader import ScoringConfig
 from app.models.domain import Facility
 from app.repositories.cache import CacheRepository
 
@@ -16,9 +16,12 @@ def _cache_key(lat: float, lon: float, radius_km: float, category: str) -> str:
 
 
 class FacilitiesService:
-    def __init__(self, overpass: OverpassClient, cache: CacheRepository) -> None:
+    def __init__(
+        self, overpass: OverpassClient, cache: CacheRepository, scoring_config: ScoringConfig
+    ) -> None:
         self._overpass = overpass
         self._cache = cache
+        self._scoring_config = scoring_config
 
     async def fetch_category(
         self,
@@ -36,7 +39,7 @@ class FacilitiesService:
 
         Returns (facilities, warning_or_none).
         """
-        effective_radius_km = fetch_radius_km(category, radius_km)
+        effective_radius_km = self._scoring_config.fetch_radius_km(category, radius_km)
         key = _cache_key(lat, lon, effective_radius_km, category)
         cached = await self._cache.get(key)
         if cached is not None:

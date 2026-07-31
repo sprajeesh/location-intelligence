@@ -10,10 +10,12 @@ from app.api.deps import verify_api_key
 from app.clients import redis_client as redis_module
 from app.clients.osrm import OSRMClient
 from app.clients.overpass import OverpassClient
+from app.config.scoring_config_loader import load_scoring_config
 from app.config.settings import get_settings
 from app.repositories.cache import CacheRepository
 from app.repositories.db.address_repository import AddressRepository
 from app.repositories.db.connection import close_pool, create_pool
+from app.repositories.db.facility_config_repository import FacilityConfigRepository
 from app.services.distance import DistanceService
 from app.services.facilities import FacilitiesService
 from app.services.geocoding import GeocodingService
@@ -32,18 +34,27 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     # Connect PostGIS
     db_pool = await create_pool(settings.database_url)
 
+    # Load facility/scoring config from the DB once at startup — see
+    # app/config/scoring_config_loader.py. Picking up an edit requires a restart.
+    scoring_config = await load_scoring_config(FacilityConfigRepository(db_pool))
+    app.state.scoring_config = scoring_config
+
     # Shared HTTP client for Overpass and OSRM
     http_client = httpx.AsyncClient()
 
     # Wire up clients
-    overpass = OverpassClient(settings.overpass_url, http_client)
+    overpass = OverpassClient(settings.overpass_url, http_client, scoring_config.category_tags)
     osrm = OSRMClient(settings.osrm_url, http_client)
 
     # Wire up services
     app.state.geocoding_svc = GeocodingService(AddressRepository(db_pool), cache)
-    app.state.facilities_svc = FacilitiesService(overpass, cache)
-    app.state.distance_svc = DistanceService(osrm, cache)
-    app.state.scoring_svc = LocationScoringService()
+    app.state.facilities_svc = FacilitiesService(overpass, cache, scoring_config)
+    app.state.distance_svc = DistanceService(osrm, cache, scoring_config.facility_configs)
+    app.state.scoring_svc = LocationScoringService(
+        scoring_config.facility_configs,
+        scoring_config.category_facility_weights,
+        scoring_config.category_weights,
+    )
 
     yield
 
