@@ -21,6 +21,8 @@ services:
         DB_PASSWORD: ${DB_PASSWORD}
     ports:
       - "127.0.0.1:5432:5432"
+    volumes:
+      - postgis-data:/var/lib/postgresql/15/main
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d gis"]
       interval: 10s
@@ -44,3 +46,4 @@ services:
 
 volumes:
   redis-data:
+  postgis-data:
