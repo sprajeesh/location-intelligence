@@ -300,17 +300,20 @@ class TestOverallComposite:
 
 class TestFetchRadiusKm:
     def test_caps_to_hard_cutoff_when_requested_radius_is_larger(self) -> None:
-        assert fetch_radius_km("schools", 10.0) == FACILITY_CONFIGS["schools"].hard_cutoff
+        assert (
+            fetch_radius_km(FACILITY_CONFIGS, "schools", 10.0)
+            == FACILITY_CONFIGS["schools"].hard_cutoff
+        )
 
     def test_narrows_to_requested_radius_when_smaller_than_hard_cutoff(self) -> None:
-        assert fetch_radius_km("schools", 2.0) == 2.0
+        assert fetch_radius_km(FACILITY_CONFIGS, "schools", 2.0) == 2.0
 
     def test_best_of_both_covers_the_farther_of_walk_and_drive_legs(self) -> None:
         cfg = FACILITY_CONFIGS["railway_stations"]
-        assert fetch_radius_km("railway_stations", 100.0) == cfg.drive_hard_cutoff
+        assert fetch_radius_km(FACILITY_CONFIGS, "railway_stations", 100.0) == cfg.drive_hard_cutoff
 
     def test_unconfigured_facility_type_passes_through_requested_radius(self) -> None:
-        assert fetch_radius_km("made_up_type", 7.0) == 7.0
+        assert fetch_radius_km(FACILITY_CONFIGS, "made_up_type", 7.0) == 7.0
 
 
 def _base_facility_config_kwargs() -> dict:
@@ -322,6 +325,13 @@ def _base_facility_config_kwargs() -> dict:
         "saturation_point": 3,
         "proximity_weight": 0.5,
         "density_weight": 0.5,
+        "label": "Test Facilities",
+        "singular_label": "test facility",
+        "color": "#000000",
+        "implemented": True,
+        "composite_category": "test_category",
+        "category_weight": 1.0,
+        "osm_tags": [("amenity", "test")],
     }
 
 

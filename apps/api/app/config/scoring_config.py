@@ -1,7 +1,11 @@
-"""Static scoring configuration: per-facility blends and category/composite weights.
+"""Default facility/scoring configuration: seed data for the DB migration and tests.
 
-Values are config, not code — the scoring service reads these dicts rather than
-hardcoding weights inline (see refactor spec §2-§4).
+The running API loads its config from the database at startup (see
+`app/config/scoring_config_loader.py`) — it does NOT import the dicts below. This
+module exists as the single Python source for (1) the Alembic migration that seeds
+the `facility_types` / `category_weights` tables, and (2) tests that need known-good
+config values. Values are literal config, not code — kept here rather than inline in
+a migration script so there is exactly one place to hand-author them.
 """
 
 from typing import Literal
@@ -12,6 +16,7 @@ DistanceMode = Literal["walk", "drive", "best_of_both"]
 
 
 class FacilityConfig(BaseModel):
+    # Scoring parameters
     distance_mode: DistanceMode
     decay_constant: float  # km, matching distance_mode's unit
     reference_radius: float  # soft reference point, NOT a hard cutoff
@@ -24,6 +29,15 @@ class FacilityConfig(BaseModel):
     drive_decay_constant: float | None = None
     drive_reference_radius: float | None = None
     drive_hard_cutoff: float | None = None
+
+    # Display / category / OSM metadata (facility_types table columns)
+    label: str  # plural display label, e.g. "Schools" (GET /categories, map legend)
+    singular_label: str  # e.g. "school" (scoring explanation text)
+    color: str  # marker color hex, e.g. "#F59E0B"
+    implemented: bool
+    composite_category: str  # which of the 5 composite categories this rolls into
+    category_weight: float  # this facility's weight within composite_category
+    osm_tags: list[tuple[str, str]]  # Overpass (key, value) tag pairs
 
     @model_validator(mode="after")
     def weights_sum_to_one(self) -> "FacilityConfig":
@@ -62,6 +76,13 @@ FACILITY_CONFIGS: dict[str, FacilityConfig] = {
         saturation_point=3,
         proximity_weight=0.5,
         density_weight=0.5,
+        label="Schools",
+        singular_label="school",
+        color="#F59E0B",
+        implemented=True,
+        composite_category="education",
+        category_weight=0.55,
+        osm_tags=[("amenity", "school")],
     ),
     "kindergartens": FacilityConfig(
         distance_mode="walk",
@@ -72,6 +93,13 @@ FACILITY_CONFIGS: dict[str, FacilityConfig] = {
         proximity_weight=0.6,
         density_weight=0.4,
         count_ceiling=2,
+        label="Kindergartens",
+        singular_label="kindergarten",
+        color="#FB923C",
+        implemented=True,
+        composite_category="education",
+        category_weight=0.20,
+        osm_tags=[("amenity", "kindergarten")],
     ),
     "universities": FacilityConfig(
         distance_mode="drive",
@@ -82,6 +110,13 @@ FACILITY_CONFIGS: dict[str, FacilityConfig] = {
         proximity_weight=0.85,
         density_weight=0.15,
         count_ceiling=1,
+        label="Universities",
+        singular_label="university",
+        color="#8B5CF6",
+        implemented=True,
+        composite_category="education",
+        category_weight=0.25,
+        osm_tags=[("amenity", "university")],
     ),
     "libraries": FacilityConfig(
         distance_mode="drive",
@@ -92,6 +127,13 @@ FACILITY_CONFIGS: dict[str, FacilityConfig] = {
         proximity_weight=0.7,
         density_weight=0.3,
         count_ceiling=2,
+        label="Libraries",
+        singular_label="library",
+        color="#3B82F6",
+        implemented=True,
+        composite_category="recreation",
+        category_weight=0.40,
+        osm_tags=[("amenity", "library")],
     ),
     "parks": FacilityConfig(
         distance_mode="walk",
@@ -101,6 +143,13 @@ FACILITY_CONFIGS: dict[str, FacilityConfig] = {
         saturation_point=2,
         proximity_weight=0.6,
         density_weight=0.4,
+        label="Parks",
+        singular_label="park",
+        color="#22C55E",
+        implemented=True,
+        composite_category="recreation",
+        category_weight=0.40,
+        osm_tags=[("leisure", "park")],
     ),
     "playgrounds": FacilityConfig(
         distance_mode="walk",
@@ -110,6 +159,13 @@ FACILITY_CONFIGS: dict[str, FacilityConfig] = {
         saturation_point=2,
         proximity_weight=0.55,
         density_weight=0.45,
+        label="Playgrounds",
+        singular_label="playground",
+        color="#A3E635",
+        implemented=True,
+        composite_category="recreation",
+        category_weight=0.20,
+        osm_tags=[("leisure", "playground")],
     ),
     "bus_stops": FacilityConfig(
         distance_mode="walk",
@@ -120,6 +176,13 @@ FACILITY_CONFIGS: dict[str, FacilityConfig] = {
         proximity_weight=0.4,
         density_weight=0.6,
         # NOTE: density input must be deduplicated stop count, not raw stop count.
+        label="Bus Stops",
+        singular_label="bus stop",
+        color="#14B8A6",
+        implemented=True,
+        composite_category="transport",
+        category_weight=0.45,
+        osm_tags=[("highway", "bus_stop"), ("public_transport", "platform")],
     ),
     "railway_stations": FacilityConfig(
         distance_mode="best_of_both",
@@ -134,6 +197,13 @@ FACILITY_CONFIGS: dict[str, FacilityConfig] = {
         density_weight=0.35,
         count_ceiling=3,
         # compute both legs, take whichever produces the higher proximity sub-score
+        label="Railway Stations",
+        singular_label="railway station",
+        color="#0EA5E9",
+        implemented=True,
+        composite_category="transport",
+        category_weight=0.55,
+        osm_tags=[("railway", "station")],
     ),
     "hospitals": FacilityConfig(
         distance_mode="drive",
@@ -144,7 +214,14 @@ FACILITY_CONFIGS: dict[str, FacilityConfig] = {
         proximity_weight=0.85,
         density_weight=0.15,
         count_ceiling=2,
-        # tag coverage: amenity=hospital + healthcare=hospital (see overpass.py CATEGORY_TAGS)
+        # tag coverage: amenity=hospital + healthcare=hospital
+        label="Hospitals",
+        singular_label="hospital",
+        color="#EF4444",
+        implemented=True,
+        composite_category="healthcare",
+        category_weight=0.35,
+        osm_tags=[("amenity", "hospital"), ("healthcare", "hospital")],
     ),
     "gps": FacilityConfig(
         distance_mode="drive",
@@ -156,7 +233,18 @@ FACILITY_CONFIGS: dict[str, FacilityConfig] = {
         density_weight=0.4,
         count_ceiling=2,
         # tag coverage: amenity=doctors/clinic + healthcare=doctor/clinic
-        # (see overpass.py CATEGORY_TAGS)
+        label="GPs",
+        singular_label="GP",
+        color="#F97316",
+        implemented=True,
+        composite_category="healthcare",
+        category_weight=0.45,
+        osm_tags=[
+            ("amenity", "doctors"),
+            ("amenity", "clinic"),
+            ("healthcare", "doctor"),
+            ("healthcare", "clinic"),
+        ],
     ),
     "pharmacies": FacilityConfig(
         distance_mode="drive",
@@ -167,6 +255,13 @@ FACILITY_CONFIGS: dict[str, FacilityConfig] = {
         proximity_weight=0.65,
         density_weight=0.35,
         count_ceiling=2,
+        label="Pharmacies",
+        singular_label="pharmacy",
+        color="#EC4899",
+        implemented=True,
+        composite_category="healthcare",
+        category_weight=0.20,
+        osm_tags=[("amenity", "pharmacy")],
     ),
     "supermarkets": FacilityConfig(
         distance_mode="drive",
@@ -177,23 +272,37 @@ FACILITY_CONFIGS: dict[str, FacilityConfig] = {
         proximity_weight=0.6,
         density_weight=0.4,
         count_ceiling=3,
+        label="Supermarkets",
+        singular_label="supermarket",
+        color="#10B981",
+        implemented=True,
+        composite_category="shopping",
+        category_weight=1.0,
+        osm_tags=[("shop", "supermarket")],
     ),
 }
 
 
+def build_category_facility_weights(
+    configs: dict[str, FacilityConfig],
+) -> dict[str, dict[str, float]]:
+    """Derive the category -> {facility_type: weight} rollup from each facility's
+    own composite_category/category_weight fields, so this isn't hand-duplicated.
+
+    Also used by the DB-backed loader (scoring_config_loader.py) to build the same
+    shape from rows fetched at runtime.
+    """
+    result: dict[str, dict[str, float]] = {}
+    for facility_type, cfg in configs.items():
+        result.setdefault(cfg.composite_category, {})[facility_type] = cfg.category_weight
+    return result
+
+
 # Which facility types roll up into each of the five categories, and their
 # relative weight within that category.
-CATEGORY_FACILITY_WEIGHTS: dict[str, dict[str, float]] = {
-    "education": {
-        "schools": 0.55,
-        "kindergartens": 0.20,
-        "universities": 0.25,
-    },
-    "recreation": {"parks": 0.40, "playgrounds": 0.20, "libraries": 0.40},
-    "transport": {"bus_stops": 0.45, "railway_stations": 0.55},
-    "healthcare": {"gps": 0.45, "hospitals": 0.35, "pharmacies": 0.20},
-    "shopping": {"supermarkets": 1.0},
-}
+CATEGORY_FACILITY_WEIGHTS: dict[str, dict[str, float]] = build_category_facility_weights(
+    FACILITY_CONFIGS
+)
 
 
 # Composite weight per category. Shopping/Recreation split the old combined
@@ -210,7 +319,9 @@ CATEGORY_WEIGHTS: dict[str, float] = {
 assert abs(sum(CATEGORY_WEIGHTS.values()) - 1.0) < 1e-9, "CATEGORY_WEIGHTS must sum to 1.0"
 
 
-def fetch_radius_km(facility_type: str, requested_radius_km: float) -> float:
+def fetch_radius_km(
+    facility_configs: dict[str, FacilityConfig], facility_type: str, requested_radius_km: float
+) -> float:
     """The Overpass/OSM fetch bound for one facility type.
 
     `hard_cutoff` is exactly what facility_score's density sum filters
@@ -223,7 +334,7 @@ def fetch_radius_km(facility_type: str, requested_radius_km: float) -> float:
     For best_of_both facilities, covers whichever leg (walk/drive) reaches
     further, so a station only reachable by a longer drive isn't missed.
     """
-    cfg = FACILITY_CONFIGS.get(facility_type)
+    cfg = facility_configs.get(facility_type)
     if cfg is None:
         return requested_radius_km
 
