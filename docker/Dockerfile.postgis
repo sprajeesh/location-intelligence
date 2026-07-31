@@ -40,6 +40,7 @@ RUN service postgresql start && \
   sudo -u postgres psql -c "create user ${DB_USER};" && \
   sudo -u postgres psql -c "alter user ${DB_USER} with encrypted password '${DB_PASSWORD}';" && \
   sudo -u postgres psql -c "grant all privileges on database gis to ${DB_USER};" && \
+  sudo -u postgres psql -d gis -c "grant create on schema public to ${DB_USER};" && \
   sudo -u postgres psql -d gis -f /tmp/sql/01_schema.sql && \
   sudo -u postgres psql -d gis -c "grant all privileges on all tables in schema public to ${DB_USER};" && \
   sudo -u postgres psql -d gis -c "grant all privileges on all sequences in schema public to ${DB_USER};" && \
