@@ -81,9 +81,7 @@ class TestFacilityConfigRepository:
         assert rows[0]["osm_tags"] == [("amenity", "school")]
 
     async def test_fetch_category_weights(self) -> None:
-        repo = FacilityConfigRepository(
-            _mock_pool([{"category": "education", "weight": 0.40}])
-        )
+        repo = FacilityConfigRepository(_mock_pool([{"category": "education", "weight": 0.40}]))
         rows = await repo.fetch_category_weights()
 
         assert rows == [{"category": "education", "weight": 0.40}]
@@ -95,8 +93,10 @@ class _FakeRepo:
         self._category_weight_rows = category_weight_rows
 
     async def fetch_facility_types(self) -> list[dict]:
-        return [{**row, "osm_tags": [tuple(pair) for pair in json.loads(row["osm_tags"])]}
-                for row in self._facility_rows]
+        return [
+            {**row, "osm_tags": [tuple(pair) for pair in json.loads(row["osm_tags"])]}
+            for row in self._facility_rows
+        ]
 
     async def fetch_category_weights(self) -> list[dict]:
         return self._category_weight_rows

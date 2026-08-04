@@ -46,6 +46,11 @@ docker compose up -d
 # Backend (Terminal 1)
 cd apps/api
 uv sync
+
+# Run database migrations (creates + seeds facility_types/category_weights —
+# the API will fail to start without these tables; see "Database Migrations")
+uv run alembic upgrade head
+
 uv run uvicorn app.main:app --reload
 
 # Frontend (Terminal 2)
@@ -87,6 +92,7 @@ curl "http://localhost:5000/route/v1/driving/174.76,-36.85;174.77,-36.84?steps=f
 | OSRM takes too long to start         | Normal; OSRM loads large dataset into memory on startup (~1-2 min)                                       |
 | `Cannot GET /` in browser            | Ensure `pnpm dev` (not `pnpm build`) in `apps/web` terminal                                              |
 | API errors / 404s                    | Check: `curl http://localhost:8000/health` and `docker compose ps`                                       |
+| API fails to start on a fresh DB     | Run `cd apps/api && uv run alembic upgrade head` — see [Database Migrations](#database-migrations)       |
 | "Cannot find module" errors          | Run `pnpm install` in `apps/web`                                                                         |
 | "API_URL is not defined"             | Add `.env.local` to `apps/web` with `NEXT_PUBLIC_API_URL=http://localhost:8000`                          |
 | CORS errors in console               | Backend needs running; FastAPI CORS allows `localhost:3000`                                              |
@@ -152,11 +158,13 @@ location-intelligence/
 │   │   │   ├── api/          # Routers: /health, /search, /categories, /analyze
 │   │   │   ├── services/     # Business logic
 │   │   │   ├── clients/      # External API clients (Overpass, OSRM)
-│   │   │   ├── repositories/ # Cache (Redis) + DB (PostGIS address repository)
+│   │   │   ├── repositories/ # Cache (Redis) + DB (PostGIS address + facility config repos)
 │   │   │   ├── schemas/      # Pydantic models
 │   │   │   ├── models/       # Domain models
-│   │   │   └── config/       # Settings
-│   │   ├── tests/            # pytest suite (45 tests)
+│   │   │   └── config/       # Settings + facility/scoring config (DB-backed, see docs/DATA_MODEL.md)
+│   │   ├── alembic/          # DB migrations for facility_types/category_weights
+│   │   ├── docs/             # SCORING.md, DATA_MODEL.md
+│   │   ├── tests/            # pytest suite
 │   │   ├── pyproject.toml
 │   │   └── README.md
 │   └── web/                  # Next.js 16.2.9 frontend
@@ -308,6 +316,7 @@ docker compose ps  # Verify all services are healthy
 ```bash
 cd apps/api
 uv sync
+uv run alembic upgrade head    # first time only, or after a fresh postgis-data volume
 uv run uvicorn app.main:app --reload
 ```
 
@@ -383,6 +392,47 @@ psql -h localhost -U $DB_USER -d gis \
 > ```bash
 > head -1 /path/to/downloaded.csv
 > ```
+
+---
+
+## Database Migrations
+
+The `gis` database has two kinds of tables, managed two different ways:
+
+| Table                            | Managed by                                            |
+| --------------------------------- | ------------------------------------------------------ |
+| `addresses`                       | Baked into the `postgis` Docker image at build time (see above) |
+| `facility_types`, `category_weights` | [Alembic](https://alembic.sqlalchemy.org/) — run manually against a live container |
+
+`facility_types`/`category_weights` back the facility/scoring engine (which
+facility types exist, their scoring weights, OSM tag mapping, category
+groupings) — see [`apps/api/docs/DATA_MODEL.md`](apps/api/docs/DATA_MODEL.md)
+for full column details. Unlike `addresses`, these tables are **not** part of
+the Docker image build, so setting the project up from scratch (or wiping the
+`postgis-data` volume) always requires one manual step:
+
+```bash
+cd apps/api
+uv run alembic upgrade head
+```
+
+The API's startup (`lifespan` in `app/main.py`) loads this config from the DB
+and will fail to start if these tables don't exist — always run migrations
+before starting the backend on a fresh database.
+
+**Other useful commands:**
+
+```bash
+uv run alembic current           # show the currently applied revision
+uv run alembic downgrade -1      # roll back the most recent migration
+uv run alembic revision -m "..." # create a new migration
+```
+
+Because `facility_types`/`category_weights` live in the `postgis-data` Docker
+volume (not baked into the image), they survive `docker compose build
+postgis` / `docker compose up -d --build` — only `docker compose down -v` (or
+deleting the `postgis-data` volume) wipes them, requiring `alembic upgrade
+head` to be re-run.
 
 ---
 
