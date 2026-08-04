@@ -9,7 +9,7 @@ Handles geocoding (LINZ PostGIS), Overpass queries, distance calculation, cachin
 **Testing:** pytest (45 tests)  
 **Linting:** Ruff
 
-**Docs:** [How an address gets scored](docs/SCORING.md) — a plain-language explanation of the scoring engine, no code required.
+**Docs:** [How an address gets scored](docs/SCORING.md) — a plain-language explanation of the scoring engine, no code required. [Database tables](docs/DATA_MODEL.md) — schema for `addresses`, `facility_types`, `category_weights`.
 
 ---
 
@@ -23,6 +23,10 @@ uv sync
 
 # Create .env (copy from root)
 cp ../.env .env
+
+# Run database migrations (creates + seeds facility_types/category_weights —
+# the API fails to start without these tables, see "Database Migrations" below)
+uv run alembic upgrade head
 
 # Run server
 uv run uvicorn app.main:app --reload
@@ -430,6 +434,48 @@ class CategoryScore:
     overall: float | None
     coverage: str
 ```
+
+### Database Tables
+
+Facility/scoring config (`facility_types`, `category_weights`) lives in
+Postgres, loaded once into memory at API startup — see
+[`docs/DATA_MODEL.md`](docs/DATA_MODEL.md) for full column/constraint
+details. Address search (`addresses`) uses the same database but is managed
+separately (baked into the `postgis` Docker image, not Alembic — see the root
+`README.md`).
+
+---
+
+## Database Migrations
+
+Schema changes to `facility_types`/`category_weights` go through
+[Alembic](https://alembic.sqlalchemy.org/). Migrations live in
+`apps/api/alembic/versions/` and run against a live Postgres container — they
+are **not** part of the Docker image build (unlike `addresses`), so this is a
+required manual step whenever you set the project up from scratch or wipe the
+`postgis-data` volume.
+
+```bash
+cd apps/api
+
+# Apply all pending migrations
+uv run alembic upgrade head
+
+# Check current revision
+uv run alembic current
+
+# Roll back the most recent migration
+uv run alembic downgrade -1
+
+# Create a new migration after changing the schema
+uv run alembic revision -m "describe the change"
+```
+
+The API's `lifespan` loads `facility_types`/`category_weights` at startup and
+will fail to start if these tables don't exist yet — always run migrations
+before starting the server on a fresh database.
+
+See [`docs/DATA_MODEL.md`](docs/DATA_MODEL.md) for the full table schemas.
 
 ---
 
