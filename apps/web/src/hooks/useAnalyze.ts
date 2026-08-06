@@ -28,9 +28,10 @@ import type { AnalyzeResponse } from '@/types/api';
  *   lat: -36.848,
  *   lon: 174.763,
  *   radiusKm: 10,
- *   categories: ['schools', 'universities', 'parks', 'libraries', 'bus_stops', 'railway_stations', 'hospitals', 'pharmacies', 'supermarkets'],
  *   distanceMode: 'driving',
  * });
+ * // `categories` is omitted above so the backend applies its default
+ * // facility set; pass an explicit list to override it.
  * ```
  */
 
