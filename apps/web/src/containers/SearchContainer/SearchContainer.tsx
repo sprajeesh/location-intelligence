@@ -6,7 +6,6 @@ import { useAddressSearch } from "@/hooks/useAddressSearch";
 import { useAnalyze } from "@/hooks/useAnalyze";
 import { useLocationStore } from "@/store";
 import { DEFAULT_RADIUS_KM } from "@/constants/radius";
-import { ALL_FACILITY_TYPES } from "@/constants/facilityTypes";
 import type { AddressResult } from "@/types/api";
 
 export function SearchContainer() {
@@ -32,7 +31,6 @@ export function SearchContainer() {
         lat: address.lat,
         lon: address.lon,
         radiusKm: DEFAULT_RADIUS_KM,
-        categories: ALL_FACILITY_TYPES,
         distanceMode,
       });
     },

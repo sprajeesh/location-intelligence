@@ -13,7 +13,6 @@ import { RadiusAdjuster } from "@/components/RadiusAdjuster";
 import { GlassPanel } from "@/components/ui/GlassPanel";
 import { useNavigate } from "@/hooks/useNavigate";
 import { useAnalyze } from "@/hooks/useAnalyze";
-import { ALL_FACILITY_TYPES } from "@/constants/facilityTypes";
 
 /**
  * ResultsPanel — Left side panel (desktop) or bottom sheet (mobile).
@@ -166,7 +165,6 @@ export default function ResultsPanel({
           lat: selectedAddress.lat,
           lon: selectedAddress.lon,
           radiusKm: newRadius,
-          categories: ALL_FACILITY_TYPES,
           distanceMode,
         });
       }

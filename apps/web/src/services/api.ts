@@ -101,14 +101,17 @@ export async function searchAddress(q: string): Promise<AddressResult[]> {
 
 /**
  * Request for location analysis.
- * Must include: address, lat, lon, radiusKm, categories, distanceMode
+ * Must include: address, lat, lon, radiusKm, distanceMode.
+ * `categories` is optional — omit it to let the backend use its
+ * DB-configured default facility set; pass an explicit list (or `[]`) to
+ * override it.
  */
 export interface AnalyzeRequest {
   address: string;
   lat: number;
   lon: number;
   radiusKm: number;
-  categories: string[];
+  categories?: string[];
   distanceMode: "driving" | "walking";
 }
 

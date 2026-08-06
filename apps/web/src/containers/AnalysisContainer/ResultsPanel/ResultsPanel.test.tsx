@@ -92,7 +92,6 @@ jest.mock('@/components/CategoryGroup', () => ({
 
 import { useLocationStore } from '@/store';
 import { useAnalyze } from '@/hooks/useAnalyze';
-import { ALL_FACILITY_TYPES } from '@/constants/facilityTypes';
 
 const mockUseLocationStore = useLocationStore as jest.MockedFunction<typeof useLocationStore>;
 const mockUseAnalyze = useAnalyze as jest.MockedFunction<typeof useAnalyze>;
@@ -281,7 +280,6 @@ describe('ResultsPanel', () => {
         lat: MOCK_ADDRESS.lat,
         lon: MOCK_ADDRESS.lon,
         radiusKm: 8,
-        categories: ALL_FACILITY_TYPES,
         distanceMode: 'driving',
       });
     });
