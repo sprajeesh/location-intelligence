@@ -43,7 +43,12 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     http_client = httpx.AsyncClient()
 
     # Wire up clients
-    overpass = OverpassClient(settings.overpass_url, http_client, scoring_config.category_tags)
+    overpass = OverpassClient(
+        settings.overpass_url,
+        http_client,
+        scoring_config.category_tags,
+        max_concurrency=settings.overpass_max_concurrency,
+    )
     osrm = OSRMClient(settings.osrm_url, http_client)
 
     # Wire up services

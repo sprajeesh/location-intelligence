@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     # TODO: Move to environment variables
     database_url: str = "postgresql://gisuser:gisuser@localhost:5432/gis"
     overpass_url: str = "https://overpass-api.de/api/interpreter"
+    overpass_max_concurrency: int = 2
     osrm_url: str = "http://localhost:5000"
     redis_url: str = "redis://localhost:6379"
     # Shared secret checked against the X-Internal-Api-Key header (see
