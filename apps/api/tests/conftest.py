@@ -28,16 +28,24 @@ def build_test_scoring_config() -> ScoringConfig:
     from app.schemas.responses import CategoryInfo
 
     categories = [
-        CategoryInfo(id=slug, label=cfg.label, implemented=cfg.implemented, color=cfg.color)
+        CategoryInfo(
+            id=slug,
+            label=cfg.label,
+            implemented=cfg.implemented,
+            color=cfg.color,
+            is_default=cfg.is_default,
+        )
         for slug, cfg in FACILITY_CONFIGS.items()
     ]
     category_tags = {slug: cfg.osm_tags for slug, cfg in FACILITY_CONFIGS.items()}
+    default_categories = [slug for slug, cfg in FACILITY_CONFIGS.items() if cfg.is_default]
     return ScoringConfig(
         facility_configs=FACILITY_CONFIGS,
         category_facility_weights=CATEGORY_FACILITY_WEIGHTS,
         category_weights=CATEGORY_WEIGHTS,
         categories=categories,
         category_tags=category_tags,
+        default_categories=default_categories,
     )
 
 

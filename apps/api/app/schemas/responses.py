@@ -14,6 +14,9 @@ class CategoryInfo(BaseModel):
     label: str
     implemented: bool
     color: str
+    isDefault: bool = Field(default=False, validation_alias="is_default")
+
+    model_config = {"populate_by_name": True}
 
 
 class LocationResult(BaseModel):

@@ -134,6 +134,11 @@ class TestCategoriesEndpoint:
         schools = next(c for c in response.json() if c["id"] == "schools")
         assert schools["color"] == "#F59E0B"
 
+    def test_default_categories_are_the_expected_five(self, client: TestClient) -> None:
+        response = client.get("/categories")
+        defaults = {c["id"] for c in response.json() if c["isDefault"]}
+        assert defaults == {"schools", "gps", "bus_stops", "railway_stations", "supermarkets"}
+
 
 class TestAnalyzeEndpointWithCoords:
     def test_analyze_with_lat_lon_no_facilities(self, client: TestClient) -> None:

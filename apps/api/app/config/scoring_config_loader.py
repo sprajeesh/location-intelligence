@@ -23,6 +23,7 @@ class ScoringConfig(BaseModel):
     category_weights: dict[str, float]
     categories: list[CategoryInfo]
     category_tags: dict[str, list[tuple[str, str]]]
+    default_categories: list[str]
 
     def fetch_radius_km(self, facility_type: str, requested_radius_km: float) -> float:
         return _fetch_radius_km(self.facility_configs, facility_type, requested_radius_km)
@@ -40,6 +41,7 @@ async def load_scoring_config(repo: FacilityConfigRepository) -> ScoringConfig:
     facility_configs: dict[str, FacilityConfig] = {}
     categories: list[CategoryInfo] = []
     category_tags: dict[str, list[tuple[str, str]]] = {}
+    default_categories: list[str] = []
 
     for row in facility_rows:
         slug = row["slug"]
@@ -61,13 +63,22 @@ async def load_scoring_config(repo: FacilityConfigRepository) -> ScoringConfig:
             implemented=row["implemented"],
             composite_category=row["composite_category"],
             category_weight=row["category_weight"],
+            is_default=row["is_default"],
             osm_tags=row["osm_tags"],
         )
         facility_configs[slug] = cfg
         categories.append(
-            CategoryInfo(id=slug, label=cfg.label, implemented=cfg.implemented, color=cfg.color)
+            CategoryInfo(
+                id=slug,
+                label=cfg.label,
+                implemented=cfg.implemented,
+                color=cfg.color,
+                is_default=cfg.is_default,
+            )
         )
         category_tags[slug] = cfg.osm_tags
+        if cfg.is_default:
+            default_categories.append(slug)
 
     category_facility_weights = build_category_facility_weights(facility_configs)
 
@@ -84,4 +95,5 @@ async def load_scoring_config(repo: FacilityConfigRepository) -> ScoringConfig:
         category_weights=category_weights,
         categories=categories,
         category_tags=category_tags,
+        default_categories=default_categories,
     )
