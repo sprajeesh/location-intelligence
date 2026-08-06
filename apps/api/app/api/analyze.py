@@ -65,25 +65,32 @@ async def analyze_location(
     elif body.address:
         display_name = body.address
 
-    # --- Step 2: Fetch facilities for requested categories ---
+    # --- Step 2: Resolve requested categories (None = use DB-configured defaults) ---
+    categories = (
+        body.categories
+        if body.categories is not None
+        else request.app.state.scoring_config.default_categories
+    )
+
+    # --- Step 3: Fetch facilities for requested categories ---
     facilities, facility_warnings, failed_categories = await facilities_svc.fetch_all(
-        body.categories, lat, lon, body.radius_km
+        categories, lat, lon, body.radius_km
     )
     warnings.extend(facility_warnings)
 
-    successful_categories = set(body.categories) - failed_categories
+    successful_categories = set(categories) - failed_categories
     if not facilities and successful_categories:
         warnings.append("No facilities found within the configured scoring bounds")
 
-    # --- Step 3: Compute distances (per-facility-type mode, see FACILITY_CONFIGS) ---
+    # --- Step 4: Compute distances (per-facility-type mode, see FACILITY_CONFIGS) ---
     if facilities:
         distance_warnings = await distance_svc.attach_distances(
             facilities, lat, lon, mode=body.distance_mode
         )
         warnings.extend(distance_warnings)
 
-    # --- Step 4: Compute score ---
-    domain_score = scoring_svc.score(facilities, body.categories, unavailable=failed_categories)
+    # --- Step 5: Compute score ---
+    domain_score = scoring_svc.score(facilities, categories, unavailable=failed_categories)
 
     # --- Assemble response ---
     feature_results = [

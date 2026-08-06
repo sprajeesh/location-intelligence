@@ -46,6 +46,7 @@ SCHOOLS_ROW = {
     "drive_reference_radius": None,
     "drive_hard_cutoff": None,
     "osm_tags": json.dumps([["amenity", "school"]]),
+    "is_default": True,
 }
 
 SUPERMARKETS_ROW = {
@@ -68,6 +69,7 @@ SUPERMARKETS_ROW = {
     "drive_reference_radius": None,
     "drive_hard_cutoff": None,
     "osm_tags": json.dumps([["shop", "supermarket"]]),
+    "is_default": True,
 }
 
 
@@ -123,6 +125,7 @@ class TestLoadScoringConfig:
         assert {c.id for c in config.categories} == {"schools", "supermarkets"}
         assert config.category_tags["schools"] == [("amenity", "school")]
         assert config.fetch_radius_km("schools", 10.0) == 3.0
+        assert config.default_categories == ["schools", "supermarkets"]
 
     async def test_category_weights_not_summing_to_one_raises(self) -> None:
         repo = _FakeRepo(

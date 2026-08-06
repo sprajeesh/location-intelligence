@@ -22,7 +22,7 @@ class FacilityConfigRepository:
                 distance_mode, decay_constant, reference_radius, hard_cutoff,
                 saturation_point, proximity_weight, density_weight, count_ceiling,
                 drive_decay_constant, drive_reference_radius, drive_hard_cutoff,
-                osm_tags
+                osm_tags, is_default
             FROM facility_types
             ORDER BY slug
         """

@@ -37,6 +37,7 @@ class FacilityConfig(BaseModel):
     implemented: bool
     composite_category: str  # which of the 5 composite categories this rolls into
     category_weight: float  # this facility's weight within composite_category
+    is_default: bool = False  # included in the default facility set (see migration 0002)
     osm_tags: list[tuple[str, str]]  # Overpass (key, value) tag pairs
 
     @model_validator(mode="after")
@@ -82,6 +83,7 @@ FACILITY_CONFIGS: dict[str, FacilityConfig] = {
         implemented=True,
         composite_category="education",
         category_weight=0.55,
+        is_default=True,
         osm_tags=[("amenity", "school")],
     ),
     "kindergartens": FacilityConfig(
@@ -182,6 +184,7 @@ FACILITY_CONFIGS: dict[str, FacilityConfig] = {
         implemented=True,
         composite_category="transport",
         category_weight=0.45,
+        is_default=True,
         osm_tags=[("highway", "bus_stop"), ("public_transport", "platform")],
     ),
     "railway_stations": FacilityConfig(
@@ -203,6 +206,7 @@ FACILITY_CONFIGS: dict[str, FacilityConfig] = {
         implemented=True,
         composite_category="transport",
         category_weight=0.55,
+        is_default=True,
         osm_tags=[("railway", "station")],
     ),
     "hospitals": FacilityConfig(
@@ -239,6 +243,7 @@ FACILITY_CONFIGS: dict[str, FacilityConfig] = {
         implemented=True,
         composite_category="healthcare",
         category_weight=0.45,
+        is_default=True,
         osm_tags=[
             ("amenity", "doctors"),
             ("amenity", "clinic"),
@@ -278,6 +283,7 @@ FACILITY_CONFIGS: dict[str, FacilityConfig] = {
         implemented=True,
         composite_category="shopping",
         category_weight=1.0,
+        is_default=True,
         osm_tags=[("shop", "supermarket")],
     ),
 }

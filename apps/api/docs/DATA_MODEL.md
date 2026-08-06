@@ -76,6 +76,7 @@ the process lifetime (restart the API to pick up an edit).
 | `singular_label`            | `TEXT`           | no | e.g. `"school"` — used in scoring explanation text |
 | `color`                     | `TEXT`           | no | Marker color hex, e.g. `"#F59E0B"` |
 | `implemented`               | `BOOLEAN`        | no | Whether this shows up in `GET /categories` |
+| `is_default`                | `BOOLEAN`        | no | Included in the default facility set used by `POST /location/analyze` when `categories` is omitted (added in migration `0002`) |
 | `composite_category`        | `TEXT` (FK → `category_weights.category`) | no | Which of the 5 composite categories this rolls into, e.g. `"education"` |
 | `category_weight`           | `DOUBLE PRECISION` | no | This facility's weight within `composite_category`, e.g. `0.55` |
 | `distance_mode`             | `TEXT`           | no | `"walk"`, `"drive"`, or `"best_of_both"` |
@@ -106,10 +107,19 @@ precision) and the cross-row `category_weights` sum-to-1.0 check below.
 ```
 slug: schools | label: Schools | singular_label: school | color: #F59E0B
 implemented: true | composite_category: education | category_weight: 0.55
+is_default: true
 distance_mode: walk | decay_constant: 0.4 | reference_radius: 1.0 | hard_cutoff: 3.0
 saturation_point: 3 | proximity_weight: 0.5 | density_weight: 0.5
 osm_tags: [["amenity", "school"]]
 ```
+
+**Default facility set:** `POST /location/analyze` uses whichever facility
+types have `is_default = true` when the request omits `categories` entirely
+(an explicit `"categories": []` still means "score nothing", not "use
+defaults"). Currently: `schools`, `gps`, `bus_stops`, `railway_stations`,
+`supermarkets` — one from education, one from healthcare, two from
+transport, and the only shopping facility type. `recreation` is deliberately
+excluded from the default set. See migration `0002` below.
 
 ---
 
@@ -169,6 +179,11 @@ uv run alembic downgrade -1
 # Create a new migration after changing app/config/scoring_config.py's shape
 uv run alembic revision -m "describe the change"
 ```
+
+Migration `0002` (`add_is_default_to_facility_types`) is a worked example of
+an `add_column` + data-backfill migration on top of `0001`'s
+`create_table` + seed: it adds `is_default` with `server_default=false`, then
+`UPDATE`s the 5 default-set slugs to `true`.
 
 Alembic connects synchronously via `psycopg` (see `alembic/env.py`) — this is
 separate from the app's own `asyncpg` connection pool used at runtime; only

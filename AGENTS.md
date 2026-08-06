@@ -71,6 +71,15 @@ Request:
 }
 ```
 
+`categories` is optional. If omitted entirely, the API uses the DB-configured
+default facility set (currently: `schools`, `gps`, `bus_stops`,
+`railway_stations`, `supermarkets` — one from education, one from
+healthcare, two from transport, and the only shopping facility type;
+recreation is excluded from defaults). Pass `"categories": []` explicitly to
+request no facilities (score comes back with `overall: null`). Which facility
+types count as defaults is DB-driven (`facility_types.is_default`, see
+`apps/api/docs/DATA_MODEL.md`) — editable without a redeploy.
+
 Response:
 
 ```json
@@ -106,47 +115,60 @@ Response:
     "id": "schools",
     "label": "Schools",
     "implemented": true,
-    "color": "#F59E0B"
+    "color": "#F59E0B",
+    "isDefault": true
   },
   {
     "id": "bus_stops",
     "label": "Bus Stops",
     "implemented": true,
-    "color": "#14B8A6"
+    "color": "#14B8A6",
+    "isDefault": true
   },
   {
     "id": "hospitals",
     "label": "Hospitals",
     "implemented": false,
-    "color": "#EF4444"
+    "color": "#EF4444",
+    "isDefault": false
   },
   {
     "id": "universities",
     "label": "Universities",
     "implemented": false,
-    "color": "#8B5CF6"
+    "color": "#8B5CF6",
+    "isDefault": false
   },
   {
     "id": "supermarkets",
     "label": "Supermarkets",
     "implemented": false,
-    "color": "#10B981"
+    "color": "#10B981",
+    "isDefault": true
   },
-  { "id": "parks", "label": "Parks", "implemented": false, "color": "#22C55E" },
+  { "id": "parks", "label": "Parks", "implemented": false, "color": "#22C55E", "isDefault": false },
   {
     "id": "libraries",
     "label": "Libraries",
     "implemented": false,
-    "color": "#3B82F6"
+    "color": "#3B82F6",
+    "isDefault": false
   },
   {
     "id": "pharmacies",
     "label": "Pharmacies",
     "implemented": false,
-    "color": "#EC4899"
+    "color": "#EC4899",
+    "isDefault": false
   }
 ]
 ```
+
+> Note: this example predates the current 12-facility catalog (missing
+> `kindergartens`, `playgrounds`, `gps`, `railway_stations`) and its
+> `implemented` values are stale (all 12 facility types are currently
+> `implemented: true`). Left as-is beyond adding `isDefault` — out of scope
+> for this change; worth a follow-up doc cleanup.
 
 ---
 
