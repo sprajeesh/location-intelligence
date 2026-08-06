@@ -9,6 +9,12 @@ logger = logging.getLogger(__name__)
 DEFAULT_MAX_CONCURRENCY = 2  # overpass-api.de tolerates ~2 concurrent slots/IP
 DEFAULT_RETRY_AFTER_WAIT = 5.0  # seconds, used when a 429 has no Retry-After header
 
+# Overpass's fair-use policy asks for a User-Agent/Referer that uniquely
+# identifies the app and lets the operator reach us if it causes trouble --
+# see https://wiki.openstreetmap.org/wiki/Overpass_API#Introduction.
+APP_IDENTITY_URL = "https://github.com/sprajeesh/location-intelligence"
+USER_AGENT = f"LocationIntelligence/1.0 (+{APP_IDENTITY_URL})"
+
 CategorySpec = tuple[str, list[tuple[str, str]], int]  # (category, tags, radius_m)
 
 
@@ -165,7 +171,8 @@ class OverpassClient:
                         headers={
                             "Content-Type": "text/plain",
                             "Accept": "application/json",
-                            "User-Agent": "LocationIntelligence/1.0",
+                            "User-Agent": USER_AGENT,
+                            "Referer": APP_IDENTITY_URL,
                         },
                         timeout=30.0,
                     )
