@@ -16,19 +16,24 @@ amenities nearby. This happens in three steps, from the ground up:
 
 ## Step 1: Scoring an individual facility type
 
-Nine facility types are checked:
+Twelve facility types are supported:
 
 | Facility | Belongs to |
 |---|---|
 | Schools | Education |
+| Kindergartens | Education |
 | Universities | Education |
 | Parks | Recreation |
+| Playgrounds | Recreation |
 | Libraries | Recreation |
 | Bus stops | Transport |
 | Railway stations | Transport |
 | Hospitals | Healthcare |
+| GPs | Healthcare |
 | Pharmacies | Healthcare |
 | Supermarkets | Shopping |
+
+Not every request checks all twelve — see "Default facility set" below.
 
 For each one, two things are measured and blended together:
 
@@ -62,10 +67,13 @@ not twice.
 Each of the five categories is made up of one or two facility types, weighted
 by how much each one typically matters:
 
-- **Education** — mostly schools, a little universities
-- **Recreation** — parks and libraries, fairly evenly
+- **Education** — mostly schools, with kindergartens and universities
+  contributing a smaller share
+- **Recreation** — parks and libraries carry the most weight, with
+  playgrounds contributing a smaller share
 - **Transport** — bus stops and railway stations, fairly evenly
-- **Healthcare** — mostly hospitals, some pharmacies
+- **Healthcare** — GPs and hospitals carry the most weight, with pharmacies
+  contributing a smaller share
 - **Shopping** — supermarkets
 
 ## Step 3: Combining categories into one final score
@@ -100,6 +108,32 @@ to tell them apart:
 
 A **coverage indicator** (e.g. "4/5 categories assessed") always travels
 with the score, so it's clear how complete the picture is.
+
+## Default facility set
+
+A request doesn't have to say which facility types to check. If none are
+specified, the API checks a sensible default set on the caller's behalf
+rather than all twelve — checking everything on every request is heavier
+than it needs to be, and some facility types usually aren't what someone
+cares about for a given search (someone comparing primary schools doesn't
+need kindergartens pulled in too).
+
+The default is five facility types, spanning the categories that matter most
+for choosing where to live:
+
+- **Schools** (Education)
+- **GPs** (Healthcare)
+- **Bus stops** and **Railway stations** (Transport — the only category
+  represented twice)
+- **Supermarkets** (Shopping)
+
+Recreation is left out of the default set entirely for now. Because this
+list is configured in the data behind the scenes rather than fixed in code,
+it can be adjusted without a software change. A caller that wants a
+different mix — including Recreation, swapping in kindergartens instead of
+schools, or anything else — can always specify its own facility-type list
+explicitly instead of relying on the default; whatever's left out is simply
+"not checked" (see above), never penalized.
 
 ## Plain-language explanations
 

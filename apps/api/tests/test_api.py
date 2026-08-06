@@ -203,6 +203,33 @@ class TestAnalyzeEndpointWithCoords:
         )
         assert response.status_code == 422
 
+    def test_omitted_categories_uses_db_defaults(self, client: TestClient) -> None:
+        with patch(
+            "app.services.facilities.FacilitiesService.fetch_all",
+            new_callable=AsyncMock,
+            return_value=([], [], set()),
+        ) as mock_fetch_all:
+            response = client.post(
+                "/location/analyze",
+                json={"lat": -36.848, "lon": 174.763, "radiusKm": 5},
+            )
+        assert response.status_code == 200
+        requested = mock_fetch_all.call_args.args[0]
+        assert set(requested) == {"schools", "gps", "bus_stops", "railway_stations", "supermarkets"}
+
+    def test_explicit_empty_categories_returns_none_overall(self, client: TestClient) -> None:
+        with patch(
+            "app.services.facilities.FacilitiesService.fetch_all",
+            new_callable=AsyncMock,
+            return_value=([], [], set()),
+        ) as mock_fetch_all:
+            response = client.post(
+                "/location/analyze",
+                json={"lat": -36.848, "lon": 174.763, "radiusKm": 5, "categories": []},
+            )
+        assert mock_fetch_all.call_args.args[0] == []
+        assert response.json()["score"]["overall"] is None
+
 
 class TestSearchAddressEndpoint:
     def test_search_returns_404_when_no_results(self, client: TestClient) -> None:
