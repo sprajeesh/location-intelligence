@@ -133,8 +133,6 @@ class TestFetchAllBatching:
         overpass.fetch_categories = AsyncMock(side_effect=fake_fetch_categories)
         service = FacilitiesService(overpass, cache, scoring_config)
 
-        facilities, _warnings, _failed = await service.fetch_all(
-            ["schools"], -36.848, 174.763, 5.0
-        )
+        facilities, _warnings, _failed = await service.fetch_all(["schools"], -36.848, 174.763, 5.0)
 
         assert len(facilities) == 1

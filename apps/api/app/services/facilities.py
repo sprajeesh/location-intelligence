@@ -101,9 +101,7 @@ class FacilitiesService:
         if not miss_specs:
             return all_facilities, warnings, failed_categories
 
-        batches = [
-            miss_specs[i : i + _BATCH_SIZE] for i in range(0, len(miss_specs), _BATCH_SIZE)
-        ]
+        batches = [miss_specs[i : i + _BATCH_SIZE] for i in range(0, len(miss_specs), _BATCH_SIZE)]
         batch_results = await asyncio.gather(
             *(self._fetch_batch(batch, lat, lon) for batch in batches),
             return_exceptions=True,
@@ -111,9 +109,7 @@ class FacilitiesService:
 
         for batch, result in zip(batches, batch_results):
             if isinstance(result, BaseException):
-                logger.error(
-                    "Overpass batch failed for %s: %s", [cat for cat, _ in batch], result
-                )
+                logger.error("Overpass batch failed for %s: %s", [cat for cat, _ in batch], result)
                 for category, _effective_radius_km in batch:
                     warnings.append(f"Could not fetch {category} data")
                     failed_categories.add(category)
