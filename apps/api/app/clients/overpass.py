@@ -1,6 +1,8 @@
 import asyncio
 import logging
 import random
+from datetime import datetime, timezone
+from email.utils import parsedate_to_datetime
 
 import httpx
 
@@ -35,12 +37,22 @@ def _build_merged_query(specs: list[CategorySpec], lat: float, lon: float) -> st
 
 
 def _parse_retry_after(value: str | None) -> float | None:
+    """Parse a Retry-After header value (RFC 7231): either delay-seconds or an HTTP-date."""
     if not value:
         return None
     try:
         return float(value)
     except ValueError:
-        return None  # HTTP-date form not handled; caller falls back to default
+        pass
+
+    try:
+        retry_at = parsedate_to_datetime(value)
+    except (TypeError, ValueError):
+        return None
+    if retry_at.tzinfo is None:
+        retry_at = retry_at.replace(tzinfo=timezone.utc)
+
+    return max(0.0, (retry_at - datetime.now(timezone.utc)).total_seconds())
 
 
 def _categorize(tags: dict[str, str], tag_to_category: dict[tuple[str, str], str]) -> str | None:

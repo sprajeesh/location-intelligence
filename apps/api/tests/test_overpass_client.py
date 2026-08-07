@@ -1,6 +1,8 @@
 """Tests for the merged-query Overpass client (app/clients/overpass.py)."""
 
 import asyncio
+from datetime import datetime, timedelta, timezone
+from email.utils import format_datetime
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import httpx
@@ -10,6 +12,7 @@ from app.clients.overpass import (
     OverpassClient,
     _build_merged_query,
     _parse_merged_elements,
+    _parse_retry_after,
 )
 
 
@@ -94,6 +97,29 @@ class TestParseMergedElements:
         ]
         result = _parse_merged_elements(elements, tag_to_category)
         assert len(result["schools"]) == 1
+
+
+class TestParseRetryAfter:
+    def test_delay_seconds(self) -> None:
+        assert _parse_retry_after("3") == 3.0
+
+    def test_none_for_missing_value(self) -> None:
+        assert _parse_retry_after(None) is None
+        assert _parse_retry_after("") is None
+
+    def test_none_for_invalid_value(self) -> None:
+        assert _parse_retry_after("not-a-date-or-number") is None
+
+    def test_http_date_in_future(self) -> None:
+        retry_at = datetime.now(timezone.utc) + timedelta(seconds=120)
+        result = _parse_retry_after(format_datetime(retry_at, usegmt=True))
+        assert result is not None
+        assert 118 <= result <= 120
+
+    def test_http_date_in_past_clamped_to_zero(self) -> None:
+        retry_at = datetime.now(timezone.utc) - timedelta(hours=1)
+        result = _parse_retry_after(format_datetime(retry_at, usegmt=True))
+        assert result == 0.0
 
 
 class TestFetchCategories:
