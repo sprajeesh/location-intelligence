@@ -82,5 +82,13 @@
     "arrives": "Arrives",
     "via": "via",
     "fastest": "Fastest"
+  },
+  "settings": {
+    "tooltip": "Settings",
+    "title": "Settings",
+    "description": "Facilities included in your location score, grouped by category.",
+    "loading": "Loading facilities...",
+    "error": "Couldn't load facility settings.",
+    "close": "Close"
   }
 }

@@ -74,6 +74,7 @@ async def load_scoring_config(repo: FacilityConfigRepository) -> ScoringConfig:
                 implemented=cfg.implemented,
                 color=cfg.color,
                 is_default=cfg.is_default,
+                composite_category=cfg.composite_category,
             )
         )
         category_tags[slug] = cfg.osm_tags

@@ -93,6 +93,8 @@ export interface Category {
   label: string
   implemented: boolean
   color: string // hex color code for map markers
+  isDefault: boolean
+  compositeCategory: string // which of the five composite categories (education, transport, ...) this rolls into
 }
 
 export type RouteTransportMode = 'driving' | 'walking' | 'cycling'

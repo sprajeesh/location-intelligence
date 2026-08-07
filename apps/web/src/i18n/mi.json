@@ -82,5 +82,13 @@
     "arrives": "[MI] navigate.arrives",
     "via": "[MI] navigate.via",
     "fastest": "[MI] navigate.fastest"
+  },
+  "settings": {
+    "tooltip": "[MI] settings.tooltip",
+    "title": "[MI] settings.title",
+    "description": "[MI] settings.description",
+    "loading": "[MI] settings.loading",
+    "error": "[MI] settings.error",
+    "close": "[MI] settings.close"
   }
 }
