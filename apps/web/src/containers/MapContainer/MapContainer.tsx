@@ -15,6 +15,7 @@ import "leaflet/dist/leaflet.css";
 import { Navigation } from "lucide-react";
 import { useLocationStore } from "@/store/index";
 import { useNavigate } from "@/hooks/useNavigate";
+import { useCategories } from "@/hooks/useCategories";
 import { useTranslations } from "next-intl";
 import {
   MapToolbarContainer,
@@ -66,25 +67,18 @@ function MapContent() {
 
   const navigate = useNavigate();
   const t = useTranslations();
+  const { categories } = useCategories();
 
   const [activeLayer, setActiveLayer] = useState<MapLayerId>("default");
 
-  // Create category color map from analysis result
+  // Map category id -> DB-configured color, from GET /categories
   const categoryColorMap = useMemo(() => {
     const colors: Record<string, string> = {};
-    if (analysisResult?.features) {
-      const seen = new Set<string>();
-      for (const feature of analysisResult.features) {
-        if (!seen.has(feature.category)) {
-          // In a real scenario, we'd fetch categories from API to get colors
-          // For now, use a default color set based on category ID
-          colors[feature.category] = getCategoryColor(feature.category);
-          seen.add(feature.category);
-        }
-      }
+    for (const category of categories) {
+      colors[category.id] = category.color;
     }
     return colors;
-  }, [analysisResult]);
+  }, [categories]);
 
   // Fly to selected address when it changes (before analysis)
   useEffect(() => {
@@ -429,27 +423,6 @@ function createSelectedFeatureIcon(color: string): L.DivIcon {
     iconAnchor: [19, 19],
     popupAnchor: [0, -19],
   });
-}
-
-/**
- * Get a color for a category ID (fallback color mapping)
- * In production, these colors should come from the /categories API endpoint
- */
-function getCategoryColor(categoryId: string): string {
-  const colorMap: Record<string, string> = {
-    schools: "#F59E0B",
-    kindergartens: "#FB923C",
-    bus_stops: "#14B8A6",
-    hospitals: "#EF4444",
-    gps: "#F97316",
-    universities: "#8B5CF6",
-    supermarkets: "#10B981",
-    parks: "#22C55E",
-    playgrounds: "#A3E635",
-    libraries: "#3B82F6",
-    pharmacies: "#EC4899",
-  };
-  return colorMap[categoryId] || "#6B7280"; // Gray fallback
 }
 
 export default MapContainer;
