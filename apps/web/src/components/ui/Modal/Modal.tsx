@@ -20,17 +20,17 @@ export function Modal({ onClose, children, className = "max-w-lg", ...rest }: Mo
       onClick={onClose}
     >
       <div
-        ref={dialogRef}
-        tabIndex={-1}
         onClick={(e) => e.stopPropagation()}
-        className={`w-full outline-none ${className}`.trim()}
+        className={`w-full ${className}`.trim()}
       >
         <GlassPanel
+          ref={dialogRef}
+          tabIndex={-1}
           variant="panel"
           role="dialog"
           aria-modal="true"
           {...rest}
-          className="flex flex-col max-h-[85vh]"
+          className="flex flex-col max-h-[85vh] outline-none"
         >
           {children}
         </GlassPanel>

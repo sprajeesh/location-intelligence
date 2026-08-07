@@ -74,8 +74,8 @@ describe("Modal", () => {
   describe("Focus management", () => {
     it("moves focus into the dialog when it opens", () => {
       renderModal(jest.fn());
-      const dialogWrapper = screen.getByRole("dialog").parentElement;
-      expect(document.activeElement).toBe(dialogWrapper);
+      const dialog = screen.getByRole("dialog");
+      expect(document.activeElement).toBe(dialog);
     });
 
     it("moves focus to the first focusable element when Tab is pressed", () => {
@@ -164,8 +164,8 @@ describe("Modal", () => {
           </ModalContent>
         </Modal>,
       );
-      const dialogWrapper = screen.getByRole("dialog").parentElement;
-      expect(document.activeElement).toBe(dialogWrapper);
+      const dialog = screen.getByRole("dialog");
+      expect(document.activeElement).toBe(dialog);
 
       rerender(
         <Modal onClose={jest.fn()} aria-labelledby="test-title">
@@ -175,7 +175,7 @@ describe("Modal", () => {
           </ModalContent>
         </Modal>,
       );
-      expect(document.activeElement).toBe(dialogWrapper);
+      expect(document.activeElement).toBe(dialog);
       expect(document.activeElement).not.toBe(opener);
 
       document.body.removeChild(opener);
