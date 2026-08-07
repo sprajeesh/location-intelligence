@@ -48,14 +48,22 @@ describe("groupCategoriesByComposite", () => {
     ]);
   });
 
-  it("places an unrecognized composite category at the end, sorted alphabetically", () => {
+  it("places unrecognized composite categories at the end, sorted alphabetically", () => {
     const categories = [
       makeCategory({ id: "schools", compositeCategory: "education" }),
+      // Input order is reverse-lexical ("zzz_..." before "aaa_...") so this
+      // only passes if the two unknowns are actually alphabetically sorted,
+      // not merely left in their original appearance order.
       makeCategory({ id: "mystery", compositeCategory: "zzz_new_category" }),
+      makeCategory({ id: "enigma", compositeCategory: "aaa_another_category" }),
     ];
 
     const groups = groupCategoriesByComposite(categories);
-    expect(groups.map((g) => g.compositeCategory)).toEqual(["education", "zzz_new_category"]);
+    expect(groups.map((g) => g.compositeCategory)).toEqual([
+      "education",
+      "aaa_another_category",
+      "zzz_new_category",
+    ]);
   });
 
   it("returns an empty array for an empty input", () => {
