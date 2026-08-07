@@ -7,6 +7,7 @@ import { GlassPanel } from "@/components/ui/GlassPanel";
 import { IconButton } from "@/components/ui/IconButton";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { groupCategoriesByComposite } from "@/utils/groupCategories";
+import { getFocusableElements, getNextFocusable } from "@/utils/focusTrap";
 import type { Category } from "@/types/api";
 
 export interface SettingsModalProps {
@@ -26,15 +27,47 @@ export function SettingsModal({ categories, isLoading, isError, onClose }: Setti
   const titleId = useId();
   const dialogRef = useRef<HTMLDivElement>(null);
 
+  // Keeps handleKeyDown's Escape handler current without needing `onClose`
+  // in the mount effect's deps — that effect must run exactly once (on
+  // mount/unmount), not on every re-render caused by a new onClose identity,
+  // or it would re-capture the opener and restore focus mid-session.
+  const onCloseRef = useRef(onClose);
   useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+
+  useEffect(() => {
+    const opener = document.activeElement as HTMLElement | null;
     dialogRef.current?.focus();
 
     function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") {
+        onCloseRef.current();
+        return;
+      }
+
+      if (e.key !== "Tab") return;
+
+      const container = dialogRef.current;
+      if (!container) return;
+
+      const focusable = getFocusableElements(container);
+      const next = getNextFocusable(
+        focusable,
+        document.activeElement,
+        e.shiftKey ? "backward" : "forward",
+      );
+
+      e.preventDefault();
+      (next ?? container).focus();
     }
+
     document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [onClose]);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      opener?.focus();
+    };
+  }, []);
 
   const groups = groupCategoriesByComposite(categories);
 

@@ -90,6 +90,86 @@ describe("SettingsModal", () => {
     });
   });
 
+  describe("Focus management", () => {
+    it("moves focus into the dialog when it opens", () => {
+      render(<SettingsModal {...defaultProps} />);
+      const dialogWrapper = screen.getByRole("dialog").parentElement;
+      expect(document.activeElement).toBe(dialogWrapper);
+    });
+
+    it("moves focus to the first focusable element when Tab is pressed", () => {
+      render(<SettingsModal {...defaultProps} />);
+      const closeButton = screen.getByRole("button", { name: "Close" });
+      fireEvent.keyDown(document, { key: "Tab" });
+      expect(document.activeElement).toBe(closeButton);
+    });
+
+    it("wraps to the last focusable element when Shift+Tab is pressed", () => {
+      render(<SettingsModal {...defaultProps} />);
+      const closeButton = screen.getByRole("button", { name: "Close" });
+      fireEvent.keyDown(document, { key: "Tab", shiftKey: true });
+      // Close is both the first and last focusable element here, so wrapping
+      // backward lands on it too.
+      expect(document.activeElement).toBe(closeButton);
+    });
+
+    it("keeps focus inside the dialog across repeated Tab presses rather than escaping it", () => {
+      render(<SettingsModal {...defaultProps} />);
+      const closeButton = screen.getByRole("button", { name: "Close" });
+      fireEvent.keyDown(document, { key: "Tab" });
+      expect(document.activeElement).toBe(closeButton);
+      fireEvent.keyDown(document, { key: "Tab" });
+      expect(document.activeElement).toBe(closeButton);
+      fireEvent.keyDown(document, { key: "Tab", shiftKey: true });
+      expect(document.activeElement).toBe(closeButton);
+    });
+
+    it("pulls focus back into the dialog on Tab if focus had moved outside it", () => {
+      const outsideButton = document.createElement("button");
+      document.body.appendChild(outsideButton);
+
+      render(<SettingsModal {...defaultProps} />);
+      outsideButton.focus();
+      expect(document.activeElement).toBe(outsideButton);
+
+      fireEvent.keyDown(document, { key: "Tab" });
+      expect(document.activeElement).toBe(screen.getByRole("button", { name: "Close" }));
+
+      document.body.removeChild(outsideButton);
+    });
+
+    it("restores focus to the previously focused element on unmount", () => {
+      const opener = document.createElement("button");
+      document.body.appendChild(opener);
+      opener.focus();
+      expect(document.activeElement).toBe(opener);
+
+      const { unmount } = render(<SettingsModal {...defaultProps} />);
+      expect(document.activeElement).not.toBe(opener);
+
+      unmount();
+      expect(document.activeElement).toBe(opener);
+
+      document.body.removeChild(opener);
+    });
+
+    it("does not restore focus to the opener merely because onClose's identity changes across re-renders", () => {
+      const opener = document.createElement("button");
+      document.body.appendChild(opener);
+      opener.focus();
+
+      const { rerender } = render(<SettingsModal {...defaultProps} onClose={jest.fn()} />);
+      const dialogWrapper = screen.getByRole("dialog").parentElement;
+      expect(document.activeElement).toBe(dialogWrapper);
+
+      rerender(<SettingsModal {...defaultProps} onClose={jest.fn()} />);
+      expect(document.activeElement).toBe(dialogWrapper);
+      expect(document.activeElement).not.toBe(opener);
+
+      document.body.removeChild(opener);
+    });
+  });
+
   describe("Accessibility", () => {
     it("exposes role=dialog with aria-modal and a matching aria-labelledby title", () => {
       render(<SettingsModal {...defaultProps} />);
