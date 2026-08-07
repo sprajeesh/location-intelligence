@@ -15,6 +15,7 @@ class CategoryInfo(BaseModel):
     implemented: bool
     color: str
     isDefault: bool = Field(default=False, validation_alias="is_default")
+    compositeCategory: str = Field(validation_alias="composite_category")
 
     model_config = {"populate_by_name": True}
 

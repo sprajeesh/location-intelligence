@@ -87,6 +87,7 @@ class TestCategoriesEndpoint:
             assert "label" in item
             assert "implemented" in item
             assert "color" in item
+            assert "compositeCategory" in item
 
     def test_schools_implemented(self, client: TestClient) -> None:
         response = client.get("/categories")
@@ -138,6 +139,22 @@ class TestCategoriesEndpoint:
         response = client.get("/categories")
         defaults = {c["id"] for c in response.json() if c["isDefault"]}
         assert defaults == {"schools", "gps", "bus_stops", "railway_stations", "supermarkets"}
+
+    def test_composite_category_groups_facility_types_correctly(self, client: TestClient) -> None:
+        response = client.get("/categories")
+        composite_by_id = {c["id"]: c["compositeCategory"] for c in response.json()}
+        assert composite_by_id["schools"] == "education"
+        assert composite_by_id["kindergartens"] == "education"
+        assert composite_by_id["universities"] == "education"
+        assert composite_by_id["bus_stops"] == "transport"
+        assert composite_by_id["railway_stations"] == "transport"
+        assert composite_by_id["hospitals"] == "healthcare"
+        assert composite_by_id["gps"] == "healthcare"
+        assert composite_by_id["pharmacies"] == "healthcare"
+        assert composite_by_id["supermarkets"] == "shopping"
+        assert composite_by_id["parks"] == "recreation"
+        assert composite_by_id["playgrounds"] == "recreation"
+        assert composite_by_id["libraries"] == "recreation"
 
 
 class TestAnalyzeEndpointWithCoords:

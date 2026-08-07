@@ -34,6 +34,7 @@ def build_test_scoring_config() -> ScoringConfig:
             implemented=cfg.implemented,
             color=cfg.color,
             is_default=cfg.is_default,
+            composite_category=cfg.composite_category,
         )
         for slug, cfg in FACILITY_CONFIGS.items()
     ]

@@ -4,6 +4,7 @@ import { SearchContainer } from "@/containers/SearchContainer";
 import { NavigateSearchContainer } from "@/containers/NavigateSearchContainer";
 import { AnalysisContainer } from "@/containers/AnalysisContainer";
 import { MapContainerDynamic } from "@/containers/MapContainer";
+import { SettingsContainer } from "@/containers/SettingsContainer";
 import { useLocationStore } from "@/store";
 
 export default function HomePage() {
@@ -23,9 +24,12 @@ export default function HomePage() {
         <div className="flex flex-col h-full pointer-events-none
                         max-w-md
                         md:h-[75vh] md:gap-2">
-          {/* Search bar — always at the top */}
-          <div className="flex-shrink-0 relative z-20 pointer-events-auto">
-            {isNavigating ? <NavigateSearchContainer /> : <SearchContainer />}
+          {/* Search bar — always at the top, with the Settings gear alongside it */}
+          <div className="flex-shrink-0 relative z-20 pointer-events-auto flex items-start gap-2">
+            <div className="flex-1 min-w-0">
+              {isNavigating ? <NavigateSearchContainer /> : <SearchContainer />}
+            </div>
+            <SettingsContainer />
           </div>
 
           {/* Spacer — pushes results panel to the bottom on mobile, hidden on desktop */}
