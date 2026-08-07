@@ -1,7 +1,7 @@
 """Tests for the merged-query Overpass client (app/clients/overpass.py)."""
 
 import asyncio
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from email.utils import format_datetime
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -51,8 +51,8 @@ class TestBuildMergedQuery:
 class TestParseMergedElements:
     def test_splits_by_category_including_relations(self) -> None:
         tag_to_category = {
-            ("amenity", "school"): "schools",
-            ("leisure", "park"): "parks",
+            ("amenity", "school"): ["schools"],
+            ("leisure", "park"): ["parks"],
         }
         elements = [
             {
@@ -86,17 +86,46 @@ class TestParseMergedElements:
         elements = [
             {"type": "node", "id": 1, "lat": -36.8, "lon": 174.7, "tags": {"amenity": "bar"}}
         ]
-        result = _parse_merged_elements(elements, {("amenity", "school"): "schools"})
+        result = _parse_merged_elements(elements, {("amenity", "school"): ["schools"]})
         assert result == {}
 
     def test_dedupes_by_type_and_id(self) -> None:
-        tag_to_category = {("amenity", "school"): "schools"}
+        tag_to_category = {("amenity", "school"): ["schools"]}
         elements = [
             {"type": "node", "id": 1, "lat": -36.8, "lon": 174.7, "tags": {"amenity": "school"}},
             {"type": "node", "id": 1, "lat": -36.8, "lon": 174.7, "tags": {"amenity": "school"}},
         ]
         result = _parse_merged_elements(elements, tag_to_category)
         assert len(result["schools"]) == 1
+
+    def test_element_matching_two_categories_appears_in_both(self) -> None:
+        """A node carrying tags for two different requested categories (e.g. a
+        supermarket that's also tagged as a pharmacy) should be counted toward
+        both, not just whichever category's tag pair happens to match first."""
+        tag_to_category = {
+            ("shop", "supermarket"): ["supermarkets"],
+            ("amenity", "pharmacy"): ["pharmacies"],
+        }
+        elements = [
+            {
+                "type": "node",
+                "id": 1,
+                "lat": -36.8,
+                "lon": 174.7,
+                "tags": {
+                    "shop": "supermarket",
+                    "amenity": "pharmacy",
+                    "name": "Supermarket with Pharmacy",
+                },
+            },
+        ]
+
+        result = _parse_merged_elements(elements, tag_to_category)
+
+        assert {f["id"] for f in result["supermarkets"]} == {"osm_node_1"}
+        assert {f["id"] for f in result["pharmacies"]} == {"osm_node_1"}
+        assert result["supermarkets"][0]["name"] == "Supermarket with Pharmacy"
+        assert result["pharmacies"][0]["name"] == "Supermarket with Pharmacy"
 
 
 class TestParseRetryAfter:
@@ -111,15 +140,30 @@ class TestParseRetryAfter:
         assert _parse_retry_after("not-a-date-or-number") is None
 
     def test_http_date_in_future(self) -> None:
-        retry_at = datetime.now(timezone.utc) + timedelta(seconds=120)
+        retry_at = datetime.now(UTC) + timedelta(seconds=120)
         result = _parse_retry_after(format_datetime(retry_at, usegmt=True))
         assert result is not None
         assert 118 <= result <= 120
 
     def test_http_date_in_past_clamped_to_zero(self) -> None:
-        retry_at = datetime.now(timezone.utc) - timedelta(hours=1)
+        retry_at = datetime.now(UTC) - timedelta(hours=1)
         result = _parse_retry_after(format_datetime(retry_at, usegmt=True))
         assert result == 0.0
+
+
+class TestOverpassClientInit:
+    def test_rejects_zero_max_concurrency(self) -> None:
+        """A semaphore built with 0 permits would never grant one, hanging every
+        request forever, so this must fail fast at construction instead."""
+        with pytest.raises(ValueError):
+            OverpassClient("http://mock-overpass", MagicMock(), {}, max_concurrency=0)
+
+    def test_rejects_negative_max_concurrency(self) -> None:
+        with pytest.raises(ValueError):
+            OverpassClient("http://mock-overpass", MagicMock(), {}, max_concurrency=-1)
+
+    def test_accepts_valid_max_concurrency(self) -> None:
+        OverpassClient("http://mock-overpass", MagicMock(), {}, max_concurrency=1)
 
 
 class TestFetchCategories:

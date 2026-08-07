@@ -1,7 +1,7 @@
 import asyncio
 import logging
 import random
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from email.utils import parsedate_to_datetime
 
 import httpx
@@ -50,33 +50,40 @@ def _parse_retry_after(value: str | None) -> float | None:
     except (TypeError, ValueError):
         return None
     if retry_at.tzinfo is None:
-        retry_at = retry_at.replace(tzinfo=timezone.utc)
+        retry_at = retry_at.replace(tzinfo=UTC)
 
-    return max(0.0, (retry_at - datetime.now(timezone.utc)).total_seconds())
+    return max(0.0, (retry_at - datetime.now(UTC)).total_seconds())
 
 
-def _categorize(tags: dict[str, str], tag_to_category: dict[tuple[str, str], str]) -> str | None:
-    """First-match category for an element's tags.
+def _categorize(
+    tags: dict[str, str], tag_to_category: dict[tuple[str, str], list[str]]
+) -> list[str]:
+    """All unique categories matched by an element's tags, in first-seen order.
 
-    Tag pairs are unique across FACILITY_CONFIGS today (no two categories share
-    a (key, value) pair). If an element's tags happen to match more than one
-    category's filter, this resolves to whichever pair is encountered first and
-    logs at debug so it's observable rather than silently misclassified.
+    An element can legitimately match more than one requested category — e.g. a
+    node tagged both `amenity=school` and `leisure=park` — so every match is
+    kept rather than only the first.
     """
-    matches = [tag_to_category[pair] for pair in tags.items() if pair in tag_to_category]
-    if len(set(matches)) > 1:
-        logger.debug(
-            "Element tags %s match multiple categories %s; using %s", tags, matches, matches[0]
-        )
-    return matches[0] if matches else None
+    categories: list[str] = []
+    for pair in tags.items():
+        for category in tag_to_category.get(pair, ()):
+            if category not in categories:
+                categories.append(category)
+    return categories
 
 
 def _parse_merged_elements(
-    elements: list[dict], tag_to_category: dict[tuple[str, str], str]
+    elements: list[dict], tag_to_category: dict[tuple[str, str], list[str]]
 ) -> dict[str, list[dict]]:
-    """Parse a merged Overpass response into {category: [facility_dict, ...]}."""
+    """Parse a merged Overpass response into {category: [facility_dict, ...]}.
+
+    An element matching multiple categories is included once per category,
+    deduplicated by (category, id) — mirroring FacilitiesService's own dedup
+    key — rather than by id alone, so it isn't dropped from every category but
+    the first it was seen in.
+    """
     results: dict[str, list[dict]] = {}
-    seen_ids: set[str] = set()
+    seen: set[tuple[str, str]] = set()
 
     for elem in elements:
         elem_type = elem.get("type", "")
@@ -85,8 +92,6 @@ def _parse_merged_elements(
             continue
 
         osm_id = f"osm_{elem_type}_{elem_id}"
-        if osm_id in seen_ids:
-            continue
 
         # Get coordinates — for ways/relations use center
         if elem_type == "node":
@@ -103,28 +108,29 @@ def _parse_merged_elements(
             continue
 
         tags = elem.get("tags", {})
-        category = _categorize(tags, tag_to_category)
-        if category is None:
+        categories = _categorize(tags, tag_to_category)
+        if not categories:
             logger.warning("Overpass element %s matched no known category tag; skipping", osm_id)
             continue
 
-        seen_ids.add(osm_id)
-        name = (
-            tags.get("name")
-            or tags.get("name:en")
-            or tags.get("ref")
-            or f"Unnamed {category.replace('_', ' ').title()}"
-        )
+        base_name = tags.get("name") or tags.get("name:en") or tags.get("ref")
 
-        results.setdefault(category, []).append(
-            {
-                "id": osm_id,
-                "name": name,
-                "category": category,
-                "lat": lat,
-                "lon": lon,
-            }
-        )
+        for category in categories:
+            key = (category, osm_id)
+            if key in seen:
+                continue
+            seen.add(key)
+
+            name = base_name or f"Unnamed {category.replace('_', ' ').title()}"
+            results.setdefault(category, []).append(
+                {
+                    "id": osm_id,
+                    "name": name,
+                    "category": category,
+                    "lat": lat,
+                    "lon": lon,
+                }
+            )
 
     return results
 
@@ -138,6 +144,9 @@ class OverpassClient:
         *,
         max_concurrency: int = DEFAULT_MAX_CONCURRENCY,
     ) -> None:
+        if max_concurrency < 1:
+            raise ValueError(f"max_concurrency must be >= 1, got {max_concurrency}")
+
         self._base_url = base_url.rstrip("/")
         self._http = http_client
         self._category_tags = category_tags
@@ -160,10 +169,12 @@ class OverpassClient:
         if not specs:
             return {}
 
-        tag_to_category: dict[tuple[str, str], str] = {}
+        tag_to_category: dict[tuple[str, str], list[str]] = {}
         for category, tags, _radius_m in specs:
             for pair in tags:
-                tag_to_category.setdefault(pair, category)
+                categories = tag_to_category.setdefault(pair, [])
+                if category not in categories:
+                    categories.append(category)
 
         query = _build_merged_query(specs, lat, lon)
         label = ",".join(category for category, _tags, _radius_m in specs)
