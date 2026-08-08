@@ -5,6 +5,7 @@ import type { AddressResult } from '@/types/api';
 
 jest.mock('@/hooks/useAddressSearch');
 jest.mock('@/hooks/useAnalyze');
+jest.mock('@/hooks/useAnalyzeCategories');
 jest.mock('@/store');
 jest.mock('@/components/SearchBar', () => ({
   SearchBar: ({
@@ -48,12 +49,16 @@ jest.mock('@/components/SearchBar', () => ({
 
 import { useAddressSearch } from '@/hooks/useAddressSearch';
 import { useAnalyze } from '@/hooks/useAnalyze';
+import { useAnalyzeCategories } from '@/hooks/useAnalyzeCategories';
 import { useLocationStore } from '@/store';
 
 const mockUseAddressSearch = useAddressSearch as jest.MockedFunction<
   typeof useAddressSearch
 >;
 const mockUseAnalyze = useAnalyze as jest.MockedFunction<typeof useAnalyze>;
+const mockUseAnalyzeCategories = useAnalyzeCategories as jest.MockedFunction<
+  typeof useAnalyzeCategories
+>;
 const mockUseLocationStore = useLocationStore as jest.MockedFunction<
   typeof useLocationStore
 >;
@@ -80,6 +85,8 @@ describe('SearchContainer', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+
+    mockUseAnalyzeCategories.mockReturnValue(undefined);
 
     mockUseAddressSearch.mockReturnValue({
       query: '',
@@ -502,6 +509,38 @@ describe('SearchContainer', () => {
       expect(setRadiusKm).toHaveBeenCalledWith(5);
       expect(analyze).toHaveBeenCalledWith(
         expect.objectContaining({ radiusKm: 5 })
+      );
+    });
+  });
+
+  describe('Facility selection', () => {
+    it('includes the resolved categories from useAnalyzeCategories in the analyze call', async () => {
+      const analyze = jest.fn();
+      mockUseAnalyze.mockReturnValue({
+        mutate: analyze,
+        mutateAsync: jest.fn(),
+        isPending: false,
+        isError: false,
+        error: null,
+        data: undefined,
+      } as any);
+      mockUseAnalyzeCategories.mockReturnValue(['kindergartens']);
+
+      mockUseAddressSearch.mockReturnValue({
+        query: '',
+        setQuery: jest.fn(),
+        suggestions: mockSuggestions,
+        isLoading: false,
+        error: null,
+      });
+
+      render(<SearchContainer />);
+      await userEvent.click(
+        screen.getByTestId(`suggestion-${mockSuggestions[0]!.displayName}`)
+      );
+
+      expect(analyze).toHaveBeenCalledWith(
+        expect.objectContaining({ categories: ['kindergartens'] })
       );
     });
   });

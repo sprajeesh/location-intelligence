@@ -6,6 +6,7 @@ import type { AnalyzeResponse, Feature, ScoreResult } from '@/types/api';
 
 jest.mock('@/store');
 jest.mock('@/hooks/useAnalyze');
+jest.mock('@/hooks/useAnalyzeCategories');
 jest.mock('next-intl', () => ({
   useTranslations: () => (key: string, opts?: { defaultValue?: string }) => {
     if (opts?.defaultValue) return opts.defaultValue;
@@ -92,9 +93,11 @@ jest.mock('@/components/CategoryGroup', () => ({
 
 import { useLocationStore } from '@/store';
 import { useAnalyze } from '@/hooks/useAnalyze';
+import { useAnalyzeCategories } from '@/hooks/useAnalyzeCategories';
 
 const mockUseLocationStore = useLocationStore as jest.MockedFunction<typeof useLocationStore>;
 const mockUseAnalyze = useAnalyze as jest.MockedFunction<typeof useAnalyze>;
+const mockUseAnalyzeCategories = useAnalyzeCategories as jest.MockedFunction<typeof useAnalyzeCategories>;
 
 const MOCK_ADDRESS = {
   displayName: '123 Main Street, Auckland',
@@ -196,6 +199,7 @@ describe('ResultsPanel', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseLocationStore.mockReturnValue(makeStoreState());
+    mockUseAnalyzeCategories.mockReturnValue(undefined);
     mockUseAnalyze.mockReturnValue({
       mutate: jest.fn(),
       mutateAsync: jest.fn(),

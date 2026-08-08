@@ -87,8 +87,14 @@
     "tooltip": "[MI] settings.tooltip",
     "title": "[MI] settings.title",
     "description": "[MI] settings.description",
+    "helpMaxFacilities": "[MI] settings.helpMaxFacilities",
+    "limitReached": "[MI] settings.limitReached",
     "loading": "[MI] settings.loading",
     "error": "[MI] settings.error",
-    "close": "[MI] settings.close"
+    "close": "[MI] settings.close",
+    "save": "[MI] settings.save",
+    "confirmReanalyzeMessage": "[MI] settings.confirmReanalyzeMessage",
+    "reanalyze": "[MI] settings.reanalyze",
+    "notNow": "[MI] settings.notNow"
   }
 }

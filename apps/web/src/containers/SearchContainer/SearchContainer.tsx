@@ -4,6 +4,7 @@ import { useCallback } from "react";
 import { SearchBar } from "@/components/SearchBar";
 import { useAddressSearch } from "@/hooks/useAddressSearch";
 import { useAnalyze } from "@/hooks/useAnalyze";
+import { useAnalyzeCategories } from "@/hooks/useAnalyzeCategories";
 import { useLocationStore } from "@/store";
 import { DEFAULT_RADIUS_KM } from "@/constants/radius";
 import type { AddressResult } from "@/types/api";
@@ -13,6 +14,7 @@ export function SearchContainer() {
   const { selectedAddress, setSelectedAddress, setRadiusKm, distanceMode } =
     useLocationStore();
   const { mutate: analyze } = useAnalyze();
+  const analyzeCategories = useAnalyzeCategories();
 
   const handleQueryChange = (value: string) => {
     setQuery(value);
@@ -32,9 +34,10 @@ export function SearchContainer() {
         lon: address.lon,
         radiusKm: DEFAULT_RADIUS_KM,
         distanceMode,
+        categories: analyzeCategories,
       });
     },
-    [setSelectedAddress, setQuery, setRadiusKm, analyze, distanceMode],
+    [setSelectedAddress, setQuery, setRadiusKm, analyze, distanceMode, analyzeCategories],
   );
 
   const handleClear = () => {

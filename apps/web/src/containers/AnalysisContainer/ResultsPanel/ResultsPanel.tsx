@@ -13,6 +13,7 @@ import { RadiusAdjuster } from "@/components/RadiusAdjuster";
 import { GlassPanel } from "@/components/ui/GlassPanel";
 import { useNavigate } from "@/hooks/useNavigate";
 import { useAnalyze } from "@/hooks/useAnalyze";
+import { useAnalyzeCategories } from "@/hooks/useAnalyzeCategories";
 
 /**
  * ResultsPanel — Left side panel (desktop) or bottom sheet (mobile).
@@ -65,6 +66,7 @@ export default function ResultsPanel({
   } = useLocationStore();
 
   const { mutate: analyze } = useAnalyze();
+  const analyzeCategories = useAnalyzeCategories();
 
   // Local UI state for expanded/collapsed categories
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
@@ -166,10 +168,11 @@ export default function ResultsPanel({
           lon: selectedAddress.lon,
           radiusKm: newRadius,
           distanceMode,
+          categories: analyzeCategories,
         });
       }
     },
-    [selectedAddress, distanceMode, setRadiusKm, setAnalysisResult, clearVisibleCategories, analyze],
+    [selectedAddress, distanceMode, setRadiusKm, setAnalysisResult, clearVisibleCategories, analyze, analyzeCategories],
   );
 
   // Remount the adjuster (collapsing it and resetting its draft value) whenever the address changes

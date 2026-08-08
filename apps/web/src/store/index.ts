@@ -22,6 +22,7 @@ export interface LocationIntelligenceStore {
   analysisResult: AnalyzeResponse | null
   isAnalyzing: boolean
   visibleCategories: Set<string>
+  selectedFacilities: string[] | null
   toasts: Toast[]
   activeRoute: [number, number][] | null
   selectedFeature: Feature | null
@@ -38,6 +39,7 @@ export interface LocationIntelligenceStore {
   setIsAnalyzing: (isAnalyzing: boolean) => void
   toggleCategoryVisibility: (categoryId: string) => void
   clearVisibleCategories: () => void
+  setSelectedFacilities: (facilityIds: string[] | null) => void
   addToast: (toast: Omit<Toast, 'id'>) => void
   removeToast: (id: string) => void
   clearToasts: () => void
@@ -58,6 +60,7 @@ export const useLocationStore = create<LocationIntelligenceStore>((set) => ({
   analysisResult: null,
   isAnalyzing: false,
   visibleCategories: new Set(),
+  selectedFacilities: null,
   toasts: [],
   activeRoute: null,
   selectedFeature: null,
@@ -96,6 +99,9 @@ export const useLocationStore = create<LocationIntelligenceStore>((set) => ({
 
   clearVisibleCategories: () =>
     set({ visibleCategories: new Set() }),
+
+  setSelectedFacilities: (facilityIds) =>
+    set({ selectedFacilities: facilityIds }),
 
   // Toast management
   addToast: (toast) =>
