@@ -87,8 +87,14 @@
     "tooltip": "Settings",
     "title": "Settings",
     "description": "Facilities included in your location score, grouped by category.",
+    "helpMaxFacilities": "Choose up to 5 facilities. Unselect one to choose a different one.",
+    "limitReached": "You've reached the maximum of 5 facilities. Unselect one first to choose another.",
     "loading": "Loading facilities...",
     "error": "Couldn't load facility settings.",
-    "close": "Close"
+    "close": "Close",
+    "save": "Save",
+    "confirmReanalyzeMessage": "Your facility selection has changed. Re-run the analysis for \"{address}\" with the updated facilities?",
+    "reanalyze": "Re-analyze",
+    "notNow": "Not now"
   }
 }
