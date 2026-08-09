@@ -93,84 +93,15 @@ jobs:
         run: pnpm run build:web
 
   # ───────────────────────────────────────────────────────────────────────────
-  # Provision/update OCI infrastructure via Terraform. Idempotent -- a no-op
-  # plan+apply when infra/oci/** hasn't changed. Runs before deploy-api so the
-  # VM is guaranteed to exist. See infra/oci/README.md for one-time setup.
-  # ───────────────────────────────────────────────────────────────────────────
-  terraform:
-    name: Provision OCI Infrastructure
-    needs: [test]
-    if: |
-      github.ref == 'refs/heads/main' &&
-      startsWith(github.event.head_commit.message, 'release:')
-    runs-on: ubuntu-latest
-    environment: production
-    outputs:
-      instance_ip: ${{ steps.tf_outputs.outputs.instance_ip }}
-      db_user: ${{ steps.tf_outputs.outputs.db_user }}
-      db_password_secret_id: ${{ steps.tf_outputs.outputs.db_password_secret_id }}
-    env:
-      TF_VAR_tenancy_ocid: ${{ secrets.OCI_TENANCY_OCID }}
-      TF_VAR_user_ocid: ${{ secrets.OCI_USER_OCID }}
-      TF_VAR_fingerprint: ${{ secrets.OCI_FINGERPRINT }}
-      TF_VAR_oci_private_key_pem: ${{ secrets.OCI_PRIVATE_KEY }}
-      TF_VAR_region: ${{ secrets.OCI_REGION }}
-      TF_VAR_compartment_ocid: ${{ secrets.OCI_COMPARTMENT_OCID }}
-      TF_VAR_ssh_public_key: ${{ secrets.DEPLOY_SSH_PUBLIC_KEY }}
-      # The S3 backend's AWS SDK defaults to sending a trailing checksum over
-      # chunked transfer-encoding on PutObject, which OCI Object Storage's
-      # S3-compatible endpoint rejects with "501 NotImplemented: AWS chunked
-      # encoding not supported". Forcing checksums to only be added when
-      # required avoids that code path. Not secrets, just SDK behavior flags.
-      AWS_REQUEST_CHECKSUM_CALCULATION: when_required
-      AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@2d1c1198e79c30cca5c3957b1e3b65ce95b5356e
-        with:
-          persist-credentials: false
-
-      - name: Set up Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          # Pinned to 1.10.x for OCI S3 compatibility: newer than 1.9.x
-          # (which has SDK issues with chunked-encoding checksums on
-          # Object Storage), but older than "latest" which has other
-          # regressions. 1.10.x bundles aws-sdk-go-v2 with proper checksum
-          # calculation control and has been tested with OCI.
-          terraform_version: "1.10.x"
-
-      - name: Terraform Init
-        working-directory: infra/oci
-        run: |
-          terraform init \
-            -backend-config="endpoint=${{ secrets.OCI_S3_ENDPOINT }}" \
-            -backend-config="access_key=${{ secrets.OCI_S3_ACCESS_KEY }}" \
-            -backend-config="secret_key=${{ secrets.OCI_S3_SECRET_KEY }}" \
-            -backend-config="skip_s3_checksum=true"
-
-      - name: Terraform Plan
-        working-directory: infra/oci
-        run: terraform plan -input=false -out=tfplan
-
-      - name: Terraform Apply (retries on OCI capacity errors)
-        working-directory: infra/oci
-        run: ./scripts/apply-with-retry.sh tfplan
-
-      - name: Export outputs
-        id: tf_outputs
-        working-directory: infra/oci
-        run: |
-          echo "instance_ip=$(terraform output -raw instance_public_ip)" >> "$GITHUB_OUTPUT"
-          echo "db_user=$(terraform output -raw db_user)" >> "$GITHUB_OUTPUT"
-          echo "db_password_secret_id=$(terraform output -raw db_password_secret_id)" >> "$GITHUB_OUTPUT"
-
-  # ───────────────────────────────────────────────────────────────────────────
-  # Deploy the API + PostGIS + Redis + OSRM to the OCI VM via docker-compose.
+  # Deploy the API + PostGIS + Redis + OSRM to the app VM via docker-compose.
+  # No provider-specific IaC here on purpose: the VM is provisioned manually
+  # once, and this step only needs an SSH host/key -- so moving providers
+  # later (e.g. AWS/Azure) is just a secret-value change, not a workflow
+  # rewrite. See DEPLOY_SERVER_HOST/DEPLOY_SSH_KEY secrets.
   # ───────────────────────────────────────────────────────────────────────────
   deploy-api:
-    name: Deploy API to OCI VM
-    needs: [terraform]
+    name: Deploy API to VM
+    needs: [test]
     if: |
       github.ref == 'refs/heads/main' &&
       startsWith(github.event.head_commit.message, 'release:')
@@ -185,7 +116,7 @@ jobs:
       - name: Add server to known_hosts
         shell: bash
         env:
-          SERVER_HOST: ${{ needs.terraform.outputs.instance_ip }}
+          SERVER_HOST: ${{ secrets.DEPLOY_SERVER_HOST }}
         run: |
           mkdir -p ~/.ssh
           ssh-keyscan -H "$SERVER_HOST" >> ~/.ssh/known_hosts
@@ -193,11 +124,11 @@ jobs:
       - name: Sync repo and restart services
         shell: bash
         env:
-          SERVER_HOST: ${{ needs.terraform.outputs.instance_ip }}
+          SERVER_HOST: ${{ secrets.DEPLOY_SERVER_HOST }}
           APP_DIR: ${{ secrets.DEPLOY_APP_DIR }}
           GIT_SHA: ${{ github.sha }}
-          DB_USER: ${{ needs.terraform.outputs.db_user }}
-          DB_PASSWORD_SECRET_ID: ${{ needs.terraform.outputs.db_password_secret_id }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
           API_SHARED_SECRET: ${{ secrets.API_SHARED_SECRET }}
         run: |
           ssh -o StrictHostKeyChecking=yes "ubuntu@$SERVER_HOST" bash -s <<REMOTE
@@ -213,8 +144,8 @@ jobs:
             git fetch --all --prune
             git checkout --detach "$GIT_SHA"
 
-            echo "==> Fetching DB secrets from OCI Vault"
-            bash scripts/fetch-secrets.sh "$DB_USER" "$DB_PASSWORD_SECRET_ID" "$API_SHARED_SECRET" .env
+            echo "==> Writing .env"
+            bash scripts/fetch-secrets.sh "$DB_USER" "$DB_PASSWORD" "$API_SHARED_SECRET" .env
 
             echo "==> Rebuilding and restarting all services"
             docker compose -f docker-compose.yml -f docker-compose.prod.yml pull --quiet || true
@@ -229,7 +160,7 @@ jobs:
       - name: Verify deployment health
         shell: bash
         env:
-          SERVER_HOST: ${{ needs.terraform.outputs.instance_ip }}
+          SERVER_HOST: ${{ secrets.DEPLOY_SERVER_HOST }}
         run: |
           sleep 15
           ssh -o StrictHostKeyChecking=yes "ubuntu@$SERVER_HOST" \
@@ -237,8 +168,8 @@ jobs:
              if [ "$STATUS" = "ok" ]; then echo "API health check passed"; else echo "API health check failed (status: $STATUS)"; exit 1; fi'
 
   # ───────────────────────────────────────────────────────────────────────────
-  # Deploy the Next.js web app to Cloudflare (Workers, via OpenNext). No OCI
-  # dependency, so this runs independently/in parallel with terraform+deploy-api.
+  # Deploy the Next.js web app to Cloudflare (Workers, via OpenNext). No
+  # dependency on the API VM, so this runs independently/in parallel with deploy-api.
   # ───────────────────────────────────────────────────────────────────────────
   deploy-web:
     name: Deploy Web to Cloudflare
