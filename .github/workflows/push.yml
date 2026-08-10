@@ -98,6 +98,13 @@ jobs:
   # once, and this step only needs an SSH host/key -- so moving providers
   # later (e.g. AWS/Azure) is just a secret-value change, not a workflow
   # rewrite. See DEPLOY_SERVER_HOST/DEPLOY_SSH_KEY secrets.
+  #
+  # DEPLOY_SERVER_HOST_KEY pins the VM's SSH host key (captured once,
+  # out-of-band, via `ssh-keyscan -H <ip>`) so StrictHostKeyChecking=yes
+  # below validates against a trusted value instead of trust-on-first-use --
+  # running ssh-keyscan against SERVER_HOST at deploy time would silently
+  # trust whatever key is presented on that connection, which is exactly
+  # what an on-path attacker during a CI run would want.
   # ───────────────────────────────────────────────────────────────────────────
   deploy-api:
     name: Deploy API to VM
@@ -113,13 +120,15 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.DEPLOY_SSH_KEY }}
 
-      - name: Add server to known_hosts
+      - name: Pin server host key
         shell: bash
         env:
-          SERVER_HOST: ${{ secrets.DEPLOY_SERVER_HOST }}
+          SERVER_HOST_KEY: ${{ secrets.DEPLOY_SERVER_HOST_KEY }}
         run: |
           mkdir -p ~/.ssh
-          ssh-keyscan -H "$SERVER_HOST" >> ~/.ssh/known_hosts
+          chmod 700 ~/.ssh
+          printf '%s\n' "$SERVER_HOST_KEY" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
 
       - name: Sync repo and restart services
         shell: bash
