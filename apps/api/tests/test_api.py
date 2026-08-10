@@ -7,6 +7,7 @@ from fastapi.testclient import TestClient
 
 from app.clients.osrm import OSRMClient
 from app.clients.overpass import OverpassClient
+from app.config.version import get_version
 from app.main import create_app
 from app.repositories.cache import CacheRepository
 from app.repositories.db.address_repository import AddressRepository
@@ -58,7 +59,7 @@ class TestHealthEndpoint:
         response = client.get("/health")
         data = response.json()
         assert data["status"] == "ok"
-        assert data["version"] == "1.0.0"
+        assert data["version"] == get_version()
 
     def test_health_content_type_json(self, client: TestClient) -> None:
         response = client.get("/health")
