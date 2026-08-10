@@ -607,13 +607,12 @@ pnpm lint
 
 ## Deployment
 
-| Component | Target          | Notes                                                      |
-| --------- | --------------- | ---------------------------------------------------------- |
-| Frontend  | Vercel          | `next build` → auto-deploy on main                         |
-| Backend   | AWS ECS Fargate | Docker image, FastAPI                                      |
-| Services  | Managed         | Redis (ElastiCache), PostGIS (container), OSRM (container) |
+| Component | Target                                | Notes                                                                    |
+| --------- | -------------------------------------- | ------------------------------------------------------------------------- |
+| Frontend  | Cloudflare Workers (via OpenNext)      | `pnpm run build:cf` → `wrangler deploy` on `release:` commits to `main`   |
+| Backend   | Single small VM (e.g. Hetzner)         | `docker compose` runs API + PostGIS + Redis + OSRM together on one host   |
 
-(Not yet deployed; MVP runs locally)
+Deployed via `.github/workflows/push.yml`'s `deploy-web`/`deploy-api` jobs, triggered by a `release:`-prefixed commit message on `main`. The backend VM is provisioned manually (no IaC) and targeted purely via the `DEPLOY_SERVER_HOST`/`DEPLOY_SSH_KEY` secrets, so switching providers later is a secret change, not a workflow change.
 
 ---
 

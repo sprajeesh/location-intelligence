@@ -1,62 +1,63 @@
 #!/usr/bin/env bash
-# Runs on the OCI app VM as part of deploy-api (see .github/workflows/push.yml).
-# Writes the .env file docker-compose needs, pulling the DB password out of
-# OCI Vault via this instance's own identity (instance principal -- granted
-# read access by infra/oci/vault.tf's dynamic group + policy) rather than any
-# credential stored on the box or in GitHub Secrets. api_shared_secret is a
-# plain pass-through (not Vault-backed) from the API_SHARED_SECRET GitHub
-# secret -- see app/api/deps.py for what it guards and why it's optional.
+# Runs on the app VM as part of deploy-api (see .github/workflows/push.yml).
+# Writes the .env file docker-compose needs from values passed in directly
+# (sourced from GitHub Secrets over SSH) -- no cloud-provider secret store
+# involved, so this is provider-agnostic: it works unchanged no matter which
+# provider hosts the VM.
 #
-# Usage: fetch-secrets.sh <db_user> <db_password_secret_id> [api_shared_secret] [env_file]
+# Usage: fetch-secrets.sh <db_user> <db_password> [api_shared_secret] [env_file]
 set -euo pipefail
 
 DB_USER="${1:?db_user required}"
-DB_PASSWORD_SECRET_ID="${2:?db_password_secret_id required}"
+DB_PASSWORD="${2:?db_password required}"
 API_SHARED_SECRET="${3:-}"
 ENV_FILE="${4:-.env}"
 
-# Retries: right after `terraform apply` creates the dynamic group + policy
-# granting this instance read access, OCI's IAM propagation can lag a few
-# seconds behind -- and deploy-api SSHes in immediately after. Not a real
-# error, so retry briefly rather than failing the whole deploy on a race.
-DB_PASSWORD=""
-for attempt in 1 2 3 4 5; do
-  if DB_PASSWORD=$(
-    oci secrets secret-bundle get \
-      --secret-id "$DB_PASSWORD_SECRET_ID" \
-      --auth instance_principal \
-      --query 'data."secret-bundle-content".content' \
-      --raw-output |
-      base64 -d
-  ); then
-    break
-  fi
-  if [ "$attempt" -eq 5 ]; then
-    echo "Failed to fetch DB password from Vault after 5 attempts" >&2
-    exit 1
-  fi
-  echo "Vault fetch attempt ${attempt} failed (likely IAM propagation lag), retrying in 10s..." >&2
-  sleep 10
-done
+# Compose re-scans values it substitutes into its own ${VAR} interpolation
+# (e.g. DB_USER/DB_PASSWORD as build args in docker-compose.yml) -- a literal
+# "$" in a secret would otherwise be misread as the start of another
+# variable reference. Compose's own convention for a literal "$" is "$$".
+compose_escape() {
+  local v="$1"
+  printf '%s' "${v//\$/\$\$}"
+}
+
+# Percent-encode for embedding in the DATABASE_URL URI specifically -- ":",
+# "/", "@", etc. in a raw username/password would otherwise be parsed as URI
+# delimiters instead of literal credential characters. Only applied at this
+# one boundary; DB_USER/DB_PASSWORD stay raw (just Compose-escaped) everywhere else.
+url_encode() {
+  local LC_ALL=C string="$1" i c
+  for (( i = 0; i < ${#string}; i++ )); do
+    c="${string:$i:1}"
+    case "$c" in
+      [a-zA-Z0-9.~_-]) printf '%s' "$c" ;;
+      *) printf '%%%02X' "'$c" ;;
+    esac
+  done
+}
+
+DB_USER_URI="$(url_encode "$DB_USER")"
+DB_PASSWORD_URI="$(url_encode "$DB_PASSWORD")"
 
 # Hostnames below are docker-compose service names (api/postgis/redis/osrm
 # all share the project's default network), not localhost -- this file is
 # consumed by the containerized api service, unlike the host-network .env
 # used for local dev (see AGENTS.md).
 cat >"$ENV_FILE" <<EOF
-DB_USER=${DB_USER}
-DB_PASSWORD=${DB_PASSWORD}
+DB_USER=$(compose_escape "$DB_USER")
+DB_PASSWORD=$(compose_escape "$DB_PASSWORD")
 API_HOST=0.0.0.0
 API_PORT=8000
-DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@postgis:5432/gis
+DATABASE_URL=postgresql://${DB_USER_URI}:${DB_PASSWORD_URI}@postgis:5432/gis
 OVERPASS_URL=https://overpass-api.de/api/interpreter
 OSRM_URL=http://osrm:5000
 REDIS_URL=redis://redis:6379
 SCORING_ALPHA=0.6
 SCORING_BETA=0.4
 SCORING_DENSITY_FACTOR=10
-API_SHARED_SECRET=${API_SHARED_SECRET}
+API_SHARED_SECRET=$(compose_escape "$API_SHARED_SECRET")
 EOF
 chmod 600 "$ENV_FILE"
 
-echo "Wrote ${ENV_FILE} (DB password fetched from OCI Vault, not stored in git or GitHub Secrets)"
+echo "Wrote ${ENV_FILE}"
