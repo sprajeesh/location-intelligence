@@ -33,6 +33,9 @@ services:
       timeout: 5s
       retries: 5
       start_period: 20s
+    networks:
+      - backend
+      - proxy
 
   postgis:
     restart: unless-stopped
@@ -60,7 +63,12 @@ services:
       - caddy-config:/config
     depends_on:
       - api
+    networks:
+      - proxy
 
 volumes:
   caddy-data:
   caddy-config:
+
+networks:
+  proxy:
