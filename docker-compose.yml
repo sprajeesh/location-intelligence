@@ -11,6 +11,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
+    networks:
+      - backend
 
   postgis:
     build:
@@ -29,6 +31,8 @@ services:
       timeout: 5s
       retries: 5
       start_period: 60s
+    networks:
+      - backend
 
   osrm:
     image: osrm/osrm-backend
@@ -43,7 +47,15 @@ services:
       timeout: 5s
       retries: 3
       start_period: 30s
+    networks:
+      - backend
 
 volumes:
   redis-data:
   postgis-data:
+
+# api (in docker-compose.prod.yml) joins backend to reach these services, plus
+# proxy so caddy can reach it -- caddy itself only joins proxy, so it has no
+# route to postgis/redis/osrm.
+networks:
+  backend:
