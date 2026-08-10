@@ -171,10 +171,24 @@ jobs:
         env:
           SERVER_HOST: ${{ secrets.DEPLOY_SERVER_HOST }}
         run: |
-          sleep 15
-          ssh -o StrictHostKeyChecking=yes "ubuntu@$SERVER_HOST" \
-            'STATUS=$(curl -sf http://localhost:8000/health | python3 -c "import sys,json; print(json.load(sys.stdin)[\"status\"])"); \
-             if [ "$STATUS" = "ok" ]; then echo "API health check passed"; else echo "API health check failed (status: $STATUS)"; exit 1; fi'
+          ssh -o StrictHostKeyChecking=yes "ubuntu@$SERVER_HOST" bash -s <<'REMOTE'
+            set -uo pipefail
+
+            DEADLINE=$((SECONDS + 120))
+            STATUS=""
+            until [ "$STATUS" = "ok" ]; do
+              if [ "$SECONDS" -ge "$DEADLINE" ]; then
+                echo "API health check failed: status not \"ok\" within 120s (last status: ${STATUS:-none})" >&2
+                exit 1
+              fi
+              STATUS=$(curl -sf --max-time 5 http://localhost:8000/health | python3 -c "import sys,json; print(json.load(sys.stdin)['status'])" 2>/dev/null || true)
+              if [ "$STATUS" != "ok" ]; then
+                echo "API not ready yet (status: ${STATUS:-none}), retrying in 5s..."
+                sleep 5
+              fi
+            done
+            echo "API health check passed"
+          REMOTE
 
   # ───────────────────────────────────────────────────────────────────────────
   # Deploy the Next.js web app to Cloudflare (Workers, via OpenNext). No
