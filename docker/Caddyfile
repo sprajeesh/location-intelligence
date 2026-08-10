@@ -1,0 +1,10 @@
+# Reverse proxy in front of the api service so the Cloudflare Worker (BFF)
+# has an HTTPS hostname to call -- Workers drop custom ports on outbound
+# fetch() in production, and plain HTTP to a bare IP would send
+# X-Internal-Api-Key in the clear. sslip.io is a free wildcard DNS service
+# that resolves <ip-with-dashes>.sslip.io to that literal IP, so this works
+# without owning a domain; Caddy issues/renews the Let's Encrypt cert for it
+# automatically. See .env.example's NEXT_PUBLIC_API_URL comment.
+95-217-235-82.sslip.io {
+	reverse_proxy api:8000
+}

@@ -11,7 +11,9 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     ports:
-      - "8000:8000"
+      # Only reachable on the VM itself now (used by the CI health check and
+      # by Caddy, below) -- public traffic comes in through Caddy on 443.
+      - "127.0.0.1:8000:8000"
     env_file:
       - .env
     depends_on:
@@ -40,3 +42,25 @@ services:
 
   osrm:
     restart: unless-stopped
+
+  # TLS-terminating reverse proxy in front of the api service -- Cloudflare
+  # Workers (the web BFF) can't reliably fetch() a custom port in production,
+  # and .env.example already requires HTTPS on a real hostname for
+  # NEXT_PUBLIC_API_URL. See docker/Caddyfile for the hostname (sslip.io,
+  # no owned domain needed) -- Caddy handles Let's Encrypt automatically.
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./docker/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - api
+
+volumes:
+  caddy-data:
+  caddy-config:
