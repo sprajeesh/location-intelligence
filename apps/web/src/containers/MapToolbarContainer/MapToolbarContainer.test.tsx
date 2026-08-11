@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, act } from '@testing-library/react';
+import { render, screen, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MapToolbarContainer } from './MapToolbarContainer';
 import { useLocationStore } from '@/store';
@@ -181,8 +181,22 @@ describe('MapToolbarContainer', () => {
 
       act(() => {
         successCallback!({
-          coords: { latitude: -36.85, longitude: 174.76, accuracy: 10, altitude: null, altitudeAccuracy: null, heading: null, speed: null },
+          coords: {
+            latitude: -36.85,
+            longitude: 174.76,
+            accuracy: 10,
+            altitude: null,
+            altitudeAccuracy: null,
+            heading: null,
+            speed: null,
+            toJSON() {
+              return this;
+            },
+          },
           timestamp: Date.now(),
+          toJSON() {
+            return this;
+          },
         });
       });
 
