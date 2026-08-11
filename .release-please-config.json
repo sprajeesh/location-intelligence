@@ -1,0 +1,17 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "bootstrap-sha": "61a28c3437236f683ecf01225f33286e622abfcb",
+  "separate-pull-requests": true,
+  "packages": {
+    "apps/api": {
+      "release-type": "python",
+      "component": "api",
+      "changelog-path": "CHANGELOG.md"
+    },
+    "apps/web": {
+      "release-type": "node",
+      "component": "web",
+      "changelog-path": "CHANGELOG.md"
+    }
+  }
+}

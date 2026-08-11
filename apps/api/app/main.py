@@ -12,6 +12,7 @@ from app.clients.osrm import OSRMClient
 from app.clients.overpass import OverpassClient
 from app.config.scoring_config_loader import load_scoring_config
 from app.config.settings import get_settings
+from app.config.version import get_version
 from app.repositories.cache import CacheRepository
 from app.repositories.db.address_repository import AddressRepository
 from app.repositories.db.connection import close_pool, create_pool
@@ -72,7 +73,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 def create_app() -> FastAPI:
     app = FastAPI(
         title="Location Intelligence API",
-        version="1.0.0",
+        version=get_version(),
         description="API for location-based facility and scoring analysis",
         lifespan=lifespan,
     )
