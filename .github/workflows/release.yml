@@ -10,7 +10,7 @@ on:
       release:
         description: "Release a new version"
         required: false
-        default: "false"
+        default: false
         type: boolean
       branch:
         description: "Branch to release from"
@@ -49,5 +49,5 @@ jobs:
 
     outputs:
       releases_created: ${{ steps.release.outputs.releases_created }}
-      html_url: ${{ steps.release.outputs.['web--html-url'] || steps.release.outputs.['api--html-url'] }}
-      tag_name: ${{ steps.release.outputs.['web--tag-name'] || steps.release.outputs.['api--tag-name'] }}
+      html_url: ${{ steps.release.outputs['web--html-url'] || steps.release.outputs['api--html-url'] }}
+      tag_name: ${{ steps.release.outputs['web--tag-name'] || steps.release.outputs['api--tag-name'] }}
