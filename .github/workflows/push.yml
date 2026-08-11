@@ -72,7 +72,7 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         run: |
           snyk test --all-projects \
-            --exclude=node_modules,.venv,dist,build,coverage,docs,tests,examples,requirements.txt \
+            --exclude=requirements.txt \
             --severity-threshold=high
 
           snyk test --file=apps/api/requirements.txt --command=/tmp/snyk-venv/bin/python3 --severity-threshold=high
@@ -82,7 +82,7 @@ jobs:
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         run: |
-          snyk monitor --all-projects --severity-threshold=high
+          snyk monitor --all-projects --severity-threshold=high --exclude=requirements.txt
           snyk monitor --file=apps/api/requirements.txt --command=/tmp/snyk-venv/bin/python3 --severity-threshold=high
         continue-on-error: true
 
