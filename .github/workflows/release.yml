@@ -1,0 +1,53 @@
+name: Release Please
+
+on:
+  workflow_run:
+    workflows: ["CI/CD"]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      release:
+        description: "Release a new version"
+        required: false
+        default: "false"
+        type: boolean
+      branch:
+        description: "Branch to release from"
+        required: false
+        default: "main"
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  # Keeps a per-component version-bump/changelog PR up to date on every push
+  # to main. Never tags or creates a GitHub Release -- safe to run
+  # unconditionally.
+  release-please-pr:
+    name: Update release PRs
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Release Please
+        id: release
+        uses: googleapis/release-please-action@5c625bfb5d1ff62eadeeb3772007f7f66fdcf071 # v4.4.1
+        with:
+          target-branch: main
+          config-file: .release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+      - name: Get the output
+        run: echo "$RELEASE_OUTPUT"
+        env:
+          RELEASE_OUTPUT: ${{ toJson(steps.release.outputs) }}
+
+    outputs:
+      releases_created: ${{ steps.release.outputs.releases_created }}
+      html_url: ${{ steps.release.outputs.['web--html-url'] || steps.release.outputs.['api--html-url'] }}
+      tag_name: ${{ steps.release.outputs.['web--tag-name'] || steps.release.outputs.['api--tag-name'] }}
