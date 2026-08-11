@@ -16,7 +16,7 @@ jobs:
     name: Update release PRs
     runs-on: ubuntu-latest
     steps:
-      - uses: googleapis/release-please-action@v4
+      - uses: googleapis/release-please-action@5c625bfb5d1ff62eadeeb3772007f7f66fdcf071 # v4.4.1
         with:
           target-branch: main
           config-file: .release-please-config.json
@@ -35,7 +35,7 @@ jobs:
     runs-on: ubuntu-latest
     if: startsWith(github.event.head_commit.message, 'release:')
     steps:
-      - uses: googleapis/release-please-action@v4
+      - uses: googleapis/release-please-action@5c625bfb5d1ff62eadeeb3772007f7f66fdcf071 # v4.4.1
         with:
           target-branch: main
           config-file: .release-please-config.json
