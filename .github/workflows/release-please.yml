@@ -4,16 +4,15 @@ on:
   push:
     branches: [main]
 
-permissions:
-  contents: write
-  pull-requests: write
-  issues: write
-
 jobs:
   # Keeps a per-component version-bump/changelog PR up to date on every push
   # to main. Never tags or creates a GitHub Release -- safe to run
   # unconditionally.
   release-please-pr:
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
     name: Update release PRs
     runs-on: ubuntu-latest
     steps:
@@ -30,6 +29,8 @@ jobs:
   # version is only ever "released" in lockstep with an actual production
   # deploy, not whenever the release-please PR happened to get merged.
   release-please-tag:
+    permissions:
+      contents: write
     name: Tag + release on production deploy
     runs-on: ubuntu-latest
     if: startsWith(github.event.head_commit.message, 'release:')
