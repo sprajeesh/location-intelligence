@@ -23,16 +23,19 @@ permissions:
   pull-requests: write
 
 jobs:
-  # Keeps a per-component version-bump/changelog PR up to date on every push
-  # to main. Never tags or creates a GitHub Release -- safe to run
-  # unconditionally.
+  # Refreshes the per-component version-bump/changelog PR, or tags + creates
+  # the GitHub Release if the pending PR was just merged. Gated to
+  # release: merges (see push.yml's deploy jobs) plus release-please's own
+  # PR-merge commits ("chore(main): release ...") so the second run --
+  # the one that actually cuts the release -- can fire itself.
   release-please-pr:
     name: Update release PRs
     runs-on: ubuntu-latest
     if: |
       github.event_name == 'workflow_dispatch' ||
       (github.event.workflow_run.conclusion == 'success' &&
-        startsWith(github.event.workflow_run.head_commit.message, 'release:'))
+        (startsWith(github.event.workflow_run.head_commit.message, 'release:') ||
+          startsWith(github.event.workflow_run.head_commit.message, 'chore(main): release ')))
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
