@@ -139,6 +139,7 @@ jobs:
           DB_USER: ${{ secrets.DB_USER }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
           API_SHARED_SECRET: ${{ secrets.API_SHARED_SECRET }}
+          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
         run: |
           ssh -o StrictHostKeyChecking=yes "ubuntu@$SERVER_HOST" bash -s <<REMOTE
             set -euo pipefail
@@ -154,7 +155,7 @@ jobs:
             git checkout --detach "$GIT_SHA"
 
             echo "==> Writing .env"
-            bash scripts/fetch-secrets.sh "$DB_USER" "$DB_PASSWORD" "$API_SHARED_SECRET" .env
+            bash scripts/fetch-secrets.sh "$DB_USER" "$DB_PASSWORD" "$API_SHARED_SECRET" "$REDIS_PASSWORD" .env
 
             echo "==> Rebuilding and restarting all services"
             docker compose -f docker-compose.yml -f docker-compose.prod.yml pull --quiet || true

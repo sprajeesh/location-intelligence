@@ -2,7 +2,7 @@ services:
   redis:
     image: redis:7-alpine
     ports:
-      - "6379:6379"
+      - "127.0.0.1:6379:6379"
     volumes:
       - redis-data:/data
     command: redis-server --appendonly yes
@@ -37,7 +37,7 @@ services:
   osrm:
     image: osrm/osrm-backend
     ports:
-      - "5000:5000"
+      - "127.0.0.1:5000:5000"
     volumes:
       - ./osrm-data:/data
     command: osrm-routed --algorithm mld /data/new-zealand-latest.osrm

@@ -42,6 +42,13 @@ services:
 
   redis:
     restart: unless-stopped
+    # REDIS_PASSWORD comes from .env (written by scripts/fetch-secrets.sh from
+    # the REDIS_PASSWORD GitHub secret) -- list form here (not a bare string)
+    # so Compose doesn't word-split the interpolated password on
+    # spaces/special characters before it reaches the container's argv.
+    command: ["redis-server", "--appendonly", "yes", "--requirepass", "${REDIS_PASSWORD}"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "--no-auth-warning", "ping"]
 
   osrm:
     restart: unless-stopped
