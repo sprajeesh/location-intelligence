@@ -67,6 +67,28 @@ DB_USER_URI="$(url_encode "$DB_USER")"
 DB_PASSWORD_URI="$(url_encode "$DB_PASSWORD")"
 REDIS_PASSWORD_URI="$(url_encode "$REDIS_PASSWORD")"
 
+# Bare (unquoted) KEY=value lines can't represent an embedded newline at
+# all, and comment/quote handling for inline "#"/"\"/'"' varies across
+# Compose versions -- double-quoting is the one form verified (against this
+# Compose version's actual env_file parser) to round-trip arbitrary secret
+# bytes intact, using the escapes it supports inside double quotes: \\, \",
+# and \n for a real newline. Applied after compose_escape, so a value's `$`
+# survives as the literal "$$" compose_escape produced (dotenv_quote doesn't
+# touch "$" at all, so the two compose cleanly regardless of order here).
+dotenv_quote() {
+  local LC_ALL=C string="$1" i c out=''
+  for (( i = 0; i < ${#string}; i++ )); do
+    c="${string:$i:1}"
+    case "$c" in
+      '\') out+='\\' ;;
+      '"') out+='\"' ;;
+      $'\n') out+='\n' ;;
+      *) out+="$c" ;;
+    esac
+  done
+  printf '"%s"' "$out"
+}
+
 # Redis's own config-file parser (sdssplitargs) has its own quoting dialect
 # for single-quoted values: the only special sequence is \' (an escaped
 # literal quote); every other byte, including a bare backslash, passes
@@ -90,19 +112,19 @@ redis_conf_escape() {
 # consumed by the containerized api service, unlike the host-network .env
 # used for local dev (see AGENTS.md).
 cat >"$ENV_FILE" <<EOF
-DB_USER=$(compose_escape "$DB_USER")
-DB_PASSWORD=$(compose_escape "$DB_PASSWORD")
+DB_USER=$(dotenv_quote "$(compose_escape "$DB_USER")")
+DB_PASSWORD=$(dotenv_quote "$(compose_escape "$DB_PASSWORD")")
 API_HOST=0.0.0.0
 API_PORT=8000
 DATABASE_URL=postgresql://${DB_USER_URI}:${DB_PASSWORD_URI}@postgis:5432/gis
 OVERPASS_URL=https://overpass-api.de/api/interpreter
 OSRM_URL=http://osrm:5000
-REDIS_PASSWORD=$(compose_escape "$REDIS_PASSWORD")
+REDIS_PASSWORD=$(dotenv_quote "$(compose_escape "$REDIS_PASSWORD")")
 REDIS_URL=redis://:${REDIS_PASSWORD_URI}@redis:6379
 SCORING_ALPHA=0.6
 SCORING_BETA=0.4
 SCORING_DENSITY_FACTOR=10
-API_SHARED_SECRET=$(compose_escape "$API_SHARED_SECRET")
+API_SHARED_SECRET=$(dotenv_quote "$(compose_escape "$API_SHARED_SECRET")")
 EOF
 chmod 600 "$ENV_FILE"
 
