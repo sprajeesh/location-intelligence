@@ -5,14 +5,36 @@
 # involved, so this is provider-agnostic: it works unchanged no matter which
 # provider hosts the VM.
 #
-# Usage: fetch-secrets.sh <db_user> <db_password> [api_shared_secret] <redis_password> [env_file]
+# Secrets arrive base64-encoded, one per line, on stdin -- in order: db_user,
+# db_password, api_shared_secret, redis_password -- rather than as CLI args.
+# The deploy step assembles this script's invocation inside a heredoc that
+# gets re-parsed by a shell on arrival; raw secret bytes sitting in that text
+# could both break out of their quoting (injection) and show up in this
+# process's argv (visible to any other user on the VM via `ps`). Base64 text
+# has neither problem, and decoding happens only after it's safely inside a
+# variable here.
+#
+# Usage: fetch-secrets.sh [env_file]   (env_file defaults to .env)
 set -euo pipefail
 
-DB_USER="${1:?db_user required}"
-DB_PASSWORD="${2:?db_password required}"
-API_SHARED_SECRET="${3:-}"
-REDIS_PASSWORD="${4:?redis_password required}"
-ENV_FILE="${5:-.env}"
+b64_decode() {
+  base64 -d <<<"$1"
+}
+
+IFS= read -r DB_USER_B64
+IFS= read -r DB_PASSWORD_B64
+IFS= read -r API_SHARED_SECRET_B64
+IFS= read -r REDIS_PASSWORD_B64
+
+DB_USER="$(b64_decode "$DB_USER_B64")"
+DB_PASSWORD="$(b64_decode "$DB_PASSWORD_B64")"
+API_SHARED_SECRET="$(b64_decode "$API_SHARED_SECRET_B64")"
+REDIS_PASSWORD="$(b64_decode "$REDIS_PASSWORD_B64")"
+ENV_FILE="${1:-.env}"
+
+: "${DB_USER:?db_user required}"
+: "${DB_PASSWORD:?db_password required}"
+: "${REDIS_PASSWORD:?redis_password required}"
 
 # Compose re-scans values it substitutes into its own ${VAR} interpolation
 # (e.g. DB_USER/DB_PASSWORD as build args in docker-compose.yml) -- a literal
