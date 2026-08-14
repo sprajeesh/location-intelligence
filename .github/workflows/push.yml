@@ -139,7 +139,20 @@ jobs:
           DB_USER: ${{ secrets.DB_USER }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
           API_SHARED_SECRET: ${{ secrets.API_SHARED_SECRET }}
+          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
         run: |
+          # Base64 first: the heredoc below is re-parsed as shell syntax on
+          # arrival at the remote end, so embedding the raw secret values in
+          # it directly would let quote/backtick/$() characters in a secret
+          # break out of their quoting there. Base64 text can't do that, and
+          # decoding happens inside fetch-secrets.sh via stdin -- never as a
+          # command-line argument -- so the plaintext never appears in that
+          # process's argv either (see scripts/fetch-secrets.sh).
+          DB_USER_B64=$(printf '%s' "$DB_USER" | base64 -w0)
+          DB_PASSWORD_B64=$(printf '%s' "$DB_PASSWORD" | base64 -w0)
+          API_SHARED_SECRET_B64=$(printf '%s' "$API_SHARED_SECRET" | base64 -w0)
+          REDIS_PASSWORD_B64=$(printf '%s' "$REDIS_PASSWORD" | base64 -w0)
+
           ssh -o StrictHostKeyChecking=yes "ubuntu@$SERVER_HOST" bash -s <<REMOTE
             set -euo pipefail
 
@@ -154,7 +167,7 @@ jobs:
             git checkout --detach "$GIT_SHA"
 
             echo "==> Writing .env"
-            bash scripts/fetch-secrets.sh "$DB_USER" "$DB_PASSWORD" "$API_SHARED_SECRET" .env
+            printf '%s\n%s\n%s\n%s\n' "$DB_USER_B64" "$DB_PASSWORD_B64" "$API_SHARED_SECRET_B64" "$REDIS_PASSWORD_B64" | bash scripts/fetch-secrets.sh .env
 
             echo "==> Rebuilding and restarting all services"
             docker compose -f docker-compose.yml -f docker-compose.prod.yml pull --quiet || true

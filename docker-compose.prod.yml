@@ -42,6 +42,26 @@ services:
 
   redis:
     restart: unless-stopped
+    secrets:
+      - redis_password
+      - redis_requirepass_conf
+    # requirepass reaches redis-server through --include of a mounted
+    # /run/secrets file (already pre-quoted by scripts/fetch-secrets.sh),
+    # not a --requirepass CLI arg -- CLI args are visible host-wide via
+    # `docker top`/`ps` (containers share the host's process table), whereas
+    # only this container can read its own /run/secrets mounts. Same
+    # reasoning for the healthcheck using REDISCLI_AUTH instead of
+    # `redis-cli -a`.
+    command:
+      - redis-server
+      - --appendonly
+      - "yes"
+      - --include
+      - /run/secrets/redis_requirepass_conf
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - REDISCLI_AUTH="$(cat /run/secrets/redis_password)" redis-cli ping
 
   osrm:
     restart: unless-stopped
@@ -73,3 +93,13 @@ volumes:
 
 networks:
   proxy:
+
+secrets:
+  # Both written by scripts/fetch-secrets.sh (plaintext, gitignored) as part
+  # of the deploy step -- refreshed on every deploy alongside .env. Files are
+  # chmod 644 (the container reads them as its own non-root uid); the 700
+  # containing directory is what actually keeps other host users out.
+  redis_password:
+    file: ./secrets/redis_password
+  redis_requirepass_conf:
+    file: ./secrets/redis_requirepass.conf
