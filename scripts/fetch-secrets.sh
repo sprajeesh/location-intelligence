@@ -14,7 +14,8 @@
 # has neither problem, and decoding happens only after it's safely inside a
 # variable here.
 #
-# Usage: fetch-secrets.sh [env_file]   (env_file defaults to .env)
+# Usage: fetch-secrets.sh [env_file] [secrets_dir]
+# (env_file defaults to .env, secrets_dir defaults to ./secrets)
 set -euo pipefail
 
 b64_decode() {
@@ -31,6 +32,7 @@ DB_PASSWORD="$(b64_decode "$DB_PASSWORD_B64")"
 API_SHARED_SECRET="$(b64_decode "$API_SHARED_SECRET_B64")"
 REDIS_PASSWORD="$(b64_decode "$REDIS_PASSWORD_B64")"
 ENV_FILE="${1:-.env}"
+SECRETS_DIR="${2:-secrets}"
 
 : "${DB_USER:?db_user required}"
 : "${DB_PASSWORD:?db_password required}"
@@ -65,6 +67,24 @@ DB_USER_URI="$(url_encode "$DB_USER")"
 DB_PASSWORD_URI="$(url_encode "$DB_PASSWORD")"
 REDIS_PASSWORD_URI="$(url_encode "$REDIS_PASSWORD")"
 
+# Redis's own config-file parser (sdssplitargs) has its own quoting dialect
+# for single-quoted values: the only special sequence is \' (an escaped
+# literal quote); every other byte, including a bare backslash, passes
+# through unchanged. Escaping just the quote character here is therefore
+# sufficient -- and necessary, since an un-escaped "'" (or, if this weren't
+# escaped at all, a raw '"' as hit during testing) breaks the config line.
+redis_conf_escape() {
+  local LC_ALL=C string="$1" i c out=''
+  for (( i = 0; i < ${#string}; i++ )); do
+    c="${string:$i:1}"
+    case "$c" in
+      "'") out+="\\'" ;;
+      *) out+="$c" ;;
+    esac
+  done
+  printf '%s' "$out"
+}
+
 # Hostnames below are docker-compose service names (api/postgis/redis/osrm
 # all share the project's default network), not localhost -- this file is
 # consumed by the containerized api service, unlike the host-network .env
@@ -86,4 +106,26 @@ API_SHARED_SECRET=$(compose_escape "$API_SHARED_SECRET")
 EOF
 chmod 600 "$ENV_FILE"
 
-echo "Wrote ${ENV_FILE}"
+# Two Compose file-secrets for docker-compose.prod.yml's redis service, so
+# the password never appears in redis-server's or redis-cli's own process
+# arguments (visible host-wide via `docker top`/`ps`, unlike a /run/secrets
+# mount which only that container can read):
+#  - redis_password: raw value, for the healthcheck's REDISCLI_AUTH
+#  - redis_requirepass.conf: a ready-to-use "requirepass '...'" config line,
+#    pre-escaped here (see redis_conf_escape above) so redis-server can
+#    --include it directly with no further string handling in the container
+#
+# Compose bind-mounts these files as-is, preserving host ownership/mode, into
+# a container that reads them as its own non-root user (a different uid than
+# whatever runs this script) -- so 600 would be unreadable there. The
+# directory being 700 (owner-only traversal) is what actually keeps other
+# host users out; 644 on the files just satisfies the container's uid.
+mkdir -p "$SECRETS_DIR"
+chmod 700 "$SECRETS_DIR"
+printf '%s' "$REDIS_PASSWORD" >"$SECRETS_DIR/redis_password"
+chmod 644 "$SECRETS_DIR/redis_password"
+
+printf "requirepass '%s'\n" "$(redis_conf_escape "$REDIS_PASSWORD")" >"$SECRETS_DIR/redis_requirepass.conf"
+chmod 644 "$SECRETS_DIR/redis_requirepass.conf"
+
+echo "Wrote ${ENV_FILE}, ${SECRETS_DIR}/redis_password, and ${SECRETS_DIR}/redis_requirepass.conf"
