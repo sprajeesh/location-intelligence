@@ -96,3 +96,29 @@ class TestAuthSkippedWhenNotConfigured:
             ).api_shared_secret
             is None
         )
+
+
+class TestProductionRequiresSecret:
+    """environment=production without api_shared_secret must fail fast at
+    startup, not silently run with verify_api_key's enforcement skipped."""
+
+    def _kwargs(self, **overrides: object) -> dict[str, object]:
+        return {
+            "database_url": "postgresql://testuser:testpass@localhost/testdb",
+            "overpass_url": "http://mock-overpass",
+            "osrm_url": "http://mock-osrm",
+            "redis_url": "redis://localhost:6379",
+            **overrides,
+        }
+
+    def test_production_without_secret_raises(self) -> None:
+        with pytest.raises(ValueError, match="api_shared_secret must be set"):
+            Settings(**self._kwargs(environment="production"))
+
+    def test_production_with_secret_is_allowed(self) -> None:
+        settings = Settings(**self._kwargs(environment="production", api_shared_secret=SECRET))
+        assert settings.api_shared_secret == SECRET
+
+    def test_development_without_secret_is_allowed(self) -> None:
+        settings = Settings(**self._kwargs(environment="development"))
+        assert not settings.api_shared_secret

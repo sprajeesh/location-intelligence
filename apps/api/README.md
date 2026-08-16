@@ -9,7 +9,7 @@ Handles geocoding (LINZ PostGIS), Overpass queries, distance calculation, cachin
 **Testing:** pytest (45 tests)  
 **Linting:** Ruff
 
-**Docs:** [How an address gets scored](docs/SCORING.md) — a plain-language explanation of the scoring engine, no code required. [Database tables](docs/DATA_MODEL.md) — schema for `addresses`, `facility_types`, `category_weights`.
+**Docs:** [How an address gets scored](docs/SCORING.md) — a plain-language explanation of the scoring engine, no code required. [Database tables](docs/DATA_MODEL.md) — schema for `addresses`, `facility_types`, `category_weights`. [How the API is protected](docs/PROTECTION.md) — rate limiting, circuit breakers, concurrency limits, and input validation.
 
 ---
 
@@ -500,6 +500,8 @@ All error messages are **scrubbed** before returning to client:
 | Overpass total failure   | 503    | Safe message (no technical details)       |
 | OSRM unavailable         | 200    | Haversine distances + warning in response |
 | Rate limit (Overpass)    | 429    | `Retry-After: 60` header                  |
+| Rate limit (this API)    | 429    | `Retry-After` header — see [docs/PROTECTION.md](docs/PROTECTION.md) |
+| Too many concurrent `/location/analyze` requests | 503 | `Retry-After: 2` header |
 | Invalid input            | 422    | Pydantic validation errors                |
 
 ---
@@ -741,7 +743,7 @@ curl "http://localhost:5000/route/v1/driving/174.763,-36.848;174.770,-36.852?ove
 ## Future Enhancements
 
 - [ ] **Request IDs:** Generate in BFF, pass to FastAPI for tracing
-- [ ] **Rate limiting:** Per IP or API key
+- [x] **Rate limiting:** Per IP, via the BFF-forwarded visitor IP — see [How the API is protected](docs/PROTECTION.md)
 - [ ] **Authentication:** JWT tokens, OAuth2
 - [ ] **OpenAPI spec generation:** For frontend type generation (`openapi-typescript`)
 - [ ] **Async batch processing:** For large facility lists

@@ -6,6 +6,8 @@ from email.utils import parsedate_to_datetime
 
 import httpx
 
+from app.clients.circuit_breaker import CircuitBreaker
+
 logger = logging.getLogger(__name__)
 
 DEFAULT_MAX_CONCURRENCY = 2  # overpass-api.de tolerates ~2 concurrent slots/IP
@@ -143,6 +145,7 @@ class OverpassClient:
         category_tags: dict[str, list[tuple[str, str]]],
         *,
         max_concurrency: int = DEFAULT_MAX_CONCURRENCY,
+        breaker: CircuitBreaker | None = None,
     ) -> None:
         if max_concurrency < 1:
             raise ValueError(f"max_concurrency must be >= 1, got {max_concurrency}")
@@ -151,6 +154,7 @@ class OverpassClient:
         self._http = http_client
         self._category_tags = category_tags
         self._semaphore = asyncio.Semaphore(max_concurrency)
+        self._breaker = breaker
 
     async def fetch_categories(
         self,
@@ -178,7 +182,14 @@ class OverpassClient:
 
         query = _build_merged_query(specs, lat, lon)
         label = ",".join(category for category, _tags, _radius_m in specs)
-        elements = await self._post_with_retry(query, retries, label)
+
+        if self._breaker is not None:
+            elements = await self._breaker.call(
+                lambda: self._post_with_retry(query, retries, label)
+            )
+        else:
+            elements = await self._post_with_retry(query, retries, label)
+
         parsed = _parse_merged_elements(elements, tag_to_category)
         return {category: parsed.get(category, []) for category, _tags, _radius_m in specs}
 

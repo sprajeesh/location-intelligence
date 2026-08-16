@@ -72,6 +72,17 @@ async def analyze_location(
         else request.app.state.scoring_config.default_categories
     )
 
+    # The schema only bounds shape (length/dedup) -- the real category set is
+    # DB-loaded and only available here, so this is the authoritative check
+    # against the confirmed "categories: [garbage]*N" abuse vector.
+    known_categories = {c.id for c in request.app.state.scoring_config.categories}
+    unknown_categories = set(categories) - known_categories
+    if unknown_categories:
+        raise HTTPException(
+            status_code=422,
+            detail=f"Unknown categories: {sorted(unknown_categories)}",
+        )
+
     # --- Step 3: Fetch facilities for requested categories ---
     facilities, facility_warnings, failed_categories = await facilities_svc.fetch_all(
         categories, lat, lon, body.radius_km

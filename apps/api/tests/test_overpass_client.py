@@ -8,6 +8,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import httpx
 import pytest
 
+from app.clients.circuit_breaker import CircuitBreaker, CircuitOpenError
 from app.clients.overpass import (
     OverpassClient,
     _build_merged_query,
@@ -292,3 +293,47 @@ class TestFetchCategories:
                 )
 
         assert mock_http.post.call_count == 3
+
+
+class TestCircuitBreakerIntegration:
+    async def test_breaker_counts_one_failure_per_call_not_per_retry_attempt(self) -> None:
+        """The breaker wraps the whole fetch_categories call (with its own
+        internal retries), so retries=2 (3 HTTP attempts) inside one failing
+        call must only count as a single breaker failure -- not three."""
+        mock_http = MagicMock()
+        mock_http.post = AsyncMock(side_effect=RuntimeError("boom"))
+        breaker = CircuitBreaker("overpass", failure_threshold=2, cooldown_seconds=30.0)
+        client = OverpassClient("http://mock-overpass", mock_http, {}, breaker=breaker)
+
+        with patch("app.clients.overpass.asyncio.sleep", new=AsyncMock()):
+            with pytest.raises(RuntimeError, match="Overpass query failed"):
+                await client.fetch_categories(
+                    [("schools", [("amenity", "school")], 3000)], -36.848, 174.763, retries=2
+                )
+
+        assert mock_http.post.call_count == 3  # all 3 retry attempts ran
+        assert not breaker.is_open  # but only counted as 1 of 2 needed failures
+
+        with patch("app.clients.overpass.asyncio.sleep", new=AsyncMock()):
+            with pytest.raises(RuntimeError, match="Overpass query failed"):
+                await client.fetch_categories(
+                    [("schools", [("amenity", "school")], 3000)], -36.848, 174.763, retries=2
+                )
+
+        assert breaker.is_open  # 2nd whole-call failure opens it
+
+    async def test_breaker_open_skips_http_entirely(self) -> None:
+        breaker = CircuitBreaker("overpass", failure_threshold=1, cooldown_seconds=30.0)
+        breaker.record_failure()
+        assert breaker.is_open
+
+        mock_http = MagicMock()
+        mock_http.post = AsyncMock()
+        client = OverpassClient("http://mock-overpass", mock_http, {}, breaker=breaker)
+
+        with pytest.raises(CircuitOpenError):
+            await client.fetch_categories(
+                [("schools", [("amenity", "school")], 3000)], -36.848, 174.763
+            )
+
+        mock_http.post.assert_not_called()

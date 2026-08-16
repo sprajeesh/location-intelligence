@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { apiKeyHeaders } from '@/utils/apiAuth'
+import { clientIpHeaders } from '@/utils/clientIp'
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams
@@ -17,7 +18,7 @@ export async function GET(request: NextRequest) {
 
   try {
     const response = await fetch(fastApiUrl, {
-      headers: apiKeyHeaders(),
+      headers: { ...apiKeyHeaders(), ...clientIpHeaders(request.headers) },
     })
 
     if (!response.ok) {

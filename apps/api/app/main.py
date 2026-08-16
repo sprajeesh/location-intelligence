@@ -1,13 +1,18 @@
+import logging
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
 import httpx
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi_limiter import FastAPILimiter
 
 from app.api import analyze, categories, health, search
+from app.api.concurrency import InFlightLimiter, analyze_capacity_guard
 from app.api.deps import verify_api_key
+from app.api.rate_limit import bff_client_identifier, rate_limit_exceeded, rate_limiter
 from app.clients import redis_client as redis_module
+from app.clients.circuit_breaker import CircuitBreaker
 from app.clients.osrm import OSRMClient
 from app.clients.overpass import OverpassClient
 from app.config.scoring_config_loader import load_scoring_config
@@ -22,6 +27,8 @@ from app.services.facilities import FacilitiesService
 from app.services.geocoding import GeocodingService
 from app.services.scoring import LocationScoringService
 
+logger = logging.getLogger(__name__)
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
@@ -32,6 +39,16 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     redis_client = await redis_module.get_client()
     cache = CacheRepository(redis_client)
 
+    # Rate limiting (app/api/rate_limit.py) -- fails open via rate_limiter()'s
+    # wrapper when Redis is unavailable, so only enable the library's own
+    # atomic Lua script when there's a real connection to run it on.
+    if redis_client is not None:
+        await FastAPILimiter.init(
+            redis_client, identifier=bff_client_identifier, http_callback=rate_limit_exceeded
+        )
+    else:
+        logger.warning("Rate limiting disabled -- Redis unavailable, failing open")
+
     # Connect PostGIS
     db_pool = await create_pool(settings.database_url)
 
@@ -40,8 +57,27 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     scoring_config = await load_scoring_config(FacilityConfigRepository(db_pool))
     app.state.scoring_config = scoring_config
 
+    # Process-wide cap on concurrent /location/analyze requests -- protects
+    # the single uvicorn worker from being monopolized by a handful of large
+    # concurrent requests (see app/api/concurrency.py).
+    app.state.analyze_in_flight_limiter = InFlightLimiter(settings.analyze_max_in_flight)
+
     # Shared HTTP client for Overpass and OSRM
     http_client = httpx.AsyncClient()
+
+    # Circuit breakers -- fail fast after repeated consecutive failures rather
+    # than paying each client's full timeout/retry cost on every request
+    # during a real outage (see app/clients/circuit_breaker.py).
+    overpass_breaker = CircuitBreaker(
+        "overpass",
+        failure_threshold=settings.overpass_breaker_failure_threshold,
+        cooldown_seconds=settings.overpass_breaker_cooldown_seconds,
+    )
+    osrm_breaker = CircuitBreaker(
+        "osrm",
+        failure_threshold=settings.osrm_breaker_failure_threshold,
+        cooldown_seconds=settings.osrm_breaker_cooldown_seconds,
+    )
 
     # Wire up clients
     overpass = OverpassClient(
@@ -49,13 +85,24 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         http_client,
         scoring_config.category_tags,
         max_concurrency=settings.overpass_max_concurrency,
+        breaker=overpass_breaker,
     )
-    osrm = OSRMClient(settings.osrm_url, http_client)
+    osrm = OSRMClient(
+        settings.osrm_url,
+        http_client,
+        max_concurrency=settings.osrm_max_concurrency,
+        breaker=osrm_breaker,
+    )
 
     # Wire up services
     app.state.geocoding_svc = GeocodingService(AddressRepository(db_pool), cache)
     app.state.facilities_svc = FacilitiesService(overpass, cache, scoring_config)
-    app.state.distance_svc = DistanceService(osrm, cache, scoring_config.facility_configs)
+    app.state.distance_svc = DistanceService(
+        osrm,
+        cache,
+        scoring_config.facility_configs,
+        max_destinations_per_leg=settings.osrm_max_destinations_per_leg,
+    )
     app.state.scoring_svc = LocationScoringService(
         scoring_config.facility_configs,
         scoring_config.category_facility_weights,
@@ -86,12 +133,41 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
 
+    settings = get_settings()
+
     # health stays unauthenticated -- the docker-compose healthcheck (and any
     # external uptime monitor) doesn't have the shared secret.
     app.include_router(health.router)
-    app.include_router(search.router, dependencies=[Depends(verify_api_key)])
-    app.include_router(categories.router, dependencies=[Depends(verify_api_key)])
-    app.include_router(analyze.router, dependencies=[Depends(verify_api_key)])
+    app.include_router(
+        search.router,
+        dependencies=[
+            Depends(verify_api_key),
+            Depends(
+                rate_limiter(settings.rate_limit_search_times, settings.rate_limit_search_seconds)
+            ),
+        ],
+    )
+    app.include_router(
+        categories.router,
+        dependencies=[
+            Depends(verify_api_key),
+            Depends(
+                rate_limiter(
+                    settings.rate_limit_categories_times, settings.rate_limit_categories_seconds
+                )
+            ),
+        ],
+    )
+    app.include_router(
+        analyze.router,
+        dependencies=[
+            Depends(verify_api_key),
+            Depends(
+                rate_limiter(settings.rate_limit_analyze_times, settings.rate_limit_analyze_seconds)
+            ),
+            Depends(analyze_capacity_guard),
+        ],
+    )
 
     return app
 
