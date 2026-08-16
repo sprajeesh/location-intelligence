@@ -154,6 +154,17 @@ thing that can successfully call these routes is the BFF itself, which is
 why the API trusts whatever IP the BFF asserts in `X-Forwarded-Client-Ip`
 rather than needing its own independent verification.
 
+**Known gap:** Caddy is a bare passthrough (`docker/Caddyfile`) on a public
+hostname with no header manipulation, so anyone who holds the shared secret
+can call Caddy directly and set `X-Forwarded-Client-Ip` to whatever they
+like, rotating past the per-visitor rate limit. Restricting by
+`request.client.host` at the FastAPI layer doesn't close this -- that value
+is always Caddy's own address, for both legitimate BFF traffic and this
+attack, since Caddy can't distinguish the two either. Closing this properly
+would need something independent of the header itself (e.g. an aggregate
+rate cap, or restricting Caddy's `remote_ip` to Cloudflare's ranges).
+Not implemented yet -- tracked as future work.
+
 ## What to check when something looks wrong
 
 | Symptom | Likely cause | Where to look |
