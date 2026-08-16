@@ -6,6 +6,8 @@ from httpx import AsyncClient
 
 from app.clients.osrm import OSRMClient
 from app.clients.overpass import OverpassClient
+from app.config.hazard_config import HAZARD_TYPE_CONFIGS
+from app.config.hazard_config_loader import HazardScoringConfig
 from app.config.scoring_config import (
     CATEGORY_FACILITY_WEIGHTS,
     CATEGORY_WEIGHTS,
@@ -16,9 +18,11 @@ from app.config.settings import Settings, get_settings
 from app.main import create_app
 from app.repositories.cache import CacheRepository
 from app.repositories.db.address_repository import AddressRepository
+from app.repositories.db.hazard_repository import HazardRepository
 from app.services.distance import DistanceService
 from app.services.facilities import FacilitiesService
 from app.services.geocoding import GeocodingService
+from app.services.hazard_scoring import HazardScoringService
 from app.services.scoring import LocationScoringService
 
 
@@ -48,6 +52,23 @@ def build_test_scoring_config() -> ScoringConfig:
         category_tags=category_tags,
         default_categories=default_categories,
     )
+
+
+def build_test_hazard_config() -> HazardScoringConfig:
+    """The same demo_hazard config the DB would be seeded with (see
+    alembic/versions/0003_create_hazard_tables.py), assembled synchronously
+    for tests (no DB round-trip)."""
+    return HazardScoringConfig(hazard_types=HAZARD_TYPE_CONFIGS)
+
+
+def _mock_hazard_repo() -> HazardRepository:
+    """A repo with no cells populated -- every point lookup returns "no
+    coverage" (hazard: null in responses), which is the correct default for
+    tests that don't care about hazard scoring specifically."""
+    repo = MagicMock(spec=HazardRepository)
+    repo.fetch_cell_scores = AsyncMock(return_value=[])
+    repo.fetch_cells_in_bbox = AsyncMock(return_value=[])
+    return repo
 
 
 def override_settings() -> Settings:
@@ -84,13 +105,19 @@ def test_client() -> TestClient:
     overpass = OverpassClient("http://mock-overpass", mock_http, scoring_config.category_tags)
     osrm = OSRMClient("http://mock-osrm", mock_http)
 
+    hazard_config = build_test_hazard_config()
+
     with (
         patch("app.main.create_pool", new=AsyncMock(return_value=MagicMock())),
         patch("app.main.close_pool", new=AsyncMock()),
         patch("app.main.load_scoring_config", new=AsyncMock(return_value=scoring_config)),
+        patch("app.main.load_hazard_config", new=AsyncMock(return_value=hazard_config)),
     ):
         with TestClient(application) as client:
             application.state.scoring_config = scoring_config
+            hazard_repo = _mock_hazard_repo()
+            application.state.hazard_repo = hazard_repo
+            application.state.hazard_svc = HazardScoringService(hazard_repo, hazard_config)
             application.state.geocoding_svc = GeocodingService(_mock_address_repo(), cache)
             application.state.facilities_svc = FacilitiesService(overpass, cache, scoring_config)
             application.state.distance_svc = DistanceService(
@@ -115,13 +142,19 @@ async def async_test_client() -> AsyncClient:
     overpass = OverpassClient("http://mock-overpass", mock_http, scoring_config.category_tags)
     osrm = OSRMClient("http://mock-osrm", mock_http)
 
+    hazard_config = build_test_hazard_config()
+
     with (
         patch("app.main.create_pool", new=AsyncMock(return_value=MagicMock())),
         patch("app.main.close_pool", new=AsyncMock()),
         patch("app.main.load_scoring_config", new=AsyncMock(return_value=scoring_config)),
+        patch("app.main.load_hazard_config", new=AsyncMock(return_value=hazard_config)),
     ):
         async with AsyncClient(app=application, base_url="http://test") as client:
             application.state.scoring_config = scoring_config
+            hazard_repo = _mock_hazard_repo()
+            application.state.hazard_repo = hazard_repo
+            application.state.hazard_svc = HazardScoringService(hazard_repo, hazard_config)
             application.state.geocoding_svc = GeocodingService(_mock_address_repo(), cache)
             application.state.facilities_svc = FacilitiesService(overpass, cache, scoring_config)
             application.state.distance_svc = DistanceService(

@@ -3,6 +3,7 @@ import logging
 import httpx
 from fastapi import APIRouter, HTTPException, Request
 
+from app.config.hazard_config import HAZARD_DISCLAIMER
 from app.models.domain import Facility
 from app.schemas.requests import AnalyzeRequest
 from app.schemas.responses import (
@@ -10,6 +11,8 @@ from app.schemas.responses import (
     CategoryScoreResult,
     FacilityScoreResult,
     FeatureResult,
+    HazardResult,
+    HazardSubScoreResult,
     LocationResult,
     ScoreResult,
 )
@@ -64,6 +67,36 @@ async def analyze_location(
         display_name = result["displayName"]
     elif body.address:
         display_name = body.address
+
+    # --- Step 1b: Hazard lookup -- point-based, independent of categories/radius,
+    # so it always runs rather than gating on the facility category model ---
+    hazard_svc = request.app.state.hazard_svc
+    hazard_domain = await hazard_svc.score_point(lat, lon)
+    hazard_result: HazardResult | None = None
+    if hazard_domain is None:
+        warnings.append("No hazard grid coverage for this location yet")
+    else:
+        hazard_result = HazardResult(
+            h3_index=hazard_domain.h3_index,
+            resolution=hazard_domain.resolution,
+            composite_score=hazard_domain.composite_score,
+            worst_hazard_type=hazard_domain.worst_hazard_type,
+            worst_hazard_score=hazard_domain.worst_hazard_score,
+            any_severe=hazard_domain.any_severe,
+            hazards=[
+                HazardSubScoreResult(
+                    hazard_type=h.hazard_type,
+                    score=h.score,
+                    severe=h.severe,
+                    is_proxy=h.is_proxy,
+                    source_name=h.source_name,
+                    licence=h.licence,
+                    data_currency_date=h.data_currency_date,
+                )
+                for h in hazard_domain.hazards
+            ],
+            disclaimer=HAZARD_DISCLAIMER,
+        )
 
     # --- Step 2: Resolve requested categories (None = use DB-configured defaults) ---
     categories = (
@@ -145,4 +178,5 @@ async def analyze_location(
         features=feature_results,
         score=score_result,
         warnings=warnings,
+        hazard=hazard_result,
     )

@@ -403,6 +403,7 @@ The `gis` database has two kinds of tables, managed two different ways:
 | --------------------------------- | ------------------------------------------------------ |
 | `addresses`                       | Baked into the `postgis` Docker image at build time (see above) |
 | `facility_types`, `category_weights` | [Alembic](https://alembic.sqlalchemy.org/) — run manually against a live container |
+| `hazard_types`, `hazard_sources`, `hazard_cells`, `hazard_cell_scores` | Alembic, same as above — see [Hazard Demo Data](#hazard-demo-data) below |
 
 `facility_types`/`category_weights` back the facility/scoring engine (which
 facility types exist, their scoring weights, OSM tag mapping, category
@@ -433,6 +434,28 @@ volume (not baked into the image), they survive `docker compose build
 postgis` / `docker compose up -d --build` — only `docker compose down -v` (or
 deleting the `postgis-data` volume) wipes them, requiring `alembic upgrade
 head` to be re-run.
+
+### Hazard Demo Data
+
+The hazard scoring feature is currently a **Phase-0 scaffold** (see
+[`apps/api/docs/HAZARD_SOURCES.md`](apps/api/docs/HAZARD_SOURCES.md) for the
+hazard data source verification, and `HAZARD.md` for the full build spec):
+one fabricated "demo hazard" over a fixed Auckland bbox, proving the
+pipeline end to end before any real hazard source is ingested.
+
+`alembic upgrade head` creates the `hazard_*` tables and seeds `hazard_types`
+with the `demo_hazard` config row — the API starts fine at this point, but
+every `/location/analyze` response has `hazard: null` (no coverage) until
+the demo cells are populated:
+
+```bash
+./scripts/setup-hazard-demo.sh
+```
+
+This is idempotent — safe to re-run, it upserts the same 286 deterministic
+cells rather than duplicating them. Like `facility_types`, these tables live
+in the `postgis-data` volume, so they survive image rebuilds and only need
+re-running after `docker compose down -v`.
 
 ---
 
