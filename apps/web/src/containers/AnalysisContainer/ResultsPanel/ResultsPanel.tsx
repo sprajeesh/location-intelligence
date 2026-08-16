@@ -8,6 +8,7 @@ import type { Feature } from "@/types/api";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
 import { FacilityItem } from "@/components/FacilityItem";
 import ScoreDisplay from "@/components/ScoreDisplay";
+import HazardDisplay from "@/components/HazardDisplay";
 import { CategoryGroup } from "@/components/CategoryGroup";
 import { RadiusAdjuster } from "@/components/RadiusAdjuster";
 import { GlassPanel } from "@/components/ui/GlassPanel";
@@ -296,6 +297,13 @@ export default function ResultsPanel({
               score={analysisResult.score}
               warnings={analysisResult.warnings}
             />
+          </div>
+        )}
+
+        {/* Hazard Section — separate from facility score per product decision */}
+        {analysisResult?.hazard && (
+          <div className="pt-3 border-t border-slate-700/30">
+            <HazardDisplay hazard={analysisResult.hazard} />
           </div>
         )}
 

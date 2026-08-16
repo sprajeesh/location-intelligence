@@ -7,15 +7,20 @@ import {
   Marker,
   Popup,
   Polyline,
+  GeoJSON,
   ScaleControl,
   useMap,
 } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { Navigation } from "lucide-react";
+import { Navigation, TriangleAlert } from "lucide-react";
 import { useLocationStore } from "@/store/index";
 import { useNavigate } from "@/hooks/useNavigate";
 import { useCategories } from "@/hooks/useCategories";
+import { useHazardCells } from "@/hooks/useHazardCells";
+import { getHazardCellColor } from "@/utils/hazardColor";
+import { HazardLegend } from "@/components/HazardLegend";
+import type { HazardCellFeature } from "@/types/hazard";
 import { useTranslations } from "next-intl";
 import {
   MapToolbarContainer,
@@ -63,13 +68,30 @@ function MapContent() {
     activeRoute,
     selectedFeature,
     routeMode,
+    hazardLayerVisible,
+    hazardCells,
+    setHoveredHazardCellId,
+    setSelectedHazardCellId,
   } = useLocationStore();
 
   const navigate = useNavigate();
   const t = useTranslations();
   const { categories } = useCategories();
+  useHazardCells(hazardLayerVisible);
 
   const [activeLayer, setActiveLayer] = useState<MapLayerId>("default");
+
+  // First custom Leaflet pane in this codebase -- puts the hazard polygons
+  // above the tile layer but below markers/popups (default overlayPane is
+  // 400, markerPane is 600), so category/main markers always stay on top
+  // and clickable.
+  useEffect(() => {
+    if (!map.getPane("hazardPane")) {
+      const pane = map.createPane("hazardPane");
+      pane.style.zIndex = "350";
+      pane.style.pointerEvents = "auto";
+    }
+  }, [map]);
 
   // Map category id -> DB-configured color, from GET /categories
   const categoryColorMap = useMemo(() => {
@@ -139,6 +161,36 @@ function MapContent() {
         attribution={TILE_LAYER_ATTRIBUTIONS[activeLayer]}
         url={TILE_LAYER_URLS[activeLayer]}
       />
+
+      {/* Hazard layer -- GeoJSON polygon overlay, this codebase's first.
+          Rendered via react-leaflet's <GeoJSON> (many imperative Leaflet
+          layers under one declarative data prop), not per-feature <Marker>s. */}
+      {hazardLayerVisible && hazardCells && (
+        <GeoJSON
+          key={hazardCells.features.length}
+          data={hazardCells as unknown as GeoJSON.FeatureCollection}
+          pane="hazardPane"
+          style={(feature) => {
+            const props = feature?.properties as HazardCellFeature["properties"];
+            return {
+              color: "#0f172a",
+              weight: 1,
+              fillColor: getHazardCellColor(props.composite),
+              fillOpacity: 0.55,
+            };
+          }}
+          onEachFeature={(feature, layer) => {
+            const props = feature.properties as HazardCellFeature["properties"];
+            layer.bindTooltip(buildHazardTooltipHtml(props), {
+              sticky: true,
+              className: "hazard-tooltip",
+            });
+            layer.on("mouseover", () => setHoveredHazardCellId(props.cellId));
+            layer.on("mouseout", () => setHoveredHazardCellId(null));
+            layer.on("click", () => setSelectedHazardCellId(props.cellId));
+          }}
+        />
+      )}
 
       {/* Map toolbar */}
       <MapToolbarContainer
@@ -250,9 +302,10 @@ function MapContent() {
  * Business logic: reads from store, manages map effects, handles marker rendering.
  */
 export function MapContainer() {
-  const { selectedAddress, isAnalyzing } = useLocationStore();
+  const { selectedAddress, isAnalyzing, hazardLayerVisible, hazardCells } = useLocationStore();
   const mapRef = useRef<L.Map | null>(null);
   const mapId = useId();
+  const t = useTranslations();
 
   // Default map center (central New Zealand) if no address selected
   const defaultCenter: [number, number] = [-41.2865, 172.9988];
@@ -287,6 +340,28 @@ export function MapContainer() {
         <MapContent />
       </LeafletMapContainer>
 
+      {/* Hazard layer chrome -- fixed to the viewport (outside the Leaflet
+          map tree) so it doesn't pan/zoom with the map, unlike the toolbar
+          which lives inside MapContent and is a Leaflet-aware control. */}
+      {hazardLayerVisible && hazardCells && (
+        <>
+          <div className="absolute top-2 left-1/2 -translate-x-1/2 z-[1000] pointer-events-none">
+            <div className="bg-slate-900/90 backdrop-blur border border-amber-500/40 rounded-lg px-3 py-1.5 flex items-center gap-2 text-xs text-amber-300">
+              <TriangleAlert className="w-3 h-3 flex-shrink-0" aria-hidden="true" />
+              <span>
+                {t("hazard.mapBanner", {
+                  defaultValue:
+                    "Illustrative hazard estimate — grid-cell resolution, not a LIM or property-specific advice.",
+                })}
+              </span>
+            </div>
+          </div>
+          <div className="absolute bottom-3 right-3 z-[1000] pointer-events-auto">
+            <HazardLegend />
+          </div>
+        </>
+      )}
+
       {/* Loading overlay */}
       {isAnalyzing && (
         <div className="absolute inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center pointer-events-none">
@@ -300,6 +375,33 @@ export function MapContainer() {
       )}
     </div>
   );
+}
+
+/**
+ * Builds the hover tooltip HTML for one hazard cell -- a plain HTML string
+ * (bound via Leaflet's native bindTooltip), not JSX, matching how the
+ * marker icons in this file are already built as HTML strings rather than
+ * React elements rendered through Leaflet.
+ */
+function buildHazardTooltipHtml(props: HazardCellFeature["properties"]): string {
+  const rows = props.hazards
+    .map(
+      (h) => `
+        <div style="display:flex;justify-content:space-between;gap:8px;">
+          <span style="text-transform:capitalize;">${h.hazardType}${h.isProxy ? " (proxy)" : ""}</span>
+          <span>${Math.round(h.score)}</span>
+        </div>`,
+    )
+    .join("");
+
+  return `
+    <div style="font-size:12px;min-width:140px;">
+      <div style="font-weight:600;margin-bottom:4px;">
+        Composite: ${Math.round(props.composite)} · Worst: ${Math.round(props.worstHazard)}
+      </div>
+      ${rows}
+    </div>
+  `;
 }
 
 /**

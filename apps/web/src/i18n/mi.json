@@ -51,6 +51,25 @@
       "supermarkets": "[MI] score.facilityTypes.supermarkets"
     }
   },
+  "hazard": {
+    "title": "[MI] hazard.title",
+    "composite": "[MI] hazard.composite",
+    "worstHazard": "[MI] hazard.worstHazard",
+    "severeWarning": "[MI] hazard.severeWarning",
+    "source": "[MI] hazard.source",
+    "dataAsOf": "[MI] hazard.dataAsOf",
+    "proxyLabel": "[MI] hazard.proxyLabel",
+    "disclaimer": "[MI] hazard.disclaimer",
+    "mapBanner": "[MI] hazard.mapBanner",
+    "showLayer": "[MI] hazard.showLayer",
+    "hideLayer": "[MI] hazard.hideLayer",
+    "legend": {
+      "title": "[MI] hazard.legend.title",
+      "safe": "[MI] hazard.legend.safe",
+      "severe": "[MI] hazard.legend.severe",
+      "proxyNote": "[MI] hazard.legend.proxyNote"
+    }
+  },
   "distance": {
     "driving": "[MI] distance.driving",
     "walking": "[MI] distance.walking",

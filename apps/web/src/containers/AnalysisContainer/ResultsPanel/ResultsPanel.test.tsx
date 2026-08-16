@@ -166,6 +166,7 @@ const mockAnalysisResult: AnalyzeResponse = {
   features: mockFeatures,
   score: mockScore,
   warnings: [],
+  hazard: null,
 };
 
 const makeStoreState = (overrides = {}) => ({

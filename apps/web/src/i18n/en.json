@@ -51,6 +51,25 @@
       "supermarkets": "Supermarkets"
     }
   },
+  "hazard": {
+    "title": "Hazard Score",
+    "composite": "Composite",
+    "worstHazard": "Worst hazard",
+    "severeWarning": "Severe risk: {hazards}",
+    "source": "Source",
+    "dataAsOf": "Data as of",
+    "proxyLabel": "Proxy estimate — not authoritative source data",
+    "disclaimer": "Illustrative hazard estimate at grid-cell resolution, built from available data. Not a Land Information Memorandum, not property-specific advice, and not a prediction of events.",
+    "mapBanner": "Illustrative hazard estimate — grid-cell resolution, not a LIM or property-specific advice.",
+    "showLayer": "Show hazard layer",
+    "hideLayer": "Hide hazard layer",
+    "legend": {
+      "title": "Hazard Severity",
+      "safe": "Safe",
+      "severe": "Severe",
+      "proxyNote": "Illustrative proxy data — see disclaimer"
+    }
+  },
   "distance": {
     "driving": "Driving",
     "walking": "Walking",

@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import type { AddressResult, AnalyzeResponse, Feature, RouteTransportMode } from '@/types/api'
+import type { HazardCellCollection } from '@/types/hazard'
 import { DEFAULT_RADIUS_KM } from '@/constants/radius'
 
 /**
@@ -31,6 +32,13 @@ export interface LocationIntelligenceStore {
   navigateFrom: AddressResult | null
   navigateTo: AddressResult | null
 
+  // Hazard map layer state -- opt-in (default hidden), separate from the
+  // per-address hazard result already carried inside analysisResult.hazard
+  hazardLayerVisible: boolean
+  hazardCells: HazardCellCollection | null
+  hoveredHazardCellId: string | null
+  selectedHazardCellId: string | null
+
   // Actions
   setSelectedAddress: (address: AddressResult | null) => void
   setRadiusKm: (radius: number) => void
@@ -50,6 +58,10 @@ export interface LocationIntelligenceStore {
   setNavigateFrom: (address: AddressResult | null) => void
   setNavigateTo: (address: AddressResult | null) => void
   exitNavigation: () => void
+  toggleHazardLayerVisible: () => void
+  setHazardCells: (cells: HazardCellCollection | null) => void
+  setHoveredHazardCellId: (id: string | null) => void
+  setSelectedHazardCellId: (id: string | null) => void
 }
 
 export const useLocationStore = create<LocationIntelligenceStore>((set) => ({
@@ -68,6 +80,11 @@ export const useLocationStore = create<LocationIntelligenceStore>((set) => ({
   routeMode: 'driving' as RouteTransportMode,
   navigateFrom: null,
   navigateTo: null,
+
+  hazardLayerVisible: false,
+  hazardCells: null,
+  hoveredHazardCellId: null,
+  selectedHazardCellId: null,
 
   // Setters
   setSelectedAddress: (address) =>
@@ -147,4 +164,16 @@ export const useLocationStore = create<LocationIntelligenceStore>((set) => ({
       navigateFrom: null,
       navigateTo: null,
     }),
+
+  toggleHazardLayerVisible: () =>
+    set((state) => ({ hazardLayerVisible: !state.hazardLayerVisible })),
+
+  setHazardCells: (cells) =>
+    set({ hazardCells: cells }),
+
+  setHoveredHazardCellId: (id) =>
+    set({ hoveredHazardCellId: id }),
+
+  setSelectedHazardCellId: (id) =>
+    set({ selectedHazardCellId: id }),
 }))
