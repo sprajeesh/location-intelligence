@@ -26,6 +26,12 @@ class Settings(BaseSettings):
     osrm_breaker_failure_threshold: int = 5
     osrm_breaker_cooldown_seconds: float = 30.0
 
+    # Process-wide cap on concurrent /location/analyze requests in flight --
+    # protects the single uvicorn worker from being monopolized by a handful
+    # of large concurrent requests. Requests over the cap get a fast 503
+    # rather than queuing (see app/api/concurrency.py).
+    analyze_max_in_flight: int = 8
+
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
 

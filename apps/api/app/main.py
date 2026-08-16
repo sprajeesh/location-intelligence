@@ -6,6 +6,7 @@ from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api import analyze, categories, health, search
+from app.api.concurrency import InFlightLimiter, analyze_capacity_guard
 from app.api.deps import verify_api_key
 from app.clients import redis_client as redis_module
 from app.clients.circuit_breaker import CircuitBreaker
@@ -40,6 +41,11 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     # app/config/scoring_config_loader.py. Picking up an edit requires a restart.
     scoring_config = await load_scoring_config(FacilityConfigRepository(db_pool))
     app.state.scoring_config = scoring_config
+
+    # Process-wide cap on concurrent /location/analyze requests -- protects
+    # the single uvicorn worker from being monopolized by a handful of large
+    # concurrent requests (see app/api/concurrency.py).
+    app.state.analyze_in_flight_limiter = InFlightLimiter(settings.analyze_max_in_flight)
 
     # Shared HTTP client for Overpass and OSRM
     http_client = httpx.AsyncClient()
@@ -112,7 +118,10 @@ def create_app() -> FastAPI:
     app.include_router(health.router)
     app.include_router(search.router, dependencies=[Depends(verify_api_key)])
     app.include_router(categories.router, dependencies=[Depends(verify_api_key)])
-    app.include_router(analyze.router, dependencies=[Depends(verify_api_key)])
+    app.include_router(
+        analyze.router,
+        dependencies=[Depends(verify_api_key), Depends(analyze_capacity_guard)],
+    )
 
     return app
 
