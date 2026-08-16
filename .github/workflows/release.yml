@@ -44,6 +44,15 @@ jobs:
         id: release
         uses: googleapis/release-please-action@5c625bfb5d1ff62eadeeb3772007f7f66fdcf071 # v4.4.1
         with:
+          # RELEASE_PLEASE_TOKEN must be a PAT (not GITHUB_TOKEN, which can't
+          # re-trigger downstream workflows) with these scopes:
+          #   Contents: Read and write, Pull requests: Read and write,
+          #   Actions: Read-only
+          # The Actions scope isn't documented by release-please-action but is
+          # required — without it the API rejects the token with "Resource not
+          # accessible by personal access token" and the action fails silently
+          # before opening a PR or cutting a tag. See:
+          # https://github.com/googleapis/release-please-action/issues/1048
           token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
           target-branch: main
           config-file: .release-please-config.json
