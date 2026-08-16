@@ -43,6 +43,9 @@ def rate_limiter(times: int, seconds: int) -> Callable[[Request, Response], Awai
     Fails open if Redis (and therefore FastAPILimiter) is unavailable --
     every other Redis touchpoint in this app (CacheRepository,
     get_redis_client()) already fails open the same way.
+
+    TODO: Switch back to fastapi_limiter.depends.RateLimiter once a release
+    compatible with this project's resolved FastAPI version ships.
     """
     milliseconds = seconds * 1000
 
