@@ -36,6 +36,17 @@ class Settings(BaseSettings):
     # rather than queuing (see app/api/concurrency.py).
     analyze_max_in_flight: int = 8
 
+    # Rate limits (app/api/rate_limit.py), keyed per caller identity via the
+    # BFF-forwarded X-Forwarded-Client-Ip header. /location/analyze is the
+    # expensive endpoint (Overpass + OSRM fan-out) so it gets the strictest
+    # default; /search and /categories are cheap DB/Redis/in-memory lookups.
+    rate_limit_analyze_times: int = 10
+    rate_limit_analyze_seconds: int = 60
+    rate_limit_search_times: int = 30
+    rate_limit_search_seconds: int = 60
+    rate_limit_categories_times: int = 60
+    rate_limit_categories_seconds: int = 60
+
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
 
