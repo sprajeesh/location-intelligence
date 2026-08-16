@@ -1,6 +1,6 @@
 import logging
 
-from app.clients.osrm import WARNING_STRAIGHT_LINE, OSRMClient
+from app.clients.osrm import WARNING_STRAIGHT_LINE, OSRMClient, haversine_km
 from app.config.scoring_config import DistanceMode, FacilityConfig
 from app.models.domain import Facility
 from app.repositories.cache import CacheRepository
@@ -104,7 +104,9 @@ class DistanceService:
         Returns (used_fallback, truncated_count). Cache misses beyond
         `_max_destinations_per_leg` are dropped (no distance ever set on
         those facilities) rather than sent to OSRM uncapped -- a defense-in-
-        depth bound independent of how many facilities Overpass returned."""
+        depth bound independent of how many facilities Overpass returned.
+        Kept ones are the nearest by straight-line distance, not just the
+        first `_max_destinations_per_leg` in Overpass's response order."""
         profile = _OSRM_PROFILE[leg_mode]
         to_fetch: list[Facility] = []
 
@@ -120,6 +122,7 @@ class DistanceService:
             return False, 0
 
         truncated_count = max(0, len(to_fetch) - self._max_destinations_per_leg)
+        to_fetch.sort(key=lambda f: haversine_km(origin_lat, origin_lon, f.lat, f.lon))
         to_fetch = to_fetch[: self._max_destinations_per_leg]
 
         destinations = [(f.lat, f.lon) for f in to_fetch]

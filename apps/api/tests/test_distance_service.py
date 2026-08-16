@@ -10,9 +10,17 @@ from app.services.distance import DistanceService
 
 
 def _schools(count: int) -> list[Facility]:
+    """Farthest-first order (index 0 is farthest from the origin, the last
+    index is nearest) -- an already-distance-ordered fixture can't tell
+    nearest-N selection apart from first-N (input-order) truncation, since
+    they'd produce an identical result."""
     return [
         Facility(
-            id=f"s{i}", name=f"School {i}", category="schools", lat=-36.8 - i * 0.01, lon=174.7
+            id=f"s{i}",
+            name=f"School {i}",
+            category="schools",
+            lat=-36.8 - (count - i) * 0.01,
+            lon=174.7,
         )
         for i in range(count)
     ]
@@ -45,10 +53,18 @@ class TestMaxDestinationsPerLeg:
         destinations_sent = osrm.table_distances_km.call_args.args[2]
         assert len(destinations_sent) == 2  # capped from 5 down to 2
         assert any("schools" in w and "nearest 2" in w for w in warnings)
+        # the two nearest facilities (the last two in this farthest-first
+        # fixture) are the ones kept, not just the first two in input order
+        assert destinations_sent == [
+            (facilities[4].lat, facilities[4].lon),
+            (facilities[3].lat, facilities[3].lon),
+        ]
+        assert facilities[3].distance_km is not None
+        assert facilities[4].distance_km is not None
         # facilities beyond the cap never get a distance attached
+        assert facilities[0].distance_km is None
+        assert facilities[1].distance_km is None
         assert facilities[2].distance_km is None
-        assert facilities[3].distance_km is None
-        assert facilities[4].distance_km is None
 
     async def test_default_cap_is_200(self) -> None:
         service = DistanceService(MagicMock(spec=OSRMClient), CacheRepository(client=None), {})
