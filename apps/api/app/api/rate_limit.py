@@ -1,9 +1,12 @@
+import logging
 from collections.abc import Awaitable, Callable
 from math import ceil
 
 import redis.exceptions
 from fastapi import HTTPException, Request, Response
 from fastapi_limiter import FastAPILimiter
+
+logger = logging.getLogger(__name__)
 
 
 async def bff_client_identifier(request: Request) -> str:
@@ -57,16 +60,20 @@ def rate_limiter(times: int, seconds: int) -> Callable[[Request, Response], Awai
         key = f"{FastAPILimiter.prefix}:{rate_key}"
 
         try:
-            pexpire = await FastAPILimiter.redis.evalsha(
-                FastAPILimiter.lua_sha, 1, key, str(times), str(milliseconds)
-            )
-        except redis.exceptions.NoScriptError:
-            FastAPILimiter.lua_sha = await FastAPILimiter.redis.script_load(
-                FastAPILimiter.lua_script
-            )
-            pexpire = await FastAPILimiter.redis.evalsha(
-                FastAPILimiter.lua_sha, 1, key, str(times), str(milliseconds)
-            )
+            try:
+                pexpire = await FastAPILimiter.redis.evalsha(
+                    FastAPILimiter.lua_sha, 1, key, str(times), str(milliseconds)
+                )
+            except redis.exceptions.NoScriptError:
+                FastAPILimiter.lua_sha = await FastAPILimiter.redis.script_load(
+                    FastAPILimiter.lua_script
+                )
+                pexpire = await FastAPILimiter.redis.evalsha(
+                    FastAPILimiter.lua_sha, 1, key, str(times), str(milliseconds)
+                )
+        except redis.exceptions.RedisError:
+            logger.warning("Rate limiting failed open -- Redis error for %s", key)
+            return
 
         if pexpire != 0:
             await rate_limit_exceeded(request, response, pexpire)
