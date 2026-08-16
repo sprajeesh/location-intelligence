@@ -82,7 +82,12 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     # Wire up services
     app.state.geocoding_svc = GeocodingService(AddressRepository(db_pool), cache)
     app.state.facilities_svc = FacilitiesService(overpass, cache, scoring_config)
-    app.state.distance_svc = DistanceService(osrm, cache, scoring_config.facility_configs)
+    app.state.distance_svc = DistanceService(
+        osrm,
+        cache,
+        scoring_config.facility_configs,
+        max_destinations_per_leg=settings.osrm_max_destinations_per_leg,
+    )
     app.state.scoring_svc = LocationScoringService(
         scoring_config.facility_configs,
         scoring_config.category_facility_weights,

@@ -12,6 +12,10 @@ class Settings(BaseSettings):
     overpass_max_concurrency: int = 2
     osrm_url: str = "http://localhost:5000"
     osrm_max_concurrency: int = 4
+    # Per-facility-type, per-leg cap on how many destinations get a real OSRM
+    # table call; excess destinations are dropped with a warning rather than
+    # sent to OSRM uncapped (see app/services/distance.py).
+    osrm_max_destinations_per_leg: int = 200
     redis_url: str = "redis://localhost:6379"
     # Shared secret checked against the X-Internal-Api-Key header (see
     # app/api/deps.py). None (the default, e.g. local dev) skips enforcement
