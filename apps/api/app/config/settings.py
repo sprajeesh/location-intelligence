@@ -11,11 +11,20 @@ class Settings(BaseSettings):
     overpass_url: str = "https://overpass-api.de/api/interpreter"
     overpass_max_concurrency: int = 2
     osrm_url: str = "http://localhost:5000"
+    osrm_max_concurrency: int = 4
     redis_url: str = "redis://localhost:6379"
     # Shared secret checked against the X-Internal-Api-Key header (see
     # app/api/deps.py). None (the default, e.g. local dev) skips enforcement
     # entirely; set in production from the API_SHARED_SECRET GitHub secret.
     api_shared_secret: str | None = None
+
+    # Circuit breakers (app/clients/circuit_breaker.py) -- open after this
+    # many consecutive failures against the dependency, skip the network call
+    # entirely for the cooldown, then allow one trial call through.
+    overpass_breaker_failure_threshold: int = 5
+    overpass_breaker_cooldown_seconds: float = 30.0
+    osrm_breaker_failure_threshold: int = 5
+    osrm_breaker_cooldown_seconds: float = 30.0
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 

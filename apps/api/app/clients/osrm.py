@@ -1,11 +1,16 @@
+import asyncio
 import logging
 import math
 
 import httpx
 
+from app.clients.circuit_breaker import CircuitBreaker
+
 logger = logging.getLogger(__name__)
 
 WARNING_STRAIGHT_LINE = "Using straight-line distance (road distance unavailable)"
+
+DEFAULT_MAX_CONCURRENCY = 4
 
 
 def haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
@@ -21,9 +26,21 @@ def haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
 
 
 class OSRMClient:
-    def __init__(self, base_url: str, http_client: httpx.AsyncClient) -> None:
+    def __init__(
+        self,
+        base_url: str,
+        http_client: httpx.AsyncClient,
+        *,
+        max_concurrency: int = DEFAULT_MAX_CONCURRENCY,
+        breaker: CircuitBreaker | None = None,
+    ) -> None:
+        if max_concurrency < 1:
+            raise ValueError(f"max_concurrency must be >= 1, got {max_concurrency}")
+
         self._base_url = base_url.rstrip("/")
         self._http = http_client
+        self._semaphore = asyncio.Semaphore(max_concurrency)
+        self._breaker = breaker
 
     async def table_distances_km(
         self,
@@ -43,6 +60,12 @@ class OSRMClient:
         if not destinations:
             return [], False
 
+        if self._breaker is not None and self._breaker.is_open:
+            logger.warning("OSRM circuit breaker open, skipping call and falling back to Haversine")
+            return [
+                haversine_km(origin_lat, origin_lon, lat, lon) for lat, lon in destinations
+            ], True
+
         coords = ";".join(
             [f"{origin_lon},{origin_lat}"] + [f"{lon},{lat}" for lat, lon in destinations]
         )
@@ -51,9 +74,10 @@ class OSRMClient:
         params = {"sources": "0", "destinations": dest_indices, "annotations": "distance"}
 
         try:
-            response = await self._http.get(url, params=params, timeout=15.0)
-            response.raise_for_status()
-            data = response.json()
+            async with self._semaphore:
+                response = await self._http.get(url, params=params, timeout=15.0)
+                response.raise_for_status()
+                data = response.json()
             row = data["distances"][0]
             if len(row) != len(destinations):
                 raise ValueError(
@@ -67,14 +91,20 @@ class OSRMClient:
                     used_fallback = True
                 else:
                     distances.append(meters / 1000.0)
+            if self._breaker is not None:
+                self._breaker.record_success()
             return distances, used_fallback
         except (httpx.ConnectError, httpx.TimeoutException, httpx.RemoteProtocolError) as exc:
             logger.warning("OSRM unavailable, falling back to Haversine: %s", exc)
+            if self._breaker is not None:
+                self._breaker.record_failure()
             return [
                 haversine_km(origin_lat, origin_lon, lat, lon) for lat, lon in destinations
             ], True
         except Exception as exc:
             logger.warning("OSRM request failed, falling back to Haversine: %s", exc)
+            if self._breaker is not None:
+                self._breaker.record_failure()
             return [
                 haversine_km(origin_lat, origin_lon, lat, lon) for lat, lon in destinations
             ], True

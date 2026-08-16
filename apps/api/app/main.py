@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api import analyze, categories, health, search
 from app.api.deps import verify_api_key
 from app.clients import redis_client as redis_module
+from app.clients.circuit_breaker import CircuitBreaker
 from app.clients.osrm import OSRMClient
 from app.clients.overpass import OverpassClient
 from app.config.scoring_config_loader import load_scoring_config
@@ -43,14 +44,34 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     # Shared HTTP client for Overpass and OSRM
     http_client = httpx.AsyncClient()
 
+    # Circuit breakers -- fail fast after repeated consecutive failures rather
+    # than paying each client's full timeout/retry cost on every request
+    # during a real outage (see app/clients/circuit_breaker.py).
+    overpass_breaker = CircuitBreaker(
+        "overpass",
+        failure_threshold=settings.overpass_breaker_failure_threshold,
+        cooldown_seconds=settings.overpass_breaker_cooldown_seconds,
+    )
+    osrm_breaker = CircuitBreaker(
+        "osrm",
+        failure_threshold=settings.osrm_breaker_failure_threshold,
+        cooldown_seconds=settings.osrm_breaker_cooldown_seconds,
+    )
+
     # Wire up clients
     overpass = OverpassClient(
         settings.overpass_url,
         http_client,
         scoring_config.category_tags,
         max_concurrency=settings.overpass_max_concurrency,
+        breaker=overpass_breaker,
     )
-    osrm = OSRMClient(settings.osrm_url, http_client)
+    osrm = OSRMClient(
+        settings.osrm_url,
+        http_client,
+        max_concurrency=settings.osrm_max_concurrency,
+        breaker=osrm_breaker,
+    )
 
     # Wire up services
     app.state.geocoding_svc = GeocodingService(AddressRepository(db_pool), cache)
