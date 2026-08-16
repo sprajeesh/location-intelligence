@@ -37,6 +37,7 @@ SECRETS_DIR="${2:-secrets}"
 : "${DB_USER:?db_user required}"
 : "${DB_PASSWORD:?db_password required}"
 : "${REDIS_PASSWORD:?redis_password required}"
+: "${API_SHARED_SECRET:?api_shared_secret required}"
 
 # Compose re-scans values it substitutes into its own ${VAR} interpolation
 # (e.g. DB_USER/DB_PASSWORD as build args in docker-compose.yml) -- a literal
@@ -114,6 +115,7 @@ redis_conf_escape() {
 cat >"$ENV_FILE" <<EOF
 DB_USER=$(dotenv_quote "$(compose_escape "$DB_USER")")
 DB_PASSWORD=$(dotenv_quote "$(compose_escape "$DB_PASSWORD")")
+ENVIRONMENT=production
 API_HOST=0.0.0.0
 API_PORT=8000
 DATABASE_URL=postgresql://${DB_USER_URI}:${DB_PASSWORD_URI}@postgis:5432/gis

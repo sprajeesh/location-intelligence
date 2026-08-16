@@ -1,9 +1,16 @@
 from functools import lru_cache
+from typing import Literal
 
+from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
+    # Set to "production" only by scripts/fetch-secrets.sh's generated .env
+    # (the real VM deploy) -- gates the api_shared_secret check below. Local
+    # dev never sets this, so it stays "development" and the secret can stay
+    # unset there.
+    environment: Literal["development", "production"] = "development"
     api_host: str = "0.0.0.0"
     api_port: int = 8000
     # TODO: Move to environment variables
@@ -48,6 +55,17 @@ class Settings(BaseSettings):
     rate_limit_categories_seconds: int = 60
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+
+    @model_validator(mode="after")
+    def _require_secret_in_production(self) -> "Settings":
+        if self.environment == "production" and not self.api_shared_secret:
+            raise ValueError(
+                "api_shared_secret must be set when environment=production -- "
+                "verify_api_key (app/api/deps.py) skips enforcement entirely "
+                "when it's unset, which would leave every route open to the "
+                "public internet."
+            )
+        return self
 
 
 @lru_cache
