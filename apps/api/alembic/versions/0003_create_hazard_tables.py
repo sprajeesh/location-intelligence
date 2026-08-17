@@ -4,10 +4,12 @@ Adds the H3-cell-based hazard schema: hazard_types (config, mirrors
 facility_types), hazard_sources (provenance registry), hazard_cells (the H3
 grid -- this repo's first Alembic-managed spatial column), and
 hazard_cell_scores (per-hazard sub-score per cell). Seeds hazard_types with
-the single "demo_hazard" scaffold entry from app/config/hazard_config.py --
-real hazard types are added by a later migration once Phase 1 ingestion
-lands (see apps/api/docs/HAZARD_SOURCES.md for which sources are actually
-ingestible today).
+a single literal "demo_hazard" scaffold row -- real hazard types are each
+added by their own later migration once Phase 1 ingestion lands (see
+apps/api/docs/HAZARD_SOURCES.md for which sources are actually ingestible
+today). This revision deliberately does not import
+app/config/hazard_config.py, so migration history stays a fixed record
+independent of that module's future edits.
 
 Composite/worst-hazard scores are deliberately NOT stored on hazard_cells --
 they're computed at request time from hazard_types.default_weight (see
@@ -23,7 +25,6 @@ Create Date: 2026-08-16
 import sqlalchemy as sa
 
 from alembic import op
-from app.config.hazard_config import HAZARD_TYPE_CONFIGS
 
 revision = "0003"
 down_revision = "0002"
@@ -122,16 +123,19 @@ def upgrade() -> None:
         hazard_types_table,
         [
             {
-                "slug": slug,
-                "label": cfg.label,
-                "color": cfg.color,
-                "description": cfg.description,
-                "default_weight": cfg.default_weight,
-                "severe_threshold": cfg.severe_threshold,
-                "is_proxy": cfg.is_proxy,
-                "implemented": cfg.implemented,
+                "slug": "demo_hazard",
+                "label": "Demo Hazard",
+                "color": "#b2182b",
+                "description": (
+                    "Phase-0 scaffold placeholder hazard, generated deterministically "
+                    "over a fixed Auckland demo area to prove the pipeline end to end. "
+                    "Not a real hazard assessment."
+                ),
+                "default_weight": 1.0,
+                "severe_threshold": 80.0,
+                "is_proxy": True,
+                "implemented": True,
             }
-            for slug, cfg in HAZARD_TYPE_CONFIGS.items()
         ],
     )
 
