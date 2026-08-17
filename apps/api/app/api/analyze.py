@@ -68,36 +68,6 @@ async def analyze_location(
     elif body.address:
         display_name = body.address
 
-    # --- Step 1b: Hazard lookup -- point-based, independent of categories/radius,
-    # so it always runs rather than gating on the facility category model ---
-    hazard_svc = request.app.state.hazard_svc
-    hazard_domain = await hazard_svc.score_point(lat, lon)
-    hazard_result: HazardResult | None = None
-    if hazard_domain is None:
-        warnings.append("No hazard grid coverage for this location yet")
-    else:
-        hazard_result = HazardResult(
-            h3_index=hazard_domain.h3_index,
-            resolution=hazard_domain.resolution,
-            composite_score=hazard_domain.composite_score,
-            worst_hazard_type=hazard_domain.worst_hazard_type,
-            worst_hazard_score=hazard_domain.worst_hazard_score,
-            any_severe=hazard_domain.any_severe,
-            hazards=[
-                HazardSubScoreResult(
-                    hazard_type=h.hazard_type,
-                    score=h.score,
-                    severe=h.severe,
-                    is_proxy=h.is_proxy,
-                    source_name=h.source_name,
-                    licence=h.licence,
-                    data_currency_date=h.data_currency_date,
-                )
-                for h in hazard_domain.hazards
-            ],
-            disclaimer=HAZARD_DISCLAIMER,
-        )
-
     # --- Step 2: Resolve requested categories (None = use DB-configured defaults) ---
     categories = (
         body.categories
@@ -116,7 +86,42 @@ async def analyze_location(
             detail=f"Unknown categories: {sorted(unknown_categories)}",
         )
 
-    # --- Step 3: Fetch facilities for requested categories ---
+    # --- Step 3: Hazard lookup -- point-based, independent of categories/radius,
+    # runs after category validation so an unknown-category request 422s before
+    # any hazard DB lookup ---
+    hazard_svc = request.app.state.hazard_svc
+    hazard_result: HazardResult | None = None
+    try:
+        hazard_domain = await hazard_svc.score_point(lat, lon)
+        if hazard_domain is None:
+            warnings.append("No hazard grid coverage for this location yet")
+        else:
+            hazard_result = HazardResult(
+                h3_index=hazard_domain.h3_index,
+                resolution=hazard_domain.resolution,
+                composite_score=hazard_domain.composite_score,
+                worst_hazard_type=hazard_domain.worst_hazard_type,
+                worst_hazard_score=hazard_domain.worst_hazard_score,
+                any_severe=hazard_domain.any_severe,
+                hazards=[
+                    HazardSubScoreResult(
+                        hazard_type=h.hazard_type,
+                        score=h.score,
+                        severe=h.severe,
+                        is_proxy=h.is_proxy,
+                        source_name=h.source_name,
+                        licence=h.licence,
+                        data_currency_date=h.data_currency_date,
+                    )
+                    for h in hazard_domain.hazards
+                ],
+                disclaimer=HAZARD_DISCLAIMER,
+            )
+    except Exception:
+        logger.exception("Hazard lookup failed for lat=%s lon=%s", lat, lon)
+        warnings.append("Hazard lookup temporarily unavailable")
+
+    # --- Step 4: Fetch facilities for requested categories ---
     facilities, facility_warnings, failed_categories = await facilities_svc.fetch_all(
         categories, lat, lon, body.radius_km
     )
@@ -126,14 +131,14 @@ async def analyze_location(
     if not facilities and successful_categories:
         warnings.append("No facilities found within the configured scoring bounds")
 
-    # --- Step 4: Compute distances (per-facility-type mode, see FACILITY_CONFIGS) ---
+    # --- Step 5: Compute distances (per-facility-type mode, see FACILITY_CONFIGS) ---
     if facilities:
         distance_warnings = await distance_svc.attach_distances(
             facilities, lat, lon, mode=body.distance_mode
         )
         warnings.extend(distance_warnings)
 
-    # --- Step 5: Compute score ---
+    # --- Step 6: Compute score ---
     domain_score = scoring_svc.score(facilities, categories, unavailable=failed_categories)
 
     # --- Assemble response ---
