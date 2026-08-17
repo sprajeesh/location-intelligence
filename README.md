@@ -403,7 +403,7 @@ The `gis` database has two kinds of tables, managed two different ways:
 | --------------------------------- | ------------------------------------------------------ |
 | `addresses`                       | Baked into the `postgis` Docker image at build time (see above) |
 | `facility_types`, `category_weights` | [Alembic](https://alembic.sqlalchemy.org/) — run manually against a live container |
-| `hazard_types`, `hazard_sources`, `hazard_cells`, `hazard_cell_scores` | Alembic, same as above — see [Hazard Demo Data](#hazard-demo-data) below |
+| `hazard_types`, `hazard_sources`, `hazard_cells`, `hazard_cell_scores` | Alembic, same as above — see [Hazard Demo Data](#hazard-demo-data) and [Coastal/Elevation Hazard Data](#coastalelevation-hazard-data-phase-1-real-ingestion) below |
 
 `facility_types`/`category_weights` back the facility/scoring engine (which
 facility types exist, their scoring weights, OSM tag mapping, category
@@ -456,6 +456,32 @@ This is idempotent — safe to re-run, it upserts the same 286 deterministic
 cells rather than duplicating them. Like `facility_types`, these tables live
 in the `postgis-data` volume, so they survive image rebuilds and only need
 re-running after `docker compose down -v`.
+
+### Coastal/Elevation Hazard Data (Phase-1 real ingestion)
+
+The first real (non-fabricated) hazard: a low-elevation-near-coast proxy,
+standing in for a national tsunami model that doesn't exist as a public
+bulk dataset (see `HAZARD.md` and
+[`apps/api/docs/HAZARD_SOURCES.md`](apps/api/docs/HAZARD_SOURCES.md) section
+G). Sourced from LINZ's public elevation bucket (`s3://nz-elevation`, no API
+key needed) and LINZ Data Service coastline layer 124391 (CC BY 4.0),
+covering the same Auckland bbox as the demo data above so the two layers can
+be compared on the same map view. `demo_hazard` is left untouched — this is
+a second hazard type layered on the same cells, not a replacement.
+
+`alembic upgrade head` seeds `hazard_types` with the `coastal_elevation_proxy`
+config row (migration `0004`). Populating actual scores needs a LINZ API key:
+
+```bash
+# In apps/api/.env:
+LINZ_API_KEY=your-key-here   # see apps/api/docs/HAZARD_SOURCES.md section G
+
+./scripts/setup-hazard-coastal-proxy.sh
+```
+
+Idempotent, same as the demo script. **Restart the API afterwards** —
+`hazard_types` is cached in memory at startup, so a freshly-seeded row isn't
+picked up until the process restarts.
 
 ---
 

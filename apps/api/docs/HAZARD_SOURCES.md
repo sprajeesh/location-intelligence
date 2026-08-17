@@ -70,6 +70,19 @@ immediately before each run.
 - **Action before Phase 1**: get written clarification from GNS/Earth
   Sciences NZ on whether this app's use counts as "commercial" — this
   blocks ingestion, not just attribution wording.
+- **Update (2026-08-17): checked and ruled out — no LINZ-hosted alternative
+  exists.** Investigated whether LINZ Data Service separately mirrors
+  NZAFD under its own (typically less restrictive) CC BY 4.0 terms, which
+  would have sidestepped GNS's licence entirely. Confirmed no: an LDS
+  catalogue API query (`data.linz.govt.nz/services/api/v1/data/?q=fault`)
+  returned zero matching layers, and LDS's ~3,080 layers are exclusively
+  topographic/cadastral/hydrographic/geodetic/imagery data — no
+  geology/hazard category at all. `data.govt.nz`'s NZAFD listings are just
+  a federated index of GNS's own catalogue entry, not a separate LINZ
+  copy — every listing still names GNS as publisher with the same "check
+  with source agency" licence. **The GNS licence is the only path; there
+  is no workaround.** The written-clarification email above is required
+  before any fault ingestion.
 
 ## C. Volcanic hazard zones
 
@@ -160,23 +173,94 @@ the spec warns about**
   text: *"Sourced from the LINZ Data Service and licensed for reuse under
   the CC BY 4.0 licence"* (or "Contains data sourced from..." for
   derived/compiled data).
-- Access: API key required, created per data source via the LDS account
-  (`data.linz.govt.nz/services/`, WFS/WCS/WMS/WMTS). This app already holds
-  a LINZ API key for address data (`GeocodingService`/`AddressRepository`)
-  — **that key's scope must be checked/extended** to cover DEM and
-  coastline layers; do not assume the existing key already has access.
-  Rate-limit specifics were not found this session — confirm before
-  building a national ingestion loop.
+- Access: the *vector/service* layers (coastline, and anything via
+  WFS/WCS/WMS/WMTS) still require an API key created per data source via
+  the LDS account (`data.linz.govt.nz/services/`). **Correction
+  (2026-08-17): this app does NOT already hold a LINZ API key** — that
+  claim (originally written here) is inaccurate. `GeocodingService`/
+  `AddressRepository` never call a live LINZ API; NZ address data is a
+  one-time bulk CSV import baked into the `postgis` Docker image at build
+  time (see `docker/Dockerfile.postgis`, `docker/sql/02_load.sql`), and no
+  `LINZ_API_KEY`-style setting existed anywhere in the codebase before the
+  coastal_elevation_proxy pipeline added one. A separate personal LINZ API
+  key (created directly by the project owner via their LDS account) is
+  what's actually used — see `apps/api/app/config/settings.py`'s
+  `linz_api_key` field and `.env.example`. Rate-limit specifics were not
+  found this session — confirm before building a national ingestion loop.
+  - **Update (2026-08-17): LDS/Koordinates key scoping researched — likely
+    fine, not yet live-tested.** LDS runs on the Koordinates platform;
+    its API keys are scoped **by service/protocol type (WFS, WMS, WMTS,
+    Documents API, etc.), not by individual dataset or layer** — per
+    Koordinates' own docs, "API keys can have optional scopes... these
+    work in addition to dataset and service permissions... but do not
+    override these." Public/CC BY layers (which the coastline layers are)
+    have no per-layer allow-list — any valid key from an account with
+    normal access can reach them. So the existing address-data key very
+    likely already works for the coastline layers too, **provided its
+    scope includes WFS** (the one dimension that can actually restrict
+    it, if the key was created with a manually limited scope rather than
+    the broad "Data access only" option). **Live-test before assuming**:
+    `curl "https://data.linz.govt.nz/services;key=YOUR_KEY/wfs?service=WFS&version=2.0.0&request=GetFeature&typeNames=layer-124388&count=1&outputFormat=json"`
+    — real GeoJSON back means it works; an XML error mentioning
+    scope/unauthorized means the key's scope needs WFS added in the LDS
+    account (Account → API keys → edit permitted services).
 - DEM: **1m LiDAR DEM/DSM** (~90% mainland coverage) and **8m
-  contour-interpolated DEM** (full national coverage), distributed as
-  Cloud-Optimised GeoTIFF, also mirrored on AWS Open Data
-  (`registry.opendata.aws/nz-elevation`).
-- **Coastline — live caveat**: the layer referenced during early searches,
-  "NZ Coastline - Mean High Water" (layer 105085), is explicitly marked
-  **(Deprecated)** on LDS. Its replacement layer ID was not identified this
-  session. **This is the exact failure mode the spec warned about** —
-  re-confirm the current coastline layer ID immediately before ingestion,
-  don't reuse this number.
+  contour-interpolated DEM** (full national coverage), Cloud-Optimised
+  GeoTIFF.
+  - **Update (2026-08-17), status: Confirmed, no API key needed for DEM**:
+    live-tested (plain unauthenticated `curl`, no AWS credentials
+    configured) against LINZ's own public bucket `s3://nz-elevation`
+    (`ap-southeast-2`, per `registry.opendata.aws/nz-elevation`) — this is
+    LINZ's own official bucket, not a third-party mirror, maintained via
+    `github.com/linz/elevation`. Anonymous `GET`/`HEAD` against
+    `https://nz-elevation.s3.ap-southeast-2.amazonaws.com/catalog.json`
+    both returned `200 OK` with no auth headers sent, returning a real
+    STAC 1.0.0 catalog with `child` links down to per-region/survey
+    Collections (e.g. `auckland/auckland-north_2016-2018/dem_1m/2193/collection.json`).
+    Licence CC-BY-4.0 confirmed in the STAC metadata itself. LINZ's own
+    description: *"This public S3 bucket has been made available to
+    enable bulk access and cloud-based data processing."* **This
+    completely removes the LINZ API key question for DEM ingestion** —
+    only the coastline vector layer below still needs the account-side
+    key-scope check.
+- **Coastline — CONFIRMED, status: Ingestible today.** The layer
+  referenced during early searches, "NZ Coastline - Mean High Water"
+  (layer 105085), is explicitly marked **(Deprecated)**, scheduled for
+  removal 31 July 2026 — its own metadata states it "will be replaced by
+  a more accurate dataset ... through the Coastal Mapping project." A
+  progression was found: 105085 → pilot layer 121390 (also now deprecated)
+  → the current pair, both last updated May 2026:
+  - **Layer 124388 "NZ Coastline - Mean High Water Springs"** (line) —
+    licence confirmed via LDS's JSON API (`/services/api/v1/layers/124388/`)
+    as **CC BY-NC 4.0 (NonCommercial)**. **Do not use** — this repo's use
+    may become commercial later (unconfirmed either way), so an NC-only
+    licence is a hard no regardless of current status.
+  - **Layer 124391 "NZ Coastline - Mean High Water Springs Polygon"**
+    (multipolygon, 12,499 features, EPSG:2193) — licence confirmed via the
+    same API as **plain CC BY 4.0**, no restriction. **Use this one.**
+    Exportable as Shapefile/GeoPackage/CSV/KML/etc., also via WFS/ArcGIS
+    Online/OGC services. A polygon works fine for a coastal-proximity
+    proxy (distance to the polygon boundary via `ST_Distance`/`ST_Boundary`
+    in PostGIS) — no functional need for the line variant.
+  - **API key confirmed working**: live-tested by the project owner via
+    `curl "https://data.linz.govt.nz/services;key=REAL_KEY/wfs?service=WFS&version=2.0.0&request=GetFeature&typeNames=layer-124388&count=1&outputFormat=json"`
+    — returned real GeoJSON. Confirms their personal LINZ API key's scope
+    already includes WFS, consistent with the Koordinates
+    scope-by-protocol-not-by-layer model documented above. The same key
+    works for layer 124391.
+  - **Two different layers of the same coastline carrying two different
+    licences (one NC-restricted, one not) is exactly the kind of trap the
+    spec warns about** — always check the specific layer ID's own licence
+    via the API, never assume a sibling/renamed layer inherits the same
+    terms.
+
+**Update (2026-08-17): INGESTED, not just verified.** Both halves
+(elevation + layer 124391) are now populated via
+`pipelines/hazard/coastal_elevation_proxy.py` (migration `0004` seeds the
+`coastal_elevation_proxy` hazard type; run via
+`scripts/setup-hazard-coastal-proxy.sh` — see README.md's "Coastal/Elevation
+Hazard Data" section). This is the first real (non-fabricated) hazard type
+in the running app.
 
 ## H. Validation overlay — Natural Hazards Portal (NHC/EQC claims)
 
@@ -205,7 +289,7 @@ already assumed**
 | Hazard | Ingestible today? |
 |---|---|
 | Active faults | Yes, pending a written commercial-use clarification from GNS/Earth Sciences NZ |
-| Coastal / elevation (LINZ DEM) | Yes, pending API key scope confirmation and a live coastline-layer-ID re-check |
+| Coastal / elevation (LINZ DEM) | **Ingested.** DEM: LINZ's public `s3://nz-elevation` bucket, no API key needed. Coastline: layer 124391 (polygon, CC BY 4.0), personal LINZ API key confirmed working via WFS. Sibling layer 124388 (line) is CC BY-NC 4.0 — avoided. See `pipelines/hazard/coastal_elevation_proxy.py`. |
 | Earthquake shaking (NSHM) | No — point-query tool only, no bulk grid confirmed |
 | Volcanic zones | No — no public GIS layer, only static reports |
 | Landslide susceptibility | No — national model doesn't exist yet |
@@ -214,11 +298,16 @@ already assumed**
 | NHC/EQC claims (validation) | No — per-property tool only, no bulk export |
 
 This materially changes Phase 1's "nationally available hazards" set from
-the spec's optimistic framing: **only active faults and a DEM-derived
-coastal/elevation proxy are confirmed ingestible today** without further
-data-access negotiation. Seismic shaking, volcanic zones, and landslide
-susceptibility should be treated as blocked/deferred, not scheduled, until
-a bulk source is confirmed. Tsunami and flood remain viable but must be
-built incrementally, per-region/per-council, exactly as the spec's phasing
-already anticipated — this verification pass just confirms *how much* more
-fragmented that will be than a first read of the spec suggests.
+the spec's optimistic framing. **Update (2026-08-17): the DEM-derived
+coastal/elevation proxy is now fully confirmed and unblocked** (DEM via
+LINZ's public `s3://nz-elevation` bucket, no key needed; coastline via
+layer 124391, CC BY 4.0, existing API key confirmed working) — this can
+start ingestion immediately. **Active faults remains blocked** on written
+commercial-use clarification from GNS/Earth Sciences NZ, confirmed to have
+no workaround (LINZ does not separately mirror NZAFD). Seismic shaking,
+volcanic zones, and landslide susceptibility should be treated as
+blocked/deferred, not scheduled, until a bulk source is confirmed. Tsunami
+and flood remain viable but must be built incrementally, per-region/
+per-council, exactly as the spec's phasing already anticipated — this
+verification pass just confirms *how much* more fragmented that will be
+than a first read of the spec suggests.
