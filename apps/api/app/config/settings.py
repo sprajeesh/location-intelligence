@@ -56,6 +56,14 @@ class Settings(BaseSettings):
     rate_limit_hazard_cells_times: int = 60
     rate_limit_hazard_cells_seconds: int = 60
 
+    # LINZ Data Service API key -- used only by
+    # pipelines/hazard/coastal_elevation_proxy.py to query the coastline WFS
+    # layer at ingestion time. Never read by the live API (unlike
+    # api_shared_secret above); None is fine unless you're running that
+    # pipeline. Create/find yours at data.linz.govt.nz -> your account ->
+    # API keys.
+    linz_api_key: str | None = None
+
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     @model_validator(mode="after")
