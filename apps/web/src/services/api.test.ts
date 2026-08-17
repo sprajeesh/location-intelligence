@@ -43,6 +43,7 @@ describe('normalizeAnalyzeResponse', () => {
       ],
     },
     warnings: [],
+    hazard: null,
   };
 
   it('remaps facility_type and nearest_distance_km to camelCase', () => {
@@ -77,5 +78,57 @@ describe('normalizeAnalyzeResponse', () => {
     expect(notChecked.nearestDistanceKm).toBeNull();
     expect(notChecked.count).toBe(0);
     expect(notChecked.explanation).toBe('University not checked for this address.');
+  });
+
+  it('normalizes hazard to null when the backend reports no coverage', () => {
+    const result = normalizeAnalyzeResponse(wireResponse);
+
+    expect(result.hazard).toBeNull();
+  });
+
+  it('remaps hazard wire fields to camelCase when present', () => {
+    const wireWithHazard = {
+      ...wireResponse,
+      hazard: {
+        h3_index: '87bb50005ffffff',
+        resolution: 7,
+        composite_score: 94.4,
+        worst_hazard_type: 'demo_hazard',
+        worst_hazard_score: 94.39,
+        any_severe: true,
+        hazards: [
+          {
+            hazard_type: 'demo_hazard',
+            score: 94.39,
+            severe: true,
+            is_proxy: true,
+            source_name: 'Phase-0 Scaffold Dummy Generator',
+            licence: 'N/A -- fabricated demo data, not a real licensed dataset',
+            data_currency_date: '2026-08-16',
+          },
+        ],
+        disclaimer: 'Illustrative hazard estimate at grid-cell resolution.',
+      },
+    };
+
+    const result = normalizeAnalyzeResponse(wireWithHazard);
+
+    expect(result.hazard).toEqual({
+      composite: 94.4,
+      worstHazard: 94.39,
+      worstHazardType: 'demo_hazard',
+      anySevere: true,
+      disclaimer: 'Illustrative hazard estimate at grid-cell resolution.',
+      hazards: [
+        {
+          hazardType: 'demo_hazard',
+          score: 94.39,
+          source: 'Phase-0 Scaffold Dummy Generator',
+          currencyDate: '2026-08-16',
+          isProxy: true,
+          isSevere: true,
+        },
+      ],
+    });
   });
 });

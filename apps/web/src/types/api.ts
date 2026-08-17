@@ -2,6 +2,8 @@
  * TypeScript types matching the FastAPI backend contract exactly.
  */
 
+import type { HazardResult } from "./hazard"
+
 /**
  * Represents a geographic address result from LINZ address search.
  */
@@ -83,6 +85,10 @@ export interface AnalyzeResponse {
   features: Feature[]
   score: ScoreResult
   warnings: string[]
+  // Deliberately a top-level sibling of `score`, never nested inside it --
+  // hazard exposure is never blended into the facility overall score. Null
+  // until the backend has hazard grid coverage for this point.
+  hazard: HazardResult | null
 }
 
 /**
