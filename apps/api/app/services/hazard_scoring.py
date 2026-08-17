@@ -1,8 +1,12 @@
+import logging
+
 import h3
 
 from app.config.hazard_config_loader import HazardScoringConfig
 from app.models.domain import HazardScore, HazardSubScore
 from app.repositories.db.hazard_repository import HazardRepository
+
+logger = logging.getLogger(__name__)
 
 
 def weighted_composite_score(scores: list[float], weights: list[float]) -> float:
@@ -43,6 +47,21 @@ class HazardScoringService:
             return None
 
         hazard_types = self._hazard_config.hazard_types
+        known_rows = [row for row in rows if row["hazard_type_slug"] in hazard_types]
+        unknown_slugs = {row["hazard_type_slug"] for row in rows} - hazard_types.keys()
+        if unknown_slugs:
+            # hazard_types is cached at startup (see HazardScoringConfig's
+            # docstring) -- a hazard_type_slug added after that cache was
+            # built (e.g. a later migration's seed row, before a restart)
+            # would otherwise KeyError here instead of degrading gracefully.
+            logger.warning(
+                "hazard_cell_scores rows reference hazard_type_slug(s) not in "
+                "the cached hazard_types config: %s",
+                sorted(unknown_slugs),
+            )
+        if not known_rows:
+            return None
+
         sub_scores = [
             HazardSubScore(
                 hazard_type=row["hazard_type_slug"],
@@ -53,7 +72,7 @@ class HazardScoringService:
                 licence=row["licence"],
                 data_currency_date=row["data_currency_date"],
             )
-            for row in rows
+            for row in known_rows
         ]
 
         composite = weighted_composite_score(

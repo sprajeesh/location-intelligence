@@ -110,6 +110,51 @@ class TestHazardScoringServiceComposite:
         assert result.worst_hazard_score == 80.0
         assert result.any_severe is True
 
+    async def test_unknown_hazard_type_slug_is_filtered_not_raised(self) -> None:
+        rows = [
+            {
+                "hazard_type_slug": "demo_hazard",
+                "score": 40.0,
+                "severe": False,
+                "data_currency_date": date(2026, 8, 1),
+                "source_name": "Demo source",
+                "licence": "N/A",
+            },
+            {
+                "hazard_type_slug": "not_yet_cached_hazard",
+                "score": 95.0,
+                "severe": True,
+                "data_currency_date": date(2026, 8, 1),
+                "source_name": "Future source",
+                "licence": "N/A",
+            },
+        ]
+        service = HazardScoringService(_mock_repo(rows), _config({"demo_hazard": DEMO_HAZARD_TYPE}))
+
+        result = await service.score_point(-36.85, 174.76)
+
+        assert result is not None
+        assert result.composite_score == 40.0
+        assert result.worst_hazard_type == "demo_hazard"
+        assert [s.hazard_type for s in result.hazards] == ["demo_hazard"]
+
+    async def test_returns_none_when_all_rows_have_unknown_hazard_type(self) -> None:
+        rows = [
+            {
+                "hazard_type_slug": "not_yet_cached_hazard",
+                "score": 95.0,
+                "severe": True,
+                "data_currency_date": date(2026, 8, 1),
+                "source_name": "Future source",
+                "licence": "N/A",
+            }
+        ]
+        service = HazardScoringService(_mock_repo(rows), _config({"demo_hazard": DEMO_HAZARD_TYPE}))
+
+        result = await service.score_point(-36.85, 174.76)
+
+        assert result is None
+
     async def test_severe_flag_true_when_any_hazard_is_severe(self) -> None:
         rows = [
             {
