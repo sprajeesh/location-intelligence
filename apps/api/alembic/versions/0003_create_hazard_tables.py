@@ -43,9 +43,7 @@ def upgrade() -> None:
         sa.Column("severe_threshold", sa.Float(), nullable=False),
         sa.Column("is_proxy", sa.Boolean(), nullable=False),
         sa.Column("implemented", sa.Boolean(), nullable=False, server_default=sa.true()),
-        sa.CheckConstraint(
-            "severe_threshold BETWEEN 0 AND 100", name="ck_severe_threshold_range"
-        ),
+        sa.CheckConstraint("severe_threshold BETWEEN 0 AND 100", name="ck_severe_threshold_range"),
     )
 
     op.create_table(
@@ -96,9 +94,7 @@ def upgrade() -> None:
         ),
         sa.Column("score", sa.Numeric(5, 2), nullable=False),
         sa.Column("severe", sa.Boolean(), nullable=False),
-        sa.Column(
-            "source_id", sa.BigInteger(), sa.ForeignKey("hazard_sources.id"), nullable=False
-        ),
+        sa.Column("source_id", sa.BigInteger(), sa.ForeignKey("hazard_sources.id"), nullable=False),
         sa.Column("data_currency_date", sa.Date(), nullable=False),
         sa.Column(
             "computed_at",
@@ -109,9 +105,7 @@ def upgrade() -> None:
         sa.CheckConstraint("score BETWEEN 0 AND 100", name="ck_hazard_cell_score_range"),
         sa.UniqueConstraint("h3_index", "hazard_type_slug", name="uq_hazard_cell_type"),
     )
-    op.create_index(
-        "ix_hazard_cell_scores_hazard_type", "hazard_cell_scores", ["hazard_type_slug"]
-    )
+    op.create_index("ix_hazard_cell_scores_hazard_type", "hazard_cell_scores", ["hazard_type_slug"])
 
     hazard_types_table = sa.table(
         "hazard_types",

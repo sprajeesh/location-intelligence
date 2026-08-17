@@ -64,9 +64,7 @@ class TestHazardScoringServiceComposite:
                 "licence": "N/A",
             }
         ]
-        service = HazardScoringService(
-            _mock_repo(rows), _config({"demo_hazard": DEMO_HAZARD_TYPE})
-        )
+        service = HazardScoringService(_mock_repo(rows), _config({"demo_hazard": DEMO_HAZARD_TYPE}))
 
         result = await service.score_point(-36.85, 174.76)
 

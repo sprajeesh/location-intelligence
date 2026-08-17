@@ -8,15 +8,11 @@ router = APIRouter()
 def _parse_bbox(bbox: str) -> tuple[float, float, float, float]:
     parts = bbox.split(",")
     if len(parts) != 4:
-        raise HTTPException(
-            status_code=422, detail="bbox must be minLon,minLat,maxLon,maxLat"
-        )
+        raise HTTPException(status_code=422, detail="bbox must be minLon,minLat,maxLon,maxLat")
     try:
         min_lon, min_lat, max_lon, max_lat = (float(p) for p in parts)
     except ValueError:
-        raise HTTPException(
-            status_code=422, detail="bbox must be minLon,minLat,maxLon,maxLat"
-        )
+        raise HTTPException(status_code=422, detail="bbox must be minLon,minLat,maxLon,maxLat")
     return min_lon, min_lat, max_lon, max_lat
 
 
