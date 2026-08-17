@@ -5,6 +5,18 @@ from app.models.domain import HazardScore, HazardSubScore
 from app.repositories.db.hazard_repository import HazardRepository
 
 
+def weighted_composite_score(scores: list[float], weights: list[float]) -> float:
+    """Weighted mean of per-hazard scores by each hazard type's
+    default_weight, falling back to an unweighted mean when every weight is
+    zero (a hazard type is never disabled, but a 0 default_weight for a proxy
+    type shouldn't crash the composite). Shared by HazardScoringService and
+    the GET /hazard/cells map layer so the two composites never diverge."""
+    weight_sum = sum(weights)
+    if weight_sum > 0:
+        return sum(s * w for s, w in zip(scores, weights, strict=True)) / weight_sum
+    return sum(scores) / len(scores)
+
+
 class HazardScoringService:
     """Point-based hazard scoring, deliberately separate from
     LocationScoringService -- hazard exposure is never blended into the
@@ -44,14 +56,10 @@ class HazardScoringService:
             for row in rows
         ]
 
-        weight_sum = sum(hazard_types[s.hazard_type].default_weight for s in sub_scores)
-        if weight_sum > 0:
-            composite = (
-                sum(s.score * hazard_types[s.hazard_type].default_weight for s in sub_scores)
-                / weight_sum
-            )
-        else:
-            composite = sum(s.score for s in sub_scores) / len(sub_scores)
+        composite = weighted_composite_score(
+            [s.score for s in sub_scores],
+            [hazard_types[s.hazard_type].default_weight for s in sub_scores],
+        )
 
         worst = max(sub_scores, key=lambda s: s.score)
 

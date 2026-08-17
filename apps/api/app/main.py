@@ -65,6 +65,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     hazard_repo = HazardRepository(db_pool)
     app.state.hazard_repo = hazard_repo
     hazard_config = await load_hazard_config(hazard_repo)
+    app.state.hazard_config = hazard_config
     app.state.hazard_svc = HazardScoringService(hazard_repo, hazard_config)
 
     # Process-wide cap on concurrent /location/analyze requests -- protects

@@ -2,6 +2,8 @@ import json
 
 from fastapi import APIRouter, HTTPException, Query, Request
 
+from app.services.hazard_scoring import weighted_composite_score
+
 router = APIRouter()
 
 # 5 degrees comfortably covers a full-country map viewport (NZ spans ~13deg
@@ -46,6 +48,7 @@ async def get_hazard_cells(
     min_lon, min_lat, max_lon, max_lat = _parse_bbox(bbox)
 
     hazard_repo = request.app.state.hazard_repo
+    hazard_types = request.app.state.hazard_config.hazard_types
     rows = await hazard_repo.fetch_cells_in_bbox(min_lon, min_lat, max_lon, max_lat)
 
     features = []
@@ -55,7 +58,10 @@ async def get_hazard_cells(
         if not hazards:
             continue
 
-        composite = sum(h["score"] for h in hazards) / len(hazards)
+        composite = weighted_composite_score(
+            [h["score"] for h in hazards],
+            [hazard_types[h["hazard_type_slug"]].default_weight for h in hazards],
+        )
         worst = max(hazards, key=lambda h: h["score"])
 
         features.append(
