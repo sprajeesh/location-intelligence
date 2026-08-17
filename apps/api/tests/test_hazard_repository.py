@@ -66,3 +66,23 @@ class TestHazardRepository:
         result = await repo.fetch_cell_scores("8752c9adfffffff")
 
         assert result == []
+
+    async def test_fetch_cells_in_bbox_passes_default_limit(self) -> None:
+        pool = _mock_pool([])
+        repo = HazardRepository(pool)
+
+        await repo.fetch_cells_in_bbox(174.7, -36.9, 174.8, -36.8)
+
+        conn = pool.acquire.return_value.__aenter__.return_value
+        args = conn.fetch.call_args.args
+        assert args[1:] == (174.7, -36.9, 174.8, -36.8, 10_000)
+
+    async def test_fetch_cells_in_bbox_passes_custom_limit(self) -> None:
+        pool = _mock_pool([])
+        repo = HazardRepository(pool)
+
+        await repo.fetch_cells_in_bbox(174.7, -36.9, 174.8, -36.8, limit=50)
+
+        conn = pool.acquire.return_value.__aenter__.return_value
+        args = conn.fetch.call_args.args
+        assert args[1:] == (174.7, -36.9, 174.8, -36.8, 50)

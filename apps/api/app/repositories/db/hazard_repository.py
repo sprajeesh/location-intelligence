@@ -39,13 +39,22 @@ class HazardRepository:
         return [dict(row) for row in rows]
 
     async def fetch_cells_in_bbox(
-        self, min_lon: float, min_lat: float, max_lon: float, max_lat: float
+        self,
+        min_lon: float,
+        min_lat: float,
+        max_lon: float,
+        max_lat: float,
+        limit: int = 10_000,
     ) -> list[dict]:
         """Cells (with geometry + per-hazard breakdown) intersecting a bbox,
         for the GET /hazard/cells map layer. This is the first genuinely
         spatial query in this repo -- ST_Intersects against the GIST index
         on hazard_cells.geom -- unlike the point lookup above, which is a
-        plain H3-index equality match."""
+        plain H3-index equality match.
+
+        `limit` is a defensive backstop, not a pagination mechanism -- the
+        bbox span cap in app/api/hazard.py already bounds row-fanout, so this
+        only guards against unexpectedly dense hazard coverage."""
         sql = """
             SELECT
                 hc.h3_index,
@@ -70,7 +79,9 @@ class HazardRepository:
             LEFT JOIN hazard_types ht ON ht.slug = hcs.hazard_type_slug
             WHERE ST_Intersects(hc.geom, ST_MakeEnvelope($1, $2, $3, $4, 4326))
             GROUP BY hc.h3_index, hc.resolution, hc.geom
+            ORDER BY hc.h3_index
+            LIMIT $5
         """
         async with self._pool.acquire() as conn:
-            rows = await conn.fetch(sql, min_lon, min_lat, max_lon, max_lat)
+            rows = await conn.fetch(sql, min_lon, min_lat, max_lon, max_lat, limit)
         return [dict(row) for row in rows]
