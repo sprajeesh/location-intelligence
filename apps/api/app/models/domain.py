@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+from datetime import date
 from typing import Literal
 
 FacilityStatus = Literal["not_checked", "scored"]
@@ -48,3 +49,29 @@ class CompositeScore:
     overall: float | None
     coverage: str
     categories: list[CategoryScore] = field(default_factory=list)
+
+
+@dataclass
+class HazardSubScore:
+    hazard_type: str
+    score: float
+    severe: bool
+    is_proxy: bool
+    source_name: str
+    licence: str
+    data_currency_date: date
+
+
+@dataclass
+class HazardScore:
+    """A point's hazard result, deliberately separate from CompositeScore --
+    hazard exposure is never blended into the facility overall score (see
+    HAZARD.md's "averaging hides a single catastrophic risk" warning)."""
+
+    h3_index: str
+    resolution: int
+    composite_score: float
+    worst_hazard_type: str
+    worst_hazard_score: float
+    any_severe: bool
+    hazards: list[HazardSubScore] = field(default_factory=list)

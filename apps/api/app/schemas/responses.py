@@ -1,3 +1,4 @@
+from datetime import date
 from typing import Literal
 
 from pydantic import BaseModel, Field
@@ -59,11 +60,40 @@ class ScoreResult(BaseModel):
     categories: list[CategoryScoreResult]
 
 
+class HazardSubScoreResult(BaseModel):
+    hazardType: str = Field(alias="hazard_type")
+    score: float
+    severe: bool
+    isProxy: bool = Field(alias="is_proxy")
+    sourceName: str = Field(alias="source_name")
+    licence: str
+    dataCurrencyDate: date = Field(alias="data_currency_date")
+
+    model_config = {"populate_by_name": True}
+
+
+class HazardResult(BaseModel):
+    """Deliberately a top-level sibling of `score`, never nested inside it --
+    hazard exposure is not blended into the facility overall score."""
+
+    h3Index: str = Field(alias="h3_index")
+    resolution: int
+    compositeScore: float = Field(alias="composite_score")
+    worstHazardType: str = Field(alias="worst_hazard_type")
+    worstHazardScore: float = Field(alias="worst_hazard_score")
+    anySevere: bool = Field(alias="any_severe")
+    hazards: list[HazardSubScoreResult]
+    disclaimer: str
+
+    model_config = {"populate_by_name": True}
+
+
 class AnalyzeResponse(BaseModel):
     location: LocationResult
     features: list[FeatureResult]
     score: ScoreResult
     warnings: list[str]
+    hazard: HazardResult | None = None
 
 
 class HealthResponse(BaseModel):

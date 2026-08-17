@@ -53,6 +53,8 @@ class Settings(BaseSettings):
     rate_limit_search_seconds: int = 60
     rate_limit_categories_times: int = 60
     rate_limit_categories_seconds: int = 60
+    rate_limit_hazard_cells_times: int = 60
+    rate_limit_hazard_cells_seconds: int = 60
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
