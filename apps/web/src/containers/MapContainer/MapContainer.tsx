@@ -78,7 +78,7 @@ function MapContent() {
   const navigate = useNavigate();
   const t = useTranslations();
   const { categories } = useCategories();
-  useHazardCells(hazardLayerVisible);
+  const hazardCellsQuery = useHazardCells(hazardLayerVisible);
 
   const [activeLayer, setActiveLayer] = useState<MapLayerId>("default");
 
@@ -168,7 +168,13 @@ function MapContent() {
           layers under one declarative data prop), not per-feature <Marker>s. */}
       {hazardLayerVisible && hazardCells && (
         <GeoJSON
-          key={hazardCells.features.length}
+          // react-leaflet's GeoJSON layer doesn't diff `data` -- it only
+          // updates when React remounts it, so the key must change whenever
+          // the collection's content changes, not just its length. TanStack
+          // Query bumps dataUpdatedAt on every successful fetch (including a
+          // refetch of the same bbox after cache invalidation), so it's a
+          // free, correct revision marker without hashing feature content.
+          key={hazardCellsQuery.dataUpdatedAt}
           data={hazardCells as unknown as GeoJSON.FeatureCollection}
           pane="hazardPane"
           style={(feature) => {
