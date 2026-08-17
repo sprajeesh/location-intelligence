@@ -19,6 +19,7 @@ import { useNavigate } from "@/hooks/useNavigate";
 import { useCategories } from "@/hooks/useCategories";
 import { useHazardCells } from "@/hooks/useHazardCells";
 import { getHazardCellColor } from "@/utils/hazardColor";
+import { buildHazardTooltipHtml } from "@/utils/hazardTooltip";
 import { HazardLegend } from "@/components/HazardLegend";
 import type { HazardCellFeature } from "@/types/hazard";
 import { useTranslations } from "next-intl";
@@ -375,33 +376,6 @@ export function MapContainer() {
       )}
     </div>
   );
-}
-
-/**
- * Builds the hover tooltip HTML for one hazard cell -- a plain HTML string
- * (bound via Leaflet's native bindTooltip), not JSX, matching how the
- * marker icons in this file are already built as HTML strings rather than
- * React elements rendered through Leaflet.
- */
-function buildHazardTooltipHtml(props: HazardCellFeature["properties"]): string {
-  const rows = props.hazards
-    .map(
-      (h) => `
-        <div style="display:flex;justify-content:space-between;gap:8px;">
-          <span style="text-transform:capitalize;">${h.hazardType}${h.isProxy ? " (proxy)" : ""}</span>
-          <span>${Math.round(h.score)}</span>
-        </div>`,
-    )
-    .join("");
-
-  return `
-    <div style="font-size:12px;min-width:140px;">
-      <div style="font-weight:600;margin-bottom:4px;">
-        Composite: ${Math.round(props.composite)} · Worst: ${Math.round(props.worstHazard)}
-      </div>
-      ${rows}
-    </div>
-  `;
 }
 
 /**
