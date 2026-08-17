@@ -3,6 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import ResultsPanel from './ResultsPanel';
 import type { AnalyzeResponse, Feature, ScoreResult } from '@/types/api';
+import type { HazardResult } from '@/types/hazard';
 
 jest.mock('@/store');
 jest.mock('@/hooks/useAnalyze');
@@ -57,6 +58,12 @@ jest.mock('@/components/ScoreDisplay', () => ({
   __esModule: true,
   default: ({ score }: { score: ScoreResult }) => (
     <div data-testid="score-display">Overall: {score.overall}</div>
+  ),
+}));
+jest.mock('@/components/HazardDisplay', () => ({
+  __esModule: true,
+  default: ({ hazard }: { hazard: HazardResult }) => (
+    <div data-testid="hazard-display">Composite: {hazard.composite}</div>
   ),
 }));
 jest.mock('@/components/CategoryGroup', () => ({
@@ -167,6 +174,15 @@ const mockAnalysisResult: AnalyzeResponse = {
   score: mockScore,
   warnings: [],
   hazard: null,
+};
+
+const mockHazard: HazardResult = {
+  composite: 42,
+  worstHazard: 55,
+  worstHazardType: 'demo_hazard',
+  anySevere: false,
+  hazards: [],
+  disclaimer: 'Illustrative hazard estimate.',
 };
 
 const makeStoreState = (overrides = {}) => ({
@@ -302,6 +318,27 @@ describe('ResultsPanel', () => {
       await userEvent.click(screen.getByTestId('radius-adjuster-search'));
       expect(analyze).not.toHaveBeenCalled();
     });
+
+    it('still renders HazardDisplay when hazard is present but no facilities were found', () => {
+      mockUseLocationStore.mockReturnValue(
+        makeStoreState({
+          analysisResult: { ...mockAnalysisResult, features: [], hazard: mockHazard },
+        })
+      );
+      render(<ResultsPanel />);
+      expect(screen.getByText('No facilities found within 10km. Try increasing your search radius.')).toBeInTheDocument();
+      expect(screen.getByTestId('hazard-display')).toBeInTheDocument();
+    });
+
+    it('does not render HazardDisplay when there is no hazard and no facilities', () => {
+      mockUseLocationStore.mockReturnValue(
+        makeStoreState({
+          analysisResult: { ...mockAnalysisResult, features: [], hazard: null },
+        })
+      );
+      render(<ResultsPanel />);
+      expect(screen.queryByTestId('hazard-display')).not.toBeInTheDocument();
+    });
   });
 
   describe('Results state', () => {
@@ -332,6 +369,22 @@ describe('ResultsPanel', () => {
       );
       render(<ResultsPanel />);
       expect(screen.queryByTestId('score-display')).not.toBeInTheDocument();
+    });
+
+    it('renders HazardDisplay when hazard is present alongside facilities', () => {
+      mockUseLocationStore.mockReturnValue(
+        makeStoreState({
+          analysisResult: { ...mockAnalysisResult, hazard: mockHazard },
+        })
+      );
+      render(<ResultsPanel />);
+      expect(screen.getByTestId('hazard-display')).toBeInTheDocument();
+    });
+
+    it('does not render HazardDisplay when hazard is absent', () => {
+      mockUseLocationStore.mockReturnValue(makeStoreState({ analysisResult: mockAnalysisResult }));
+      render(<ResultsPanel />);
+      expect(screen.queryByTestId('hazard-display')).not.toBeInTheDocument();
     });
   });
 
