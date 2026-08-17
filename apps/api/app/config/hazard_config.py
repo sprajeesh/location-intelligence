@@ -7,10 +7,12 @@ directly. This module is the single Python source for (1) the Alembic
 migration that seeds the `hazard_types` table, and (2) tests needing known
 config values.
 
-Phase-0 scaffold: only "demo_hazard" is defined. Real hazard types (seismic,
-faults, volcanic, landslide, tsunami, flood) are added by a later migration
-once Phase 1 ingestion lands — see apps/api/docs/HAZARD_SOURCES.md for which
-sources are actually ingestible.
+Phase-0 scaffold: "demo_hazard" is fabricated. "coastal_elevation_proxy" is
+the first real (Phase-1) hazard, seeded by migration 0004 and populated by
+pipelines/hazard/coastal_elevation_proxy.py. Remaining real hazard types
+(faults, seismic, volcanic, landslide, real tsunami/flood) each get their
+own later migration once ingestible — see apps/api/docs/HAZARD_SOURCES.md
+for which sources are actually ingestible today.
 """
 
 from pydantic import BaseModel, Field
@@ -48,6 +50,22 @@ HAZARD_TYPE_CONFIGS: dict[str, HazardTypeConfig] = {
         ),
         default_weight=1.0,
         severe_threshold=80.0,
+        is_proxy=True,
+        implemented=True,
+    ),
+    "coastal_elevation_proxy": HazardTypeConfig(
+        label="Coastal & Tsunami Exposure (proxy)",
+        color="#2166ac",
+        description=(
+            "Illustrative proxy combining ground elevation and distance to "
+            "the coastline: low-lying land close to the sea scores higher. "
+            "Stands in for a real national tsunami hazard model, which does "
+            "not currently exist as a public bulk dataset (see "
+            "apps/api/docs/HAZARD_SOURCES.md). Not a tsunami inundation "
+            "prediction."
+        ),
+        default_weight=1.0,
+        severe_threshold=70.0,
         is_proxy=True,
         implemented=True,
     ),
