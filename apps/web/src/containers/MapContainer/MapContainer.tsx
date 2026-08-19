@@ -28,9 +28,6 @@ import {
   MapToolbarContainer,
   TILE_LAYER_URLS,
   TILE_LAYER_ATTRIBUTIONS,
-  DARK_DEFAULT_TILE_URL,
-  DARK_DEFAULT_LABELS_URL,
-  DARK_DEFAULT_TILE_ATTRIBUTION,
   type MapLayerId,
 } from "@/containers/MapToolbarContainer";
 
@@ -87,11 +84,14 @@ function MapContent() {
 
   const [activeLayer, setActiveLayer] = useState<MapLayerId>("default");
 
+  // Dark mode re-colors the 'default' (OSM) tiles with a CSS filter instead
+  // of swapping to a separate dark tile provider (e.g. CARTO's dark_all) --
+  // that keeps every OSM label/POI/road on screen (a dedicated dark basemap
+  // ships far fewer features) and needs no second tile source to maintain.
+  // Satellite/topo imagery isn't re-styleable this way, so it's left as-is.
   const isDarkDefault = theme === "dark" && activeLayer === "default";
-  const tileUrl = isDarkDefault ? DARK_DEFAULT_TILE_URL : TILE_LAYER_URLS[activeLayer];
-  const tileAttribution = isDarkDefault
-    ? DARK_DEFAULT_TILE_ATTRIBUTION
-    : TILE_LAYER_ATTRIBUTIONS[activeLayer];
+  const tileUrl = TILE_LAYER_URLS[activeLayer];
+  const tileAttribution = TILE_LAYER_ATTRIBUTIONS[activeLayer];
 
   // First custom Leaflet pane in this codebase -- puts the hazard polygons
   // above the tile layer but below markers/popups (default overlayPane is
@@ -167,18 +167,16 @@ function MapContent() {
 
   return (
     <>
-      {/* Dynamic tile layer based on selected map layer + theme. Keying on
-          both forces a clean remount when dark mode swaps the 'default'
-          layer's tile provider (Esri Dark Gray Canvas) rather than relying
-          on react-leaflet to reactively update the url prop. Dark mode adds
-          a second transparent overlay for labels, since the Dark Gray Canvas
-          base tiles ship unlabeled. */}
+      {/* Tile layer for the selected map provider. `className` is a
+          creation-only Leaflet option (not reactively updated), so the key
+          forces a remount when dark mode needs to toggle the CSS invert
+          filter on/off for the 'default' layer. */}
       <TileLayer
         key={`${activeLayer}-${isDarkDefault}`}
         attribution={tileAttribution}
         url={tileUrl}
+        className={isDarkDefault ? "map-tiles-inverted" : undefined}
       />
-      {isDarkDefault && <TileLayer url={DARK_DEFAULT_LABELS_URL} />}
 
       {/* Hazard layer -- GeoJSON polygon overlay, this codebase's first.
           Rendered via react-leaflet's <GeoJSON> (many imperative Leaflet

@@ -167,6 +167,14 @@ body {
   @apply bg-slate-100;
 }
 
+/* Dark mode re-colors the OSM tile layer with a CSS filter rather than
+   swapping to a separate dark tile provider -- see MapContainer.tsx. Applied
+   only to that TileLayer's own container via Leaflet's `className` option,
+   so it never touches markers, popups, or the hazard overlay. */
+.map-tiles-inverted {
+  filter: invert(1) hue-rotate(180deg) brightness(0.95) contrast(0.9) saturate(0.85);
+}
+
 .leaflet-control-attribution {
   @apply bg-white/80 text-slate-500 backdrop-blur-sm;
 }
