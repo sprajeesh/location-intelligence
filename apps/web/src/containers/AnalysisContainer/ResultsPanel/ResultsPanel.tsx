@@ -11,7 +11,7 @@ import ScoreDisplay from "@/components/ScoreDisplay";
 import HazardDisplay from "@/components/HazardDisplay";
 import { CategoryGroup } from "@/components/CategoryGroup";
 import { RadiusAdjuster } from "@/components/RadiusAdjuster";
-import { GlassPanel } from "@/components/ui/GlassPanel";
+import { SurfacePanel } from "@/components/ui/SurfacePanel";
 import { useNavigate } from "@/hooks/useNavigate";
 import { useAnalyze } from "@/hooks/useAnalyze";
 import { useAnalyzeCategories } from "@/hooks/useAnalyzeCategories";
@@ -26,7 +26,6 @@ import { useAnalyzeCategories } from "@/hooks/useAnalyzeCategories";
  * - Score display with coverage
  * - Loading skeletons while analyzing
  * - Empty state with option to increase radius
- * - Dark theme with glassmorphism
  * - Responsive (desktop panel left / mobile bottom sheet)
  */
 
@@ -102,7 +101,7 @@ export default function ResultsPanel({
         categoryMap.set(feature.category, {
           features: [],
           label,
-          color: "#10B981", // Default green, will be overridden by API if available
+          color: "var(--color-success-500)", // fallback, overridden by API-configured category color if available
         });
       }
 
@@ -184,40 +183,40 @@ export default function ResultsPanel({
   // Render loading state
   if (isAnalyzing) {
     return (
-      <GlassPanel className={`pointer-events-auto w-full h-full overflow-y-auto p-4 sm:p-6 flex flex-col gap-4 ${className}`}>
+      <SurfacePanel className={`pointer-events-auto w-full h-full overflow-y-auto p-4 sm:p-6 flex flex-col gap-4 ${className}`}>
         <LoadingSkeleton count={3} />
-      </GlassPanel>
+      </SurfacePanel>
     );
   }
 
   // Render no analysis state
   if (!analysisResult) {
     return (
-      <GlassPanel
+      <SurfacePanel
         className={`pointer-events-auto w-full h-full p-4 sm:p-6 flex flex-col items-center justify-center gap-4 text-center ${className}`}
       >
         <div className="text-slate-400">
           <Search className="mx-auto h-12 w-12 mb-2 opacity-50" />
         </div>
-        <p className="text-sm text-slate-300">
+        <p className="text-sm text-slate-600">
           {t("results.searchPrompt", {
             defaultValue: "Search an address to get started",
           })}
         </p>
-      </GlassPanel>
+      </SurfacePanel>
     );
   }
 
   // Render empty results state
   if (categorySections.length === 0) {
     return (
-      <GlassPanel
+      <SurfacePanel
         className={`pointer-events-auto w-full h-full p-4 sm:p-6 flex flex-col items-center justify-center gap-4 text-center ${className}`}
       >
         <div className="text-slate-400">
           <FileText className="mx-auto h-12 w-12 mb-2 opacity-50" />
         </div>
-        <p className="text-sm text-slate-300">
+        <p className="text-sm text-slate-600">
           {t("results.noFacilities", {
             radius: radiusKm,
             defaultValue: `No facilities found within ${radiusKm}km. Try increasing your search radius.`,
@@ -236,17 +235,17 @@ export default function ResultsPanel({
             still shown here since hazard lookup is independent of facility
             results (see app/api/analyze.py's Step 3 ordering) */}
         {analysisResult?.hazard && (
-          <div className="w-full pt-3 border-t border-slate-700/30 text-left">
+          <div className="w-full pt-3 border-t border-slate-200 text-left">
             <HazardDisplay hazard={analysisResult.hazard} />
           </div>
         )}
-      </GlassPanel>
+      </SurfacePanel>
     );
   }
 
   // Render results
   return (
-    <GlassPanel
+    <SurfacePanel
       as="section"
       aria-label={t("results.title")}
       className={`pointer-events-auto w-full h-full overflow-y-auto flex flex-col ${className}`}
@@ -286,7 +285,7 @@ export default function ResultsPanel({
                         </li>
                       ))}
                       {section.features.length > 3 && (
-                        <li className="px-3 py-1 text-xs text-slate-500">
+                        <li className="px-3 py-1 text-xs text-slate-400">
                           +{section.features.length - 3} more nearby
                         </li>
                       )}
@@ -300,7 +299,7 @@ export default function ResultsPanel({
 
         {/* Score Section */}
         {analysisResult?.score && (
-          <div className="pt-3 border-t border-slate-700/30">
+          <div className="pt-3 border-t border-slate-200">
             <ScoreDisplay
               score={analysisResult.score}
               warnings={analysisResult.warnings}
@@ -310,13 +309,13 @@ export default function ResultsPanel({
 
         {/* Hazard Section — separate from facility score per product decision */}
         {analysisResult?.hazard && (
-          <div className="pt-3 border-t border-slate-700/30">
+          <div className="pt-3 border-t border-slate-200">
             <HazardDisplay hazard={analysisResult.hazard} />
           </div>
         )}
 
         {/* Radius adjuster */}
-        <div className="pt-3 border-t border-slate-700/30">
+        <div className="pt-3 border-t border-slate-200">
           <RadiusAdjuster
             key={addressKey}
             initialValue={radiusKm}
@@ -325,6 +324,6 @@ export default function ResultsPanel({
           />
         </div>
       </div>
-    </GlassPanel>
+    </SurfacePanel>
   );
 }
