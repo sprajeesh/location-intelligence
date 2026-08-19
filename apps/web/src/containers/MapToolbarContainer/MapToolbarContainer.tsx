@@ -7,7 +7,7 @@ import { Plus, Minus, Crosshair, Navigation, TriangleAlert } from "lucide-react"
 import { useLocationStore } from "@/store/index";
 import { ToolbarButton } from "@/components/ToolbarButton";
 import { LayerSelector, type MapLayerId } from "@/components/LayerSelector";
-import { GlassPanel } from "@/components/ui/GlassPanel";
+import { SurfacePanel } from "@/components/ui/SurfacePanel";
 import type { Feature } from "@/types/api";
 
 export const TILE_LAYER_URLS: Record<MapLayerId, string> = {
@@ -111,7 +111,7 @@ export function MapToolbarContainer({
   const hasFeatures = (analysisResult?.features?.length ?? 0) > 0;
 
   return (
-    <GlassPanel
+    <SurfacePanel
       variant="toolbar"
       className="
         absolute md:top-1/2 top-1/4 right-3 -translate-y-1/2 z-[1000]
@@ -126,7 +126,7 @@ export function MapToolbarContainer({
       <ToolbarButton icon={Plus} label="Zoom in" onClick={handleZoomIn} />
       <ToolbarButton icon={Minus} label="Zoom out" onClick={handleZoomOut} />
 
-      <div className="w-5 h-px bg-slate-700/60 my-0.5" role="separator" />
+      <div className="w-5 h-px bg-slate-200 my-0.5" role="separator" />
 
       <ToolbarButton
         icon={Crosshair}
@@ -141,7 +141,7 @@ export function MapToolbarContainer({
         disabled={isLocating}
       />
 
-      <div className="w-5 h-px bg-slate-700/60 my-0.5" role="separator" />
+      <div className="w-5 h-px bg-slate-200 my-0.5" role="separator" />
 
       <ToolbarButton
         icon={TriangleAlert}
@@ -150,10 +150,10 @@ export function MapToolbarContainer({
         active={hazardLayerVisible}
       />
 
-      <div className="w-5 h-px bg-slate-700/60 my-0.5" role="separator" />
+      <div className="w-5 h-px bg-slate-200 my-0.5" role="separator" />
 
       <LayerSelector activeLayer={activeLayer} onSelectLayer={onLayerChange} />
-    </GlassPanel>
+    </SurfacePanel>
   );
 }
 

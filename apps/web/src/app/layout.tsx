@@ -19,7 +19,7 @@ export const metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html className={inter.variable} suppressHydrationWarning>
-      <body className="bg-slate-950 text-slate-50">
+      <body>
         {children}
       </body>
     </html>

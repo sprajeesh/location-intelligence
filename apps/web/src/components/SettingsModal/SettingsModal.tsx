@@ -82,7 +82,7 @@ export function SettingsModal({
           closeLabel={t("settings.close", { defaultValue: "Close" })}
         />
         <ModalContent>
-          <p className="text-sm text-slate-200">
+          <p className="text-sm text-slate-700">
             {t("settings.confirmReanalyzeMessage", {
               address: address ?? "",
               defaultValue: `Your facility selection has changed. Re-run the analysis for "${address}" with the updated facilities?`,
@@ -93,14 +93,14 @@ export function SettingsModal({
           <button
             type="button"
             onClick={onDismissReanalyze}
-            className="px-3 py-1.5 rounded-lg font-medium text-sm text-slate-300 hover:text-slate-100 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-950"
+            className="px-3 py-1.5 rounded-lg font-medium text-sm text-slate-600 hover:text-slate-900 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-white"
           >
             {t("settings.notNow", { defaultValue: "Not now" })}
           </button>
           <button
             type="button"
             onClick={onConfirmReanalyze}
-            className="px-3 py-1.5 rounded-lg font-medium text-sm glass-dark hover:glass text-blue-400 hover:text-blue-300 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-950"
+            className="px-3 py-1.5 rounded-lg font-medium text-sm bg-primary-600 hover:bg-primary-700 text-white transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-white"
           >
             {t("settings.reanalyze", { defaultValue: "Re-analyze" })}
           </button>
@@ -118,7 +118,7 @@ export function SettingsModal({
         closeLabel={t("settings.close", { defaultValue: "Close" })}
       />
 
-      <p className="px-4 pt-3 text-xs text-slate-400 flex-shrink-0">
+      <p className="px-4 pt-3 text-xs text-slate-500 flex-shrink-0">
         {t("settings.description", {
           defaultValue: "Facilities included in your location score, grouped by category.",
         })}
@@ -132,19 +132,19 @@ export function SettingsModal({
 
       <ModalContent data-testid="settings-modal-body">
         {isLoading && (
-          <p className="text-sm text-slate-400">
+          <p className="text-sm text-slate-500">
             {t("settings.loading", { defaultValue: "Loading facilities..." })}
           </p>
         )}
 
         {isError && (
-          <p className="text-sm text-red-400">
+          <p className="text-sm text-error-600">
             {t("settings.error", { defaultValue: "Couldn't load facility settings." })}
           </p>
         )}
 
         {showLimitWarning && (
-          <p role="alert" className="text-xs text-amber-400">
+          <p role="alert" className="text-xs text-warning-600">
             {t("settings.limitReached", {
               max: MAX_SELECTED_FACILITIES,
               defaultValue: `You've reached the maximum of ${MAX_SELECTED_FACILITIES} facilities. Unselect one first to choose another.`,
@@ -157,7 +157,7 @@ export function SettingsModal({
           draft !== null &&
           groups.map((group) => (
             <section key={group.compositeCategory}>
-              <h3 className="text-sm font-medium text-slate-300 mb-1.5">
+              <h3 className="text-sm font-medium text-slate-700 mb-1.5">
                 {t(`score.categories.${group.compositeCategory}`, {
                   defaultValue: group.compositeCategory,
                 })}
@@ -184,7 +184,7 @@ export function SettingsModal({
           type="button"
           onClick={() => draft !== null && onSave(draft)}
           disabled={draft === null}
-          className="px-4 py-1.5 rounded-lg font-medium text-sm glass-dark hover:glass text-blue-400 hover:text-blue-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-950"
+          className="px-4 py-1.5 rounded-lg font-medium text-sm bg-primary-600 hover:bg-primary-700 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-white"
         >
           {t("settings.save", { defaultValue: "Save" })}
         </button>

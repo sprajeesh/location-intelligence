@@ -35,20 +35,20 @@ describe('ToolbarButton', () => {
     it('applies active styling when active=true', () => {
       const { container } = render(<ToolbarButton {...defaultProps} active />);
       const button = container.querySelector('button');
-      expect(button).toHaveClass('bg-blue-500/20', 'text-blue-400');
+      expect(button).toHaveClass('bg-primary-50', 'text-primary-600');
     });
 
     it('applies default styling when active=false', () => {
       const { container } = render(<ToolbarButton {...defaultProps} active={false} />);
       const button = container.querySelector('button');
-      expect(button).toHaveClass('text-slate-300');
-      expect(button).not.toHaveClass('bg-blue-500/20');
+      expect(button).toHaveClass('text-slate-500');
+      expect(button).not.toHaveClass('bg-primary-50');
     });
 
     it('defaults to inactive when active is not provided', () => {
       const { container } = render(<ToolbarButton {...defaultProps} />);
       const button = container.querySelector('button');
-      expect(button).toHaveClass('text-slate-300');
+      expect(button).toHaveClass('text-slate-500');
     });
   });
 

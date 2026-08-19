@@ -12,8 +12,8 @@ export const MapContainerDynamic = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="w-full h-full bg-gray-900 animate-pulse flex items-center justify-center">
-        <div className="text-gray-400">Loading map...</div>
+      <div className="w-full h-full bg-slate-100 animate-pulse flex items-center justify-center">
+        <div className="text-slate-500">Loading map...</div>
       </div>
     ),
   }

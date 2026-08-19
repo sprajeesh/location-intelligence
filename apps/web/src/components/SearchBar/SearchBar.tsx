@@ -112,7 +112,7 @@ export function SearchBar({
     <div ref={dropdownRef} className="relative">
       <div className="relative flex items-center gap-2">
         <div className="absolute left-3 pointer-events-none flex items-center justify-center">
-          <Search className="w-5 h-5 text-gray-400" aria-hidden="true" />
+          <Search className="w-5 h-5 text-slate-400" aria-hidden="true" />
         </div>
 
         <label htmlFor={inputId} className="sr-only">
@@ -135,13 +135,13 @@ export function SearchBar({
               ? `search-option-${highlightedIndex}`
               : undefined
           }
-          className="w-full bg-gray-900/80 backdrop-blur border border-gray-700 rounded-lg py-2.5 pl-10 pr-10 text-sm text-gray-100 placeholder-gray-500 transition-all duration-150 focus:outline-none focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/20 hover:border-gray-600"
+          className="w-full bg-white border border-slate-300 rounded-lg py-2.5 pl-10 pr-10 text-sm text-slate-900 placeholder-slate-400 transition-all duration-150 focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 hover:border-slate-400"
         />
 
         {query && !isLoading && (
           <button
             onClick={onClear}
-            className="absolute right-3 p-1 text-gray-400 hover:text-gray-200 transition-colors duration-150"
+            className="absolute right-3 p-1 text-slate-400 hover:text-slate-600 transition-colors duration-150"
             aria-label="Clear search"
             type="button"
           >
@@ -151,7 +151,7 @@ export function SearchBar({
 
         {isLoading && (
           <div className="absolute right-3 flex items-center justify-center">
-            <div className="w-4 h-4 border-2 border-gray-500 border-t-emerald-500 rounded-full animate-spin" />
+            <div className="w-4 h-4 border-2 border-slate-200 border-t-primary-500 rounded-full animate-spin" />
           </div>
         )}
       </div>
@@ -159,7 +159,7 @@ export function SearchBar({
       {isDropdownOpen && (
         <AddressSuggestionList
           id={dropdownId}
-          className="absolute top-full left-0 right-0 mt-2 bg-gray-800 border border-gray-700 rounded-lg shadow-lg z-50 overflow-hidden"
+          className="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-200 rounded-lg shadow-popover z-50 overflow-hidden"
           items={suggestions.map((suggestion, index) => ({
             key: `${suggestion.lat}-${suggestion.lon}`,
             id: `search-option-${index}`,
@@ -177,9 +177,9 @@ export function SearchBar({
           }}
           emptyState={
             error ? (
-              <div className="px-4 py-3 text-sm text-red-400">{t("errors.generic")}</div>
+              <div className="px-4 py-3 text-sm text-error-600">{t("errors.generic")}</div>
             ) : (
-              <div className="px-4 py-3 text-sm text-gray-400">
+              <div className="px-4 py-3 text-sm text-slate-500">
                 {query.trim() ? t("search.noResults") : ""}
               </div>
             )
@@ -188,7 +188,7 @@ export function SearchBar({
       )}
 
       {isLoading && query.trim() && (
-        <div className="absolute top-full left-0 right-0 mt-2 px-4 py-2.5 text-sm text-gray-400 bg-gray-800/50 border border-gray-700 rounded-lg">
+        <div className="absolute top-full left-0 right-0 mt-2 px-4 py-2.5 text-sm text-slate-500 bg-white/80 border border-slate-200 rounded-lg">
           {t("search.loading")}
         </div>
       )}

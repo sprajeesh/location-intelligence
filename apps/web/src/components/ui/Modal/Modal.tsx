@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, type ComponentPropsWithoutRef, type ReactNode } from "react";
-import { GlassPanel } from "@/components/ui/GlassPanel";
+import { SurfacePanel } from "@/components/ui/SurfacePanel";
 import { useModalBehavior } from "@/hooks/useModalBehavior";
 
 export interface ModalProps extends ComponentPropsWithoutRef<"div"> {
@@ -16,14 +16,14 @@ export function Modal({ onClose, children, className = "max-w-lg", ...rest }: Mo
 
   return (
     <div
-      className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/60 p-4"
+      className="fixed inset-0 z-[2000] flex items-center justify-center bg-slate-900/50 p-4"
       onClick={onClose}
     >
       <div
         onClick={(e) => e.stopPropagation()}
         className={`w-full ${className}`.trim()}
       >
-        <GlassPanel
+        <SurfacePanel
           ref={dialogRef}
           tabIndex={-1}
           variant="panel"
@@ -33,7 +33,7 @@ export function Modal({ onClose, children, className = "max-w-lg", ...rest }: Mo
           className="flex flex-col max-h-[85vh] outline-none"
         >
           {children}
-        </GlassPanel>
+        </SurfacePanel>
       </div>
     </div>
   );

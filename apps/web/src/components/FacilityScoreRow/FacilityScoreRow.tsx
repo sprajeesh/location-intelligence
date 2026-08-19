@@ -30,11 +30,11 @@ export function FacilityScoreRow({ facility }: FacilityScoreRowProps) {
       data-status={displayStatus}
       className={`
         rounded-lg px-3 py-2 border
-        ${isNotChecked ? "border-dashed border-slate-700/40 opacity-60" : "border-slate-700/40"}
+        ${isNotChecked ? "border-dashed border-slate-200 opacity-60" : "border-slate-200"}
       `}
     >
       <div className="flex items-center justify-between gap-2">
-        <span className="text-sm text-slate-200">{label}</span>
+        <span className="text-sm text-slate-700">{label}</span>
         <div className="flex items-center gap-2">
           {displayStatus === "not_checked" && (
             <StatusPill label={t("score.status.notAssessed", { defaultValue: "Not assessed" })} />

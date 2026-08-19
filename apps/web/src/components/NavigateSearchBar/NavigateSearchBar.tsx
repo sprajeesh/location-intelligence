@@ -40,7 +40,7 @@ export function NavigateSearchBar({
 
   return (
     <div className="relative">
-      <div className="bg-gray-900/85 backdrop-blur-md border border-gray-700/80 rounded-xl shadow-lg">
+      <div className="bg-white border border-slate-200 rounded-xl shadow-card">
         {/* From row */}
         <div className="flex items-center gap-2 px-2 py-2">
           <button
@@ -49,11 +49,11 @@ export function NavigateSearchBar({
             aria-label={t("back")}
             className="
               flex-shrink-0 w-7 h-7 flex items-center justify-center
-              rounded-full text-gray-400
-              hover:text-white hover:bg-white/10
+              rounded-full text-slate-400
+              hover:text-slate-900 hover:bg-slate-100
               active:scale-95
               transition-all duration-200 ease-out
-              focus:outline-none focus:ring-2 focus:ring-emerald-500/50
+              focus:outline-none focus:ring-2 focus:ring-primary-500/50
             "
           >
             <ChevronLeft className="w-4 h-4" strokeWidth={2.5} aria-hidden="true" />
@@ -74,7 +74,7 @@ export function NavigateSearchBar({
 
         {/* Connector line */}
         <div className="flex items-center ml-10 mr-3">
-          <div className="h-px flex-1 bg-gray-700/50" />
+          <div className="h-px flex-1 bg-slate-200" />
         </div>
 
         {/* To row */}

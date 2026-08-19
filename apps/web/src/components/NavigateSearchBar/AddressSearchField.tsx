@@ -91,10 +91,10 @@ export function AddressSearchField({
 
   const dotClass =
     accent === "emerald"
-      ? "flex-shrink-0 w-2.5 h-2.5 rounded-full bg-emerald-400"
-      : "flex-shrink-0 w-2.5 h-2.5 rounded-full border-2 border-rose-400";
+      ? "flex-shrink-0 w-2.5 h-2.5 rounded-full bg-success-500"
+      : "flex-shrink-0 w-2.5 h-2.5 rounded-full border-2 border-error-500";
 
-  const spinnerAccent = accent === "emerald" ? "border-t-emerald-400" : "border-t-rose-400";
+  const spinnerAccent = accent === "emerald" ? "border-t-success-500" : "border-t-error-500";
 
   return (
     <div ref={wrapperRef} className="flex-1 min-w-0 flex items-center gap-2">
@@ -117,11 +117,11 @@ export function AddressSearchField({
         aria-activedescendant={
           highlight !== null ? `${fieldId}-option-${highlight}` : undefined
         }
-        className="flex-1 min-w-0 bg-transparent text-sm text-gray-100 placeholder-gray-500 focus:outline-none"
+        className="flex-1 min-w-0 bg-transparent text-sm text-slate-900 placeholder-slate-400 focus:outline-none"
       />
       {isLoading && (
         <div
-          className={`flex-shrink-0 w-3.5 h-3.5 border-2 border-gray-600 ${spinnerAccent} rounded-full animate-spin`}
+          className={`flex-shrink-0 w-3.5 h-3.5 border-2 border-slate-200 ${spinnerAccent} rounded-full animate-spin`}
         />
       )}
       {query && !isLoading && (
@@ -131,7 +131,7 @@ export function AddressSearchField({
             onQueryChange("");
             resolvedRef.current?.focus();
           }}
-          className="flex-shrink-0 text-gray-500 hover:text-gray-300 transition-colors"
+          className="flex-shrink-0 text-slate-400 hover:text-slate-600 transition-colors"
           aria-label={clearLabel}
           tabIndex={-1}
         >
@@ -143,9 +143,9 @@ export function AddressSearchField({
         <AddressSuggestionList
           id={dropdownId}
           ariaLabel={dropdownLabel}
-          className="absolute top-full left-0 right-0 mt-1.5 bg-gray-800/95 backdrop-blur-sm border border-gray-700 rounded-xl shadow-xl z-50 overflow-hidden"
+          className="absolute top-full left-0 right-0 mt-1.5 bg-white border border-slate-200 rounded-xl shadow-popover z-50 overflow-hidden"
           listClassName="max-h-56 overflow-y-auto"
-          iconClassName="w-4 h-4 flex-shrink-0 mt-0.5 text-gray-500"
+          iconClassName="w-4 h-4 flex-shrink-0 mt-0.5 text-slate-400"
           items={suggestions.map((s, i) => ({
             key: `${s.lat}-${s.lon}`,
             id: `${fieldId}-option-${i}`,
@@ -158,7 +158,7 @@ export function AddressSearchField({
             if (suggestion) handleSelect(suggestion);
           }}
           accent={accent}
-          loadingState={<div className="px-4 py-3 text-sm text-gray-400">Searching…</div>}
+          loadingState={<div className="px-4 py-3 text-sm text-slate-500">Searching…</div>}
         />
       )}
     </div>

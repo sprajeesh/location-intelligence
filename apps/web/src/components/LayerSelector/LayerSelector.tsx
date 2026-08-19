@@ -71,8 +71,8 @@ export function LayerSelector({ activeLayer, onSelectLayer }: LayerSelectorProps
         <div
           className="
             absolute right-full top-1/2 -translate-y-1/2 mr-2
-            bg-slate-900/95 backdrop-blur-md border border-slate-700/60
-            rounded-lg shadow-2xl py-1 min-w-[120px] z-50
+            bg-white border border-slate-200
+            rounded-lg shadow-popover py-1 min-w-[120px] z-50
             animate-in fade-in slide-in-from-right-1 duration-150
           "
           role="menu"
@@ -95,15 +95,15 @@ export function LayerSelector({ activeLayer, onSelectLayer }: LayerSelectorProps
                   transition-colors duration-150
                   ${
                     isActive
-                      ? "text-blue-400 bg-blue-500/10"
-                      : "text-slate-300 hover:text-slate-100 hover:bg-white/5"
+                      ? "text-primary-600 bg-primary-50"
+                      : "text-slate-700 hover:text-slate-900 hover:bg-slate-50"
                   }
                 `}
               >
                 <LayerIcon size={14} strokeWidth={2} />
                 <span>{layer.label}</span>
                 {isActive && (
-                  <div className="ml-auto w-1.5 h-1.5 rounded-full bg-blue-400" />
+                  <div className="ml-auto w-1.5 h-1.5 rounded-full bg-primary-500" />
                 )}
               </button>
             );

@@ -29,11 +29,11 @@ export default function FacilityItem({
           style={{ backgroundColor: markerColor }}
           aria-hidden="true"
         />
-        <span className="text-sm text-slate-200 truncate group-hover:text-slate-100 transition-colors">
+        <span className="text-sm text-slate-700 truncate group-hover:text-slate-900 transition-colors">
           {feature.name}
         </span>
       </div>
-      <span className="text-xs font-semibold text-slate-400 group-hover:text-slate-300 flex-shrink-0 whitespace-nowrap ml-2">
+      <span className="text-xs font-semibold text-slate-500 group-hover:text-slate-600 flex-shrink-0 whitespace-nowrap ml-2">
         {t("distance.km", {
           distance: feature.distanceKm.toFixed(1),
           defaultValue: `${feature.distanceKm.toFixed(1)} km`,
@@ -51,8 +51,8 @@ export default function FacilityItem({
           className={`
             flex-1 text-left px-3 py-2 rounded-lg
             transition-all duration-200
-            hover:bg-slate-700/30 hover:backdrop-blur-sm
-            focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset
+            hover:bg-slate-100
+            focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-inset
           `}
           aria-label={rowLabel}
         >
@@ -75,7 +75,7 @@ export default function FacilityItem({
             e.stopPropagation();
             onNavigate(feature);
           }}
-          className="text-slate-400 hover:text-blue-400 hover:bg-slate-700/30"
+          className="text-slate-400 hover:text-primary-600 hover:bg-slate-100"
           label={t("results.navigateTo", {
             name: feature.name,
             defaultValue: `Navigate to ${feature.name}`,

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Settings } from "lucide-react";
-import { GlassPanel } from "@/components/ui/GlassPanel";
+import { SurfacePanel } from "@/components/ui/SurfacePanel";
 import { ToolbarButton } from "@/components/ToolbarButton";
 import { SettingsModal } from "@/components/SettingsModal";
 import { useCategories } from "@/hooks/useCategories";
@@ -72,13 +72,13 @@ export function SettingsContainer() {
 
   return (
     <>
-      <GlassPanel variant="toolbar" className="p-1 flex-shrink-0">
+      <SurfacePanel variant="toolbar" className="p-1 flex-shrink-0">
         <ToolbarButton
           icon={Settings}
           label={t("settings.tooltip", { defaultValue: "Settings" })}
           onClick={() => setIsOpen(true)}
         />
-      </GlassPanel>
+      </SurfacePanel>
 
       {isOpen && (
         <SettingsModal

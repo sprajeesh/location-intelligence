@@ -55,7 +55,7 @@ describe('IconButton', () => {
   describe('Active state', () => {
     it('applies active styling when active=true', () => {
       const { container } = render(<IconButton {...defaultProps} active />);
-      expect(container.querySelector('button')).toHaveClass('bg-blue-500/20', 'text-blue-400');
+      expect(container.querySelector('button')).toHaveClass('bg-primary-50', 'text-primary-600');
     });
   });
 
