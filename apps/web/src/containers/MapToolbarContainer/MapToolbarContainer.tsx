@@ -24,6 +24,22 @@ export const TILE_LAYER_ATTRIBUTIONS: Record<MapLayerId, string> = {
   topo: '&copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)',
 };
 
+// Dark-mode replacement for the 'default' (OSM) layer only -- satellite/topo
+// imagery isn't re-styleable this way, so they're left as-is in dark mode.
+// Esri's World Dark Gray Canvas (same free, no-API-key service already used
+// for the satellite layer) is purpose-built for a readable dark basemap --
+// unlike CARTO's dark_all, which is deliberately too subtle/low-contrast to
+// stand alone (it's designed as a backdrop for data overlays) and can't be
+// fixed with a CSS filter without either crushing land to black or washing
+// water out to flat grey, since both start out nearly the same luminance.
+// Labels ship as a separate transparent "Reference" overlay tile layer.
+export const DARK_DEFAULT_TILE_URL =
+  "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}";
+export const DARK_DEFAULT_LABELS_URL =
+  "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}";
+export const DARK_DEFAULT_TILE_ATTRIBUTION =
+  "Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ";
+
 export interface MapToolbarContainerProps {
   activeLayer: MapLayerId;
   onLayerChange: (layer: MapLayerId) => void;
@@ -113,11 +129,7 @@ export function MapToolbarContainer({
   return (
     <SurfacePanel
       variant="toolbar"
-      className="
-        absolute md:top-1/2 top-1/4 right-3 -translate-y-1/2 z-[1000]
-        flex flex-col items-center gap-0.5
-        p-1
-      "
+      className="flex flex-col items-center gap-0.5 p-1"
       role="toolbar"
       aria-label="Map controls"
       onMouseDown={(e) => e.stopPropagation()}

@@ -21,12 +21,16 @@ import { useHazardCells } from "@/hooks/useHazardCells";
 import { getHazardCellColor } from "@/utils/hazardColor";
 import { buildHazardTooltipHtml } from "@/utils/hazardTooltip";
 import { HazardLegend } from "@/components/HazardLegend";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import type { HazardCellFeature } from "@/types/hazard";
 import { useTranslations } from "next-intl";
 import {
   MapToolbarContainer,
   TILE_LAYER_URLS,
   TILE_LAYER_ATTRIBUTIONS,
+  DARK_DEFAULT_TILE_URL,
+  DARK_DEFAULT_LABELS_URL,
+  DARK_DEFAULT_TILE_ATTRIBUTION,
   type MapLayerId,
 } from "@/containers/MapToolbarContainer";
 
@@ -71,6 +75,7 @@ function MapContent() {
     routeMode,
     hazardLayerVisible,
     hazardCells,
+    theme,
     setHoveredHazardCellId,
     setSelectedHazardCellId,
   } = useLocationStore();
@@ -81,6 +86,12 @@ function MapContent() {
   const hazardCellsQuery = useHazardCells(hazardLayerVisible);
 
   const [activeLayer, setActiveLayer] = useState<MapLayerId>("default");
+
+  const isDarkDefault = theme === "dark" && activeLayer === "default";
+  const tileUrl = isDarkDefault ? DARK_DEFAULT_TILE_URL : TILE_LAYER_URLS[activeLayer];
+  const tileAttribution = isDarkDefault
+    ? DARK_DEFAULT_TILE_ATTRIBUTION
+    : TILE_LAYER_ATTRIBUTIONS[activeLayer];
 
   // First custom Leaflet pane in this codebase -- puts the hazard polygons
   // above the tile layer but below markers/popups (default overlayPane is
@@ -156,12 +167,18 @@ function MapContent() {
 
   return (
     <>
-      {/* Dynamic tile layer based on selected map layer */}
+      {/* Dynamic tile layer based on selected map layer + theme. Keying on
+          both forces a clean remount when dark mode swaps the 'default'
+          layer's tile provider (Esri Dark Gray Canvas) rather than relying
+          on react-leaflet to reactively update the url prop. Dark mode adds
+          a second transparent overlay for labels, since the Dark Gray Canvas
+          base tiles ship unlabeled. */}
       <TileLayer
-        key={activeLayer}
-        attribution={TILE_LAYER_ATTRIBUTIONS[activeLayer]}
-        url={TILE_LAYER_URLS[activeLayer]}
+        key={`${activeLayer}-${isDarkDefault}`}
+        attribution={tileAttribution}
+        url={tileUrl}
       />
+      {isDarkDefault && <TileLayer url={DARK_DEFAULT_LABELS_URL} />}
 
       {/* Hazard layer -- GeoJSON polygon overlay, this codebase's first.
           Rendered via react-leaflet's <GeoJSON> (many imperative Leaflet
@@ -180,7 +197,7 @@ function MapContent() {
           style={(feature) => {
             const props = feature?.properties as HazardCellFeature["properties"];
             return {
-              color: "var(--color-neutral-900)",
+              color: "rgb(var(--color-neutral-900))",
               weight: 1,
               fillColor: getHazardCellColor(props.composite),
               fillOpacity: 0.55,
@@ -199,11 +216,17 @@ function MapContent() {
         />
       )}
 
-      {/* Map toolbar */}
-      <MapToolbarContainer
-        activeLayer={activeLayer}
-        onLayerChange={setActiveLayer}
-      />
+      {/* Theme toggle + map toolbar -- grouped in one positioning wrapper so
+          the toggle sits directly above the toolbar as a separate card,
+          not a button inside it, while both stay vertically centered
+          together on every screen size. */}
+      <div className="absolute md:top-1/2 top-1/4 right-3 -translate-y-1/2 z-[1000] flex flex-col items-center gap-2">
+        <ThemeToggle />
+        <MapToolbarContainer
+          activeLayer={activeLayer}
+          onLayerChange={setActiveLayer}
+        />
+      </div>
 
       {/* Scale control - bottom left */}
       <ScaleControl position="bottomleft" imperial={false} metric={true} />
@@ -231,7 +254,7 @@ function MapContent() {
           return null;
         }
 
-        const color = categoryColorMap[feature.category] || "var(--color-neutral-500)";
+        const color = categoryColorMap[feature.category] || "rgb(var(--color-neutral-500))";
 
         return (
           <Marker
@@ -266,10 +289,10 @@ function MapContent() {
           pathOptions={{
             color:
               routeMode === "walking"
-                ? "var(--color-success-500)"
+                ? "rgb(var(--color-success-500))"
                 : routeMode === "cycling"
-                  ? "var(--color-warning-500)"
-                  : "var(--color-primary-500)",
+                  ? "rgb(var(--color-warning-500))"
+                  : "rgb(var(--color-primary-500))",
             weight: 12,
             opacity: 0.75,
           }}
@@ -282,7 +305,7 @@ function MapContent() {
           key={`selected-${selectedFeature.id}`}
           position={[selectedFeature.lat, selectedFeature.lon]}
           icon={createSelectedFeatureIcon(
-            categoryColorMap[selectedFeature.category] || "var(--color-neutral-500)",
+            categoryColorMap[selectedFeature.category] || "rgb(var(--color-neutral-500))",
           )}
           zIndexOffset={1000}
         />
@@ -383,7 +406,7 @@ function createMainLocationIcon(): L.DivIcon {
       justify-content: center;
       width: 32px;
       height: 32px;
-      background: var(--color-error-500);
+      background: rgb(var(--color-error-500));
       border: 3px solid white;
       border-radius: 50%;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
