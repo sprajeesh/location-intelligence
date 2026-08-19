@@ -1,5 +1,5 @@
 import type { Config } from 'tailwindcss'
-import plugin from 'tailwindcss/plugin'
+import { primary, success, warning, error, info, ink } from './src/styles/tokens'
 
 const config: Config = {
   content: [
@@ -14,23 +14,21 @@ const config: Config = {
         sans: ['var(--font-inter)'],
       },
       colors: {
-        'dark-bg': '#0f1117',
-        'dark-surface': '#161b22',
+        primary,
+        success,
+        warning,
+        error,
+        info,
+        ink,
       },
-      backdropFilter: {
-        'blur-sm': 'blur(4px)',
+      boxShadow: {
+        card: '0 1px 2px 0 rgba(16,24,40,0.06), 0 1px 3px 0 rgba(16,24,40,0.10)',
+        'card-lg': '0 4px 6px -1px rgba(16,24,40,0.08), 0 10px 15px -3px rgba(16,24,40,0.08)',
+        popover: '0 4px 6px -1px rgba(16,24,40,0.10), 0 2px 4px -2px rgba(16,24,40,0.06)',
       },
     },
   },
-  plugins: [
-    plugin(({ addUtilities }) => {
-      addUtilities({
-        '.glass': {
-          '@apply bg-opacity-20 backdrop-blur-md': {},
-        },
-      })
-    })
-  ],
+  plugins: [],
 }
 
 export default config

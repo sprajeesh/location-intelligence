@@ -2,6 +2,23 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Mirror of apps/web/src/styles/tokens.ts -- keep numerically identical.
+   Tailwind classes (bg-primary-500 etc.) come from tailwind.config.ts, which
+   imports tokens.ts directly. These custom properties exist only for
+   non-Tailwind consumers that run in the browser at runtime and cannot use
+   Tailwind classes: Leaflet divIcon HTML strings and GeoJSON/Polyline
+   style() callbacks in MapContainer.tsx. */
+:root {
+  --color-primary-500: #0B5CFF;
+  --color-success-500: #10B981;
+  --color-warning-500: #F59E0B;
+  --color-error-500: #EF4444;
+  --color-neutral-0: #FFFFFF;
+  --color-neutral-300: #CBD5E1;
+  --color-neutral-500: #64748B;
+  --color-neutral-900: #0F172A;
+}
+
 * {
   @apply m-0 p-0 box-border;
 }
@@ -12,26 +29,18 @@ html {
 }
 
 body {
-  background: linear-gradient(
-    135deg,
-    #0f1117 0%,
-    #1a1f2e 50%,
-    #0f1117 100%
-  );
+  @apply bg-white text-ink;
   min-height: 100vh;
-  position: relative;
 }
 
-/* Leaflet CSS override for dark mode */
 .leaflet-container {
-  @apply bg-slate-800;
+  @apply bg-slate-100;
 }
 
 .leaflet-control-attribution {
-  @apply bg-slate-800/80 text-slate-300 backdrop-blur-sm;
+  @apply bg-white/80 text-slate-500 backdrop-blur-sm;
 }
 
-/* Smooth transitions */
 @layer utilities {
   .transition-smooth {
     @apply transition-all duration-200 ease-in-out;
@@ -39,9 +48,5 @@ body {
 
   .text-truncate {
     @apply truncate;
-  }
-
-  .glass {
-    @apply bg-slate-900/40 backdrop-blur-md border border-slate-700/40;
   }
 }
