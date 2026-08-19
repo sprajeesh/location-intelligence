@@ -41,7 +41,7 @@ export function ScoreDisplay({ score, warnings = [] }: ScoreDisplayProps) {
     <div className="space-y-3">
       {/* Overall Score */}
       <div className="text-center">
-        <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+        <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
           {t("score.title", { defaultValue: "Location Score" })}
         </h3>
         <div className="flex flex-col items-center gap-1">
@@ -55,7 +55,7 @@ export function ScoreDisplay({ score, warnings = [] }: ScoreDisplayProps) {
       </div>
 
       {/* Category Breakdown */}
-      <ul className="space-y-2 pt-2 border-t border-slate-700/30">
+      <ul className="space-y-2 pt-2 border-t border-slate-200">
         {orderedCategories.map((category) => (
           <li key={category.category}>
             <CategoryScoreCard
@@ -69,11 +69,11 @@ export function ScoreDisplay({ score, warnings = [] }: ScoreDisplayProps) {
 
       {/* Warnings */}
       {warnings.length > 0 && (
-        <ul className="pt-2 border-t border-slate-700/30 space-y-1">
+        <ul className="pt-2 border-t border-slate-200 space-y-1">
           {warnings.map((warning, idx) => (
             <li
               key={idx}
-              className="text-xs text-amber-400 flex items-start gap-2"
+              className="text-xs text-warning-600 flex items-start gap-2"
             >
               <TriangleAlert
                 className="w-3 h-3 mt-0.5 flex-shrink-0"

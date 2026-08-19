@@ -46,7 +46,7 @@ export default function CategoryGroup({
       <div
         className={`
           w-full flex items-center justify-between px-3 py-2 rounded-lg
-          glass hover:glass-dark
+          bg-white hover:bg-slate-50 border border-slate-200
           transition-all duration-200
           group
         `}
@@ -54,7 +54,7 @@ export default function CategoryGroup({
         <button
           type="button"
           onClick={onToggleExpand}
-          className="flex items-center justify-between gap-3 flex-1 min-w-0 text-left rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-inset"
+          className="flex items-center justify-between gap-3 flex-1 min-w-0 text-left rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
           aria-expanded={isExpanded}
           aria-controls={isExpanded ? `category-${id}` : undefined}
         >
@@ -68,7 +68,7 @@ export default function CategoryGroup({
 
             {/* Label and count */}
             <div className="flex items-center gap-2 min-w-0">
-              <span className="font-medium text-slate-100 truncate">{label}</span>
+              <span className="font-medium text-slate-900 truncate">{label}</span>
               <Badge label={count} tone="count" className="flex-shrink-0" />
             </div>
           </div>
@@ -95,8 +95,8 @@ export default function CategoryGroup({
             title={`${isVisible ? "Hide" : "Show"} markers`}
             className={
               isVisible
-                ? "text-blue-400 hover:text-blue-300 hover:bg-blue-500/10"
-                : "text-slate-500 hover:text-slate-400 hover:bg-slate-700/20"
+                ? "text-primary-600 hover:text-primary-700 hover:bg-primary-50"
+                : "text-slate-400 hover:text-slate-500 hover:bg-slate-100"
             }
           />
         </div>

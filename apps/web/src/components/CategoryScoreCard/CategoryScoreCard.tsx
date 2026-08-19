@@ -40,14 +40,14 @@ export function CategoryScoreCard({
       isExpanded={isExpanded}
       onToggle={onToggleExpand}
       contentId={`category-score-${category.category}`}
-      className={isNotChecked ? "border-dashed border-slate-700/40 opacity-60" : "border-slate-700/60"}
+      className={isNotChecked ? "border-dashed border-slate-200 opacity-60" : "border-slate-200"}
       headerClassName="items-center"
       contentClassName="px-3 pb-3"
       wrapperProps={{
         "data-testid": `category-score-card-${category.category}`,
         "data-status": category.status,
       }}
-      header={<span className="font-medium text-slate-100">{label}</span>}
+      header={<span className="font-medium text-slate-900">{label}</span>}
       headerEnd={
         isNotChecked ? (
           <StatusPill label={t("score.status.notAssessed", { defaultValue: "Not assessed" })} />
