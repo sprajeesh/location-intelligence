@@ -13,9 +13,9 @@ export interface BadgeProps {
 }
 
 const TONE_CLASSES: Record<BadgeTone, string> = {
-  neutral: "text-xs px-1.5 py-0.5 rounded bg-slate-700/40 text-slate-400",
-  success: "text-xs font-medium text-emerald-400 bg-emerald-400/10 px-1.5 py-0.5 rounded",
-  count: "text-xs font-semibold px-2 py-0.5 rounded bg-slate-700/50 text-slate-300",
+  neutral: "text-xs px-1.5 py-0.5 rounded bg-slate-100 text-slate-500",
+  success: "text-xs font-medium text-success-700 bg-success-50 px-1.5 py-0.5 rounded",
+  count: "text-xs font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-700",
 };
 
 export function Badge({ label, tone = "neutral", className = "" }: BadgeProps) {

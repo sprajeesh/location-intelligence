@@ -54,12 +54,12 @@ export function IconButton({
       className={`
         ${SIZE_CLASSES[size]}
         transition-all duration-150
-        focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset
+        focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-inset
         disabled:opacity-40 disabled:cursor-not-allowed
         ${
           active
-            ? "bg-blue-500/20 text-blue-400 hover:bg-blue-500/30"
-            : "text-slate-300 hover:text-slate-100 hover:bg-white/10 active:bg-white/15"
+            ? "bg-primary-50 text-primary-600 hover:bg-primary-100"
+            : "text-slate-500 hover:text-slate-700 hover:bg-slate-100 active:bg-slate-200"
         }
         ${className}
       `.trim()}

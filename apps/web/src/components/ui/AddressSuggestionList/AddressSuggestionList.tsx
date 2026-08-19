@@ -28,8 +28,8 @@ export interface AddressSuggestionListProps {
 }
 
 const HIGHLIGHT_CLASSES: Record<AddressSuggestionAccent, string> = {
-  emerald: "bg-emerald-500/20 text-emerald-100",
-  rose: "bg-rose-500/20 text-rose-100",
+  emerald: "bg-success-50 text-success-800",
+  rose: "bg-error-50 text-error-800",
 };
 
 export function AddressSuggestionList({
@@ -63,7 +63,7 @@ export function AddressSuggestionList({
               className={`flex items-start gap-2 px-4 py-2.5 text-sm cursor-pointer transition-colors duration-150 ${
                 highlightedIndex === index
                   ? HIGHLIGHT_CLASSES[accent]
-                  : "hover:bg-gray-700/50 text-gray-300"
+                  : "hover:bg-slate-100 text-slate-700"
               }`}
             >
               <button type="button" tabIndex={-1} className="flex items-start gap-2 w-full text-left pointer-events-none">
@@ -71,7 +71,7 @@ export function AddressSuggestionList({
                 {item.sublabel ? (
                   <div className="flex-1 min-w-0">
                     <p className="truncate font-medium">{item.displayName}</p>
-                    <p className="text-xs text-gray-500 mt-0.5">{item.sublabel}</p>
+                    <p className="text-xs text-slate-500 mt-0.5">{item.sublabel}</p>
                   </div>
                 ) : (
                   <span className="truncate">{item.displayName}</span>

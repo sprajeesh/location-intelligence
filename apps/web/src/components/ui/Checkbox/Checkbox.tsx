@@ -20,7 +20,7 @@ export function Checkbox({ id, checked, label, color, onChange }: CheckboxProps)
         checked={checked}
         disabled={!onChange}
         onChange={onChange ? (e) => onChange(e.target.checked) : undefined}
-        className="w-4 h-4 rounded border-slate-600 bg-slate-800 text-blue-500 accent-blue-500 disabled:opacity-70"
+        className="w-4 h-4 rounded border-slate-300 bg-white text-primary-600 accent-primary-600 disabled:opacity-50"
       />
       {color && (
         <span
@@ -31,7 +31,7 @@ export function Checkbox({ id, checked, label, color, onChange }: CheckboxProps)
       )}
       <label
         htmlFor={id}
-        className={`text-sm text-slate-200 select-none ${onChange ? "cursor-pointer" : "cursor-default"}`}
+        className={`text-sm text-slate-700 select-none ${onChange ? "cursor-pointer" : "cursor-default"}`}
       >
         {label}
       </label>
