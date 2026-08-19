@@ -399,11 +399,11 @@ psql -h localhost -U $DB_USER -d gis \
 
 The `gis` database has two kinds of tables, managed two different ways:
 
-| Table                            | Managed by                                            |
-| --------------------------------- | ------------------------------------------------------ |
-| `addresses`                       | Baked into the `postgis` Docker image at build time (see above) |
-| `facility_types`, `category_weights` | [Alembic](https://alembic.sqlalchemy.org/) — run manually against a live container |
-| `hazard_types`, `hazard_sources`, `hazard_cells`, `hazard_cell_scores` | Alembic, same as above — see [Hazard Demo Data](#hazard-demo-data) below |
+| Table                                                                  | Managed by                                                                         |
+| ---------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| `addresses`                                                            | Baked into the `postgis` Docker image at build time (see above)                    |
+| `facility_types`, `category_weights`                                   | [Alembic](https://alembic.sqlalchemy.org/) — run manually against a live container |
+| `hazard_types`, `hazard_sources`, `hazard_cells`, `hazard_cell_scores` | Alembic, same as above — see [Hazard Demo Data](#hazard-demo-data) below           |
 
 `facility_types`/`category_weights` back the facility/scoring engine (which
 facility types exist, their scoring weights, OSM tag mapping, category
@@ -630,10 +630,10 @@ pnpm lint
 
 ## Deployment
 
-| Component | Target                                | Notes                                                                    |
-| --------- | -------------------------------------- | ------------------------------------------------------------------------- |
-| Frontend  | Cloudflare Workers (via OpenNext)      | `pnpm run build:cf` → `wrangler deploy` on `release:` commits to `main`   |
-| Backend   | Single small VM (e.g. Hetzner)         | `docker compose` runs API + PostGIS + Redis + OSRM together on one host   |
+| Component | Target                            | Notes                                                                   |
+| --------- | --------------------------------- | ----------------------------------------------------------------------- |
+| Frontend  | Cloudflare Workers (via OpenNext) | `pnpm run build:cf` → `wrangler deploy` on `release:` commits to `main` |
+| Backend   | Single small VM (e.g. Hetzner)    | `docker compose` runs API + PostGIS + Redis + OSRM together on one host |
 
 Deployed via `.github/workflows/push.yml`'s `deploy-web`/`deploy-api` jobs, triggered by a `release:`-prefixed commit message on `main`. The backend VM is provisioned manually (no IaC) and targeted purely via the `DEPLOY_SERVER_HOST`/`DEPLOY_SSH_KEY` secrets, so switching providers later is a secret change, not a workflow change.
 
@@ -706,4 +706,4 @@ MIT
 
 - **Project:** Location Intelligence MVP
 - **Team:** LINZ / Prajeesh Koothupalakkal
-- **Email:** PKoothupalakkal@linz.govt.nz
+- **Email:** sprajeesh@gmail.com
