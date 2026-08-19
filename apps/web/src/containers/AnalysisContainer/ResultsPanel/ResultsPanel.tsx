@@ -101,7 +101,7 @@ export default function ResultsPanel({
         categoryMap.set(feature.category, {
           features: [],
           label,
-          color: "var(--color-success-500)", // fallback, overridden by API-configured category color if available
+          color: "rgb(var(--color-success-500))", // fallback, overridden by API-configured category color if available
         });
       }
 
