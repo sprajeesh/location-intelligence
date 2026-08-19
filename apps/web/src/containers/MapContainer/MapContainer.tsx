@@ -180,7 +180,7 @@ function MapContent() {
           style={(feature) => {
             const props = feature?.properties as HazardCellFeature["properties"];
             return {
-              color: "#0f172a",
+              color: "var(--color-neutral-900)",
               weight: 1,
               fillColor: getHazardCellColor(props.composite),
               fillOpacity: 0.55,
@@ -218,7 +218,7 @@ function MapContent() {
             <div className="text-sm font-semibold">
               {selectedAddress.displayName}
             </div>
-            <div className="text-xs text-gray-600">
+            <div className="text-xs text-slate-600">
               {selectedAddress.lat.toFixed(4)}, {selectedAddress.lon.toFixed(4)}
             </div>
           </Popup>
@@ -231,7 +231,7 @@ function MapContent() {
           return null;
         }
 
-        const color = categoryColorMap[feature.category] || "#6B7280";
+        const color = categoryColorMap[feature.category] || "var(--color-neutral-500)";
 
         return (
           <Marker
@@ -241,26 +241,14 @@ function MapContent() {
           >
             <Popup>
               <div className="text-sm font-semibold mb-1">{feature.name}</div>
-              <div className="text-xs text-gray-600 mb-2">
+              <div className="text-xs text-slate-600 mb-2">
                 <strong>{t("map.markerPopup.distance")}:</strong>{" "}
                 {feature.distanceKm.toFixed(2)} km
               </div>
               <button
                 type="button"
                 onClick={() => navigate(feature)}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  width: "28px",
-                  height: "28px",
-                  borderRadius: "6px",
-                  border: "1px solid #d1d5db",
-                  background: "#f9fafb",
-                  cursor: "pointer",
-                  color: "#374151",
-                  padding: 0,
-                }}
+                className="flex items-center justify-center w-7 h-7 rounded-md border border-slate-300 bg-slate-50 text-slate-700 cursor-pointer p-0"
                 title="Show route"
                 aria-label={`Navigate to ${feature.name}`}
               >
@@ -278,10 +266,10 @@ function MapContent() {
           pathOptions={{
             color:
               routeMode === "walking"
-                ? "#10B981"
+                ? "var(--color-success-500)"
                 : routeMode === "cycling"
-                  ? "#F59E0B"
-                  : "#3B82F6",
+                  ? "var(--color-warning-500)"
+                  : "var(--color-primary-500)",
             weight: 12,
             opacity: 0.75,
           }}
@@ -294,7 +282,7 @@ function MapContent() {
           key={`selected-${selectedFeature.id}`}
           position={[selectedFeature.lat, selectedFeature.lon]}
           icon={createSelectedFeatureIcon(
-            categoryColorMap[selectedFeature.category] || "#6B7280",
+            categoryColorMap[selectedFeature.category] || "var(--color-neutral-500)",
           )}
           zIndexOffset={1000}
         />
@@ -353,7 +341,7 @@ export function MapContainer() {
       {hazardLayerVisible && hazardCells && (
         <>
           <div className="absolute top-2 left-1/2 -translate-x-1/2 z-[1000] pointer-events-none">
-            <div className="bg-slate-900/90 backdrop-blur border border-amber-500/40 rounded-lg px-3 py-1.5 flex items-center gap-2 text-xs text-amber-300">
+            <div className="bg-white border border-warning-200 shadow-card rounded-lg px-3 py-1.5 flex items-center gap-2 text-xs text-warning-800">
               <TriangleAlert className="w-3 h-3 flex-shrink-0" aria-hidden="true" />
               <span>
                 {t("hazard.mapBanner", {
@@ -371,10 +359,10 @@ export function MapContainer() {
 
       {/* Loading overlay */}
       {isAnalyzing && (
-        <div className="absolute inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center pointer-events-none">
-          <div className="bg-white/90 rounded-lg px-4 py-2 flex items-center gap-2">
-            <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
-            <span className="text-sm font-medium text-gray-700">
+        <div className="absolute inset-0 bg-black/10 backdrop-blur-sm flex items-center justify-center pointer-events-none">
+          <div className="bg-white shadow-card-lg rounded-lg px-4 py-2 flex items-center gap-2">
+            <div className="w-4 h-4 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin" />
+            <span className="text-sm font-medium text-slate-700">
               Analyzing...
             </span>
           </div>
@@ -395,7 +383,7 @@ function createMainLocationIcon(): L.DivIcon {
       justify-content: center;
       width: 32px;
       height: 32px;
-      background: #EF4444;
+      background: var(--color-error-500);
       border: 3px solid white;
       border-radius: 50%;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
