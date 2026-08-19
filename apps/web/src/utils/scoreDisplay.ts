@@ -74,13 +74,13 @@ export function formatScoreValue(score: number | null): string {
 export function getScoreColorClass(score: number | null): string {
   switch (getScoreColorTier(score)) {
     case "good":
-      return "text-green-400";
+      return "text-success-600";
     case "moderate":
-      return "text-yellow-400";
+      return "text-warning-600";
     case "poor":
-      return "text-red-400";
+      return "text-error-600";
     case "unscored":
-      return "text-slate-500";
+      return "text-slate-400";
   }
 }
 

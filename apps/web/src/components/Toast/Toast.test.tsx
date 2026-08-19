@@ -87,7 +87,7 @@ describe('ToastContainer', () => {
     });
 
     const toast = container.querySelector('[role="alert"]');
-    expect(toast).toHaveClass('bg-red-900/80', 'border-red-700');
+    expect(toast).toHaveClass('bg-error-50', 'border-error-200');
   });
 
   it('applies correct styling for warning type', () => {
@@ -106,7 +106,7 @@ describe('ToastContainer', () => {
     });
 
     const toast = container.querySelector('[role="alert"]');
-    expect(toast).toHaveClass('bg-amber-900/80', 'border-amber-700');
+    expect(toast).toHaveClass('bg-warning-50', 'border-warning-200');
   });
 
   it('applies correct styling for success type', () => {
@@ -125,7 +125,7 @@ describe('ToastContainer', () => {
     });
 
     const toast = container.querySelector('[role="alert"]');
-    expect(toast).toHaveClass('bg-emerald-900/80', 'border-emerald-700');
+    expect(toast).toHaveClass('bg-success-50', 'border-success-200');
   });
 
   it('applies correct styling for info type', () => {
@@ -144,7 +144,7 @@ describe('ToastContainer', () => {
     });
 
     const toast = container.querySelector('[role="alert"]');
-    expect(toast).toHaveClass('bg-blue-900/80', 'border-blue-700');
+    expect(toast).toHaveClass('bg-info-50', 'border-info-200');
   });
 
   it('auto-dismisses after 3 seconds', async () => {

@@ -25,49 +25,21 @@ function ToastItem({ toast }: { toast: ToastType }) {
     return () => clearTimeout(timer);
   }, [toast.id, toast.dismissible, removeToast]);
 
-  const bgColor =
-    toast.type === 'error'
-      ? 'bg-red-900/80'
-      : toast.type === 'warning'
-        ? 'bg-amber-900/80'
-        : toast.type === 'success'
-          ? 'bg-emerald-900/80'
-          : 'bg-blue-900/80';
-
-  const borderColor =
-    toast.type === 'error'
-      ? 'border-red-700'
-      : toast.type === 'warning'
-        ? 'border-amber-700'
-        : toast.type === 'success'
-          ? 'border-emerald-700'
-          : 'border-blue-700';
-
-  const textColor =
-    toast.type === 'error'
-      ? 'text-red-200'
-      : toast.type === 'warning'
-        ? 'text-amber-200'
-        : toast.type === 'success'
-          ? 'text-emerald-200'
-          : 'text-blue-200';
-
-  const iconColor =
-    toast.type === 'error'
-      ? 'text-red-400'
-      : toast.type === 'warning'
-        ? 'text-amber-400'
-        : toast.type === 'success'
-          ? 'text-emerald-400'
-          : 'text-blue-400';
+  const TONE_CLASSES: Record<ToastType['type'], { bg: string; border: string; text: string; icon: string }> = {
+    error: { bg: 'bg-error-50', border: 'border-error-200', text: 'text-error-800', icon: 'text-error-500' },
+    warning: { bg: 'bg-warning-50', border: 'border-warning-200', text: 'text-warning-800', icon: 'text-warning-500' },
+    success: { bg: 'bg-success-50', border: 'border-success-200', text: 'text-success-800', icon: 'text-success-500' },
+    info: { bg: 'bg-info-50', border: 'border-info-200', text: 'text-info-800', icon: 'text-info-500' },
+  };
+  const { bg: bgColor, border: borderColor, text: textColor, icon: iconColor } = TONE_CLASSES[toast.type];
 
   return (
     <div
       className={`
         ${bgColor} ${borderColor}
-        border rounded-lg px-4 py-3 backdrop-blur-md
+        border rounded-lg px-4 py-3
         flex items-center gap-3 min-w-64 max-w-md
-        shadow-lg animate-in fade-in slide-in-from-top-2 duration-300
+        shadow-card-lg animate-in fade-in slide-in-from-top-2 duration-300
       `}
       role="alert"
       aria-live="polite"
@@ -99,7 +71,7 @@ function ToastItem({ toast }: { toast: ToastType }) {
           className={`
             flex-shrink-0 ${textColor} hover:opacity-75 transition-smooth
             focus:outline-none focus:ring-2 focus:ring-offset-2
-            focus:ring-offset-slate-900/40 rounded
+            focus:ring-offset-white rounded
           `}
           aria-label="Dismiss notification"
         >
