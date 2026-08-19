@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
 import type { AddressResult, AnalyzeResponse, Feature, RouteTransportMode } from '@/types/api'
 import type { HazardCellCollection } from '@/types/hazard'
 import { DEFAULT_RADIUS_KM } from '@/constants/radius'
@@ -13,6 +14,17 @@ export interface Toast {
   message: string
   type: 'error' | 'warning' | 'success' | 'info'
   dismissible?: boolean
+}
+
+export type Theme = 'light' | 'dark'
+
+// Keep in sync with the inline anti-flash script in src/app/layout.tsx, which
+// reads this same localStorage key before React hydrates.
+export const THEME_STORAGE_KEY = 'li-theme'
+
+function applyThemeClass(theme: Theme) {
+  if (typeof document === 'undefined') return
+  document.documentElement.classList.toggle('dark', theme === 'dark')
 }
 
 export interface LocationIntelligenceStore {
@@ -39,6 +51,10 @@ export interface LocationIntelligenceStore {
   hoveredHazardCellId: string | null
   selectedHazardCellId: string | null
 
+  // UI theme -- defaults to light; persisted to localStorage once the user
+  // toggles it (see THEME_STORAGE_KEY / the anti-flash script in layout.tsx)
+  theme: Theme
+
   // Actions
   setSelectedAddress: (address: AddressResult | null) => void
   setRadiusKm: (radius: number) => void
@@ -62,9 +78,13 @@ export interface LocationIntelligenceStore {
   setHazardCells: (cells: HazardCellCollection | null) => void
   setHoveredHazardCellId: (id: string | null) => void
   setSelectedHazardCellId: (id: string | null) => void
+  setTheme: (theme: Theme) => void
+  toggleTheme: () => void
 }
 
-export const useLocationStore = create<LocationIntelligenceStore>((set) => ({
+export const useLocationStore = create<LocationIntelligenceStore>()(
+  persist(
+    (set, get) => ({
   // Initial state
   selectedAddress: null,
   radiusKm: DEFAULT_RADIUS_KM,
@@ -85,6 +105,8 @@ export const useLocationStore = create<LocationIntelligenceStore>((set) => ({
   hazardCells: null,
   hoveredHazardCellId: null,
   selectedHazardCellId: null,
+
+  theme: 'light' as Theme,
 
   // Setters
   setSelectedAddress: (address) =>
@@ -176,4 +198,24 @@ export const useLocationStore = create<LocationIntelligenceStore>((set) => ({
 
   setSelectedHazardCellId: (id) =>
     set({ selectedHazardCellId: id }),
-}))
+
+  setTheme: (theme) => {
+    applyThemeClass(theme)
+    set({ theme })
+  },
+
+  toggleTheme: () => {
+    const next: Theme = get().theme === 'dark' ? 'light' : 'dark'
+    applyThemeClass(next)
+    set({ theme: next })
+  },
+    }),
+    {
+      name: THEME_STORAGE_KEY,
+      partialize: (state) => ({ theme: state.theme }),
+      onRehydrateStorage: () => (state) => {
+        if (state) applyThemeClass(state.theme)
+      },
+    },
+  ),
+)
