@@ -2,21 +2,151 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Mirror of apps/web/src/styles/tokens.ts -- keep numerically identical.
-   Tailwind classes (bg-primary-500 etc.) come from tailwind.config.ts, which
-   imports tokens.ts directly. These custom properties exist only for
-   non-Tailwind consumers that run in the browser at runtime and cannot use
-   Tailwind classes: Leaflet divIcon HTML strings and GeoJSON/Polyline
-   style() callbacks in MapContainer.tsx. */
+/* Color scales as CSS variables, "R G B" triplets (no rgb() wrapper) so
+   tailwind.config.ts can compose them as rgb(var(--x) / <alpha-value>) and
+   still support opacity modifiers (bg-primary-500/50 etc). Every Tailwind
+   color utility already used across the app (bg-white, text-slate-600,
+   border-slate-200, bg-primary-600, ...) resolves through these variables,
+   so adding a `dark` class to <html> re-themes the whole app + these
+   non-Tailwind consumers (Leaflet divIcon HTML strings and GeoJSON/Polyline
+   style() callbacks in MapContainer.tsx, which read var(--color-x-500)
+   directly) without touching individual components.
+
+   Light values mirror apps/web/src/styles/tokens.ts (source of truth for
+   brand hex). Dark values: primary/info swap to a teal accent per product
+   spec; success/warning/error/slate keep their hue but invert shade role
+   (50<->900, 100<->800, ...) so light-mode-light backgrounds/dark-text
+   pairs become dark backgrounds/light-text and stay legible. */
 :root {
-  --color-primary-500: #0B5CFF;
-  --color-success-500: #10B981;
-  --color-warning-500: #F59E0B;
-  --color-error-500: #EF4444;
-  --color-neutral-0: #FFFFFF;
-  --color-neutral-300: #CBD5E1;
-  --color-neutral-500: #64748B;
-  --color-neutral-900: #0F172A;
+  --color-primary-50: 239 245 255;
+  --color-primary-100: 219 233 255;
+  --color-primary-200: 184 210 255;
+  --color-primary-300: 138 180 255;
+  --color-primary-400: 83 137 255;
+  --color-primary-500: 11 92 255;
+  --color-primary-600: 0 68 219;
+  --color-primary-700: 0 54 173;
+  --color-primary-800: 0 44 135;
+  --color-primary-900: 1 37 107;
+  --color-primary-950: 1 22 66;
+
+  --color-success-50: 236 253 243;
+  --color-success-100: 209 250 223;
+  --color-success-200: 167 243 208;
+  --color-success-300: 110 231 183;
+  --color-success-400: 52 211 153;
+  --color-success-500: 16 185 129;
+  --color-success-600: 5 150 105;
+  --color-success-700: 4 120 87;
+  --color-success-800: 6 95 70;
+  --color-success-900: 6 78 59;
+
+  --color-warning-50: 255 251 235;
+  --color-warning-100: 254 243 199;
+  --color-warning-200: 253 230 138;
+  --color-warning-300: 252 211 77;
+  --color-warning-400: 251 191 36;
+  --color-warning-500: 245 158 11;
+  --color-warning-600: 217 119 6;
+  --color-warning-700: 180 83 9;
+  --color-warning-800: 146 64 14;
+  --color-warning-900: 120 53 15;
+
+  --color-error-50: 254 242 242;
+  --color-error-100: 254 226 226;
+  --color-error-200: 254 202 202;
+  --color-error-300: 252 165 165;
+  --color-error-400: 248 113 113;
+  --color-error-500: 239 68 68;
+  --color-error-600: 220 38 38;
+  --color-error-700: 185 28 28;
+  --color-error-800: 153 27 27;
+  --color-error-900: 127 29 29;
+
+  --color-slate-50: 248 250 252;
+  --color-slate-100: 241 245 249;
+  --color-slate-200: 226 232 240;
+  --color-slate-300: 203 213 225;
+  --color-slate-400: 148 163 184;
+  --color-slate-500: 100 116 139;
+  --color-slate-600: 71 85 105;
+  --color-slate-700: 51 65 85;
+  --color-slate-800: 30 41 59;
+  --color-slate-900: 15 23 42;
+
+  --color-ink: 0 5 61;
+  --color-white: 255 255 255;
+
+  /* Legacy aliases for a few pre-Tailwind-scale consumers (Leaflet inline
+     styles); pure var() references so they auto-follow the scales above. */
+  --color-neutral-0: var(--color-white);
+  --color-neutral-300: var(--color-slate-300);
+  --color-neutral-500: var(--color-slate-500);
+  --color-neutral-900: var(--color-slate-900);
+}
+
+/* Dark accent is a distinct teal (not a darkened blue) per product spec.
+   success/warning/error/slate mirror shade roles: 50<->900, 100<->800,
+   200<->700, 300<->600, 400<->500. */
+:root.dark {
+  --color-primary-50: 240 253 250;
+  --color-primary-100: 204 251 241;
+  --color-primary-200: 153 246 228;
+  --color-primary-300: 94 234 212;
+  --color-primary-400: 45 212 191;
+  --color-primary-500: 20 184 166;
+  --color-primary-600: 13 148 136;
+  --color-primary-700: 15 118 110;
+  --color-primary-800: 17 94 89;
+  --color-primary-900: 19 78 74;
+  --color-primary-950: 4 47 46;
+
+  --color-success-50: 6 78 59;
+  --color-success-100: 6 95 70;
+  --color-success-200: 4 120 87;
+  --color-success-300: 5 150 105;
+  --color-success-400: 16 185 129;
+  --color-success-500: 52 211 153;
+  --color-success-600: 110 231 183;
+  --color-success-700: 167 243 208;
+  --color-success-800: 209 250 223;
+  --color-success-900: 236 253 243;
+
+  --color-warning-50: 120 53 15;
+  --color-warning-100: 146 64 14;
+  --color-warning-200: 180 83 9;
+  --color-warning-300: 217 119 6;
+  --color-warning-400: 245 158 11;
+  --color-warning-500: 251 191 36;
+  --color-warning-600: 252 211 77;
+  --color-warning-700: 253 230 138;
+  --color-warning-800: 254 243 199;
+  --color-warning-900: 255 251 235;
+
+  --color-error-50: 127 29 29;
+  --color-error-100: 153 27 27;
+  --color-error-200: 185 28 28;
+  --color-error-300: 220 38 38;
+  --color-error-400: 239 68 68;
+  --color-error-500: 248 113 113;
+  --color-error-600: 252 165 165;
+  --color-error-700: 254 202 202;
+  --color-error-800: 254 226 226;
+  --color-error-900: 254 242 242;
+
+  --color-slate-50: 15 23 42;
+  --color-slate-100: 30 41 59;
+  --color-slate-200: 51 65 85;
+  --color-slate-300: 71 85 105;
+  --color-slate-400: 100 116 139;
+  --color-slate-500: 148 163 184;
+  --color-slate-600: 203 213 225;
+  --color-slate-700: 226 232 240;
+  --color-slate-800: 241 245 249;
+  --color-slate-900: 248 250 252;
+
+  --color-ink: 237 237 237;
+  --color-white: 44 44 46;
 }
 
 * {
@@ -37,8 +167,27 @@ body {
   @apply bg-slate-100;
 }
 
+/* Dark mode re-colors the OSM tile layer with a CSS filter rather than
+   swapping to a separate dark tile provider -- see MapContainer.tsx. Applied
+   only to that TileLayer's own container via Leaflet's `className` option,
+   so it never touches markers, popups, or the hazard overlay. */
+.map-tiles-inverted {
+  filter: invert(1) hue-rotate(180deg) brightness(0.95) contrast(0.9) saturate(0.85);
+}
+
 .leaflet-control-attribution {
   @apply bg-white/80 text-slate-500 backdrop-blur-sm;
+}
+
+/* Leaflet's own popup/scale chrome ships hardcoded white/black inline CSS
+   (not Tailwind classes), so it needs explicit dark overrides. */
+.dark .leaflet-popup-content-wrapper,
+.dark .leaflet-popup-tip {
+  @apply bg-white text-ink;
+}
+
+.dark .leaflet-control-scale-line {
+  @apply bg-white/70 text-ink border-slate-500;
 }
 
 @layer utilities {

@@ -113,11 +113,7 @@ export function MapToolbarContainer({
   return (
     <SurfacePanel
       variant="toolbar"
-      className="
-        absolute md:top-1/2 top-1/4 right-3 -translate-y-1/2 z-[1000]
-        flex flex-col items-center gap-0.5
-        p-1
-      "
+      className="flex flex-col items-center gap-0.5 p-1"
       role="toolbar"
       aria-label="Map controls"
       onMouseDown={(e) => e.stopPropagation()}
