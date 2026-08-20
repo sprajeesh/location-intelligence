@@ -10,13 +10,14 @@ import { useTranslations } from "next-intl";
 export interface CoverageBadgeProps {
   scored: number;
   total: number;
+  className?: string;
 }
 
-export function CoverageBadge({ scored, total }: CoverageBadgeProps) {
+export function CoverageBadge({ scored, total, className = "text-slate-400" }: CoverageBadgeProps) {
   const t = useTranslations();
 
   return (
-    <p className="text-xs text-slate-400">
+    <p className={`text-xs ${className}`}>
       {t("score.coverage", {
         count: scored,
         total,

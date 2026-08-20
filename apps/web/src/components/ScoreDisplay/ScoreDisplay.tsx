@@ -4,9 +4,10 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { TriangleAlert } from "lucide-react";
 import type { CategoryId, ScoreResult } from "@/types/api";
-import { formatScoreValue, getScoreColorClass, parseCoverage, sortCategoriesForDisplay } from "@/utils/scoreDisplay";
+import { parseCoverage, sortCategoriesForDisplay } from "@/utils/scoreDisplay";
 import { CoverageBadge } from "@/components/CoverageBadge";
 import { CategoryScoreCard } from "@/components/CategoryScoreCard";
+import { ScoreRing } from "@/components/ScoreRing";
 
 /**
  * ScoreDisplay — Shows the composite location score, coverage indicator,
@@ -39,18 +40,14 @@ export function ScoreDisplay({ score, warnings = [] }: ScoreDisplayProps) {
 
   return (
     <div className="space-y-3">
-      {/* Overall Score */}
+      {/* Overall Score — the panel's focal point */}
       <div className="text-center">
-        <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
-          {t("score.title", { defaultValue: "Location Score" })}
-        </h3>
-        <div className="flex flex-col items-center gap-1">
-          <div
-            className={`text-3xl font-bold ${getScoreColorClass(score.overall)} transition-colors duration-300`}
-          >
-            {formatScoreValue(score.overall)}
-          </div>
-          <CoverageBadge scored={scored} total={total} />
+        <div className="flex flex-col items-center gap-3 rounded-2xl bg-primary-600 py-8 transition-smooth">
+          <h3 className="text-xs font-semibold text-white/70 uppercase tracking-wider">
+            {t("score.title", { defaultValue: "Location Score" })}
+          </h3>
+          <ScoreRing score={score.overall} />
+          <CoverageBadge scored={scored} total={total} className="text-white/70" />
         </div>
       </div>
 

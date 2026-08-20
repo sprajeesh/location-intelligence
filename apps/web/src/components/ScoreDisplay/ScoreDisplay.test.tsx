@@ -160,6 +160,11 @@ describe('ScoreDisplay', () => {
     expect(screen.getByText('21')).toBeInTheDocument();
   });
 
+  it('renders the score ring\'s "out of 100" label', () => {
+    render(<ScoreDisplay score={fullScore} />);
+    expect(screen.getByText('/100')).toBeInTheDocument();
+  });
+
   it('renders warnings when present', () => {
     render(<ScoreDisplay score={fullScore} warnings={['OSRM unavailable, used Haversine fallback']} />);
     expect(screen.getByText('OSRM unavailable, used Haversine fallback')).toBeInTheDocument();
