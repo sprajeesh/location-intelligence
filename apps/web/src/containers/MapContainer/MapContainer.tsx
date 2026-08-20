@@ -480,7 +480,8 @@ function createSelectedFeatureIcon(color: string): L.DivIcon {
         width: 38px;
         height: 38px;
         border-radius: 50%;
-        background: ${color}33;
+        background: ${color};
+        opacity: 0.2;
         border: 2px solid ${color};
         animation: leaflet-selected-pulse 1.5s ease-in-out infinite;
       "></div>
