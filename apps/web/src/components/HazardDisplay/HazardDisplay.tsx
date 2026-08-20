@@ -19,9 +19,13 @@ import { CollapsibleCard } from "@/components/ui/CollapsibleCard";
 
 export interface HazardDisplayProps {
   hazard: HazardResult;
+  // When true, skips the internal "Hazard Score" heading -- used when a
+  // caller already provides its own heading/label (e.g. a CollapsibleCard
+  // header wrapping this component).
+  hideTitle?: boolean;
 }
 
-export function HazardDisplay({ hazard }: HazardDisplayProps) {
+export function HazardDisplay({ hazard, hideTitle = false }: HazardDisplayProps) {
   const t = useTranslations();
   const [expandedHazards, setExpandedHazards] = useState<Set<HazardType>>(new Set());
 
@@ -44,9 +48,11 @@ export function HazardDisplay({ hazard }: HazardDisplayProps) {
 
   return (
     <div className="space-y-3">
-      <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
-        {t("hazard.title", { defaultValue: "Hazard Score" })}
-      </h3>
+      {!hideTitle && (
+        <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
+          {t("hazard.title", { defaultValue: "Hazard Score" })}
+        </h3>
+      )}
 
       <div className="grid grid-cols-2 gap-3 text-center">
         <div>

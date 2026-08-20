@@ -13,6 +13,10 @@
     "noFacilities": "No facilities found within {radius}km. Try increasing your search radius.",
     "schools": "Schools",
     "busStops": "Bus Stops",
+    "tabs": {
+      "score": "Score",
+      "facilities": "Nearby Facilities"
+    },
     "adjustRadius": {
       "caption": "Not seeing expected results? Adjust the search radius",
       "label": "Search radius",

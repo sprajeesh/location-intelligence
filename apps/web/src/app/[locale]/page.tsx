@@ -20,10 +20,12 @@ export default function HomePage() {
       {/* Overlay */}
       <div className="absolute inset-0 z-10 p-4 pointer-events-none overflow-hidden">
         {/* Mobile: full-height flex column — toolbar at top, results at bottom, map visible in between */}
-        {/* Desktop: flex column capped at 75vh */}
+        {/* Tablet: flex column capped at 75vh */}
+        {/* Large screens (lg+): no cap — column fills the full overlay height so the results panel can use all available room */}
         <div className="flex flex-col h-full pointer-events-none
                         max-w-md
-                        md:h-[75vh] md:gap-2">
+                        md:h-[75vh] md:gap-2
+                        lg:h-full">
           {/* Search bar — always at the top, with the Settings gear alongside it */}
           <div className="flex-shrink-0 relative z-20 pointer-events-auto flex items-start gap-2">
             <div className="flex-1 min-w-0">
