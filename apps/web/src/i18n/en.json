@@ -1,4 +1,9 @@
 {
+  "meta": {
+    "title": "Location Intelligence",
+    "description": "Discover nearby facilities and neighbourhood scores for any New Zealand address",
+    "siteName": "Location Intelligence"
+  },
   "search": {
     "placeholder": "Search a New Zealand address...",
     "loading": "Searching...",

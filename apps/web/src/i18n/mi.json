@@ -1,4 +1,9 @@
 {
+  "meta": {
+    "title": "[MI] meta.title",
+    "description": "[MI] meta.description",
+    "siteName": "[MI] meta.siteName"
+  },
   "search": {
     "placeholder": "[MI] search.placeholder",
     "loading": "[MI] search.loading",
