@@ -30,7 +30,7 @@ export function Modal({ onClose, children, className = "max-w-lg", ...rest }: Mo
           role="dialog"
           aria-modal="true"
           {...rest}
-          className="flex flex-col max-h-[85vh] outline-none"
+          className="flex flex-col max-h-[85vh]"
         >
           {children}
         </SurfacePanel>
