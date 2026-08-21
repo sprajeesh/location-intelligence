@@ -222,8 +222,11 @@ export default function ResultsPanel({
     );
   }
 
-  // Render empty results state
-  if (categorySections.length === 0) {
+  // Render fully-empty results state -- no score AND no facilities. When a
+  // score exists, fall through to the tabbed view below so the Score panel
+  // keeps rendering; the empty-facilities message is scoped to the
+  // Facilities tab instead.
+  if (categorySections.length === 0 && !analysisResult.score) {
     return (
       <SurfacePanel
         className={`pointer-events-auto w-full h-full p-4 sm:p-6 flex flex-col items-center justify-center gap-4 text-center ${className}`}
@@ -318,7 +321,26 @@ export default function ResultsPanel({
           </div>
         )}
 
-        {activeTab === "facilities" && (
+        {activeTab === "facilities" && categorySections.length === 0 && (
+          <div
+            id="panel-facilities"
+            role="tabpanel"
+            aria-labelledby="tab-facilities"
+            className="flex flex-col items-center justify-center gap-2 text-center py-8"
+          >
+            <div className="text-slate-400">
+              <FileText className="mx-auto h-10 w-10 mb-1 opacity-50" />
+            </div>
+            <p className="text-sm text-slate-600">
+              {t("results.noFacilities", {
+                radius: radiusKm,
+                defaultValue: `No facilities found within ${radiusKm}km. Try increasing your search radius.`,
+              })}
+            </p>
+          </div>
+        )}
+
+        {activeTab === "facilities" && categorySections.length > 0 && (
           <ul
             id="panel-facilities"
             role="tabpanel"

@@ -253,26 +253,42 @@ describe('ResultsPanel', () => {
     });
   });
 
-  describe('Empty results state', () => {
-    it('renders no-facilities message when features array is empty', () => {
+  describe('Empty results state (score present, no facilities)', () => {
+    const emptyFacilitiesResult = { ...mockAnalysisResult, features: [] };
+
+    it('keeps the Score tab active and visible by default', () => {
+      mockUseLocationStore.mockReturnValue(makeStoreState({ analysisResult: emptyFacilitiesResult }));
+      render(<ResultsPanel />);
+      expect(screen.getByRole('tab', { name: 'Score' })).toHaveAttribute('aria-selected', 'true');
+      expect(screen.getByTestId('score-display')).toBeInTheDocument();
+    });
+
+    it('does not show the no-facilities message on the Score tab', () => {
       mockUseLocationStore.mockReturnValue(
-        makeStoreState({
-          analysisResult: { ...mockAnalysisResult, features: [] },
-          radiusKm: 10,
-        })
+        makeStoreState({ analysisResult: emptyFacilitiesResult, radiusKm: 10 })
       );
       render(<ResultsPanel />);
+      expect(
+        screen.queryByText('No facilities found within 10km. Try increasing your search radius.')
+      ).not.toBeInTheDocument();
+    });
+
+    it('shows the no-facilities message on the Nearby Facilities tab', async () => {
+      mockUseLocationStore.mockReturnValue(
+        makeStoreState({ analysisResult: emptyFacilitiesResult, radiusKm: 10 })
+      );
+      render(<ResultsPanel />);
+      await userEvent.click(screen.getByRole('tab', { name: 'Nearby Facilities' }));
       expect(
         screen.getByText('No facilities found within 10km. Try increasing your search radius.')
       ).toBeInTheDocument();
     });
 
-    it('renders the radius adjuster pre-expanded', () => {
-      mockUseLocationStore.mockReturnValue(
-        makeStoreState({ analysisResult: { ...mockAnalysisResult, features: [] } })
-      );
+    it('does not render any CategoryGroup on the Nearby Facilities tab', async () => {
+      mockUseLocationStore.mockReturnValue(makeStoreState({ analysisResult: emptyFacilitiesResult }));
       render(<ResultsPanel />);
-      expect(screen.getByTestId('radius-adjuster-expanded')).toHaveTextContent('true');
+      await userEvent.click(screen.getByRole('tab', { name: 'Nearby Facilities' }));
+      expect(screen.queryByTestId(/^category-group/)).not.toBeInTheDocument();
     });
 
     it('re-analyzes with the new radius when the adjuster search is triggered', async () => {
@@ -283,7 +299,7 @@ describe('ResultsPanel', () => {
       mockUseAnalyze.mockReturnValue({ mutate: analyze } as any);
       mockUseLocationStore.mockReturnValue(
         makeStoreState({
-          analysisResult: { ...mockAnalysisResult, features: [] },
+          analysisResult: emptyFacilitiesResult,
           selectedAddress: MOCK_ADDRESS,
           setRadiusKm,
           setAnalysisResult,
@@ -310,7 +326,90 @@ describe('ResultsPanel', () => {
       mockUseAnalyze.mockReturnValue({ mutate: analyze } as any);
       mockUseLocationStore.mockReturnValue(
         makeStoreState({
-          analysisResult: { ...mockAnalysisResult, features: [] },
+          analysisResult: emptyFacilitiesResult,
+          selectedAddress: null,
+        })
+      );
+      render(<ResultsPanel />);
+      await userEvent.click(screen.getByTestId('radius-adjuster-search'));
+      expect(analyze).not.toHaveBeenCalled();
+    });
+
+    it('still renders HazardDisplay, tucked away collapsed by default, when hazard is present but no facilities were found', async () => {
+      mockUseLocationStore.mockReturnValue(
+        makeStoreState({
+          analysisResult: { ...emptyFacilitiesResult, hazard: mockHazard },
+        })
+      );
+      render(<ResultsPanel />);
+      expect(screen.queryByTestId('hazard-display')).not.toBeInTheDocument();
+      await userEvent.click(screen.getByRole('button', { name: 'Hazard Score' }));
+      expect(screen.getByTestId('hazard-display')).toBeInTheDocument();
+    });
+  });
+
+  describe('Fully empty state (no score, no facilities)', () => {
+    const fullyEmptyResult = { ...mockAnalysisResult, features: [], score: null as any };
+
+    it('renders no-facilities message when there is no score and no features', () => {
+      mockUseLocationStore.mockReturnValue(
+        makeStoreState({ analysisResult: fullyEmptyResult, radiusKm: 10 })
+      );
+      render(<ResultsPanel />);
+      expect(
+        screen.getByText('No facilities found within 10km. Try increasing your search radius.')
+      ).toBeInTheDocument();
+    });
+
+    it('does not render the Score / Nearby Facilities tabs', () => {
+      mockUseLocationStore.mockReturnValue(makeStoreState({ analysisResult: fullyEmptyResult }));
+      render(<ResultsPanel />);
+      expect(screen.queryByRole('tab', { name: 'Score' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('tab', { name: 'Nearby Facilities' })).not.toBeInTheDocument();
+    });
+
+    it('renders the radius adjuster pre-expanded', () => {
+      mockUseLocationStore.mockReturnValue(makeStoreState({ analysisResult: fullyEmptyResult }));
+      render(<ResultsPanel />);
+      expect(screen.getByTestId('radius-adjuster-expanded')).toHaveTextContent('true');
+    });
+
+    it('re-analyzes with the new radius when the adjuster search is triggered', async () => {
+      const analyze = jest.fn();
+      const setRadiusKm = jest.fn();
+      const setAnalysisResult = jest.fn();
+      const clearVisibleCategories = jest.fn();
+      mockUseAnalyze.mockReturnValue({ mutate: analyze } as any);
+      mockUseLocationStore.mockReturnValue(
+        makeStoreState({
+          analysisResult: fullyEmptyResult,
+          selectedAddress: MOCK_ADDRESS,
+          setRadiusKm,
+          setAnalysisResult,
+          clearVisibleCategories,
+        })
+      );
+      render(<ResultsPanel />);
+      await userEvent.click(screen.getByTestId('radius-adjuster-search'));
+
+      expect(setRadiusKm).toHaveBeenCalledWith(8);
+      expect(setAnalysisResult).toHaveBeenCalledWith(null);
+      expect(clearVisibleCategories).toHaveBeenCalledTimes(1);
+      expect(analyze).toHaveBeenCalledWith({
+        address: MOCK_ADDRESS.displayName,
+        lat: MOCK_ADDRESS.lat,
+        lon: MOCK_ADDRESS.lon,
+        radiusKm: 8,
+        distanceMode: 'driving',
+      });
+    });
+
+    it('does not call analyze when no address is selected', async () => {
+      const analyze = jest.fn();
+      mockUseAnalyze.mockReturnValue({ mutate: analyze } as any);
+      mockUseLocationStore.mockReturnValue(
+        makeStoreState({
+          analysisResult: fullyEmptyResult,
           selectedAddress: null,
         })
       );
@@ -322,7 +421,7 @@ describe('ResultsPanel', () => {
     it('still renders HazardDisplay when hazard is present but no facilities were found', () => {
       mockUseLocationStore.mockReturnValue(
         makeStoreState({
-          analysisResult: { ...mockAnalysisResult, features: [], hazard: mockHazard },
+          analysisResult: { ...fullyEmptyResult, hazard: mockHazard },
         })
       );
       render(<ResultsPanel />);
@@ -333,7 +432,7 @@ describe('ResultsPanel', () => {
     it('does not render HazardDisplay when there is no hazard and no facilities', () => {
       mockUseLocationStore.mockReturnValue(
         makeStoreState({
-          analysisResult: { ...mockAnalysisResult, features: [], hazard: null },
+          analysisResult: { ...fullyEmptyResult, hazard: null },
         })
       );
       render(<ResultsPanel />);
