@@ -33,7 +33,7 @@ export function Tabs({ tabs, activeTab, onChange, className = "" }: TabsProps) {
   };
 
   return (
-    <div role="tablist" className={`flex gap-1 border-b border-slate-200 p-1 ${className}`.trim()}>
+    <div role="tablist" className={`flex gap-1 border-b border-slate-200 ${className}`.trim()}>
       {tabs.map((tab, index) => {
         const isActive = tab.id === activeTab;
         return (
@@ -50,10 +50,10 @@ export function Tabs({ tabs, activeTab, onChange, className = "" }: TabsProps) {
             tabIndex={isActive ? 0 : -1}
             onClick={() => onChange(tab.id)}
             onKeyDown={(e) => handleKeyDown(e, index)}
-            className={`flex-1 rounded-lg px-3 py-2.5 text-sm font-medium text-center transition-smooth focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-inset ${
+            className={`flex-1 -mb-px border-b-2 px-3 py-2.5 text-sm font-medium text-center transition-smooth focus-ring-inset active:scale-[0.97] ${
               isActive
-                ? "surface-glass-primary text-white font-semibold"
-                : "text-slate-500 hover:text-slate-700"
+                ? "border-primary-500 text-primary-600 font-semibold active:text-primary-700"
+                : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 active:bg-slate-50"
             }`}
           >
             {tab.label}

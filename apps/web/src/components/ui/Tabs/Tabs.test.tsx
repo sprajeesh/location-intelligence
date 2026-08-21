@@ -45,7 +45,7 @@ describe('Tabs', () => {
 
     it('styles the active tab differently from inactive tabs', () => {
       render(<Tabs tabs={TABS} activeTab="score" onChange={jest.fn()} />);
-      expect(screen.getByRole('tab', { name: 'Score' })).toHaveClass('surface-glass-primary', 'text-white');
+      expect(screen.getByRole('tab', { name: 'Score' })).toHaveClass('border-primary-500', 'text-primary-600');
       expect(screen.getByRole('tab', { name: 'Nearby Facilities' })).toHaveClass('text-slate-500');
     });
   });
