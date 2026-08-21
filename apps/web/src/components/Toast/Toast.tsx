@@ -70,8 +70,7 @@ function ToastItem({ toast }: { toast: ToastType }) {
           onClick={() => removeToast(toast.id)}
           className={`
             flex-shrink-0 ${textColor} hover:opacity-75 transition-smooth
-            focus:outline-none focus:ring-2 focus:ring-offset-2
-            focus:ring-offset-white rounded
+            active:scale-[0.97] active:opacity-100 rounded
           `}
           aria-label="Dismiss notification"
         >

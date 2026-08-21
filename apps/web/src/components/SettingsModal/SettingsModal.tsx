@@ -93,14 +93,14 @@ export function SettingsModal({
           <button
             type="button"
             onClick={onDismissReanalyze}
-            className="px-3 py-1.5 rounded-lg font-medium text-sm text-slate-600 hover:text-slate-900 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-white"
+            className="px-3 py-1.5 rounded-lg font-medium text-sm text-slate-600 hover:text-slate-900 transition-colors active:bg-slate-100 active:scale-[0.98]"
           >
             {t("settings.notNow", { defaultValue: "Not now" })}
           </button>
           <button
             type="button"
             onClick={onConfirmReanalyze}
-            className="px-3 py-1.5 rounded-lg font-medium text-sm bg-primary-600 hover:bg-primary-700 text-white transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-white"
+            className="px-3 py-1.5 rounded-lg font-medium text-sm bg-primary-600 hover:bg-primary-700 text-white transition-colors active:bg-primary-800 active:scale-[0.98]"
           >
             {t("settings.reanalyze", { defaultValue: "Re-analyze" })}
           </button>
@@ -184,7 +184,7 @@ export function SettingsModal({
           type="button"
           onClick={() => draft !== null && onSave(draft)}
           disabled={draft === null}
-          className="px-4 py-1.5 rounded-lg font-medium text-sm bg-primary-600 hover:bg-primary-700 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-white"
+          className="px-4 py-1.5 rounded-lg font-medium text-sm bg-primary-600 hover:bg-primary-700 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed active:bg-primary-800 active:scale-[0.98]"
         >
           {t("settings.save", { defaultValue: "Save" })}
         </button>

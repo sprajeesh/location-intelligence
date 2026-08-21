@@ -54,7 +54,7 @@ export default function CategoryGroup({
         <button
           type="button"
           onClick={onToggleExpand}
-          className="flex items-center justify-between gap-3 flex-1 min-w-0 text-left rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+          className="flex items-center justify-between gap-3 flex-1 min-w-0 text-left rounded-lg focus-ring-inset active:opacity-80"
           aria-expanded={isExpanded}
           aria-controls={isExpanded ? `category-${id}` : undefined}
         >

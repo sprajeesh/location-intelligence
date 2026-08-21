@@ -52,7 +52,7 @@ export default function FacilityItem({
             flex-1 text-left px-3 py-2 rounded-lg
             transition-all duration-200
             hover:bg-slate-100
-            focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-inset
+            focus-ring-inset active:bg-slate-200 active:scale-[0.99]
           `}
           aria-label={rowLabel}
         >

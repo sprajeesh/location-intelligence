@@ -41,11 +41,11 @@ export function RouteModeSelector({
             className={`
               flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium
               transition-all duration-200
-              focus:outline-none focus:ring-2 focus:ring-primary-500
+              active:scale-[0.97]
               ${
                 isActive
-                  ? "bg-primary-600 text-white shadow-sm"
-                  : "text-slate-500 hover:text-slate-900 hover:bg-slate-100"
+                  ? "bg-primary-600 text-white shadow-sm active:bg-primary-700"
+                  : "text-slate-500 hover:text-slate-900 hover:bg-slate-100 active:bg-slate-200"
               }
             `}
             aria-pressed={isActive}
