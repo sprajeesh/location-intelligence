@@ -1,4 +1,9 @@
 {
+  "meta": {
+    "title": "Location Intelligence",
+    "description": "Discover nearby facilities and neighbourhood scores for any New Zealand address",
+    "siteName": "Location Intelligence"
+  },
   "search": {
     "placeholder": "Search a New Zealand address...",
     "loading": "Searching...",
@@ -13,6 +18,10 @@
     "noFacilities": "No facilities found within {radius}km. Try increasing your search radius.",
     "schools": "Schools",
     "busStops": "Bus Stops",
+    "tabs": {
+      "score": "Score",
+      "facilities": "Nearby Facilities"
+    },
     "adjustRadius": {
       "caption": "Not seeing expected results? Adjust the search radius",
       "label": "Search radius",

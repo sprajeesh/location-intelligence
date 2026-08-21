@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Search, FileText } from "lucide-react";
+import { Search, FileText, TriangleAlert } from "lucide-react";
 import { useLocationStore } from "@/store/index";
 import type { Feature } from "@/types/api";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
@@ -12,9 +12,13 @@ import HazardDisplay from "@/components/HazardDisplay";
 import { CategoryGroup } from "@/components/CategoryGroup";
 import { RadiusAdjuster } from "@/components/RadiusAdjuster";
 import { SurfacePanel } from "@/components/ui/SurfacePanel";
+import { CollapsibleCard } from "@/components/ui/CollapsibleCard";
+import { Tabs } from "@/components/ui/Tabs";
 import { useNavigate } from "@/hooks/useNavigate";
 import { useAnalyze } from "@/hooks/useAnalyze";
 import { useAnalyzeCategories } from "@/hooks/useAnalyzeCategories";
+
+type ResultsTab = "score" | "facilities";
 
 /**
  * ResultsPanel — Left side panel (desktop) or bottom sheet (mobile).
@@ -72,6 +76,12 @@ export default function ResultsPanel({
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
     new Set(),
   );
+
+  // Active results tab -- defaults to Score, resets on a new search below
+  const [activeTab, setActiveTab] = useState<ResultsTab>("score");
+
+  // Hazard is tucked away (collapsed) behind the location score by default
+  const [hazardExpanded, setHazardExpanded] = useState(false);
 
   // Group features by category
   const categorySections = useMemo<CategorySection[]>(() => {
@@ -180,6 +190,11 @@ export default function ResultsPanel({
     ? `${selectedAddress.lat},${selectedAddress.lon}`
     : "no-address";
 
+  // A fresh search always lands back on the Score tab
+  useEffect(() => {
+    setActiveTab("score");
+  }, [addressKey]);
+
   // Render loading state
   if (isAnalyzing) {
     return (
@@ -207,8 +222,11 @@ export default function ResultsPanel({
     );
   }
 
-  // Render empty results state
-  if (categorySections.length === 0) {
+  // Render fully-empty results state -- no score AND no facilities. When a
+  // score exists, fall through to the tabbed view below so the Score panel
+  // keeps rendering; the empty-facilities message is scoped to the
+  // Facilities tab instead.
+  if (categorySections.length === 0 && !analysisResult.score) {
     return (
       <SurfacePanel
         className={`pointer-events-auto w-full h-full p-4 sm:p-6 flex flex-col items-center justify-center gap-4 text-center ${className}`}
@@ -248,81 +266,140 @@ export default function ResultsPanel({
     <SurfacePanel
       as="section"
       aria-label={t("results.title")}
-      className={`pointer-events-auto w-full h-full overflow-y-auto flex flex-col ${className}`}
+      className={`pointer-events-auto w-full h-full overflow-hidden flex flex-col ${className}`}
     >
-      {/* Content */}
-      <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-3 sm:py-4 space-y-3">
-        {/* Category Sections */}
-        <ul className="space-y-3">
-          {categorySections.map((section) => {
-            const isExpanded = expandedCategories.has(section.id);
-            const isVisible = visibleCategories.has(section.id);
+      <Tabs
+        tabs={[
+          { id: "score", label: t("results.tabs.score", { defaultValue: "Score" }) },
+          { id: "facilities", label: t("results.tabs.facilities", { defaultValue: "Nearby Facilities" }) },
+        ]}
+        activeTab={activeTab}
+        onChange={(id) => setActiveTab(id as ResultsTab)}
+        className="flex-shrink-0 px-2"
+      />
 
-            return (
-              <li key={section.id}>
-                <CategoryGroup
-                  id={section.id}
-                  label={section.label}
-                  color={section.color}
-                  count={section.features.length}
-                  isExpanded={isExpanded}
-                  isVisible={isVisible}
-                  onToggleExpand={() => toggleCategoryExpanded(section.id)}
-                  onToggleVisibility={(e) =>
-                    handleToggleVisibility(section.id, e)
+      {/* Tab content -- the only part that scrolls */}
+      <div className="flex-1 min-h-0 overflow-y-auto px-4 sm:px-6 py-3 sm:py-4 space-y-3">
+        {activeTab === "score" && (
+          <div id="panel-score" role="tabpanel" aria-labelledby="tab-score" className="space-y-3">
+            {analysisResult?.score && (
+              <ScoreDisplay
+                score={analysisResult.score}
+                warnings={analysisResult.warnings}
+              />
+            )}
+
+            {/* Hazard Section — tucked away behind a collapsed disclosure so
+                it doesn't compete with the location score focal point; not
+                fully implemented yet (see HazardDisplay.tsx). */}
+            {analysisResult?.hazard && (
+              <div className="pt-3 border-t border-slate-200">
+                <CollapsibleCard
+                  isExpanded={hazardExpanded}
+                  onToggle={() => setHazardExpanded((prev) => !prev)}
+                  contentId="hazard-score-panel"
+                  className="border-slate-200"
+                  contentClassName="px-3 pb-3"
+                  header={
+                    <span className="font-medium text-slate-900">
+                      {t("hazard.title", { defaultValue: "Hazard Score" })}
+                    </span>
+                  }
+                  headerEnd={
+                    analysisResult.hazard.anySevere ? (
+                      <TriangleAlert
+                        className="w-4 h-4 text-error-500"
+                        aria-hidden="true"
+                      />
+                    ) : undefined
                   }
                 >
-                  {isExpanded && (
-                    <ul className="space-y-2 pl-4 mt-2">
-                      {section.features.slice(0, 3).map((feature) => (
-                        <li key={feature.id}>
-                          <FacilityItem
-                            feature={feature}
-                            markerColor={section.color}
-                            onClick={() => handleFacilityClick(feature)}
-                            onNavigate={navigate}
-                          />
-                        </li>
-                      ))}
-                      {section.features.length > 3 && (
-                        <li className="px-3 py-1 text-xs text-slate-400">
-                          +{section.features.length - 3} more nearby
-                        </li>
-                      )}
-                    </ul>
-                  )}
-                </CategoryGroup>
-              </li>
-            );
-          })}
-        </ul>
-
-        {/* Score Section */}
-        {analysisResult?.score && (
-          <div className="pt-3 border-t border-slate-200">
-            <ScoreDisplay
-              score={analysisResult.score}
-              warnings={analysisResult.warnings}
-            />
+                  <HazardDisplay hazard={analysisResult.hazard} hideTitle />
+                </CollapsibleCard>
+              </div>
+            )}
           </div>
         )}
 
-        {/* Hazard Section — separate from facility score per product decision */}
-        {analysisResult?.hazard && (
-          <div className="pt-3 border-t border-slate-200">
-            <HazardDisplay hazard={analysisResult.hazard} />
+        {activeTab === "facilities" && categorySections.length === 0 && (
+          <div
+            id="panel-facilities"
+            role="tabpanel"
+            aria-labelledby="tab-facilities"
+            className="flex flex-col items-center justify-center gap-2 text-center py-8"
+          >
+            <div className="text-slate-400">
+              <FileText className="mx-auto h-10 w-10 mb-1 opacity-50" />
+            </div>
+            <p className="text-sm text-slate-600">
+              {t("results.noFacilities", {
+                radius: radiusKm,
+                defaultValue: `No facilities found within ${radiusKm}km. Try increasing your search radius.`,
+              })}
+            </p>
           </div>
         )}
 
-        {/* Radius adjuster */}
-        <div className="pt-3 border-t border-slate-200">
-          <RadiusAdjuster
-            key={addressKey}
-            initialValue={radiusKm}
-            disabled={isAnalyzing}
-            onSearch={handleRadiusSearch}
-          />
-        </div>
+        {activeTab === "facilities" && categorySections.length > 0 && (
+          <ul
+            id="panel-facilities"
+            role="tabpanel"
+            aria-labelledby="tab-facilities"
+            className="space-y-3"
+          >
+            {categorySections.map((section) => {
+              const isExpanded = expandedCategories.has(section.id);
+              const isVisible = visibleCategories.has(section.id);
+
+              return (
+                <li key={section.id}>
+                  <CategoryGroup
+                    id={section.id}
+                    label={section.label}
+                    color={section.color}
+                    count={section.features.length}
+                    isExpanded={isExpanded}
+                    isVisible={isVisible}
+                    onToggleExpand={() => toggleCategoryExpanded(section.id)}
+                    onToggleVisibility={(e) =>
+                      handleToggleVisibility(section.id, e)
+                    }
+                  >
+                    {isExpanded && (
+                      <ul className="space-y-2 pl-4 mt-2">
+                        {section.features.slice(0, 3).map((feature) => (
+                          <li key={feature.id}>
+                            <FacilityItem
+                              feature={feature}
+                              markerColor={section.color}
+                              onClick={() => handleFacilityClick(feature)}
+                              onNavigate={navigate}
+                            />
+                          </li>
+                        ))}
+                        {section.features.length > 3 && (
+                          <li className="px-3 py-1 text-xs text-slate-400">
+                            +{section.features.length - 3} more nearby
+                          </li>
+                        )}
+                      </ul>
+                    )}
+                  </CategoryGroup>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
+
+      {/* Radius adjuster — persistent, visible regardless of active tab */}
+      <div className="flex-shrink-0 border-t border-slate-200 px-4 sm:px-6 py-3 sm:py-4">
+        <RadiusAdjuster
+          key={addressKey}
+          initialValue={radiusKm}
+          disabled={isAnalyzing}
+          onSearch={handleRadiusSearch}
+        />
       </div>
     </SurfacePanel>
   );

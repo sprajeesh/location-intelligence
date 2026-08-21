@@ -154,7 +154,11 @@
 }
 
 html {
-  font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
+  font-family:
+    var(--font-inter),
+    system-ui,
+    -apple-system,
+    sans-serif;
   scroll-behavior: smooth;
 }
 
@@ -172,7 +176,8 @@ body {
    only to that TileLayer's own container via Leaflet's `className` option,
    so it never touches markers, popups, or the hazard overlay. */
 .map-tiles-inverted {
-  filter: invert(1) hue-rotate(180deg) brightness(0.95) contrast(0.9) saturate(0.85);
+  filter: invert(1) hue-rotate(180deg) brightness(0.95) contrast(0.9)
+    saturate(0.85);
 }
 
 .leaflet-control-attribution {
@@ -197,5 +202,12 @@ body {
 
   .text-truncate {
     @apply truncate;
+  }
+
+  /* Shared translucent primary surface for the score hero card and the
+     active tab pill -- keeps map/page content behind them legible instead
+     of fully occluding it with a flat fill. */
+  .surface-glass-primary {
+    @apply bg-primary-600/70 backdrop-blur-md;
   }
 }

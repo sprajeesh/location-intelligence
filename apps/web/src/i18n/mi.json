@@ -1,4 +1,9 @@
 {
+  "meta": {
+    "title": "[MI] meta.title",
+    "description": "[MI] meta.description",
+    "siteName": "[MI] meta.siteName"
+  },
   "search": {
     "placeholder": "[MI] search.placeholder",
     "loading": "[MI] search.loading",
@@ -13,6 +18,10 @@
     "noFacilities": "[MI] results.noFacilities",
     "schools": "[MI] results.schools",
     "busStops": "[MI] results.busStops",
+    "tabs": {
+      "score": "[MI] results.tabs.score",
+      "facilities": "[MI] results.tabs.facilities"
+    },
     "adjustRadius": {
       "caption": "[MI] results.adjustRadius.caption",
       "label": "[MI] results.adjustRadius.label",
