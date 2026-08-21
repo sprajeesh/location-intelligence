@@ -42,7 +42,7 @@ export function ScoreDisplay({ score, warnings = [] }: ScoreDisplayProps) {
     <div className="space-y-3">
       {/* Overall Score — the panel's focal point */}
       <div className="text-center">
-        <div className="flex flex-col items-center gap-3 rounded-2xl bg-primary-600 py-8 transition-smooth">
+        <div className="flex flex-col items-center gap-3 rounded-2xl surface-glass-primary py-8 transition-smooth">
           <h3 className="text-xs font-semibold text-white/70 uppercase tracking-wider">
             {t("score.title", { defaultValue: "Location Score" })}
           </h3>
