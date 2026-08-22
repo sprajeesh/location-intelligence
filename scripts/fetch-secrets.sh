@@ -1,4 +1,13 @@
 #!/usr/bin/env bash
+# TODO(security): DB_PASSWORD was exposed in cleartext on 2026-08-22 (a
+# configparser bug in apps/api/alembic/env.py -- fixed -- echoed the full
+# percent-encoded DATABASE_URL into `docker compose logs api`, which then
+# got pasted into a debugging chat). Rotate DB_PASSWORD (update this
+# GitHub repo's `production` environment secret AND the actual Postgres
+# role's password on the VM) and redeploy. Consider rotating
+# API_SHARED_SECRET/REDIS_PASSWORD too out of caution, though only
+# DB_PASSWORD was confirmed exposed this time.
+#
 # Runs on the app VM as part of deploy-api (see .github/workflows/push.yml).
 # Writes the .env file docker-compose needs from values passed in directly
 # (sourced from GitHub Secrets over SSH) -- no cloud-provider secret store
