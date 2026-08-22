@@ -167,6 +167,45 @@ body {
   min-height: 100vh;
 }
 
+/* Single global keyboard-only focus indicator. Uses `outline` (not Tailwind's
+   `ring` box-shadow) so it never needs a matching `ring-offset-*` background
+   color to look correct on any surface, in either theme. Every declaration
+   here is `!important`, which wins over non-important `focus:`/`ring-*`
+   utilities regardless of selector specificity -- so a leftover per-component
+   focus style won't visibly break anything, but it also can't be relied on to
+   change the outcome. Remove competing `focus:`/`ring-*` classes from
+   components rather than leaving them as dead weight; the only way to
+   intentionally override this rule is with an equally `!important`
+   declaration. */
+@layer base {
+  a[href]:focus-visible,
+  button:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible,
+  summary:focus-visible,
+  [role="tab"]:focus-visible,
+  [role="menuitem"]:focus-visible,
+  [role="switch"]:focus-visible,
+  [tabindex]:not([tabindex="-1"]):focus-visible {
+    outline: 2px solid rgb(var(--color-primary-500)) !important;
+    outline-offset: 2px !important;
+  }
+
+  a[href]:focus:not(:focus-visible),
+  button:focus:not(:focus-visible),
+  input:focus:not(:focus-visible),
+  select:focus:not(:focus-visible),
+  textarea:focus:not(:focus-visible),
+  summary:focus:not(:focus-visible),
+  [role="tab"]:focus:not(:focus-visible),
+  [role="menuitem"]:focus:not(:focus-visible),
+  [role="switch"]:focus:not(:focus-visible),
+  [tabindex]:not([tabindex="-1"]):focus:not(:focus-visible) {
+    outline: none !important;
+  }
+}
+
 .leaflet-container {
   @apply bg-slate-100;
 }
@@ -204,10 +243,24 @@ body {
     @apply truncate;
   }
 
-  /* Shared translucent primary surface for the score hero card and the
-     active tab pill -- keeps map/page content behind them legible instead
-     of fully occluding it with a flat fill. */
+  /* Shared translucent primary surface for the score hero card -- keeps
+     map/page content behind it legible instead of fully occluding it with
+     a flat fill. */
   .surface-glass-primary {
     @apply bg-primary-600/70 backdrop-blur-md;
+  }
+
+  /* Escape hatch for dense/edge-flush controls (stacked list items, tab
+     strips) where an outset outline would visually clip against a sibling
+     border. */
+  .focus-ring-inset:focus-visible {
+    outline-offset: -2px !important;
+  }
+
+  /* For controls with their own visible border (bordered inputs/buttons),
+     the default 2px offset leaves a gap between the border and the ring.
+     Flush the ring against the border instead of floating outside it. */
+  .focus-ring-flush:focus-visible {
+    outline-offset: 0 !important;
   }
 }

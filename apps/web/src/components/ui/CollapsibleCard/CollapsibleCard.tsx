@@ -33,7 +33,7 @@ export function CollapsibleCard({
       <button
         type="button"
         onClick={onToggle}
-        className={`w-full flex justify-between px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-inset rounded-lg ${headerClassName}`.trim()}
+        className={`w-full flex justify-between px-3 py-2 focus-ring-inset rounded-lg active:bg-slate-50 active:scale-[0.99] ${headerClassName}`.trim()}
         aria-expanded={isExpanded}
         aria-controls={contentId}
       >

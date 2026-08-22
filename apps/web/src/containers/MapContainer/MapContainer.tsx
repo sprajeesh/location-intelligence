@@ -269,7 +269,7 @@ function MapContent() {
               <button
                 type="button"
                 onClick={() => navigate(feature)}
-                className="flex items-center justify-center w-7 h-7 rounded-md border border-slate-300 bg-slate-50 text-slate-700 cursor-pointer p-0"
+                className="flex items-center justify-center w-7 h-7 rounded-md border border-slate-300 bg-slate-50 text-slate-700 cursor-pointer p-0 transition-colors duration-150 hover:bg-slate-100 active:bg-slate-200 active:scale-[0.97] focus-ring-flush"
                 title="Show route"
                 aria-label={`Navigate to ${feature.name}`}
               >

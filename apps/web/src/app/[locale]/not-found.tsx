@@ -13,7 +13,7 @@ export default async function NotFound() {
         <p className="text-xl text-slate-500">{t("message")}</p>+{" "}
         <Link
           href={`/${locale}`}
-          className="inline-block px-6 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg"
+          className="inline-block px-6 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors active:bg-primary-800 active:scale-[0.98]"
         >
           + {t("backHome")}
         </Link>

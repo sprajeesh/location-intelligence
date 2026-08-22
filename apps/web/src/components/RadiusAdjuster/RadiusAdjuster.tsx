@@ -59,7 +59,7 @@ export function RadiusAdjuster({
         type="button"
         onClick={() => setExpanded(true)}
         disabled={disabled}
-        className="flex items-center gap-1 text-xs text-slate-500 hover:text-slate-700 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-white rounded"
+        className="flex items-center gap-1 text-xs text-slate-500 hover:text-slate-700 transition-colors active:text-slate-800 rounded"
       >
         <ChevronRight className="h-3.5 w-3.5" />
         {t('results.adjustRadius.caption', {
@@ -82,7 +82,7 @@ export function RadiusAdjuster({
           aria-label={t('results.adjustRadius.decrease', {
             defaultValue: 'Decrease radius',
           })}
-          className="w-7 h-7 flex items-center justify-center rounded text-primary-600 hover:text-primary-700 disabled:opacity-40 disabled:cursor-not-allowed bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-white"
+          className="w-7 h-7 flex items-center justify-center rounded text-primary-600 hover:text-primary-700 disabled:opacity-40 disabled:cursor-not-allowed bg-slate-50 border border-slate-200 active:bg-slate-100 active:scale-[0.97] focus-ring-flush"
         >
           <Minus className="h-4 w-4" />
         </button>
@@ -96,7 +96,7 @@ export function RadiusAdjuster({
           onChange={handleInputChange}
           onBlur={handleInputBlur}
           disabled={disabled}
-          className="w-14 bg-white border border-slate-300 rounded px-2 py-1 text-sm text-center text-slate-900 focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-14 bg-white border border-slate-300 rounded px-2 py-1 text-sm text-center text-slate-900 disabled:opacity-50 disabled:cursor-not-allowed focus-ring-flush"
         />
         <span className="text-xs text-slate-500">km</span>
         <button
@@ -106,7 +106,7 @@ export function RadiusAdjuster({
           aria-label={t('results.adjustRadius.increase', {
             defaultValue: 'Increase radius',
           })}
-          className="w-7 h-7 flex items-center justify-center rounded text-primary-600 hover:text-primary-700 disabled:opacity-40 disabled:cursor-not-allowed bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-white"
+          className="w-7 h-7 flex items-center justify-center rounded text-primary-600 hover:text-primary-700 disabled:opacity-40 disabled:cursor-not-allowed bg-slate-50 border border-slate-200 active:bg-slate-100 active:scale-[0.97] focus-ring-flush"
         >
           <Plus className="h-4 w-4" />
         </button>
@@ -114,7 +114,7 @@ export function RadiusAdjuster({
           type="button"
           onClick={handleSearch}
           disabled={disabled}
-          className="ml-auto px-3 py-1.5 rounded-lg font-medium text-sm bg-primary-600 hover:bg-primary-700 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-white"
+          className="ml-auto px-3 py-1.5 rounded-lg font-medium text-sm bg-primary-600 hover:bg-primary-700 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed active:bg-primary-800 active:scale-[0.98]"
         >
           {t('results.adjustRadius.search', { defaultValue: 'Search' })}
         </button>

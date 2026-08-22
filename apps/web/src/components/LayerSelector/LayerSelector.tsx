@@ -92,11 +92,11 @@ export function LayerSelector({ activeLayer, onSelectLayer }: LayerSelectorProps
                 aria-current={isActive ? "true" : undefined}
                 className={`
                   w-full flex items-center gap-2 px-3 py-2 text-sm
-                  transition-colors duration-150
+                  transition-colors duration-150 focus-ring-inset
                   ${
                     isActive
-                      ? "text-primary-600 bg-primary-50"
-                      : "text-slate-700 hover:text-slate-900 hover:bg-slate-50"
+                      ? "text-primary-600 bg-primary-50 active:bg-primary-100"
+                      : "text-slate-700 hover:text-slate-900 hover:bg-slate-50 active:bg-slate-100"
                   }
                 `}
               >

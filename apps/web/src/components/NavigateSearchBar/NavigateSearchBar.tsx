@@ -51,9 +51,8 @@ export function NavigateSearchBar({
               flex-shrink-0 w-7 h-7 flex items-center justify-center
               rounded-full text-slate-400
               hover:text-slate-900 hover:bg-slate-100
-              active:scale-95
+              active:scale-[0.97] active:bg-slate-200
               transition-all duration-200 ease-out
-              focus:outline-none focus:ring-2 focus:ring-primary-500/50
             "
           >
             <ChevronLeft className="w-4 h-4" strokeWidth={2.5} aria-hidden="true" />

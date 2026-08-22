@@ -135,13 +135,13 @@ export function SearchBar({
               ? `search-option-${highlightedIndex}`
               : undefined
           }
-          className="w-full bg-white border border-slate-300 rounded-lg py-2.5 pl-10 pr-10 text-sm text-slate-900 placeholder-slate-400 transition-all duration-150 focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 hover:border-slate-400"
+          className="w-full bg-white border border-slate-300 rounded-lg py-2.5 pl-10 pr-10 text-sm text-slate-900 placeholder-slate-400 transition-all duration-150 hover:border-slate-400 focus-ring-flush"
         />
 
         {query && !isLoading && (
           <button
             onClick={onClear}
-            className="absolute right-3 p-1 text-slate-400 hover:text-slate-600 transition-colors duration-150"
+            className="absolute right-3 p-1 text-slate-400 hover:text-slate-600 transition-colors duration-150 active:scale-[0.97] active:text-slate-700"
             aria-label="Clear search"
             type="button"
           >
