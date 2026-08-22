@@ -264,9 +264,10 @@ export default function ResultsPanel({
   // Render results
   return (
     <SurfacePanel
+      key={addressKey}
       as="section"
       aria-label={t("results.title")}
-      className={`pointer-events-auto w-full h-full overflow-hidden flex flex-col ${className}`}
+      className={`pointer-events-auto w-full h-full overflow-hidden flex flex-col animate-panel-in ${className}`}
     >
       <Tabs
         tabs={[
