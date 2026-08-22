@@ -169,10 +169,14 @@ body {
 
 /* Single global keyboard-only focus indicator. Uses `outline` (not Tailwind's
    `ring` box-shadow) so it never needs a matching `ring-offset-*` background
-   color to look correct on any surface, in either theme. Tailwind's
-   `focus:`/`ring-*` utilities compile to class selectors and beat these plain
-   tag/attribute selectors on specificity, so any leftover per-component
-   `focus:` classes must be removed rather than relying on source order. */
+   color to look correct on any surface, in either theme. Every declaration
+   here is `!important`, which wins over non-important `focus:`/`ring-*`
+   utilities regardless of selector specificity -- so a leftover per-component
+   focus style won't visibly break anything, but it also can't be relied on to
+   change the outcome. Remove competing `focus:`/`ring-*` classes from
+   components rather than leaving them as dead weight; the only way to
+   intentionally override this rule is with an equally `!important`
+   declaration. */
 @layer base {
   a[href]:focus-visible,
   button:focus-visible,
