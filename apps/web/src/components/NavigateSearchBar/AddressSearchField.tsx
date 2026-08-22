@@ -133,7 +133,6 @@ export function AddressSearchField({
           }}
           className="flex-shrink-0 text-slate-400 hover:text-slate-600 transition-colors active:scale-[0.97] active:text-slate-700"
           aria-label={clearLabel}
-          tabIndex={-1}
         >
           <X className="w-3.5 h-3.5" aria-hidden="true" />
         </button>
