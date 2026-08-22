@@ -263,4 +263,43 @@ body {
   .focus-ring-flush:focus-visible {
     outline-offset: 0 !important;
   }
+
+  /* Results panel mount animation -- see ResultsPanel.tsx. */
+  @keyframes panel-fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  .animate-panel-in {
+    animation: panel-fade-in 320ms ease-out both;
+  }
+
+  /* Staggered list-row entrance -- see ScoreDisplay.tsx and
+     CategoryScoreCard.tsx, which set a per-row animation-delay. */
+  @keyframes row-fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  .animate-row-in {
+    animation: row-fade-in 360ms ease-out both;
+  }
+}
+
+/* Outside @layer so it always wins regardless of utility ordering. */
+@media (prefers-reduced-motion: reduce) {
+  .animate-panel-in,
+  .animate-row-in {
+    animation: none !important;
+  }
 }
