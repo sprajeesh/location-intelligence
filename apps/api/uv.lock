@@ -311,14 +311,16 @@ wheels = [
 
 [[package]]
 name = "location-intelligence-api"
-version = "0.2.0"
+version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
+    { name = "alembic" },
     { name = "asyncpg" },
     { name = "fastapi" },
     { name = "fastapi-limiter" },
     { name = "h3" },
     { name = "httpx" },
+    { name = "psycopg", extra = ["binary"] },
     { name = "pydantic" },
     { name = "pydantic-settings" },
     { name = "redis" },
@@ -327,10 +329,8 @@ dependencies = [
 
 [package.dev-dependencies]
 dev = [
-    { name = "alembic" },
     { name = "fakeredis", extra = ["lua"] },
     { name = "httpx" },
-    { name = "psycopg", extra = ["binary"] },
     { name = "pytest" },
     { name = "pytest-asyncio" },
     { name = "ruff" },
@@ -338,11 +338,13 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "alembic", specifier = ">=1.18.5" },
     { name = "asyncpg", specifier = ">=0.29.0" },
     { name = "fastapi", specifier = ">=0.115.0" },
     { name = "fastapi-limiter", specifier = "==0.1.6" },
     { name = "h3", specifier = ">=4.1.0,<5" },
     { name = "httpx", specifier = ">=0.27.0" },
+    { name = "psycopg", extras = ["binary"], specifier = ">=3.3.4" },
     { name = "pydantic", specifier = ">=2.9.0" },
     { name = "pydantic-settings", specifier = ">=2.6.0" },
     { name = "redis", specifier = ">=5.2.0" },
@@ -351,10 +353,8 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "alembic", specifier = ">=1.18.5" },
     { name = "fakeredis", extras = ["lua"], specifier = ">=2.37.0" },
     { name = "httpx", specifier = ">=0.27.0" },
-    { name = "psycopg", extras = ["binary"], specifier = ">=3.3.4" },
     { name = "pytest", specifier = ">=8.0.0" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
     { name = "ruff", specifier = ">=0.8.0" },
