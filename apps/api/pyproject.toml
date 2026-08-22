@@ -12,6 +12,8 @@ dependencies = [
     "asyncpg>=0.29.0",
     "fastapi-limiter==0.1.6",
     "h3>=4.1.0,<5",
+    "alembic>=1.18.5",
+    "psycopg[binary]>=3.3.4",
 ]
 
 [tool.uv]
@@ -20,8 +22,6 @@ dev-dependencies = [
     "pytest-asyncio>=0.24.0",
     "httpx>=0.27.0",
     "ruff>=0.8.0",
-    "alembic>=1.18.5",
-    "psycopg[binary]>=3.3.4",
     "fakeredis[lua]>=2.37.0",
 ]
 
