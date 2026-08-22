@@ -23,7 +23,10 @@ target_metadata = None
 # connection via psycopg instead, so force that driver here rather than
 # hand-editing sqlalchemy.url in alembic.ini for every environment.
 _database_url = get_settings().database_url.replace("postgresql://", "postgresql+psycopg://", 1)
-config.set_main_option("sqlalchemy.url", _database_url)
+# configparser's default interpolation treats "%" as special (requires "%%"
+# for a literal percent) -- a percent-encoded password character (e.g. "+"
+# as "%2B") in the DSN otherwise raises "invalid interpolation syntax" here.
+config.set_main_option("sqlalchemy.url", _database_url.replace("%", "%%"))
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
