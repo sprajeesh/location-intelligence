@@ -331,9 +331,7 @@ class TestCategoryWeightOverrides:
         expected = (education.score * 0.1 + transport.score * 0.9) / (0.1 + 0.9)
         assert overridden.overall == pytest.approx(expected, rel=1e-2)
 
-    def test_override_for_unrequested_category_is_inert(
-        self, svc: LocationScoringService
-    ) -> None:
+    def test_override_for_unrequested_category_is_inert(self, svc: LocationScoringService) -> None:
         school = make_facility("schools", distance_km=0.0, fid="s1")
         args = ([school], ["schools"])
 

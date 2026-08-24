@@ -173,9 +173,7 @@ class TestCategoryWeightsEndpoint:
         data = response.json()
         assert data["recreation"] == pytest.approx(0.0)
 
-    def test_category_weights_has_all_five_composite_categories(
-        self, client: TestClient
-    ) -> None:
+    def test_category_weights_has_all_five_composite_categories(self, client: TestClient) -> None:
         response = client.get("/category-weights")
         data = response.json()
         assert set(data) == {"education", "transport", "healthcare", "shopping", "recreation"}
