@@ -1,3 +1,4 @@
+import math
 from typing import Literal
 
 from pydantic import BaseModel, Field, field_validator
@@ -46,6 +47,8 @@ class AnalyzeRequest(BaseModel):
         for category, weight in value.items():
             if not category.strip():
                 raise ValueError("category_weights keys must be non-empty")
-            if weight < 0:
-                raise ValueError(f"category_weights[{category}] must be non-negative")
+            if not math.isfinite(weight):
+                raise ValueError(f"category_weights[{category}] must be finite")
+            if not (0.0 <= weight <= 1.0):
+                raise ValueError(f"category_weights[{category}] must be between 0.0 and 1.0")
         return value

@@ -4,6 +4,7 @@ vector, plus process-wide resource-exhaustion protection)."""
 
 from unittest.mock import AsyncMock, patch
 
+import pytest
 from fastapi.testclient import TestClient
 
 
@@ -97,6 +98,40 @@ class TestCategoryWeightsValidation:
                 "categories": ["schools"],
                 "categoryWeights": {f"cat{i}": 0.1 for i in range(11)},
             },
+        )
+        assert response.status_code == 422
+
+    def test_huge_finite_category_weight_returns_422(self, test_client: TestClient) -> None:
+        response = test_client.post(
+            "/location/analyze",
+            json={
+                "lat": -36.848,
+                "lon": 174.763,
+                "radiusKm": 5,
+                "categories": ["schools"],
+                "categoryWeights": {"education": 1e308},
+            },
+        )
+        assert response.status_code == 422
+
+    @pytest.mark.parametrize("literal", ["Infinity", "-Infinity", "NaN"])
+    def test_non_finite_category_weight_returns_422(
+        self, test_client: TestClient, literal: str
+    ) -> None:
+        # json.dumps' non-standard Infinity/-Infinity/NaN tokens (which Python's
+        # own json module both emits and parses by default) are the only way to
+        # get a non-finite float onto the wire -- httpx's `json=` kwarg can't
+        # encode float("inf")/float("nan") via the standard json module either,
+        # so send the raw body directly.
+        body = (
+            '{"lat": -36.848, "lon": 174.763, "radiusKm": 5, '
+            '"categories": ["schools"], '
+            f'"categoryWeights": {{"education": {literal}}}}}'
+        )
+        response = test_client.post(
+            "/location/analyze",
+            content=body,
+            headers={"content-type": "application/json"},
         )
         assert response.status_code == 422
 
