@@ -51,10 +51,15 @@ export function ScoreDisplay({ score, warnings = [] }: ScoreDisplayProps) {
         </div>
       </div>
 
-      {/* Category Breakdown */}
+      {/* Category Breakdown -- staggered entrance overlaps the tail end of
+          the score ring's ~1s reveal animation (see ScoreRing.tsx). */}
       <ul className="space-y-2 pt-2 border-t border-slate-200">
-        {orderedCategories.map((category) => (
-          <li key={category.category}>
+        {orderedCategories.map((category, index) => (
+          <li
+            key={category.category}
+            className="animate-row-in"
+            style={{ animationDelay: `${500 + index * 100}ms` }}
+          >
             <CategoryScoreCard
               category={category}
               isExpanded={expandedCategories.has(category.category)}

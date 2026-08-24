@@ -59,8 +59,12 @@ export function CategoryScoreCard({
       }
     >
       <ul className="space-y-2">
-        {sortFacilitiesForDisplay(category.category, category.facilities).map((facility) => (
-          <li key={facility.facilityType}>
+        {sortFacilitiesForDisplay(category.category, category.facilities).map((facility, index) => (
+          <li
+            key={facility.facilityType}
+            className="animate-row-in"
+            style={{ animationDelay: `${index * 90}ms` }}
+          >
             <FacilityScoreRow facility={facility} />
           </li>
         ))}
