@@ -158,6 +158,27 @@ class TestCategoriesEndpoint:
         assert composite_by_id["libraries"] == "recreation"
 
 
+class TestCategoryWeightsEndpoint:
+    def test_category_weights_returns_200(self, client: TestClient) -> None:
+        response = client.get("/category-weights")
+        assert response.status_code == 200
+
+    def test_category_weights_sums_to_one(self, client: TestClient) -> None:
+        response = client.get("/category-weights")
+        data = response.json()
+        assert sum(data.values()) == pytest.approx(1.0)
+
+    def test_category_weights_recreation_is_zero(self, client: TestClient) -> None:
+        response = client.get("/category-weights")
+        data = response.json()
+        assert data["recreation"] == pytest.approx(0.0)
+
+    def test_category_weights_has_all_five_composite_categories(self, client: TestClient) -> None:
+        response = client.get("/category-weights")
+        data = response.json()
+        assert set(data) == {"education", "transport", "healthcare", "shopping", "recreation"}
+
+
 class TestAnalyzeEndpointWithCoords:
     def test_analyze_with_lat_lon_no_facilities(self, client: TestClient) -> None:
         """When Overpass returns nothing, should return 200 with warning."""
