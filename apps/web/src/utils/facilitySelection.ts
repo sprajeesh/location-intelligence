@@ -52,7 +52,10 @@ export function getActiveCompositeCategories(
  * Default weight-slider seed for a set of active composite categories:
  * Recreation is always forced to 0% (product default), and the remaining
  * active categories' DB ratios are renormalized among themselves so the
- * result always sums to 1.0.
+ * result always sums to 1.0. If every active category is zero-weighted by
+ * default (i.e. Recreation is the *only* active category), there's nothing
+ * left to renormalize -- split evenly across all active categories instead,
+ * since the result must still sum to 1.
  */
 export function computeDefaultWeightsForActiveCategories(
   activeCategories: string[],
@@ -61,13 +64,17 @@ export function computeDefaultWeightsForActiveCategories(
   const weighted = activeCategories.filter((category) => category !== ZERO_WEIGHT_BY_DEFAULT);
   const total = weighted.reduce((sum, category) => sum + (defaultRatios[category] ?? 0), 0);
 
+  if (weighted.length === 0) {
+    const equalShare = activeCategories.length > 0 ? 1 / activeCategories.length : 0;
+    return Object.fromEntries(activeCategories.map((category) => [category, equalShare]));
+  }
+
   const result: Record<string, number> = {};
   for (const category of activeCategories) {
     if (category === ZERO_WEIGHT_BY_DEFAULT) {
       result[category] = 0;
     } else {
-      result[category] =
-        total > 0 ? (defaultRatios[category] ?? 0) / total : 1 / weighted.length;
+      result[category] = total > 0 ? (defaultRatios[category] ?? 0) / total : 1 / weighted.length;
     }
   }
   return result;
