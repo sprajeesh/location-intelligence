@@ -223,6 +223,7 @@ class LocationScoringService:
         facilities: list[Facility],
         categories: list[str],
         unavailable: set[str] | None = None,
+        category_weight_overrides: dict[str, float] | None = None,
     ) -> CompositeScore:
         unavailable = unavailable or set()
         requested = set(categories)
@@ -243,13 +244,22 @@ class LocationScoringService:
             for category in self._category_facility_weights
         ]
 
+        # Per-request override of the composite-layer weights (e.g. user-configured
+        # category weightage from Settings). None/empty leaves self._category_weights
+        # untouched (same dict object, not a copy) so the default path is unchanged.
+        effective_category_weights = (
+            self._category_weights
+            if not category_weight_overrides
+            else {**self._category_weights, **category_weight_overrides}
+        )
+
         scored_categories = [c for c in category_results if c.status == "scored"]
         overall: float | None = None
         if scored_categories:
-            weight_sum = sum(self._category_weights[c.category] for c in scored_categories)
+            weight_sum = sum(effective_category_weights[c.category] for c in scored_categories)
             if weight_sum > 0:
                 weighted_total = sum(
-                    c.score * self._category_weights[c.category]  # type: ignore[operator]
+                    c.score * effective_category_weights[c.category]  # type: ignore[operator]
                     for c in scored_categories
                 )
                 overall = round(weighted_total / weight_sum, 1)

@@ -86,6 +86,17 @@ async def analyze_location(
             detail=f"Unknown categories: {sorted(unknown_categories)}",
         )
 
+    # Same rationale as the categories check above: the schema only bounds
+    # shape, the real composite-category set is DB-loaded and only known here.
+    if body.category_weights is not None:
+        known_composite_categories = set(request.app.state.scoring_config.category_weights)
+        unknown_weight_categories = set(body.category_weights) - known_composite_categories
+        if unknown_weight_categories:
+            raise HTTPException(
+                status_code=422,
+                detail=f"Unknown categoryWeights categories: {sorted(unknown_weight_categories)}",
+            )
+
     # --- Step 3: Hazard lookup -- point-based, independent of categories/radius,
     # runs after category validation so an unknown-category request 422s before
     # any hazard DB lookup ---
@@ -139,7 +150,12 @@ async def analyze_location(
         warnings.extend(distance_warnings)
 
     # --- Step 6: Compute score ---
-    domain_score = scoring_svc.score(facilities, categories, unavailable=failed_categories)
+    domain_score = scoring_svc.score(
+        facilities,
+        categories,
+        unavailable=failed_categories,
+        category_weight_overrides=body.category_weights,
+    )
 
     # --- Assemble response ---
     feature_results = [

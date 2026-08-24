@@ -1,10 +1,15 @@
 import logging
+import math
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
+from typing import Any
 
 import httpx
-from fastapi import Depends, FastAPI
+from fastapi import Depends, FastAPI, Request
+from fastapi.encoders import jsonable_encoder
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from fastapi_limiter import FastAPILimiter
 
 from app.api import analyze, categories, hazard, health, search
@@ -31,6 +36,22 @@ from app.services.hazard_scoring import HazardScoringService
 from app.services.scoring import LocationScoringService
 
 logger = logging.getLogger(__name__)
+
+
+def _sanitize_non_finite_floats(value: Any) -> Any:
+    """Pydantic echoes the raw rejected input back in RequestValidationError.errors()
+    (e.g. `categoryWeights: {"education": NaN}`). Starlette's default JSONResponse
+    renders with allow_nan=False (per the JSON spec), so a NaN/Infinity input would
+    otherwise crash the 422 response itself with an unhandled ValueError instead of
+    reporting the validation failure. Stringify non-finite floats wherever they
+    appear in the error payload so the response can actually be serialized."""
+    if isinstance(value, float) and not math.isfinite(value):
+        return str(value)
+    if isinstance(value, dict):
+        return {key: _sanitize_non_finite_floats(item) for key, item in value.items()}
+    if isinstance(value, list):
+        return [_sanitize_non_finite_floats(item) for item in value]
+    return value
 
 
 @asynccontextmanager
@@ -143,6 +164,13 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+    @app.exception_handler(RequestValidationError)
+    async def _validation_exception_handler(
+        request: Request, exc: RequestValidationError
+    ) -> JSONResponse:
+        errors = _sanitize_non_finite_floats(jsonable_encoder(exc.errors()))
+        return JSONResponse(status_code=422, content={"detail": errors})
 
     settings = get_settings()
 

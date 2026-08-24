@@ -298,6 +298,72 @@ class TestOverallComposite:
         assert score.overall == pytest.approx(expected, rel=1e-2)
 
 
+class TestCategoryWeightOverrides:
+    def test_no_override_matches_default_behavior(self, svc: LocationScoringService) -> None:
+        school = make_facility("schools", distance_km=0.0, fid="s1")
+        bus = make_facility("bus_stops", distance_km=0.0, fid="b1")
+        args = ([school, bus], ["schools", "bus_stops"])
+
+        without_override = svc.score(*args, unavailable=set())
+        with_none_override = svc.score(*args, unavailable=set(), category_weight_overrides=None)
+        with_empty_override = svc.score(*args, unavailable=set(), category_weight_overrides={})
+
+        assert with_none_override.overall == without_override.overall
+        assert with_empty_override.overall == without_override.overall
+
+    def test_override_changes_overall_score(self, svc: LocationScoringService) -> None:
+        # Two categories with very different underlying scores -- overweighting
+        # the lower-scoring one should pull the overall down.
+        school = make_facility("schools", distance_km=0.0, fid="s1")
+        bus = make_facility("bus_stops", distance_km=25.0, fid="b1")
+        args = ([school, bus], ["schools", "bus_stops"])
+
+        default = svc.score(*args, unavailable=set())
+        overridden = svc.score(
+            *args,
+            unavailable=set(),
+            category_weight_overrides={"education": 0.1, "transport": 0.9},
+        )
+
+        assert overridden.overall != pytest.approx(default.overall)
+        education = next(c for c in overridden.categories if c.category == "education")
+        transport = next(c for c in overridden.categories if c.category == "transport")
+        expected = (education.score * 0.1 + transport.score * 0.9) / (0.1 + 0.9)
+        assert overridden.overall == pytest.approx(expected, rel=1e-2)
+
+    def test_override_for_unrequested_category_is_inert(self, svc: LocationScoringService) -> None:
+        school = make_facility("schools", distance_km=0.0, fid="s1")
+        args = ([school], ["schools"])
+
+        default = svc.score(*args, unavailable=set())
+        overridden = svc.score(
+            *args, unavailable=set(), category_weight_overrides={"recreation": 0.9}
+        )
+
+        # Recreation was never requested/scored, so overriding its weight
+        # can't affect an overall computed only from scored categories.
+        assert overridden.overall == pytest.approx(default.overall)
+
+    def test_partial_override_falls_back_to_defaults_for_unlisted_categories(
+        self, svc: LocationScoringService
+    ) -> None:
+        school = make_facility("schools", distance_km=0.0, fid="s1")
+        bus = make_facility("bus_stops", distance_km=0.0, fid="b1")
+        args = ([school, bus], ["schools", "bus_stops"])
+
+        overridden = svc.score(
+            *args, unavailable=set(), category_weight_overrides={"education": 0.6}
+        )
+
+        education = next(c for c in overridden.categories if c.category == "education")
+        transport = next(c for c in overridden.categories if c.category == "transport")
+        weight_sum = 0.6 + CATEGORY_WEIGHTS["transport"]
+        expected = (
+            education.score * 0.6 + transport.score * CATEGORY_WEIGHTS["transport"]
+        ) / weight_sum
+        assert overridden.overall == pytest.approx(expected, rel=1e-2)
+
+
 class TestFetchRadiusKm:
     def test_caps_to_hard_cutoff_when_requested_radius_is_larger(self) -> None:
         assert (
