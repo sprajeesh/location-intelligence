@@ -125,8 +125,7 @@
     "reanalyze": "[MI] settings.reanalyze",
     "notNow": "[MI] settings.notNow",
     "weights": {
-      "footerTotal": "[MI] settings.weights.footerTotal",
-      "mustSumTo100": "[MI] settings.weights.mustSumTo100"
+      "footerTotal": "[MI] settings.weights.footerTotal"
     }
   }
 }
