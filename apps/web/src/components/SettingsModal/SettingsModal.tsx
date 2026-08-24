@@ -65,6 +65,11 @@ export function SettingsModal({
   const [draft, setDraft] = useState<string[] | null>(null);
   const [weightDraft, setWeightDraft] = useState<Record<string, number> | null>(null);
   const [showLimitWarning, setShowLimitWarning] = useState(false);
+  // Set by handleToggle when a facility toggle changes the active-category
+  // set while defaultCategoryWeights is still loading -- recomputing right
+  // then would bake in the still-empty `{}`. Holds the active set to
+  // recompute against once loading settles.
+  const [pendingWeightsReset, setPendingWeightsReset] = useState<string[] | null>(null);
 
   // Categories load asynchronously; seed the draft from the committed
   // selection (or the DB defaults) as soon as they're available.
@@ -76,19 +81,36 @@ export function SettingsModal({
 
   // Weight seeding needs defaultCategoryWeights, which is a separate query
   // (GET /category-weights) from `categories` -- wait for it to settle so a
-  // still-loading `{}` doesn't get baked into the initial weights (and then
-  // never corrected, since this only runs once while weightDraft is null).
-  // On failure defaultCategoryWeights stays `{}`, which
+  // still-loading `{}` doesn't get baked into the weights (and then never
+  // corrected, since this only runs while weightDraft is null). A pending
+  // toggle-driven reset (see handleToggle) takes priority over the initial
+  // categoryWeights-or-computed-defaults seed, since it reflects the user's
+  // latest facility selection rather than what was true when the modal
+  // opened. On failure defaultCategoryWeights stays `{}`, which
   // computeDefaultWeightsForActiveCategories already handles by splitting
   // evenly across the active categories.
   useEffect(() => {
-    if (weightDraft === null && draft !== null && !isWeightsLoading) {
-      const active = getActiveCompositeCategories(categories, draft);
-      setWeightDraft(
-        categoryWeights ?? computeDefaultWeightsForActiveCategories(active, defaultCategoryWeights),
-      );
+    if (weightDraft !== null || draft === null || isWeightsLoading) return;
+
+    if (pendingWeightsReset !== null) {
+      setWeightDraft(computeDefaultWeightsForActiveCategories(pendingWeightsReset, defaultCategoryWeights));
+      setPendingWeightsReset(null);
+      return;
     }
-  }, [weightDraft, draft, categories, categoryWeights, defaultCategoryWeights, isWeightsLoading]);
+
+    const active = getActiveCompositeCategories(categories, draft);
+    setWeightDraft(
+      categoryWeights ?? computeDefaultWeightsForActiveCategories(active, defaultCategoryWeights),
+    );
+  }, [
+    weightDraft,
+    draft,
+    categories,
+    categoryWeights,
+    defaultCategoryWeights,
+    isWeightsLoading,
+    pendingWeightsReset,
+  ]);
 
   const activeCategories =
     draft === null ? [] : getActiveCompositeCategories(categories, draft);
@@ -114,7 +136,16 @@ export function SettingsModal({
       const prevActive = getActiveCompositeCategories(categories, prev);
       const nextActive = getActiveCompositeCategories(categories, next);
       if (nextActive.length !== prevActive.length || !nextActive.every((c) => prevActive.includes(c))) {
-        setWeightDraft(computeDefaultWeightsForActiveCategories(nextActive, defaultCategoryWeights));
+        if (isWeightsLoading) {
+          // defaultCategoryWeights isn't ready yet -- clear weightDraft and
+          // defer the recompute to the seeding effect once loading settles,
+          // rather than baking in the still-empty `{}`.
+          setWeightDraft(null);
+          setPendingWeightsReset(nextActive);
+        } else {
+          setPendingWeightsReset(null);
+          setWeightDraft(computeDefaultWeightsForActiveCategories(nextActive, defaultCategoryWeights));
+        }
       }
 
       return next;

@@ -249,6 +249,41 @@ describe("SettingsModal", () => {
       expect(screen.getByLabelText("transport")).toHaveValue("40");
     });
 
+    it("defers a toggle-triggered reseed until the defaults query settles, then applies the fetched ratios", async () => {
+      const { rerender } = render(
+        <SettingsModal
+          {...defaultProps}
+          categories={withHealthcare}
+          isWeightsLoading={true}
+          defaultCategoryWeights={{}}
+        />,
+      );
+
+      await userEvent.click(screen.getByLabelText("Clinics"));
+
+      // Still loading -- must not seed from the still-empty defaults, and
+      // must not get stuck there once the query does resolve.
+      expect(screen.getByLabelText("healthcare")).toBeDisabled();
+      expect(screen.queryByText(/Total Weightage:/)).not.toBeInTheDocument();
+
+      rerender(
+        <SettingsModal
+          {...defaultProps}
+          categories={withHealthcare}
+          isWeightsLoading={false}
+          defaultCategoryWeights={defaultCategoryWeights}
+        />,
+      );
+
+      // Applies the fetched ratios renormalized over the active set as of
+      // the toggle made during loading (education, transport, healthcare),
+      // not what was active when the modal first opened.
+      expect(screen.getByLabelText("education")).toHaveValue("50");
+      expect(screen.getByLabelText("transport")).toHaveValue("33");
+      expect(screen.getByLabelText("healthcare")).toHaveValue("17");
+      expect(screen.getByText(/Total Weightage: 100%/)).toBeInTheDocument();
+    });
+
     it("resets weights to computed defaults when a facility toggle activates a new category", async () => {
       render(<SettingsModal {...defaultProps} categories={withHealthcare} />);
 
