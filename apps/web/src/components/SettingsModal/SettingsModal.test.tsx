@@ -27,6 +27,11 @@ const recreationCategories: Category[] = [
   { id: "parks", label: "Parks", implemented: true, color: "#22C55E", isDefault: false, compositeCategory: "recreation" },
 ];
 
+const withHealthcare: Category[] = [
+  ...categories,
+  { id: "clinics", label: "Clinics", implemented: true, color: "#EF4444", isDefault: false, compositeCategory: "healthcare" },
+];
+
 const defaultCategoryWeights = {
   education: 0.6,
   transport: 0.4,
@@ -162,16 +167,17 @@ describe("SettingsModal", () => {
   });
 
   describe("Weight sliders", () => {
-    it("renders a slider only for categories with at least one selected facility", () => {
-      render(<SettingsModal {...defaultProps} />);
+    it("renders a slider for every category, disabled when it has no selected facility", () => {
+      render(<SettingsModal {...defaultProps} categories={recreationCategories} />);
       expect(screen.getByLabelText("education")).toBeInTheDocument();
-      expect(screen.getByLabelText("transport")).toBeInTheDocument();
-      expect(screen.queryByLabelText("recreation")).not.toBeInTheDocument();
+      expect(screen.getByLabelText("education")).not.toBeDisabled();
+      expect(screen.getByLabelText("recreation")).toBeInTheDocument();
+      expect(screen.getByLabelText("recreation")).toBeDisabled();
     });
 
-    it("seeds slider values from the DB-configured default ratios, summing to 100", () => {
+    it("seeds slider values from the DB-configured default ratios, summing to 100 in the footer", () => {
       render(<SettingsModal {...defaultProps} />);
-      expect(screen.getByText("Total: 100%")).toBeInTheDocument();
+      expect(screen.getByText(/Total Weightage: 100%/)).toBeInTheDocument();
       expect(screen.getByLabelText("education")).toHaveValue("60");
       expect(screen.getByLabelText("transport")).toHaveValue("40");
     });
@@ -182,34 +188,52 @@ describe("SettingsModal", () => {
       await userEvent.click(screen.getByLabelText("Parks"));
 
       const recreationSlider = screen.getByLabelText("recreation");
-      expect(recreationSlider).toBeInTheDocument();
+      expect(recreationSlider).not.toBeDisabled();
       expect(recreationSlider).toHaveValue("0");
     });
 
-    it("blocks Save and shows an inline error when weights don't sum to 100", async () => {
-      const onSave = jest.fn();
-      render(<SettingsModal {...defaultProps} onSave={onSave} />);
+    it("dragging one slider decreases the others proportionally, keeping the total at 100%", async () => {
+      render(<SettingsModal {...defaultProps} />);
 
-      fireEvent.change(screen.getByLabelText("education"), { target: { value: "50" } });
-      await userEvent.click(screen.getByRole("button", { name: "Save" }));
+      fireEvent.change(screen.getByLabelText("education"), { target: { value: "80" } });
 
-      expect(onSave).not.toHaveBeenCalled();
-      expect(
-        screen.getByText("Category weights must add up to 100% (currently 90%)."),
-      ).toBeInTheDocument();
+      expect(screen.getByLabelText("education")).toHaveValue("80");
+      expect(screen.getByLabelText("transport")).toHaveValue("20");
+      expect(screen.getByText(/Total Weightage: 100%/)).toBeInTheDocument();
     });
 
-    it("resets weights to computed defaults when the active category set changes", async () => {
-      render(<SettingsModal {...defaultProps} categories={recreationCategories} />);
+    it("locks the slider at 100% when it's the only active category", async () => {
+      render(<SettingsModal {...defaultProps} selectedFacilities={["schools"]} />);
 
-      fireEvent.change(screen.getByLabelText("education"), { target: { value: "50" } });
-      await userEvent.click(screen.getByLabelText("Parks"));
+      expect(screen.getByLabelText("education")).toHaveValue("100");
+      expect(screen.getByLabelText("education")).toBeDisabled();
+    });
 
-      // Active set changed (recreation added) -- sliders reset to computed
-      // defaults rather than keeping the manual 50% edit.
-      expect(screen.getByLabelText("education")).toHaveValue("60");
-      expect(screen.getByLabelText("recreation")).toHaveValue("0");
-      expect(screen.getByText("Total: 100%")).toBeInTheDocument();
+    it("borrows proportionally from the current weights (not the DB defaults) when a facility toggle activates a new category", async () => {
+      render(<SettingsModal {...defaultProps} categories={withHealthcare} />);
+
+      fireEvent.change(screen.getByLabelText("education"), { target: { value: "80" } });
+      expect(screen.getByLabelText("transport")).toHaveValue("20");
+
+      await userEvent.click(screen.getByLabelText("Clinics"));
+
+      // Healthcare borrows out of the current 80/20 split, not the DB
+      // defaults (60/40) -- a redistribute, not a reset.
+      expect(screen.getByLabelText("education")).toHaveValue("67");
+      expect(screen.getByLabelText("transport")).toHaveValue("16");
+      expect(screen.getByLabelText("healthcare")).toHaveValue("17");
+      expect(screen.getByLabelText("healthcare")).not.toBeDisabled();
+      expect(screen.getByText(/Total Weightage: 100%/)).toBeInTheDocument();
+    });
+
+    it("returns a deactivated category's weight proportionally to the remaining active categories", async () => {
+      render(<SettingsModal {...defaultProps} selectedFacilities={["schools", "bus_stops"]} />);
+
+      await userEvent.click(screen.getByLabelText("Bus Stops"));
+
+      expect(screen.getByLabelText("education")).toHaveValue("100");
+      expect(screen.getByLabelText("transport")).toBeDisabled();
+      expect(screen.getByText(/Total Weightage: 100%/)).toBeInTheDocument();
     });
   });
 
