@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { SettingsModal } from "./SettingsModal";
 import type { Category } from "@/types/api";
@@ -22,11 +22,26 @@ const sixCategories: Category[] = [
   { id: "f6", label: "F6", implemented: true, color: "#666666", isDefault: false, compositeCategory: "shopping" },
 ];
 
+const recreationCategories: Category[] = [
+  ...categories,
+  { id: "parks", label: "Parks", implemented: true, color: "#22C55E", isDefault: false, compositeCategory: "recreation" },
+];
+
+const defaultCategoryWeights = {
+  education: 0.6,
+  transport: 0.4,
+  healthcare: 0.2,
+  shopping: 0.07,
+  recreation: 0,
+};
+
 const defaultProps = {
   categories,
   isLoading: false,
   isError: false,
   selectedFacilities: null,
+  categoryWeights: null,
+  defaultCategoryWeights,
   pendingReanalyze: false,
   address: null,
   onClose: jest.fn(),
@@ -43,8 +58,8 @@ describe("SettingsModal", () => {
   describe("Rendering", () => {
     it("renders every facility grouped under its composite category", () => {
       render(<SettingsModal {...defaultProps} />);
-      expect(screen.getByText("education")).toBeInTheDocument();
-      expect(screen.getByText("transport")).toBeInTheDocument();
+      expect(screen.getByRole("heading", { name: "education" })).toBeInTheDocument();
+      expect(screen.getByRole("heading", { name: "transport" })).toBeInTheDocument();
       expect(screen.getByText("Schools")).toBeInTheDocument();
       expect(screen.getByText("Kindergartens")).toBeInTheDocument();
       expect(screen.getByText("Bus Stops")).toBeInTheDocument();
@@ -133,7 +148,7 @@ describe("SettingsModal", () => {
   });
 
   describe("Saving", () => {
-    it("calls onSave with the current draft selection", async () => {
+    it("calls onSave with the current draft selection and active category weights", async () => {
       const onSave = jest.fn();
       render(<SettingsModal {...defaultProps} onSave={onSave} />);
 
@@ -142,6 +157,59 @@ describe("SettingsModal", () => {
 
       expect(onSave).toHaveBeenCalledTimes(1);
       expect(onSave.mock.calls[0][0].slice().sort()).toEqual(["bus_stops", "kindergartens", "schools"]);
+      expect(onSave.mock.calls[0][1]).toEqual({ education: 0.6, transport: 0.4 });
+    });
+  });
+
+  describe("Weight sliders", () => {
+    it("renders a slider only for categories with at least one selected facility", () => {
+      render(<SettingsModal {...defaultProps} />);
+      expect(screen.getByLabelText("education")).toBeInTheDocument();
+      expect(screen.getByLabelText("transport")).toBeInTheDocument();
+      expect(screen.queryByLabelText("recreation")).not.toBeInTheDocument();
+    });
+
+    it("seeds slider values from the DB-configured default ratios, summing to 100", () => {
+      render(<SettingsModal {...defaultProps} />);
+      expect(screen.getByText("Total: 100%")).toBeInTheDocument();
+      expect(screen.getByLabelText("education")).toHaveValue("60");
+      expect(screen.getByLabelText("transport")).toHaveValue("40");
+    });
+
+    it("shows the Recreation slider defaulted to 0% once a recreation facility is checked", async () => {
+      render(<SettingsModal {...defaultProps} categories={recreationCategories} />);
+
+      await userEvent.click(screen.getByLabelText("Parks"));
+
+      const recreationSlider = screen.getByLabelText("recreation");
+      expect(recreationSlider).toBeInTheDocument();
+      expect(recreationSlider).toHaveValue("0");
+    });
+
+    it("blocks Save and shows an inline error when weights don't sum to 100", async () => {
+      const onSave = jest.fn();
+      render(<SettingsModal {...defaultProps} onSave={onSave} />);
+
+      fireEvent.change(screen.getByLabelText("education"), { target: { value: "50" } });
+      await userEvent.click(screen.getByRole("button", { name: "Save" }));
+
+      expect(onSave).not.toHaveBeenCalled();
+      expect(
+        screen.getByText("Category weights must add up to 100% (currently 90%)."),
+      ).toBeInTheDocument();
+    });
+
+    it("resets weights to computed defaults when the active category set changes", async () => {
+      render(<SettingsModal {...defaultProps} categories={recreationCategories} />);
+
+      fireEvent.change(screen.getByLabelText("education"), { target: { value: "50" } });
+      await userEvent.click(screen.getByLabelText("Parks"));
+
+      // Active set changed (recreation added) -- sliders reset to computed
+      // defaults rather than keeping the manual 50% edit.
+      expect(screen.getByLabelText("education")).toHaveValue("60");
+      expect(screen.getByLabelText("recreation")).toHaveValue("0");
+      expect(screen.getByText("Total: 100%")).toBeInTheDocument();
     });
   });
 

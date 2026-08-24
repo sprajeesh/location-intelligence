@@ -17,6 +17,7 @@ import { Tabs } from "@/components/ui/Tabs";
 import { useNavigate } from "@/hooks/useNavigate";
 import { useAnalyze } from "@/hooks/useAnalyze";
 import { useAnalyzeCategories } from "@/hooks/useAnalyzeCategories";
+import { useAnalyzeCategoryWeights } from "@/hooks/useAnalyzeCategoryWeights";
 
 type ResultsTab = "score" | "facilities";
 
@@ -71,6 +72,7 @@ export default function ResultsPanel({
 
   const { mutate: analyze } = useAnalyze();
   const analyzeCategories = useAnalyzeCategories();
+  const analyzeCategoryWeights = useAnalyzeCategoryWeights();
 
   // Local UI state for expanded/collapsed categories
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
@@ -179,10 +181,20 @@ export default function ResultsPanel({
           radiusKm: newRadius,
           distanceMode,
           categories: analyzeCategories,
+          categoryWeights: analyzeCategoryWeights,
         });
       }
     },
-    [selectedAddress, distanceMode, setRadiusKm, setAnalysisResult, clearVisibleCategories, analyze, analyzeCategories],
+    [
+      selectedAddress,
+      distanceMode,
+      setRadiusKm,
+      setAnalysisResult,
+      clearVisibleCategories,
+      analyze,
+      analyzeCategories,
+      analyzeCategoryWeights,
+    ],
   );
 
   // Remount the adjuster (collapsing it and resetting its draft value) whenever the address changes

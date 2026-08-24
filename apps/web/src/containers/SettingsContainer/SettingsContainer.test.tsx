@@ -1,11 +1,13 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { SettingsContainer } from "./SettingsContainer";
 import { useCategories } from "@/hooks/useCategories";
+import { useCategoryWeights } from "@/hooks/useCategoryWeights";
 import { useAnalyze } from "@/hooks/useAnalyze";
 import { useLocationStore } from "@/store";
 
 jest.mock("@/hooks/useCategories");
+jest.mock("@/hooks/useCategoryWeights");
 jest.mock("@/hooks/useAnalyze");
 jest.mock("@/store");
 jest.mock("next-intl", () => ({
@@ -13,6 +15,7 @@ jest.mock("next-intl", () => ({
 }));
 
 const mockUseCategories = useCategories as jest.Mock;
+const mockUseCategoryWeights = useCategoryWeights as jest.Mock;
 const mockUseAnalyze = useAnalyze as jest.Mock;
 const mockUseLocationStore = useLocationStore as unknown as jest.Mock;
 
@@ -44,6 +47,8 @@ const MOCK_ADDRESS = {
 const makeStoreState = (overrides = {}) => ({
   selectedFacilities: null,
   setSelectedFacilities: jest.fn(),
+  categoryWeights: null,
+  setCategoryWeights: jest.fn(),
   selectedAddress: null,
   analysisResult: null,
   radiusKm: 10,
@@ -54,6 +59,11 @@ const makeStoreState = (overrides = {}) => ({
 beforeEach(() => {
   jest.clearAllMocks();
   mockUseCategories.mockReturnValue({ categories, isLoading: false, isError: false });
+  mockUseCategoryWeights.mockReturnValue({
+    categoryWeights: { education: 1 },
+    isLoading: false,
+    isError: false,
+  });
   mockUseAnalyze.mockReturnValue({ mutate: jest.fn() });
   mockUseLocationStore.mockReturnValue(makeStoreState());
 });
@@ -170,6 +180,52 @@ describe("SettingsContainer", () => {
 
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
       expect(analyze).not.toHaveBeenCalled();
+    });
+
+    it("still asks for confirmation when only the category weights changed (no facility change)", async () => {
+      const categoriesWithTransport = [
+        categories[0],
+        {
+          id: "bus_stops",
+          label: "Bus Stops",
+          implemented: true,
+          color: "#14B8A6",
+          isDefault: true,
+          compositeCategory: "transport",
+        },
+      ];
+      mockUseCategories.mockReturnValue({
+        categories: categoriesWithTransport,
+        isLoading: false,
+        isError: false,
+      });
+      mockUseCategoryWeights.mockReturnValue({
+        categoryWeights: { education: 0.5, transport: 0.5 },
+        isLoading: false,
+        isError: false,
+      });
+      const analyze = jest.fn();
+      mockUseAnalyze.mockReturnValue({ mutate: analyze });
+      mockUseLocationStore.mockReturnValue(
+        makeStoreState({
+          selectedAddress: MOCK_ADDRESS,
+          analysisResult: { location: {}, features: [], score: {}, warnings: [] },
+        }),
+      );
+
+      render(<SettingsContainer />);
+      await userEvent.click(screen.getByRole("button", { name: "Settings" }));
+      fireEvent.change(screen.getByLabelText("education"), { target: { value: "70" } });
+      fireEvent.change(screen.getByLabelText("transport"), { target: { value: "30" } });
+      await userEvent.click(screen.getByRole("button", { name: "Save" }));
+
+      expect(screen.getByText(/123 Main Street, Auckland/)).toBeInTheDocument();
+      expect(analyze).not.toHaveBeenCalled();
+
+      await userEvent.click(screen.getByRole("button", { name: "Re-analyze" }));
+      expect(analyze).toHaveBeenCalledWith(
+        expect.objectContaining({ address: MOCK_ADDRESS.displayName }),
+      );
     });
 
     it("closes without re-analyzing when Not now is clicked", async () => {

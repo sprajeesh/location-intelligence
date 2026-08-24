@@ -29,3 +29,59 @@ export function resolveCategoriesForRequest(
   if (isSameFacilitySet(selectedFacilities, getDefaultFacilityIds(allCategories))) return undefined;
   return selectedFacilities;
 }
+
+/** Composite category is never weighted by default -- see AGENTS.md's
+ * "Default the Recreation category weightage to 0.0" acceptance criteria. */
+const ZERO_WEIGHT_BY_DEFAULT = "recreation";
+
+/** Which of the 5 composite categories are "active": at least one of their
+ * facility types is present in the given (draft or committed) selection. */
+export function getActiveCompositeCategories(
+  allCategories: Category[],
+  facilityIds: string[],
+): string[] {
+  const active = new Set(
+    allCategories
+      .filter((category) => facilityIds.includes(category.id))
+      .map((category) => category.compositeCategory),
+  );
+  return [...active];
+}
+
+/**
+ * Default weight-slider seed for a set of active composite categories:
+ * Recreation is always forced to 0% (product default), and the remaining
+ * active categories' DB ratios are renormalized among themselves so the
+ * result always sums to 1.0.
+ */
+export function computeDefaultWeightsForActiveCategories(
+  activeCategories: string[],
+  defaultRatios: Record<string, number>,
+): Record<string, number> {
+  const weighted = activeCategories.filter((category) => category !== ZERO_WEIGHT_BY_DEFAULT);
+  const total = weighted.reduce((sum, category) => sum + (defaultRatios[category] ?? 0), 0);
+
+  const result: Record<string, number> = {};
+  for (const category of activeCategories) {
+    if (category === ZERO_WEIGHT_BY_DEFAULT) {
+      result[category] = 0;
+    } else {
+      result[category] =
+        total > 0 ? (defaultRatios[category] ?? 0) / total : 1 / weighted.length;
+    }
+  }
+  return result;
+}
+
+/**
+ * Resolves the `categoryWeights` param for POST /location/analyze. Returns
+ * undefined (omit the param, let the backend apply its own default weights)
+ * when the user hasn't customized weights yet -- once they have, always
+ * send them, since adjusting weightage is a deliberate action meant to
+ * change the computed score, not something to silently no-op away.
+ */
+export function resolveCategoryWeightsForRequest(
+  categoryWeights: Record<string, number> | null | undefined,
+): Record<string, number> | undefined {
+  return categoryWeights ?? undefined;
+}

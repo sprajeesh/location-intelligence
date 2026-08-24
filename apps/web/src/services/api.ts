@@ -113,6 +113,7 @@ export interface AnalyzeRequest {
   lon: number;
   radiusKm: number;
   categories?: string[];
+  categoryWeights?: Record<string, number>;
   distanceMode: "driving" | "walking";
 }
 
@@ -251,6 +252,15 @@ export async function analyzeLocation(
  */
 export async function getCategories(): Promise<Category[]> {
   return fetchJson<Category[]>("/categories", { method: "GET" });
+}
+
+/**
+ * Get the server's DB-configured default composite-category weights
+ * (education, transport, ...), used to seed the Settings weight sliders.
+ * Calls GET /api/category-weights
+ */
+export async function getCategoryWeights(): Promise<Record<string, number>> {
+  return fetchJson<Record<string, number>>("/category-weights", { method: "GET" });
 }
 
 /**

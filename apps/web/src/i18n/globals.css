@@ -294,12 +294,50 @@ body {
   .animate-row-in {
     animation: row-fade-in 360ms ease-out both;
   }
+
+  /* Settings modal mount animation -- see Modal.tsx. Subtle scale+fade so
+     the modal doesn't feel like an abrupt pop-in; distinct from
+     panel-fade-in's vertical slide since a modal is centered, not
+     anchored to an edge. */
+  @keyframes modal-scale-in {
+    from {
+      opacity: 0;
+      transform: scale(0.96);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+  .animate-modal-in {
+    animation: modal-scale-in 200ms ease-out both;
+  }
+
+  /* Weight slider thumb -- smooth grow/settle on interaction rather than
+     an instant jump, without needing a slider library. See WeightSlider.tsx. */
+  .animate-slider-thumb::-webkit-slider-thumb {
+    transition: transform 120ms ease-out;
+  }
+  .animate-slider-thumb:active::-webkit-slider-thumb {
+    transform: scale(1.15);
+  }
+  .animate-slider-thumb::-moz-range-thumb {
+    transition: transform 120ms ease-out;
+  }
+  .animate-slider-thumb:active::-moz-range-thumb {
+    transform: scale(1.15);
+  }
 }
 
 /* Outside @layer so it always wins regardless of utility ordering. */
 @media (prefers-reduced-motion: reduce) {
   .animate-panel-in,
-  .animate-row-in {
+  .animate-row-in,
+  .animate-modal-in {
     animation: none !important;
+  }
+  .animate-slider-thumb::-webkit-slider-thumb,
+  .animate-slider-thumb::-moz-range-thumb {
+    transition: none !important;
   }
 }
