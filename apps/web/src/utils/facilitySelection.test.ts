@@ -60,6 +60,14 @@ describe("computeDefaultWeightsForActiveCategories", () => {
     expect(result).toEqual({ recreation: 1 });
   });
 
+  it("splits evenly between recreation and a non-recreation category when both have a 0 default ratio", () => {
+    const result = computeDefaultWeightsForActiveCategories(["recreation", "shopping"], {
+      ...defaultRatios,
+      shopping: 0,
+    });
+    expect(result).toEqual({ recreation: 0.5, shopping: 0.5 });
+  });
+
   it("renormalizes the remaining active categories to sum to 1", () => {
     const result = computeDefaultWeightsForActiveCategories(["education", "transport"], defaultRatios);
     const education = result.education ?? 0;
