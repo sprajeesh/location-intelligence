@@ -13,7 +13,7 @@ export interface CheckboxProps {
  */
 export function Checkbox({ id, checked, label, color, onChange }: CheckboxProps) {
   return (
-    <div className="flex items-center gap-2.5 px-2 py-0.5 rounded-md">
+    <div className="flex items-center gap-2.5 px-2 py-1.5 rounded-md">
       <input
         id={id}
         type="checkbox"

@@ -37,7 +37,7 @@ export function SettingsContainer() {
   const [isOpen, setIsOpen] = useState(false);
   const [pendingReanalyze, setPendingReanalyze] = useState(false);
   const { categories, isLoading, isError } = useCategories();
-  const { categoryWeights: defaultCategoryWeights } = useCategoryWeights();
+  const { categoryWeights: defaultCategoryWeights, isLoading: isWeightsLoading } = useCategoryWeights();
   const { mutate: analyze } = useAnalyze();
   const {
     selectedFacilities,
@@ -126,6 +126,7 @@ export function SettingsContainer() {
           selectedFacilities={selectedFacilities}
           categoryWeights={categoryWeights}
           defaultCategoryWeights={defaultCategoryWeights}
+          isWeightsLoading={isWeightsLoading}
           pendingReanalyze={pendingReanalyze}
           address={selectedAddress?.displayName ?? null}
           onClose={handleClose}

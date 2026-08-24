@@ -125,7 +125,9 @@
     "reanalyze": "Re-analyze",
     "notNow": "Not now",
     "weights": {
-      "footerTotal": "Total Weightage: {total}%"
+      "title": "Category weightings",
+      "total": "Total: {total}%",
+      "mustSumTo100": "Category weights must add up to 100% (currently {total}%)."
     }
   }
 }

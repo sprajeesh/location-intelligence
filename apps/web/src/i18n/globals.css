@@ -313,33 +313,18 @@ body {
     animation: modal-scale-in 200ms ease-out both;
   }
 
-  /* Weight slider fill -- the track's filled portion is drawn as a
-     background gradient (see WeightSlider.tsx's inline style) so that
-     auto-balancing (another slider's value changing programmatically)
-     animates smoothly instead of jumping, without needing a slider library. */
-  .animate-slider-fill {
-    transition: background 150ms ease-out;
-  }
-  .animate-slider-fill::-webkit-slider-thumb {
-    appearance: none;
-    width: 14px;
-    height: 14px;
-    border-radius: 9999px;
-    background: var(--slider-fill, #2563eb);
+  /* Weight slider thumb -- smooth grow/settle on interaction rather than
+     an instant jump, without needing a slider library. See WeightSlider.tsx. */
+  .animate-slider-thumb::-webkit-slider-thumb {
     transition: transform 120ms ease-out;
   }
-  .animate-slider-fill:active::-webkit-slider-thumb {
+  .animate-slider-thumb:active::-webkit-slider-thumb {
     transform: scale(1.15);
   }
-  .animate-slider-fill::-moz-range-thumb {
-    width: 14px;
-    height: 14px;
-    border: none;
-    border-radius: 9999px;
-    background: var(--slider-fill, #2563eb);
+  .animate-slider-thumb::-moz-range-thumb {
     transition: transform 120ms ease-out;
   }
-  .animate-slider-fill:active::-moz-range-thumb {
+  .animate-slider-thumb:active::-moz-range-thumb {
     transform: scale(1.15);
   }
 }
@@ -351,9 +336,8 @@ body {
   .animate-modal-in {
     animation: none !important;
   }
-  .animate-slider-fill,
-  .animate-slider-fill::-webkit-slider-thumb,
-  .animate-slider-fill::-moz-range-thumb {
+  .animate-slider-thumb::-webkit-slider-thumb,
+  .animate-slider-thumb::-moz-range-thumb {
     transition: none !important;
   }
 }

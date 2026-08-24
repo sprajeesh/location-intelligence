@@ -54,9 +54,9 @@ describe("computeDefaultWeightsForActiveCategories", () => {
     recreation: 0,
   };
 
-  it("splits evenly across active categories when they're all zero-weighted by default (recreation-only bugfix)", () => {
+  it("forces recreation to 0 even when it is the only active category", () => {
     const result = computeDefaultWeightsForActiveCategories(["recreation"], defaultRatios);
-    expect(result).toEqual({ recreation: 1 });
+    expect(result).toEqual({ recreation: 0 });
   });
 
   it("renormalizes the remaining active categories to sum to 1", () => {
