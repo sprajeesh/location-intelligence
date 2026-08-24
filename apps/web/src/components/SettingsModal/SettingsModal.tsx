@@ -11,6 +11,7 @@ import {
   getActiveCompositeCategories,
   getDefaultFacilityIds,
   MAX_SELECTED_FACILITIES,
+  weightToPercent,
 } from "@/utils/facilitySelection";
 import type { Category } from "@/types/api";
 
@@ -115,7 +116,7 @@ export function SettingsModal({
   const activeCategories =
     draft === null ? [] : getActiveCompositeCategories(categories, draft);
   const total = activeCategories.reduce((sum, category) => sum + (weightDraft?.[category] ?? 0), 0);
-  const totalPercent = Math.round(total * 100);
+  const totalPercent = weightToPercent(total);
   const weightsAreValid = activeCategories.length === 0 || Math.abs(total - 1) < WEIGHT_SUM_TOLERANCE;
 
   const handleToggle = (facilityId: string, checked: boolean) => {
@@ -241,7 +242,7 @@ export function SettingsModal({
               defaultValue: group.compositeCategory,
             });
             const weight = isActive ? (weightDraft?.[group.compositeCategory] ?? 0) : 0;
-            const percent = Math.round(weight * 100);
+            const percent = weightToPercent(weight);
 
             return (
               <section key={group.compositeCategory}>

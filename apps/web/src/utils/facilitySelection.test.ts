@@ -2,6 +2,7 @@ import {
   computeDefaultWeightsForActiveCategories,
   getActiveCompositeCategories,
   resolveCategoryWeightsForRequest,
+  weightToPercent,
 } from "./facilitySelection";
 import type { Category } from "@/types/api";
 
@@ -86,6 +87,20 @@ describe("computeDefaultWeightsForActiveCategories", () => {
     });
     expect(result.shopping).toBeCloseTo(0.5, 5);
     expect(result.healthcare).toBeCloseTo(0.5, 5);
+  });
+});
+
+describe("weightToPercent", () => {
+  it("preserves up to 2 decimal places instead of collapsing to a whole percent", () => {
+    expect(weightToPercent(0.4124)).toBe(41.24);
+    expect(weightToPercent(1 / 3)).toBeCloseTo(33.33, 5);
+    expect(weightToPercent(0.2 / 1.2)).toBeCloseTo(16.67, 5);
+  });
+
+  it("doesn't show spurious decimals for whole percents", () => {
+    expect(weightToPercent(0.6)).toBe(60);
+    expect(weightToPercent(1)).toBe(100);
+    expect(weightToPercent(0)).toBe(0);
   });
 });
 

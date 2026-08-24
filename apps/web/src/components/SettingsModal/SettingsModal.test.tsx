@@ -279,8 +279,8 @@ describe("SettingsModal", () => {
       // the toggle made during loading (education, transport, healthcare),
       // not what was active when the modal first opened.
       expect(screen.getByLabelText("education")).toHaveValue("50");
-      expect(screen.getByLabelText("transport")).toHaveValue("33");
-      expect(screen.getByLabelText("healthcare")).toHaveValue("17");
+      expect(screen.getByLabelText("transport")).toHaveValue("33.33");
+      expect(screen.getByLabelText("healthcare")).toHaveValue("16.67");
       expect(screen.getByText(/Total Weightage: 100%/)).toBeInTheDocument();
     });
 
@@ -295,8 +295,8 @@ describe("SettingsModal", () => {
       // over the new active set (sum 1.2) -- a reset, not a redistribute of
       // the manual 80% edit.
       expect(screen.getByLabelText("education")).toHaveValue("50");
-      expect(screen.getByLabelText("transport")).toHaveValue("33");
-      expect(screen.getByLabelText("healthcare")).toHaveValue("17");
+      expect(screen.getByLabelText("transport")).toHaveValue("33.33");
+      expect(screen.getByLabelText("healthcare")).toHaveValue("16.67");
       expect(screen.getByText(/Total Weightage: 100%/)).toBeInTheDocument();
     });
 

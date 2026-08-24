@@ -81,6 +81,18 @@ export function computeDefaultWeightsForActiveCategories(
 }
 
 /**
+ * Converts a weight fraction to a percent for display, keeping up to 2
+ * decimal places -- the precision DB-configured ratios (e.g. 0.4124) and
+ * renormalized results actually carry -- instead of collapsing to a whole
+ * percent. Used everywhere a weight is shown (slider position/readout,
+ * category header, footer total) so they never disagree with each other or
+ * with the exact fraction that's validated and saved.
+ */
+export function weightToPercent(fraction: number): number {
+  return Math.round(fraction * 10000) / 100;
+}
+
+/**
  * Resolves the `categoryWeights` param for POST /location/analyze. Returns
  * undefined (omit the param, let the backend apply its own default weights)
  * when the user hasn't customized weights yet -- once they have, always
