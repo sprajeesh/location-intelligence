@@ -30,7 +30,7 @@ export function Modal({ onClose, children, className = "max-w-lg", ...rest }: Mo
           role="dialog"
           aria-modal="true"
           {...rest}
-          className="flex flex-col max-h-[85vh] animate-modal-in"
+          className="flex flex-col max-h-[calc(100vh-2rem)] animate-modal-in"
         >
           {children}
         </SurfacePanel>

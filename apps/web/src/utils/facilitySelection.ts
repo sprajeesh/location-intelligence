@@ -52,7 +52,12 @@ export function getActiveCompositeCategories(
  * Default weight-slider seed for a set of active composite categories:
  * Recreation is always forced to 0% (product default), and the remaining
  * active categories' DB ratios are renormalized among themselves so the
- * result always sums to 1.0.
+ * result always sums to 1.0. If there's nothing to renormalize against --
+ * every non-Recreation active category also has a 0 default ratio (which
+ * also covers Recreation being the *only* active category) -- split evenly
+ * across all active categories, Recreation included, instead: the "always
+ * 0 by default" rule only makes sense relative to other categories that
+ * actually carry a nonzero weight.
  */
 export function computeDefaultWeightsForActiveCategories(
   activeCategories: string[],
@@ -61,16 +66,28 @@ export function computeDefaultWeightsForActiveCategories(
   const weighted = activeCategories.filter((category) => category !== ZERO_WEIGHT_BY_DEFAULT);
   const total = weighted.reduce((sum, category) => sum + (defaultRatios[category] ?? 0), 0);
 
+  if (total === 0) {
+    const equalShare = activeCategories.length > 0 ? 1 / activeCategories.length : 0;
+    return Object.fromEntries(activeCategories.map((category) => [category, equalShare]));
+  }
+
   const result: Record<string, number> = {};
   for (const category of activeCategories) {
-    if (category === ZERO_WEIGHT_BY_DEFAULT) {
-      result[category] = 0;
-    } else {
-      result[category] =
-        total > 0 ? (defaultRatios[category] ?? 0) / total : 1 / weighted.length;
-    }
+    result[category] = category === ZERO_WEIGHT_BY_DEFAULT ? 0 : (defaultRatios[category] ?? 0) / total;
   }
   return result;
+}
+
+/**
+ * Converts a weight fraction to a percent for display, keeping up to 2
+ * decimal places -- the precision DB-configured ratios (e.g. 0.4124) and
+ * renormalized results actually carry -- instead of collapsing to a whole
+ * percent. Used everywhere a weight is shown (slider position/readout,
+ * category header, footer total) so they never disagree with each other or
+ * with the exact fraction that's validated and saved.
+ */
+export function weightToPercent(fraction: number): number {
+  return Math.round(fraction * 10000) / 100;
 }
 
 /**
