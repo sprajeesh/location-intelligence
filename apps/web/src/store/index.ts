@@ -36,6 +36,10 @@ export interface LocationIntelligenceStore {
   isAnalyzing: boolean
   visibleCategories: Set<string>
   selectedFacilities: string[] | null
+  // Composite category -> weight fraction (e.g. { education: 0.4124 }).
+  // null = use the server's DB-configured default weights. Same
+  // non-persisted, in-memory "session" semantics as selectedFacilities.
+  categoryWeights: Record<string, number> | null
   toasts: Toast[]
   activeRoute: [number, number][] | null
   selectedFeature: Feature | null
@@ -64,6 +68,7 @@ export interface LocationIntelligenceStore {
   toggleCategoryVisibility: (categoryId: string) => void
   clearVisibleCategories: () => void
   setSelectedFacilities: (facilityIds: string[] | null) => void
+  setCategoryWeights: (weights: Record<string, number> | null) => void
   addToast: (toast: Omit<Toast, 'id'>) => void
   removeToast: (id: string) => void
   clearToasts: () => void
@@ -93,6 +98,7 @@ export const useLocationStore = create<LocationIntelligenceStore>()(
   isAnalyzing: false,
   visibleCategories: new Set(),
   selectedFacilities: null,
+  categoryWeights: null,
   toasts: [],
   activeRoute: null,
   selectedFeature: null,
@@ -141,6 +147,9 @@ export const useLocationStore = create<LocationIntelligenceStore>()(
 
   setSelectedFacilities: (facilityIds) =>
     set({ selectedFacilities: facilityIds }),
+
+  setCategoryWeights: (weights) =>
+    set({ categoryWeights: weights }),
 
   // Toast management
   addToast: (toast) =>

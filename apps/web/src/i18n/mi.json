@@ -123,6 +123,11 @@
     "save": "[MI] settings.save",
     "confirmReanalyzeMessage": "[MI] settings.confirmReanalyzeMessage",
     "reanalyze": "[MI] settings.reanalyze",
-    "notNow": "[MI] settings.notNow"
+    "notNow": "[MI] settings.notNow",
+    "weights": {
+      "title": "[MI] settings.weights.title",
+      "total": "[MI] settings.weights.total",
+      "mustSumTo100": "[MI] settings.weights.mustSumTo100"
+    }
   }
 }

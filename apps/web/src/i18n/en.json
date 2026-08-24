@@ -121,8 +121,13 @@
     "error": "Couldn't load facility settings.",
     "close": "Close",
     "save": "Save",
-    "confirmReanalyzeMessage": "Your facility selection has changed. Re-run the analysis for \"{address}\" with the updated facilities?",
+    "confirmReanalyzeMessage": "Your facility selection or category weightings have changed. Re-run the analysis for \"{address}\" with the updated settings?",
     "reanalyze": "Re-analyze",
-    "notNow": "Not now"
+    "notNow": "Not now",
+    "weights": {
+      "title": "Category weightings",
+      "total": "Total: {total}%",
+      "mustSumTo100": "Category weights must add up to 100% (currently {total}%)."
+    }
   }
 }

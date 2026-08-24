@@ -4,9 +4,17 @@ import { useEffect, useId, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Modal, ModalHeader, ModalContent, ModalFooter } from "@/components/ui/Modal";
 import { Checkbox } from "@/components/ui/Checkbox";
+import { WeightSlider } from "@/components/ui/WeightSlider";
 import { groupCategoriesByComposite } from "@/utils/groupCategories";
-import { getDefaultFacilityIds, MAX_SELECTED_FACILITIES } from "@/utils/facilitySelection";
+import {
+  computeDefaultWeightsForActiveCategories,
+  getActiveCompositeCategories,
+  getDefaultFacilityIds,
+  MAX_SELECTED_FACILITIES,
+} from "@/utils/facilitySelection";
 import type { Category } from "@/types/api";
+
+const WEIGHT_SUM_TOLERANCE = 0.005;
 
 export interface SettingsModalProps {
   categories: Category[];
@@ -14,11 +22,17 @@ export interface SettingsModalProps {
   isError: boolean;
   /** The committed selection from session storage; null means "use defaults". */
   selectedFacilities: string[] | null;
+  /** The committed weight configuration; null means "use DB defaults". */
+  categoryWeights: Record<string, number> | null;
+  /** DB-configured default weight ratios, used to seed newly-active categories. */
+  defaultCategoryWeights: Record<string, number>;
+  /** True while GET /category-weights (defaultCategoryWeights) is still in flight. */
+  isWeightsLoading: boolean;
   /** True once Save has been clicked and re-analyzing the current address needs confirmation. */
   pendingReanalyze: boolean;
   address: string | null;
   onClose: () => void;
-  onSave: (facilityIds: string[]) => void;
+  onSave: (facilityIds: string[], categoryWeights: Record<string, number>) => void;
   onConfirmReanalyze: () => void;
   onDismissReanalyze: () => void;
 }
@@ -34,6 +48,9 @@ export function SettingsModal({
   isLoading,
   isError,
   selectedFacilities,
+  categoryWeights,
+  defaultCategoryWeights,
+  isWeightsLoading,
   pendingReanalyze,
   address,
   onClose,
@@ -46,7 +63,9 @@ export function SettingsModal({
   const groups = groupCategoriesByComposite(categories);
 
   const [draft, setDraft] = useState<string[] | null>(null);
+  const [weightDraft, setWeightDraft] = useState<Record<string, number> | null>(null);
   const [showLimitWarning, setShowLimitWarning] = useState(false);
+  const [weightError, setWeightError] = useState<string | null>(null);
 
   // Categories load asynchronously; seed the draft from the committed
   // selection (or the DB defaults) as soon as they're available.
@@ -56,19 +75,47 @@ export function SettingsModal({
     }
   }, [draft, categories, selectedFacilities]);
 
+  // Weight seeding needs defaultCategoryWeights, which is a separate query
+  // (GET /category-weights) from `categories` -- wait for it to settle so a
+  // still-loading `{}` doesn't get baked into the initial weights (and then
+  // never corrected, since this only runs once while weightDraft is null).
+  // On failure defaultCategoryWeights stays `{}`, which
+  // computeDefaultWeightsForActiveCategories already handles by splitting
+  // evenly across the active categories.
+  useEffect(() => {
+    if (weightDraft === null && draft !== null && !isWeightsLoading) {
+      const active = getActiveCompositeCategories(categories, draft);
+      setWeightDraft(
+        categoryWeights ?? computeDefaultWeightsForActiveCategories(active, defaultCategoryWeights),
+      );
+    }
+  }, [weightDraft, draft, categories, categoryWeights, defaultCategoryWeights, isWeightsLoading]);
+
+  const activeCategories =
+    draft === null ? [] : getActiveCompositeCategories(categories, draft);
+
   const handleToggle = (facilityId: string, checked: boolean) => {
     setDraft((prev) => {
       if (prev === null) return prev;
+      let next: string[];
       if (!checked) {
         setShowLimitWarning(false);
-        return prev.filter((id) => id !== facilityId);
-      }
-      if (prev.length >= MAX_SELECTED_FACILITIES) {
+        next = prev.filter((id) => id !== facilityId);
+      } else if (prev.length >= MAX_SELECTED_FACILITIES) {
         setShowLimitWarning(true);
         return prev;
+      } else {
+        setShowLimitWarning(false);
+        next = [...prev, facilityId];
       }
-      setShowLimitWarning(false);
-      return [...prev, facilityId];
+
+      const prevActive = getActiveCompositeCategories(categories, prev);
+      const nextActive = getActiveCompositeCategories(categories, next);
+      if (nextActive.length !== prevActive.length || !nextActive.every((c) => prevActive.includes(c))) {
+        setWeightError(null);
+        setWeightDraft(computeDefaultWeightsForActiveCategories(nextActive, defaultCategoryWeights));
+      }
+      return next;
     });
   };
 
@@ -85,7 +132,7 @@ export function SettingsModal({
           <p className="text-sm text-slate-700">
             {t("settings.confirmReanalyzeMessage", {
               address: address ?? "",
-              defaultValue: `Your facility selection has changed. Re-run the analysis for "${address}" with the updated facilities?`,
+              defaultValue: `Your facility selection or category weightings have changed. Re-run the analysis for "${address}" with the updated settings?`,
             })}
           </p>
         </ModalContent>
@@ -177,13 +224,77 @@ export function SettingsModal({
               </ul>
             </section>
           ))}
+
+        {!isLoading &&
+          !isError &&
+          draft !== null &&
+          weightDraft !== null &&
+          activeCategories.length > 0 && (
+            <section className="mt-4 pt-3 border-t border-slate-100">
+              <h3 className="text-sm font-medium text-slate-700 mb-2">
+                {t("settings.weights.title", { defaultValue: "Category weightings" })}
+              </h3>
+
+              {weightError && (
+                <p role="alert" className="text-xs text-error-600 mb-2">
+                  {weightError}
+                </p>
+              )}
+
+              <ul className="flex flex-col gap-3">
+                {activeCategories.map((category) => (
+                  <li key={category}>
+                    <WeightSlider
+                      label={t(`score.categories.${category}`, { defaultValue: category })}
+                      value={weightDraft[category] ?? 0}
+                      onChange={(next) => {
+                        setWeightError(null);
+                        setWeightDraft((prev) => ({ ...(prev ?? {}), [category]: next }));
+                      }}
+                    />
+                  </li>
+                ))}
+              </ul>
+
+              <p className="text-xs text-slate-500 mt-2">
+                {t("settings.weights.total", {
+                  total: Math.round(
+                    activeCategories.reduce((sum, c) => sum + (weightDraft[c] ?? 0), 0) * 100,
+                  ),
+                  defaultValue: `Total: ${Math.round(
+                    activeCategories.reduce((sum, c) => sum + (weightDraft[c] ?? 0), 0) * 100,
+                  )}%`,
+                })}
+              </p>
+            </section>
+          )}
       </ModalContent>
 
       <ModalFooter>
         <button
           type="button"
-          onClick={() => draft !== null && onSave(draft)}
-          disabled={draft === null}
+          onClick={() => {
+            if (draft === null || weightDraft === null) return;
+
+            const active = getActiveCompositeCategories(categories, draft);
+            const total = active.reduce((sum, category) => sum + (weightDraft[category] ?? 0), 0);
+            if (active.length > 0 && Math.abs(total - 1) > WEIGHT_SUM_TOLERANCE) {
+              const totalPercent = Math.round(total * 100);
+              setWeightError(
+                t("settings.weights.mustSumTo100", {
+                  total: totalPercent,
+                  defaultValue: `Category weights must add up to 100% (currently ${totalPercent}%).`,
+                }),
+              );
+              return;
+            }
+
+            const activeOnlyWeights = Object.fromEntries(
+              active.map((category) => [category, weightDraft[category] ?? 0]),
+            );
+            onSave(draft, activeOnlyWeights);
+          }}
+          disabled={draft === null || weightDraft === null}
           className="px-4 py-1.5 rounded-lg font-medium text-sm bg-primary-600 hover:bg-primary-700 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed active:bg-primary-800 active:scale-[0.98]"
         >
           {t("settings.save", { defaultValue: "Save" })}

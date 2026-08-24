@@ -5,6 +5,7 @@ import { SearchBar } from "@/components/SearchBar";
 import { useAddressSearch } from "@/hooks/useAddressSearch";
 import { useAnalyze } from "@/hooks/useAnalyze";
 import { useAnalyzeCategories } from "@/hooks/useAnalyzeCategories";
+import { useAnalyzeCategoryWeights } from "@/hooks/useAnalyzeCategoryWeights";
 import { useLocationStore } from "@/store";
 import { DEFAULT_RADIUS_KM } from "@/constants/radius";
 import type { AddressResult } from "@/types/api";
@@ -15,6 +16,7 @@ export function SearchContainer() {
     useLocationStore();
   const { mutate: analyze } = useAnalyze();
   const analyzeCategories = useAnalyzeCategories();
+  const analyzeCategoryWeights = useAnalyzeCategoryWeights();
 
   const handleQueryChange = (value: string) => {
     setQuery(value);
@@ -35,9 +37,18 @@ export function SearchContainer() {
         radiusKm: DEFAULT_RADIUS_KM,
         distanceMode,
         categories: analyzeCategories,
+        categoryWeights: analyzeCategoryWeights,
       });
     },
-    [setSelectedAddress, setQuery, setRadiusKm, analyze, distanceMode, analyzeCategories],
+    [
+      setSelectedAddress,
+      setQuery,
+      setRadiusKm,
+      analyze,
+      distanceMode,
+      analyzeCategories,
+      analyzeCategoryWeights,
+    ],
   );
 
   const handleClear = () => {
