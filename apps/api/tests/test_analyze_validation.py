@@ -59,6 +59,78 @@ class TestCategoriesValidation:
         assert response.status_code == 422
 
 
+class TestCategoryWeightsValidation:
+    def test_unknown_category_weight_key_returns_422(self, test_client: TestClient) -> None:
+        response = test_client.post(
+            "/location/analyze",
+            json={
+                "lat": -36.848,
+                "lon": 174.763,
+                "radiusKm": 5,
+                "categories": ["schools"],
+                "categoryWeights": {"not_a_real_category": 0.5},
+            },
+        )
+        assert response.status_code == 422
+        assert "not_a_real_category" in response.text
+
+    def test_negative_category_weight_returns_422(self, test_client: TestClient) -> None:
+        response = test_client.post(
+            "/location/analyze",
+            json={
+                "lat": -36.848,
+                "lon": 174.763,
+                "radiusKm": 5,
+                "categories": ["schools"],
+                "categoryWeights": {"education": -0.1},
+            },
+        )
+        assert response.status_code == 422
+
+    def test_oversized_category_weights_returns_422(self, test_client: TestClient) -> None:
+        response = test_client.post(
+            "/location/analyze",
+            json={
+                "lat": -36.848,
+                "lon": 174.763,
+                "radiusKm": 5,
+                "categories": ["schools"],
+                "categoryWeights": {f"cat{i}": 0.1 for i in range(11)},
+            },
+        )
+        assert response.status_code == 422
+
+    def test_valid_category_weights_are_accepted_and_passed_to_scoring_svc(
+        self, test_client: TestClient
+    ) -> None:
+        with (
+            patch(
+                "app.services.facilities.FacilitiesService.fetch_all",
+                new_callable=AsyncMock,
+                return_value=([], [], set()),
+            ),
+            patch(
+                "app.services.scoring.LocationScoringService.score",
+                wraps=test_client.app.state.scoring_svc.score,
+            ) as mock_score,
+        ):
+            response = test_client.post(
+                "/location/analyze",
+                json={
+                    "lat": -36.848,
+                    "lon": 174.763,
+                    "radiusKm": 5,
+                    "categories": ["schools", "bus_stops"],
+                    "categoryWeights": {"education": 0.7, "transport": 0.3},
+                },
+            )
+        assert response.status_code == 200
+        assert mock_score.call_args.kwargs["category_weight_overrides"] == {
+            "education": 0.7,
+            "transport": 0.3,
+        }
+
+
 class TestAnalyzeCapacityGuard:
     def test_returns_503_when_in_flight_limit_reached(self, test_client: TestClient) -> None:
         limiter = test_client.app.state.analyze_in_flight_limiter
