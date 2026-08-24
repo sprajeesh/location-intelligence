@@ -2,6 +2,7 @@ import {
   computeDefaultWeightsForActiveCategories,
   getActiveCompositeCategories,
   resolveCategoryWeightsForRequest,
+  weightToPercent,
 } from "./facilitySelection";
 import type { Category } from "@/types/api";
 
@@ -54,9 +55,17 @@ describe("computeDefaultWeightsForActiveCategories", () => {
     recreation: 0,
   };
 
-  it("forces recreation to 0 even when it is the only active category", () => {
+  it("splits evenly across active categories when they're all zero-weighted by default (recreation-only bugfix)", () => {
     const result = computeDefaultWeightsForActiveCategories(["recreation"], defaultRatios);
-    expect(result).toEqual({ recreation: 0 });
+    expect(result).toEqual({ recreation: 1 });
+  });
+
+  it("splits evenly between recreation and a non-recreation category when both have a 0 default ratio", () => {
+    const result = computeDefaultWeightsForActiveCategories(["recreation", "shopping"], {
+      ...defaultRatios,
+      shopping: 0,
+    });
+    expect(result).toEqual({ recreation: 0.5, shopping: 0.5 });
   });
 
   it("renormalizes the remaining active categories to sum to 1", () => {
@@ -86,6 +95,20 @@ describe("computeDefaultWeightsForActiveCategories", () => {
     });
     expect(result.shopping).toBeCloseTo(0.5, 5);
     expect(result.healthcare).toBeCloseTo(0.5, 5);
+  });
+});
+
+describe("weightToPercent", () => {
+  it("preserves up to 2 decimal places instead of collapsing to a whole percent", () => {
+    expect(weightToPercent(0.4124)).toBe(41.24);
+    expect(weightToPercent(1 / 3)).toBeCloseTo(33.33, 5);
+    expect(weightToPercent(0.2 / 1.2)).toBeCloseTo(16.67, 5);
+  });
+
+  it("doesn't show spurious decimals for whole percents", () => {
+    expect(weightToPercent(0.6)).toBe(60);
+    expect(weightToPercent(1)).toBe(100);
+    expect(weightToPercent(0)).toBe(0);
   });
 });
 
