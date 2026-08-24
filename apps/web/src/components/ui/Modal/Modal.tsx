@@ -16,7 +16,7 @@ export function Modal({ onClose, children, className = "max-w-lg", ...rest }: Mo
 
   return (
     <div
-      className="fixed inset-0 z-[2000] flex items-center justify-center bg-slate-900/50 p-4"
+      className="fixed inset-0 z-[2000] flex items-center justify-center bg-slate-900/50 p-3 sm:p-4"
       onClick={onClose}
     >
       <div
@@ -30,7 +30,7 @@ export function Modal({ onClose, children, className = "max-w-lg", ...rest }: Mo
           role="dialog"
           aria-modal="true"
           {...rest}
-          className="flex flex-col max-h-[calc(100vh-2rem)] animate-modal-in"
+          className="flex flex-col max-h-[calc(100dvh-2rem)] animate-modal-in"
         >
           {children}
         </SurfacePanel>
