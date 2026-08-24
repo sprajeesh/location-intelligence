@@ -26,6 +26,8 @@ export interface SettingsModalProps {
   categoryWeights: Record<string, number> | null;
   /** DB-configured default weight ratios, used to seed newly-active categories. */
   defaultCategoryWeights: Record<string, number>;
+  /** True while GET /category-weights (defaultCategoryWeights) is still in flight. */
+  isWeightsLoading: boolean;
   /** True once Save has been clicked and re-analyzing the current address needs confirmation. */
   pendingReanalyze: boolean;
   address: string | null;
@@ -48,6 +50,7 @@ export function SettingsModal({
   selectedFacilities,
   categoryWeights,
   defaultCategoryWeights,
+  isWeightsLoading,
   pendingReanalyze,
   address,
   onClose,
@@ -68,17 +71,25 @@ export function SettingsModal({
   // selection (or the DB defaults) as soon as they're available.
   useEffect(() => {
     if (draft === null && categories.length > 0) {
-      const seededFacilities = selectedFacilities ?? getDefaultFacilityIds(categories);
-      setDraft(seededFacilities);
-      if (weightDraft === null) {
-        const active = getActiveCompositeCategories(categories, seededFacilities);
-        setWeightDraft(
-          categoryWeights ??
-            computeDefaultWeightsForActiveCategories(active, defaultCategoryWeights),
-        );
-      }
+      setDraft(selectedFacilities ?? getDefaultFacilityIds(categories));
     }
-  }, [draft, weightDraft, categories, selectedFacilities, categoryWeights, defaultCategoryWeights]);
+  }, [draft, categories, selectedFacilities]);
+
+  // Weight seeding needs defaultCategoryWeights, which is a separate query
+  // (GET /category-weights) from `categories` -- wait for it to settle so a
+  // still-loading `{}` doesn't get baked into the initial weights (and then
+  // never corrected, since this only runs once while weightDraft is null).
+  // On failure defaultCategoryWeights stays `{}`, which
+  // computeDefaultWeightsForActiveCategories already handles by splitting
+  // evenly across the active categories.
+  useEffect(() => {
+    if (weightDraft === null && draft !== null && !isWeightsLoading) {
+      const active = getActiveCompositeCategories(categories, draft);
+      setWeightDraft(
+        categoryWeights ?? computeDefaultWeightsForActiveCategories(active, defaultCategoryWeights),
+      );
+    }
+  }, [weightDraft, draft, categories, categoryWeights, defaultCategoryWeights, isWeightsLoading]);
 
   const activeCategories =
     draft === null ? [] : getActiveCompositeCategories(categories, draft);

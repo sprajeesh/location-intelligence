@@ -42,6 +42,7 @@ const defaultProps = {
   selectedFacilities: null,
   categoryWeights: null,
   defaultCategoryWeights,
+  isWeightsLoading: false,
   pendingReanalyze: false,
   address: null,
   onClose: jest.fn(),
@@ -197,6 +198,32 @@ describe("SettingsModal", () => {
       expect(
         screen.getByText("Category weights must add up to 100% (currently 90%)."),
       ).toBeInTheDocument();
+    });
+
+    it("doesn't seed weights (or render the weights section) while the defaults query is still loading", () => {
+      render(<SettingsModal {...defaultProps} isWeightsLoading={true} />);
+      expect(screen.queryByLabelText("education")).not.toBeInTheDocument();
+      expect(screen.queryByText(/Total:/)).not.toBeInTheDocument();
+      // Facility seeding is unaffected by the still-loading weights query.
+      expect(screen.getByLabelText("Schools")).toBeChecked();
+    });
+
+    it("seeds weights from the defaults once the query settles, not the stale empty defaults from while it was loading", () => {
+      const { rerender } = render(
+        <SettingsModal {...defaultProps} isWeightsLoading={true} defaultCategoryWeights={{}} />,
+      );
+      expect(screen.queryByLabelText("education")).not.toBeInTheDocument();
+
+      rerender(
+        <SettingsModal
+          {...defaultProps}
+          isWeightsLoading={false}
+          defaultCategoryWeights={defaultCategoryWeights}
+        />,
+      );
+
+      expect(screen.getByLabelText("education")).toHaveValue("60");
+      expect(screen.getByLabelText("transport")).toHaveValue("40");
     });
 
     it("resets weights to computed defaults when the active category set changes", async () => {
