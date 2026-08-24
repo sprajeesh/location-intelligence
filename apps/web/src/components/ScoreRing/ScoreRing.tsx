@@ -41,17 +41,22 @@ export function ScoreRing({ score, size = 144 }: ScoreRingProps) {
 
   const [displayScore, setDisplayScore] = useState(0);
   const frameRef = useRef<number | undefined>(undefined);
+  const displayScoreRef = useRef(0);
 
   useEffect(() => {
     if (prefersReducedMotion()) {
       setDisplayScore(clamped);
+      displayScoreRef.current = clamped;
       return;
     }
 
     const start = performance.now();
+    const startValue = displayScoreRef.current;
     const tick = (now: number) => {
       const t = Math.min((now - start) / REVEAL_DURATION_MS, 1);
-      setDisplayScore(clamped * easeOutCubic(t));
+      const next = startValue + (clamped - startValue) * easeOutCubic(t);
+      setDisplayScore(next);
+      displayScoreRef.current = next;
       if (t < 1) {
         frameRef.current = requestAnimationFrame(tick);
       }
