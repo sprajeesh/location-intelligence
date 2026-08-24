@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/sprajeesh/location-intelligence/compare/web@v0.2.0...web@v0.2.1) (2026-08-24)
+
+
+### Bug Fixes
+
+* **web:** keep modal header/footer visible on mobile viewports ([#116](https://github.com/sprajeesh/location-intelligence/issues/116)) ([7ce67d5](https://github.com/sprajeesh/location-intelligence/commit/7ce67d5af79573de40ede45fc89aa1d2e6ce7a77))
+
 ## [0.2.0](https://github.com/sprajeesh/location-intelligence/compare/web@v0.1.0...web@v0.2.0) (2026-08-24)
 
 
