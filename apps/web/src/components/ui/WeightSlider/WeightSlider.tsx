@@ -114,7 +114,7 @@ export function WeightSlider({ label, value, onChange, disabled = false }: Weigh
         transition: isRevealing ? "none" : undefined,
       }}
       aria-label={label}
-      aria-valuetext={`${percent}%`}
+      aria-valuetext={`${displayPercent.toFixed(2)}%`}
     />
   );
 }
