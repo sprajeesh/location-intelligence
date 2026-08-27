@@ -58,6 +58,7 @@ export function WeightSlider({ label, value, onChange, disabled = false }: Weigh
   useEffect(() => {
     if (disabled) {
       setDisplayPercent(0);
+      hasAnimatedRef.current = false;
       return;
     }
 
