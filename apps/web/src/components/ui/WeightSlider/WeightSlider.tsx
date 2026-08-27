@@ -33,7 +33,7 @@ export function WeightSlider({ label, value, onChange, disabled = false }: Weigh
       onChange={(e) => onChange(Number(e.target.value) / 100)}
       className="w-full h-1.5 rounded-full appearance-none cursor-pointer animate-slider-fill disabled:cursor-not-allowed disabled:opacity-40"
       style={{
-        background: `linear-gradient(to right, var(--slider-fill, #2563eb) ${percent}%, var(--slider-track, #e2e8f0) ${percent}%)`,
+        background: `linear-gradient(to right, rgb(var(--color-primary-600)) ${percent}%, rgb(var(--color-slate-200)) ${percent}%)`,
       }}
       aria-label={label}
       aria-valuetext={`${percent}%`}
