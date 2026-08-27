@@ -9,7 +9,34 @@ Handles geocoding (LINZ PostGIS), Overpass queries, distance calculation, cachin
 **Testing:** pytest (45 tests)  
 **Linting:** Ruff
 
-**Docs:** [How an address gets scored](docs/SCORING.md) — a plain-language explanation of the scoring engine, no code required. [Database tables](docs/DATA_MODEL.md) — schema for `addresses`, `facility_types`, `category_weights`. [How the API is protected](docs/PROTECTION.md) — rate limiting, circuit breakers, concurrency limits, and input validation.
+**Docs:** [How an address gets scored](docs/SCORING.md) — a plain-language explanation of the scoring engine, no code required. [Database tables](docs/DATA_MODEL.md) — schema for `addresses`, `facility_types`, `category_weights`. [How the API is protected](docs/PROTECTION.md) — rate limiting, circuit breakers, concurrency limits, and input validation. [Hazard data sources](docs/HAZARD_SOURCES.md) — hazard data source verification and Phase-0 scaffold.
+
+---
+
+## Index
+
+**Getting Started**
+- [Quick Start](#quick-start) — Setup, run, test, and view API docs
+- [Architecture](#architecture) — Layered design and directory structure
+
+**Implementation Details**
+- [Key Components](#key-components) — Settings, main app, repositories, clients, services, and endpoints
+- [Database Migrations](#database-migrations) — Alembic migrations and hazard demo data setup
+- [PostGIS Address Data](#postgis-address-data) — How LINZ data loads and gets indexed
+
+**Quality & Deployment**
+- [Error Handling](#error-handling) — Sanitization, scenarios, and edge cases
+- [Testing](#testing) — Unit and integration tests, coverage
+- [Linting & Formatting](#linting--formatting) — Ruff configuration
+- [Performance Considerations](#performance-considerations) — Caching, parallelization, timeouts
+- [Deployment](#deployment) — Docker build and environment setup
+- [Logging & Observability](#logging--observability) — Structured logging and health checks
+
+**Troubleshooting & Development**
+- [Troubleshooting](#troubleshooting) — Common issues and solutions
+- [Development Tips](#development-tips) — Debug mode, testing, Swagger UI
+- [Contributing](#contributing) — Code style and best practices
+- [References](#references) — External documentation and resources
 
 ---
 
@@ -343,106 +370,15 @@ libraries     → education
 - Overall score normalized to active categories only
 - Coverage: "active_count / total_requested_dimensions"
 
-### 6. API Endpoints
+### API Endpoints
 
-#### GET /health
+For complete, interactive API documentation, visit **http://localhost:8000/docs** (Swagger UI) when the backend is running. All endpoints are documented there with live request/response examples.
 
-```python
-@router.get("/health")
-async def health():
-    return {"status": "ok", "version": "1.0.0"}
-```
-
-#### GET /search/address
-
-```python
-@router.get("/search/address")
-async def search_address(q: str, country: str = "nz"):
-    # → [AddressResult, ...]
-```
-
-#### GET /categories
-
-```python
-@router.get("/categories")
-async def get_categories():
-    # → [CategoryInfo(id, label, implemented, color), ...]
-```
-
-#### POST /location/analyze
-
-```python
-@router.post("/location/analyze")
-async def analyze_location(req: AnalyzeRequest):
-    # 1. Geocode address if provided
-    # 2. Parallel Overpass queries per category
-    # 3. OSRM distance for each facility
-    # 4. LocationScoringService.score()
-    # 5. Return AnalyzeResponse
-```
-
-**Request schema:**
-
-```python
-class AnalyzeRequest(BaseModel):
-    address: str | None = None
-    lat: float | None = None
-    lon: float | None = None
-    radius_km: float = Field(default=10.0, ge=0.1, le=100.0)
-    categories: list[str] = ["schools", "bus_stops"]
-    distance_mode: Literal["driving", "walking"] = "driving"
-```
-
-**Response schema:**
-
-```python
-class AnalyzeResponse(BaseModel):
-    location: LocationResult
-    features: list[FeatureResult]
-    score: ScoreResult
-    warnings: list[str]
-```
-
----
-
-## Data Models
-
-### Domain Models (`app/models/domain.py`)
-
-```python
-@dataclass
-class Facility:
-    id: str
-    name: str
-    category: str
-    lat: float
-    lon: float
-    distance_km: float
-
-@dataclass
-class Location:
-    lat: float
-    lon: float
-    display_name: str
-
-@dataclass
-class CategoryScore:
-    education: float | None
-    healthcare: float | None
-    transport: float | None
-    shopping: float | None
-    overall: float | None
-    coverage: str
-```
-
-### Database Tables
-
-Facility/scoring config (`facility_types`, `category_weights`) lives in
-Postgres, loaded once into memory at API startup — see
-[`docs/DATA_MODEL.md`](docs/DATA_MODEL.md) for full column/constraint
-details. Address search (`addresses`) uses the same database but is managed
-separately (baked into the `postgis` Docker image, not Alembic — see the root
-`README.md`).
+**Key endpoints:**
+- `GET /health` — Health check
+- `GET /search/address?q=...` — Address autocomplete
+- `GET /categories` — List facility categories
+- `POST /location/analyze` — Analyze a location with facility scoring
 
 ---
 
@@ -476,6 +412,58 @@ will fail to start if these tables don't exist yet — always run migrations
 before starting the server on a fresh database.
 
 See [`docs/DATA_MODEL.md`](docs/DATA_MODEL.md) for the full table schemas.
+
+### Hazard Demo Data
+
+The hazard scoring feature is currently a **Phase-0 scaffold** (see [`docs/HAZARD_SOURCES.md`](docs/HAZARD_SOURCES.md) for the hazard data source verification, and `HAZARD.md` for the full build spec): one fabricated "demo hazard" over a fixed Auckland bbox, proving the pipeline end to end before any real hazard source is ingested.
+
+`alembic upgrade head` creates the `hazard_*` tables and seeds `hazard_types` with the `demo_hazard` config row — the API starts fine at this point, but every `/location/analyze` response has `hazard: null` (no coverage) until the demo cells are populated:
+
+```bash
+./scripts/setup-hazard-demo.sh
+```
+
+This is idempotent — safe to re-run, it upserts the same 286 deterministic cells rather than duplicating them. Like `facility_types`, these tables live in the `postgis-data` volume, so they survive image rebuilds and only need re-running after `docker compose down -v`.
+
+---
+
+## PostGIS Address Data
+
+Address search is powered by the [LINZ NZ Street Address](https://data.linz.govt.nz/layer/123113-nz-street-address/) dataset (layer 123113), loaded into PostGIS at Docker image build time.
+
+### How it works
+
+1. `docker compose build postgis` extracts `docker/data/lds-nz-addresses-CSV.zip` and bakes the data into the image — no network access required at build time.
+2. The `addresses` table is indexed with a GIN trigram index on `full_address_ascii`, enabling fast `ILIKE` search that handles macrons (searching `Otahuhu` finds `Ōtāhuhu`).
+3. The `GeocodingService` queries PostGIS and caches results in Redis for 30 days.
+
+### Obtaining the address data
+
+Download the LINZ NZ Street Address dataset (layer 123113) from the [LINZ Data Service](https://data.linz.govt.nz/layer/123113-nz-street-addresses/) and save the ZIP as `docker/data/lds-nz-addresses-CSV.zip`. This file is gitignored due to its size (~100MB).
+
+### Rebuilding with fresh data
+
+```bash
+# Replace docker/data/lds-nz-addresses-CSV.zip with a newer download, then:
+docker compose build --no-cache postgis
+docker compose up -d postgis
+```
+
+### Verifying the data loaded correctly
+
+```bash
+psql -h localhost -U $DB_USER -d gis -c "SELECT count(*) FROM addresses;"
+# Expected: ~2,600,000 rows
+
+psql -h localhost -U $DB_USER -d gis \
+  -c "SELECT full_address, shape_x, shape_y FROM addresses WHERE full_address_ascii ILIKE 'cuba%' LIMIT 5;"
+```
+
+> **Note on CSV column order:** `docker/sql/02_load.sql` uses an explicit column list. If the LINZ export format changes, verify the CSV header order matches. Inspect with:
+>
+> ```bash
+> head -1 /path/to/downloaded.csv
+> ```
 
 ---
 
