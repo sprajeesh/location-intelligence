@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { SearchBar } from "@/components/SearchBar";
 import { useAddressSearch } from "@/hooks/useAddressSearch";
 import { useAnalyze } from "@/hooks/useAnalyze";
@@ -14,6 +14,13 @@ export function SearchContainer() {
   const { query, setQuery, suggestions, isLoading, error } = useAddressSearch();
   const { selectedAddress, setSelectedAddress, setRadiusKm, distanceMode } =
     useLocationStore();
+
+  const seeded = useRef(false);
+  useEffect(() => {
+    if (seeded.current) return;
+    seeded.current = true;
+    if (selectedAddress) setQuery(selectedAddress.displayName);
+  }, []);
   const { mutate: analyze } = useAnalyze();
   const analyzeCategories = useAnalyzeCategories();
   const analyzeCategoryWeights = useAnalyzeCategoryWeights();
