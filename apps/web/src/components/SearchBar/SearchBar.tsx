@@ -31,6 +31,7 @@ export function SearchBar({
   const [highlightedIndex, setHighlightedIndex] = useState<number | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const lastSelectedQueryRef = useRef<string | null>(null);
   const dropdownId = useId();
   const inputId = useId();
 
@@ -56,6 +57,11 @@ export function SearchBar({
       setHighlightedIndex(null);
       return;
     }
+    if (query === lastSelectedQueryRef.current) {
+      setIsDropdownOpen(false);
+      setHighlightedIndex(null);
+      return;
+    }
     setIsDropdownOpen(true);
     if (suggestions.length > 0) {
       setHighlightedIndex(null);
@@ -63,11 +69,23 @@ export function SearchBar({
   }, [suggestions, query, error, isLoading]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    lastSelectedQueryRef.current = null;
     onQueryChange(e.target.value);
   };
 
+  const selectSuggestion = (suggestion: AddressResult) => {
+    lastSelectedQueryRef.current = suggestion.displayName;
+    onSelectAddress(suggestion);
+    setIsDropdownOpen(false);
+    setHighlightedIndex(null);
+  };
+
   const handleInputFocus = () => {
-    if (query.trim() && suggestions.length > 0) {
+    if (
+      query.trim() &&
+      suggestions.length > 0 &&
+      query !== lastSelectedQueryRef.current
+    ) {
       setIsDropdownOpen(true);
     }
   };
@@ -93,9 +111,7 @@ export function SearchBar({
       case "Enter":
         e.preventDefault();
         if (highlightedIndex !== null && suggestions[highlightedIndex]) {
-          onSelectAddress(suggestions[highlightedIndex]);
-          setIsDropdownOpen(false);
-          setHighlightedIndex(null);
+          selectSuggestion(suggestions[highlightedIndex]);
         }
         break;
       case "Escape":
@@ -171,13 +187,13 @@ export function SearchBar({
           onSelect={(index) => {
             const suggestion = suggestions[index];
             if (!suggestion) return;
-            onSelectAddress(suggestion);
-            setIsDropdownOpen(false);
-            setHighlightedIndex(null);
+            selectSuggestion(suggestion);
           }}
           emptyState={
             error ? (
-              <div className="px-4 py-3 text-sm text-error-600">{t("errors.generic")}</div>
+              <div className="px-4 py-3 text-sm text-error-600">
+                {t("errors.generic")}
+              </div>
             ) : (
               <div className="px-4 py-3 text-sm text-slate-500">
                 {query.trim() ? t("search.noResults") : ""}
