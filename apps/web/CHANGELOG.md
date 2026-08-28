@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.3.0](https://github.com/sprajeesh/location-intelligence/compare/web@v0.2.1...web@v0.3.0) (2026-08-28)
+
+
+### Features
+
+* **web:** improvements to the slider ([#120](https://github.com/sprajeesh/location-intelligence/issues/120)) ([3e35d2f](https://github.com/sprajeesh/location-intelligence/commit/3e35d2f89f888e86c42b487edacf85f126185a48))
+
+
+### Bug Fixes
+
+* **web:** hide address suggestion list immediately on selection ([#121](https://github.com/sprajeesh/location-intelligence/issues/121)) ([3a86a9a](https://github.com/sprajeesh/location-intelligence/commit/3a86a9a9c0931290162e96c9f442ad2ead0bf8ba))
+* **web:** restore address when returning from navigate mode ([#123](https://github.com/sprajeesh/location-intelligence/issues/123)) ([0171154](https://github.com/sprajeesh/location-intelligence/commit/017115406ad77a31204160163d6c6f72851b606f))
+
 ## [0.2.1](https://github.com/sprajeesh/location-intelligence/compare/web@v0.2.0...web@v0.2.1) (2026-08-24)
 
 
