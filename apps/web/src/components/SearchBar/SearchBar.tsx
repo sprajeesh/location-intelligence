@@ -69,6 +69,7 @@ export function SearchBar({
   }, [suggestions, query, error, isLoading]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    lastSelectedQueryRef.current = null;
     onQueryChange(e.target.value);
   };
 
@@ -80,7 +81,11 @@ export function SearchBar({
   };
 
   const handleInputFocus = () => {
-    if (query.trim() && suggestions.length > 0) {
+    if (
+      query.trim() &&
+      suggestions.length > 0 &&
+      query !== lastSelectedQueryRef.current
+    ) {
       setIsDropdownOpen(true);
     }
   };
@@ -186,7 +191,9 @@ export function SearchBar({
           }}
           emptyState={
             error ? (
-              <div className="px-4 py-3 text-sm text-error-600">{t("errors.generic")}</div>
+              <div className="px-4 py-3 text-sm text-error-600">
+                {t("errors.generic")}
+              </div>
             ) : (
               <div className="px-4 py-3 text-sm text-slate-500">
                 {query.trim() ? t("search.noResults") : ""}
