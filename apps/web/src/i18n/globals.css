@@ -325,7 +325,7 @@ body {
     width: 14px;
     height: 14px;
     border-radius: 9999px;
-    background: var(--slider-fill, #2563eb);
+    background: rgb(var(--color-primary-600));
     transition: transform 120ms ease-out;
   }
   .animate-slider-fill:active::-webkit-slider-thumb {
@@ -336,7 +336,7 @@ body {
     height: 14px;
     border: none;
     border-radius: 9999px;
-    background: var(--slider-fill, #2563eb);
+    background: rgb(var(--color-primary-600));
     transition: transform 120ms ease-out;
   }
   .animate-slider-fill:active::-moz-range-thumb {

@@ -43,6 +43,7 @@ docker compose ps  # All should show "healthy"
 ```
 
 **Service endpoints after startup:**
+
 - Redis: `localhost:6379`
 - PostGIS: `localhost:5432` (database: `gis`)
 - OSRM: `http://localhost:5000`
@@ -67,12 +68,12 @@ See [apps/web/README.md](apps/web/README.md#quick-start)
 
 **Common infrastructure issues:**
 
-| Issue                                | Solution                                                                           |
-| ------------------------------------ | ---------------------------------------------------------------------------------- |
+| Issue                                | Solution                                                                                                                                              |
+| ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `docker compose build postgis` fails | Ensure `docker/data/lds-nz-addresses-CSV.zip` exists (download from [LINZ Data Service](https://data.linz.govt.nz/layer/123113-nz-street-addresses/)) |
-| PostGIS build takes long             | Expected — downloads 2.6M addresses and builds indexes (~10–20 min)               |
-| `docker compose up` fails on `osrm`  | Run `./scripts/setup-osrm.sh` first (downloads NZ road data)                     |
-| OSRM takes too long to start         | Normal; OSRM loads large dataset into memory on startup (~1-2 min)                |
+| PostGIS build takes long             | Expected — downloads 2.6M addresses and builds indexes (~10–20 min)                                                                                   |
+| `docker compose up` fails on `osrm`  | Run `./scripts/setup-osrm.sh` first (downloads NZ road data)                                                                                          |
+| OSRM takes too long to start         | Normal; OSRM loads large dataset into memory on startup (~1-2 min)                                                                                    |
 
 ---
 
@@ -143,6 +144,7 @@ location-intelligence/
 ```
 
 **For detailed structure and setup of each component:**
+
 - [Backend API](apps/api/README.md)
 - [Frontend Web](apps/web/README.md)
 
@@ -151,26 +153,32 @@ location-intelligence/
 ## Features
 
 ### 🔍 Address Search
+
 Autocomplete search against official LINZ NZ Street Address dataset (~2.6M addresses) with trigram-indexed PostgreSQL queries that handle macrons and partial matches.
 
 ### 📍 Facility Discovery
+
 Discover nearby schools and bus stops (with roadmap for hospitals, universities, supermarkets, parks, libraries, pharmacies).
 
 ### 📏 Distance Calculation
+
 Road distance via OSRM with Haversine fallback, configurable radius (1km to 20km or custom).
 
 ### 🎯 Location Score
+
 Hybrid scoring combining proximity and facility density, with weighted categories (Education: 40%, Transport: 30%).
 
 ### 🗺️ Interactive Map
+
 Leaflet-based visualization with category-colored markers, marker clustering, and facility details on click.
 
 ### 🌍 i18n
+
 English fully translated; Māori placeholder structure for future localization.
 
 ### 🎨 Dark Theme
-Glassmorphism design with responsive layout (desktop panel vs. mobile bottom sheet).
 
+Glassmorphism design with responsive layout (desktop panel vs. mobile bottom sheet).
 
 ---
 
@@ -217,5 +225,4 @@ MIT
 ## Contact
 
 - **Project:** Location Intelligence MVP
-- **Team:** LINZ / Prajeesh Koothupalakkal
 - **Email:** sprajeesh@gmail.com
