@@ -16,7 +16,9 @@ async def get_route(
     fromLon: float = Query(..., description="Origin longitude"),
     toLat: float = Query(..., description="Destination latitude"),
     toLon: float = Query(..., description="Destination longitude"),
-    mode: str = Query(default="driving", description="Transport mode: driving, walking, or cycling"),
+    mode: str = Query(
+        default="driving", description="Transport mode: driving, walking, or cycling"
+    ),
 ) -> RouteResponse:
     routing_svc = request.app.state.routing_svc
 
