@@ -42,6 +42,44 @@ class OSRMClient:
         self._semaphore = asyncio.Semaphore(max_concurrency)
         self._breaker = breaker
 
+    async def route(
+        self,
+        profile: str,
+        coords: str,
+    ) -> dict:
+        """Turn-by-turn route geometry from OSRM's /route/v1 API.
+
+        Returns the full OSRM response (including `routes`, `code`, etc).
+        Raises on network error or OSRM returning a non-OK code.
+        """
+        if self._breaker is not None and self._breaker.is_open:
+            logger.warning("OSRM circuit breaker open, skipping route call")
+            raise RuntimeError("OSRM circuit breaker is open")
+
+        url = f"{self._base_url}/route/v1/{profile}/{coords}"
+        params = {"overview": "full", "geometries": "geojson", "alternatives": "3", "steps": "true"}
+
+        try:
+            async with self._semaphore:
+                response = await self._http.get(url, params=params, timeout=15.0)
+                response.raise_for_status()
+                data = response.json()
+            if data.get("code") != "Ok":
+                raise ValueError(f"OSRM returned code: {data.get('code')}")
+            if self._breaker is not None:
+                self._breaker.record_success()
+            return data
+        except (httpx.ConnectError, httpx.TimeoutException, httpx.RemoteProtocolError) as exc:
+            logger.warning("OSRM unavailable for routing: %s", exc)
+            if self._breaker is not None:
+                self._breaker.record_failure()
+            raise
+        except Exception as exc:
+            logger.warning("OSRM route request failed: %s", exc)
+            if self._breaker is not None:
+                self._breaker.record_failure()
+            raise
+
     async def table_distances_km(
         self,
         origin_lat: float,
