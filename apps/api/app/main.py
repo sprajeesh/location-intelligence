@@ -12,7 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi_limiter import FastAPILimiter
 
-from app.api import analyze, categories, hazard, health, search
+from app.api import analyze, categories, hazard, health, route, search
 from app.api.concurrency import InFlightLimiter, analyze_capacity_guard
 from app.api.deps import verify_api_key
 from app.api.rate_limit import bff_client_identifier, rate_limit_exceeded, rate_limiter
@@ -33,6 +33,7 @@ from app.services.distance import DistanceService
 from app.services.facilities import FacilitiesService
 from app.services.geocoding import GeocodingService
 from app.services.hazard_scoring import HazardScoringService
+from app.services.routing import RoutingService
 from app.services.scoring import LocationScoringService
 
 logger = logging.getLogger(__name__)
@@ -135,6 +136,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         scoring_config.facility_configs,
         max_destinations_per_leg=settings.osrm_max_destinations_per_leg,
     )
+    app.state.routing_svc = RoutingService(osrm)
     app.state.scoring_svc = LocationScoringService(
         scoring_config.facility_configs,
         scoring_config.category_facility_weights,
@@ -194,6 +196,15 @@ def create_app() -> FastAPI:
                 rate_limiter(
                     settings.rate_limit_categories_times, settings.rate_limit_categories_seconds
                 )
+            ),
+        ],
+    )
+    app.include_router(
+        route.router,
+        dependencies=[
+            Depends(verify_api_key),
+            Depends(
+                rate_limiter(settings.rate_limit_route_times, settings.rate_limit_route_seconds)
             ),
         ],
     )

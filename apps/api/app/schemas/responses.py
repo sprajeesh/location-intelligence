@@ -96,6 +96,30 @@ class AnalyzeResponse(BaseModel):
     hazard: HazardResult | None = None
 
 
+class RouteStep(BaseModel):
+    instruction: str
+    name: str
+    distanceM: float = Field(alias="distance_m")
+    durationS: float = Field(alias="duration_s")
+
+    model_config = {"populate_by_name": True}
+
+
+class RouteOption(BaseModel):
+    coordinates: list[list[float]]
+    distanceM: float = Field(alias="distance_m")
+    durationS: float = Field(alias="duration_s")
+    summary: str
+    steps: list[RouteStep]
+
+    model_config = {"populate_by_name": True}
+
+
+class RouteResponse(BaseModel):
+    routes: list[RouteOption]
+    fallback: bool = False
+
+
 class HealthResponse(BaseModel):
     status: str
     version: str
