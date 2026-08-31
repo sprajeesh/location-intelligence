@@ -138,8 +138,8 @@ describe('normalizeRouteResult', () => {
     routes: [
       {
         coordinates: [
-          [-41.286502, 174.776221],
-          [-41.320392, 174.783005],
+          [-41.286502, 174.776221] as [number, number],
+          [-41.320392, 174.783005] as [number, number],
         ],
         duration_s: 612.8,
         distance_m: 5062.7,
@@ -209,7 +209,7 @@ describe('normalizeRouteResult', () => {
     const wireWithoutSteps = {
       routes: [
         {
-          coordinates: [[-41.286502, 174.776221]],
+          coordinates: [[-41.286502, 174.776221] as [number, number]],
           duration_s: 0,
           distance_m: 0,
           summary: '',
