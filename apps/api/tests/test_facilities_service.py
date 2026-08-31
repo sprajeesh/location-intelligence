@@ -23,7 +23,7 @@ class TestFetchAllBatching:
     async def test_all_categories_full_cache_miss_batches_into_two_calls(self) -> None:
         scoring_config = build_test_scoring_config()
         all_categories = list(FACILITY_CONFIGS.keys())
-        assert len(all_categories) == 12
+        assert len(all_categories) == 14
 
         mock_http = MagicMock()
         mock_http.post = AsyncMock(
@@ -100,7 +100,7 @@ class TestFetchAllBatching:
         overpass = MagicMock(spec=OverpassClient)
 
         all_categories = list(FACILITY_CONFIGS.keys())
-        assert len(all_categories) == 12  # forces exactly 2 batches of 6
+        assert len(all_categories) == 14  # forces exactly 2 batches of 7
 
         async def fake_fetch_categories(specs, lat, lon):
             cats = [c for c, _tags, _radius in specs]
