@@ -122,7 +122,5 @@ def downgrade() -> None:
         sa.column("category", sa.Text()),
     )
     op.execute(
-        category_weights_table.delete().where(
-            category_weights_table.c.category == "food_and_drink"
-        )
+        category_weights_table.delete().where(category_weights_table.c.category == "food_and_drink")
     )
