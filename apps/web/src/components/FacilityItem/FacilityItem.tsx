@@ -49,7 +49,7 @@ export default function FacilityItem({
           type="button"
           onClick={onClick}
           className={`
-            flex-1 text-left px-3 py-2 rounded-lg
+            flex-1 min-w-0 text-left px-3 py-2 rounded-lg
             transition-all duration-200
             hover:bg-slate-100
             focus-ring-inset active:bg-slate-200 active:scale-[0.99]
@@ -60,7 +60,7 @@ export default function FacilityItem({
         </button>
       ) : (
         <div
-          className="flex-1 text-left px-3 py-2 rounded-lg"
+          className="flex-1 min-w-0 text-left px-3 py-2 rounded-lg"
           aria-label={rowLabel}
         >
           {rowContent}
@@ -75,7 +75,7 @@ export default function FacilityItem({
             e.stopPropagation();
             onNavigate(feature);
           }}
-          className="text-slate-400 hover:text-primary-600 hover:bg-slate-100"
+          className="flex-shrink-0 text-slate-400 hover:text-primary-600 hover:bg-slate-100"
           label={t("results.navigateTo", {
             name: feature.name,
             defaultValue: `Navigate to ${feature.name}`,
