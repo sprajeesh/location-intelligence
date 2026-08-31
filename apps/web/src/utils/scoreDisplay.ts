@@ -1,7 +1,7 @@
 import type { CategoryId, CategoryScoreResult, FacilityScoreResult } from "@/types/api";
 
 /**
- * Canonical display order for the five categories, matching CATEGORY_WEIGHTS'
+ * Canonical display order for the six categories, matching CATEGORY_WEIGHTS'
  * descending-weight order in apps/api/app/config/scoring_config.py. The API's
  * array order isn't a guaranteed contract, so this is sorted explicitly.
  */
@@ -11,6 +11,7 @@ export const CATEGORY_DISPLAY_ORDER: CategoryId[] = [
   "healthcare",
   "shopping",
   "recreation",
+  "food_and_drink",
 ];
 
 /**
@@ -23,6 +24,7 @@ const FACILITY_DISPLAY_ORDER: Record<CategoryId, string[]> = {
   transport: ["bus_stops", "railway_stations"],
   healthcare: ["gps", "hospitals", "pharmacies"],
   shopping: ["supermarkets"],
+  food_and_drink: ["restaurants", "pubs_bars"],
 };
 
 export function sortCategoriesForDisplay(

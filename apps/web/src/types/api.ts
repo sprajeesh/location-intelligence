@@ -39,6 +39,7 @@ export type CategoryId =
   | 'healthcare'
   | 'shopping'
   | 'recreation'
+  | 'food_and_drink'
 
 /**
  * Score breakdown for a single facility type (e.g. schools, bus_stops)

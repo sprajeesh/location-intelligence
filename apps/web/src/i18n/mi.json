@@ -43,7 +43,8 @@
       "transport": "[MI] score.categories.transport",
       "healthcare": "[MI] score.categories.healthcare",
       "shopping": "[MI] score.categories.shopping",
-      "recreation": "[MI] score.categories.recreation"
+      "recreation": "[MI] score.categories.recreation",
+      "food_and_drink": "[MI] score.categories.food_and_drink"
     },
     "facilityTypes": {
       "schools": "[MI] score.facilityTypes.schools",
@@ -57,7 +58,9 @@
       "hospitals": "[MI] score.facilityTypes.hospitals",
       "gps": "[MI] score.facilityTypes.gps",
       "pharmacies": "[MI] score.facilityTypes.pharmacies",
-      "supermarkets": "[MI] score.facilityTypes.supermarkets"
+      "supermarkets": "[MI] score.facilityTypes.supermarkets",
+      "restaurants": "[MI] score.facilityTypes.restaurants",
+      "pubs_bars": "[MI] score.facilityTypes.pubs_bars"
     }
   },
   "hazard": {
