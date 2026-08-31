@@ -10,13 +10,13 @@ amenities nearby. This happens in three steps, from the ground up:
 
 1. **Individual facility types** (schools, hospitals, bus stops, ...) each get
    their own score.
-2. Those combine into **five categories** (Education, Transport, Healthcare,
-   Shopping, Recreation).
-3. The five categories combine into **one overall score** for the address.
+2. Those combine into **six categories** (Education, Transport, Healthcare,
+   Shopping, Recreation, Food & Drink).
+3. The six categories combine into **one overall score** for the address.
 
 ## Step 1: Scoring an individual facility type
 
-Twelve facility types are supported:
+Fourteen facility types are supported:
 
 | Facility | Belongs to |
 |---|---|
@@ -32,8 +32,10 @@ Twelve facility types are supported:
 | GPs | Healthcare |
 | Pharmacies | Healthcare |
 | Supermarkets | Shopping |
+| Restaurants | Food & Drink |
+| Pubs & Bars | Food & Drink |
 
-Not every request checks all twelve — see "Default facility set" below.
+Not every request checks all fourteen — see "Default facility set" below.
 
 For each one, two things are measured and blended together:
 
@@ -75,22 +77,27 @@ by how much each one typically matters:
 - **Healthcare** — GPs and hospitals carry the most weight, with pharmacies
   contributing a smaller share
 - **Shopping** — supermarkets
+- **Food & Drink** — restaurants and pubs & bars, with dining weighted above
+  nightlife
 
 ## Step 3: Combining categories into one final score
 
-The five categories don't count equally toward the final number. Education
-and Transport matter most; Shopping and Recreation matter least (for now —
-see the note below):
+The six categories don't count equally toward the final number. Education
+and Transport matter most; Shopping, Recreation, and Food & Drink matter
+least (for now — see the note below):
 
-- **Education — 40%**
-- **Transport — 30%**
-- **Healthcare — 20%**
-- **Shopping — 7%**
-- **Recreation — 3%**
+- **Education — 41.24%**
+- **Transport — 30.93%**
+- **Healthcare — 20.62%**
+- **Shopping — 7.21%**
+- **Recreation — 0%**
+- **Food & Drink — 0%**
 
-> The Shopping/Recreation split is a provisional judgment call, not a fixed
-> law — it'll be revisited once there's real data on what actually matters
-> to people choosing a property.
+> Recreation and Food & Drink both default to 0% by design, making them
+> opt-in categories — users can adjust these weights per-request once they're
+> activated. The Shopping/Food & Drink/Recreation split is a provisional
+> judgment call, not a fixed law — it'll be revisited once there's real data
+> on what actually matters to people choosing a property.
 
 ## "Not checked" vs. "nothing found" — an important distinction
 
@@ -127,13 +134,14 @@ for choosing where to live:
   represented twice)
 - **Supermarkets** (Shopping)
 
-Recreation is left out of the default set entirely for now. Because this
-list is configured in the data behind the scenes rather than fixed in code,
-it can be adjusted without a software change. A caller that wants a
-different mix — including Recreation, swapping in kindergartens instead of
-schools, or anything else — can always specify its own facility-type list
-explicitly instead of relying on the default; whatever's left out is simply
-"not checked" (see above), never penalized.
+Recreation and Food & Drink are left out of the default set entirely for
+now — both are opt-in categories. Because this list is configured in the
+data behind the scenes rather than fixed in code, it can be adjusted without
+a software change. A caller that wants a different mix — including Recreation,
+Food & Drink, swapping in kindergartens instead of schools, or anything else
+— can always specify its own facility-type list explicitly instead of
+relying on the default; whatever's left out is simply "not checked"
+(see above), never penalized.
 
 ## Plain-language explanations
 

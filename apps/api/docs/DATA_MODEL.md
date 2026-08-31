@@ -77,7 +77,7 @@ the process lifetime (restart the API to pick up an edit).
 | `color`                     | `TEXT`           | no | Marker color hex, e.g. `"#F59E0B"` |
 | `implemented`               | `BOOLEAN`        | no | Whether this shows up in `GET /categories` |
 | `is_default`                | `BOOLEAN`        | no | Included in the default facility set used by `POST /location/analyze` when `categories` is omitted (added in migration `0002`) |
-| `composite_category`        | `TEXT` (FK → `category_weights.category`) | no | Which of the 5 composite categories this rolls into, e.g. `"education"` |
+| `composite_category`        | `TEXT` (FK → `category_weights.category`) | no | Which of the 6 composite categories this rolls into, e.g. `"education"` |
 | `category_weight`           | `DOUBLE PRECISION` | no | This facility's weight within `composite_category`, e.g. `0.55` |
 | `distance_mode`             | `TEXT`           | no | `"walk"`, `"drive"`, or `"best_of_both"` |
 | `decay_constant`            | `DOUBLE PRECISION` | no | km scale of the exponential proximity decay |
@@ -118,15 +118,16 @@ types have `is_default = true` when the request omits `categories` entirely
 (an explicit `"categories": []` still means "score nothing", not "use
 defaults"). Currently: `schools`, `gps`, `bus_stops`, `railway_stations`,
 `supermarkets` — one from education, one from healthcare, two from
-transport, and the only shopping facility type. `recreation` is deliberately
-excluded from the default set. See migration `0002` below.
+transport, and the only shopping facility type. `recreation` and
+`food_and_drink` are deliberately excluded from the default set. See
+migration `0002` below.
 
 ---
 
 ## `category_weights`
 
-The top-level composite blend across the 5 categories (education, transport,
-healthcare, shopping, recreation) that facility types roll up into.
+The top-level composite blend across the 6 categories (education, transport,
+healthcare, shopping, recreation, food_and_drink) that facility types roll up into.
 
 | Column     | Type                | Nullable | Notes |
 | ---------- | ------------------- | -------- | ----- |
@@ -134,24 +135,24 @@ healthcare, shopping, recreation) that facility types roll up into.
 | `category` | `TEXT UNIQUE`        | no       | Business key, e.g. `"education"` — referenced by `facility_types.composite_category` |
 | `weight`   | `DOUBLE PRECISION`   | no       | Composite weight, e.g. `0.40` |
 
-All 5 rows' `weight` values must sum to `1.0` — validated in Python at
+All 6 rows' `weight` values must sum to `1.0` — validated in Python at
 startup (`scoring_config_loader.load_scoring_config`), not as a DB
 constraint (a cross-row invariant doesn't translate to a single-row `CHECK`).
 
-**Current seed values:** education `0.40`, transport `0.30`, healthcare
-`0.20`, shopping `0.07`, recreation `0.03`.
+**Current seed values:** education `0.4124`, transport `0.3093`, healthcare
+`0.2062`, shopping `0.0721`, recreation `0.0000`, food_and_drink `0.0000`.
 
 ---
 
 ## Relationships
 
 ```
-category_weights (5 rows)
+category_weights (6 rows)
    ▲  category (unique)
    │
    │  FK: composite_category
    │
-facility_types (12 rows)
+facility_types (14 rows)
 ```
 
 Every facility type belongs to exactly one composite category today — this
