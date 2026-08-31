@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.4.0](https://github.com/sprajeesh/location-intelligence/compare/web@v0.3.1...web@v0.4.0) (2026-08-31)
+
+
+### Features
+
+* **web:** add food and drink category support to location scoring UI ([#133](https://github.com/sprajeesh/location-intelligence/issues/133)) ([4ca3b26](https://github.com/sprajeesh/location-intelligence/commit/4ca3b268bda2746115aaf7868b40e26503058cf8))
+
+
+### Bug Fixes
+
+* **nav:** fix NaNh duration display by normalizing route API response ([#134](https://github.com/sprajeesh/location-intelligence/issues/134)) ([6cc79a8](https://github.com/sprajeesh/location-intelligence/commit/6cc79a8e7c489853a5948259fa52bd328db0eefd))
+
 ## [0.3.1](https://github.com/sprajeesh/location-intelligence/compare/web@v0.3.0...web@v0.3.1) (2026-08-31)
 
 
