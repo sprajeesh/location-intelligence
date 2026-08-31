@@ -180,7 +180,14 @@ class TestCategoryWeightsEndpoint:
     def test_category_weights_has_all_six_composite_categories(self, client: TestClient) -> None:
         response = client.get("/category-weights")
         data = response.json()
-        assert set(data) == {"education", "transport", "healthcare", "shopping", "recreation", "food_and_drink"}
+        assert set(data) == {
+            "education",
+            "transport",
+            "healthcare",
+            "shopping",
+            "recreation",
+            "food_and_drink",
+        }
 
 
 class TestAnalyzeEndpointWithCoords:
