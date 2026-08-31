@@ -175,6 +175,26 @@ interface WireAnalyzeResponse extends Omit<AnalyzeResponse, "score" | "hazard"> 
   hazard: WireHazardResult | null;
 }
 
+interface WireRouteStep {
+  instruction: string;
+  name: string;
+  distance_m: number;
+  duration_s: number;
+}
+
+interface WireRouteOption {
+  coordinates: number[][];
+  distance_m: number;
+  duration_s: number;
+  summary: string;
+  steps: WireRouteStep[];
+}
+
+interface WireRouteResult {
+  routes: WireRouteOption[];
+  fallback?: boolean;
+}
+
 function normalizeHazardResult(raw: WireHazardResult | null): HazardResult | null {
   if (!raw) return null;
 
@@ -194,6 +214,24 @@ function normalizeHazardResult(raw: WireHazardResult | null): HazardResult | nul
         isSevere: h.severe,
       }),
     ),
+  };
+}
+
+export function normalizeRouteResult(raw: WireRouteResult): RouteResult {
+  return {
+    routes: raw.routes.map((route) => ({
+      coordinates: route.coordinates as [number, number][],
+      durationS: route.duration_s,
+      distanceM: route.distance_m,
+      summary: route.summary,
+      steps: route.steps.map((step) => ({
+        instruction: step.instruction,
+        name: step.name,
+        durationS: step.duration_s,
+        distanceM: step.distance_m,
+      })),
+    })),
+    fallback: raw.fallback,
   };
 }
 
@@ -266,6 +304,9 @@ export async function getCategoryWeights(): Promise<Record<string, number>> {
 /**
  * Fetch a route between two points from OSRM via BFF proxy.
  * Returns up to 3 route alternatives with turn-by-turn steps.
+ *
+ * The BFF returns snake_case fields (duration_s, distance_m) to match the
+ * backend's wire format; this function normalizes them to camelCase.
  */
 export async function fetchRoute(
   fromLat: number,
@@ -281,7 +322,8 @@ export async function fetchRoute(
     toLon: String(toLon),
     mode,
   });
-  return fetchJson<RouteResult>(`/route?${params}`, { method: "GET" });
+  const raw = await fetchJson<WireRouteResult>(`/route?${params}`, { method: "GET" });
+  return normalizeRouteResult(raw);
 }
 
 /**

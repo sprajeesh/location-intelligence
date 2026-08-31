@@ -61,55 +61,17 @@ export async function GET(request: NextRequest) {
 
     if (!response.ok) {
       console.error(`Route service returned ${response.status}`);
-      return NextResponse.json(
-        {
-          routes: [
-            {
-              coordinates: [
-                [srcLat, srcLon],
-                [dstLat, dstLon],
-              ],
-              durationS: 0,
-              distanceM: 0,
-              summary: "",
-              steps: [],
-            },
-          ],
-          fallback: true,
-        },
-        { status: 200 },
-      );
+      const errorData = await response.json().catch(() => ({}));
+      return NextResponse.json(errorData, { status: response.status });
     }
 
     const data = await response.json();
     return NextResponse.json(data);
   } catch (error) {
     console.error("Route handler error:", error);
-    const searchParams = new URL(
-      request.nextUrl.toString().split("?")[0] || "",
-    ).searchParams;
-    const srcLat = Number(searchParams.get("fromLat") || 0);
-    const srcLon = Number(searchParams.get("fromLon") || 0);
-    const dstLat = Number(searchParams.get("toLat") || 0);
-    const dstLon = Number(searchParams.get("toLon") || 0);
-
     return NextResponse.json(
-      {
-        routes: [
-          {
-            coordinates: [
-              [srcLat, srcLon],
-              [dstLat, dstLon],
-            ],
-            durationS: 0,
-            distanceM: 0,
-            summary: "",
-            steps: [],
-          },
-        ],
-        fallback: true,
-      },
-      { status: 200 },
+      { error: "Routing service unavailable" },
+      { status: 502 },
     );
   }
 }

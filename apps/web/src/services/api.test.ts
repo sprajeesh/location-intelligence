@@ -1,4 +1,4 @@
-import { normalizeAnalyzeResponse } from './api';
+import { normalizeAnalyzeResponse, normalizeRouteResult } from './api';
 
 describe('normalizeAnalyzeResponse', () => {
   const wireResponse = {
@@ -130,5 +130,96 @@ describe('normalizeAnalyzeResponse', () => {
         },
       ],
     });
+  });
+});
+
+describe('normalizeRouteResult', () => {
+  const wireResponse = {
+    routes: [
+      {
+        coordinates: [
+          [-41.286502, 174.776221] as [number, number],
+          [-41.320392, 174.783005] as [number, number],
+        ],
+        duration_s: 612.8,
+        distance_m: 5062.7,
+        summary: 'Willis Street, Victoria Street',
+        steps: [
+          {
+            instruction: 'Head straight on Willis Street',
+            name: 'Willis Street',
+            distance_m: 6.2,
+            duration_s: 1,
+          },
+          {
+            instruction: 'Turn right onto Queen Street',
+            name: 'Queen Street',
+            distance_m: 1234.5,
+            duration_s: 120,
+          },
+        ],
+      },
+    ],
+    fallback: false,
+  };
+
+  it('remaps duration_s and distance_m to camelCase at route level', () => {
+    const result = normalizeRouteResult(wireResponse);
+    const route = result.routes[0]!;
+
+    expect(route.durationS).toBe(612.8);
+    expect(route.distanceM).toBe(5062.7);
+    expect(route).not.toHaveProperty('duration_s');
+    expect(route).not.toHaveProperty('distance_m');
+  });
+
+  it('remaps duration_s and distance_m to camelCase at step level', () => {
+    const result = normalizeRouteResult(wireResponse);
+    const step = result.routes[0]!.steps[0]!;
+
+    expect(step.durationS).toBe(1);
+    expect(step.distanceM).toBe(6.2);
+    expect(step).not.toHaveProperty('duration_s');
+    expect(step).not.toHaveProperty('distance_m');
+  });
+
+  it('passes through non-aliased fields unchanged', () => {
+    const result = normalizeRouteResult(wireResponse);
+    const route = result.routes[0]!;
+
+    expect(route.coordinates).toEqual(wireResponse.routes[0]!.coordinates);
+    expect(route.summary).toBe('Willis Street, Victoria Street');
+  });
+
+  it('preserves all steps in normalized form', () => {
+    const result = normalizeRouteResult(wireResponse);
+    const steps = result.routes[0]!.steps;
+
+    expect(steps).toHaveLength(2);
+    expect(steps[0]!.instruction).toBe('Head straight on Willis Street');
+    expect(steps[1]!.instruction).toBe('Turn right onto Queen Street');
+  });
+
+  it('preserves fallback flag', () => {
+    const result = normalizeRouteResult(wireResponse);
+    expect(result.fallback).toBe(false);
+  });
+
+  it('handles empty steps array', () => {
+    const wireWithoutSteps = {
+      routes: [
+        {
+          coordinates: [[-41.286502, 174.776221] as [number, number]],
+          duration_s: 0,
+          distance_m: 0,
+          summary: '',
+          steps: [],
+        },
+      ],
+      fallback: true,
+    };
+
+    const result = normalizeRouteResult(wireWithoutSteps);
+    expect(result.routes[0]!.steps).toEqual([]);
   });
 });
