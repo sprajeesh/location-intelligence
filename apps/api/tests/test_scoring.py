@@ -77,6 +77,12 @@ class TestConfig:
     def test_shopping_category_only_supermarkets(self) -> None:
         assert CATEGORY_FACILITY_WEIGHTS["shopping"] == {"supermarkets": 1.0}
 
+    def test_food_and_drink_category_has_restaurants_and_pubs_bars(self) -> None:
+        assert CATEGORY_FACILITY_WEIGHTS["food_and_drink"] == {
+            "restaurants": 0.6,
+            "pubs_bars": 0.4,
+        }
+
     def test_railway_stations_use_best_of_both(self) -> None:
         assert FACILITY_CONFIGS["railway_stations"].distance_mode == "best_of_both"
 
@@ -239,11 +245,11 @@ class TestNotCheckedVsCheckedZero:
         assert shopping.status == "not_checked"
         assert shopping.score is None
 
-    def test_coverage_counts_scored_categories_out_of_five(
+    def test_coverage_counts_scored_categories_out_of_six(
         self, svc: LocationScoringService
     ) -> None:
         score = svc.score([], categories=["schools"], unavailable=set())
-        assert score.coverage == "1/5"
+        assert score.coverage == "1/6"
 
 
 class TestBestOfBoth:
@@ -276,7 +282,7 @@ class TestOverallComposite:
     def test_no_categories_requested_returns_none(self, svc: LocationScoringService) -> None:
         score = svc.score([], categories=[], unavailable=set())
         assert score.overall is None
-        assert score.coverage == "0/5"
+        assert score.coverage == "0/6"
 
     def test_overall_is_weighted_average_of_scored_categories(
         self, svc: LocationScoringService

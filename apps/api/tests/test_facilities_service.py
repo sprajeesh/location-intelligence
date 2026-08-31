@@ -20,10 +20,10 @@ def _facility_dict(category: str, suffix: str) -> dict:
 
 
 class TestFetchAllBatching:
-    async def test_all_categories_full_cache_miss_batches_into_two_calls(self) -> None:
+    async def test_all_categories_full_cache_miss_batches_into_three_calls(self) -> None:
         scoring_config = build_test_scoring_config()
         all_categories = list(FACILITY_CONFIGS.keys())
-        assert len(all_categories) == 12
+        assert len(all_categories) == 14
 
         mock_http = MagicMock()
         mock_http.post = AsyncMock(
@@ -32,7 +32,7 @@ class TestFetchAllBatching:
                     raise_for_status=MagicMock(),
                     json=MagicMock(return_value={"elements": []}),
                 )
-                for _ in range(2)
+                for _ in range(10)
             ]
         )
         overpass = OverpassClient("http://mock-overpass", mock_http, scoring_config.category_tags)
@@ -41,7 +41,7 @@ class TestFetchAllBatching:
 
         await service.fetch_all(all_categories, -36.848, 174.763, 5.0)
 
-        assert mock_http.post.call_count == 2
+        assert mock_http.post.call_count == 3
 
     async def test_default_categories_full_cache_miss_single_call(self) -> None:
         scoring_config = build_test_scoring_config()
@@ -100,7 +100,7 @@ class TestFetchAllBatching:
         overpass = MagicMock(spec=OverpassClient)
 
         all_categories = list(FACILITY_CONFIGS.keys())
-        assert len(all_categories) == 12  # forces exactly 2 batches of 6
+        assert len(all_categories) == 14  # forces exactly 2 batches of 7
 
         async def fake_fetch_categories(specs, lat, lon):
             cats = [c for c, _tags, _radius in specs]
