@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.2](https://github.com/sprajeesh/location-intelligence/compare/api@v0.2.1...api@v0.2.2) (2026-08-31)
+
+
+### Bug Fixes
+
+* **nav:** proxy route requests through backend to fix straight-line production bug ([#127](https://github.com/sprajeesh/location-intelligence/issues/127)) ([434e124](https://github.com/sprajeesh/location-intelligence/commit/434e124a9900c73b86291cb32c62b2ec98557c45))
+
 ## [0.2.1](https://github.com/sprajeesh/location-intelligence/compare/api@v0.2.0...api@v0.2.1) (2026-08-28)
 
 
