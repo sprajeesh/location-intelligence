@@ -2,7 +2,7 @@
 
 Create a new Food & Drink composite category (default weight 0%, matching
 Recreation's zero-by-default policy) with two facility types: restaurants
-(weight 0.6, walk-based) and pubs_bars (weight 0.4, walk-based). Both are
+(weight 0.6, drive-based) and pubs_bars (weight 0.4, walk-based). Both are
 opt-in, not included in the default facility set.
 
 Revision ID: 0005
@@ -66,10 +66,10 @@ def upgrade() -> None:
                 "implemented": True,
                 "composite_category": "food_and_drink",
                 "category_weight": 0.6,
-                "distance_mode": "walk",
-                "decay_constant": 0.35,
-                "reference_radius": 0.8,
-                "hard_cutoff": 2.5,
+                "distance_mode": "drive",
+                "decay_constant": 2,
+                "reference_radius": 3.5,
+                "hard_cutoff": 12,
                 "saturation_point": 2,
                 "proximity_weight": 0.6,
                 "density_weight": 0.4,
@@ -122,7 +122,5 @@ def downgrade() -> None:
         sa.column("category", sa.Text()),
     )
     op.execute(
-        category_weights_table.delete().where(
-            category_weights_table.c.category == "food_and_drink"
-        )
+        category_weights_table.delete().where(category_weights_table.c.category == "food_and_drink")
     )
