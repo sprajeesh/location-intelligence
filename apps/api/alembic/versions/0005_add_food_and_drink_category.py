@@ -2,7 +2,7 @@
 
 Create a new Food & Drink composite category (default weight 0%, matching
 Recreation's zero-by-default policy) with two facility types: restaurants
-(weight 0.6, walk-based) and pubs_bars (weight 0.4, walk-based). Both are
+(weight 0.6, drive-based) and pubs_bars (weight 0.4, walk-based). Both are
 opt-in, not included in the default facility set.
 
 Revision ID: 0005
