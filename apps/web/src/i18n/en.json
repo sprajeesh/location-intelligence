@@ -43,7 +43,8 @@
       "transport": "Transport",
       "healthcare": "Healthcare",
       "shopping": "Shopping",
-      "recreation": "Recreation"
+      "recreation": "Recreation",
+      "food_and_drink": "Food & Drink"
     },
     "facilityTypes": {
       "schools": "Schools",
@@ -57,7 +58,9 @@
       "hospitals": "Hospitals",
       "gps": "GPs",
       "pharmacies": "Pharmacies",
-      "supermarkets": "Supermarkets"
+      "supermarkets": "Supermarkets",
+      "restaurants": "Restaurants",
+      "pubs_bars": "Pubs & Bars"
     }
   },
   "hazard": {

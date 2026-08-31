@@ -30,8 +30,10 @@ export function resolveCategoriesForRequest(
   return selectedFacilities;
 }
 
-/** Composite category is never weighted by default -- see AGENTS.md's
- * "Default the Recreation category weightage to 0.0" acceptance criteria. */
+/** Composite categories that are never weighted by default (off-by-default,
+ * opt-in categories) -- see AGENTS.md's "Default the Recreation category
+ * weightage to 0.0" acceptance criteria. Food & Drink was added with the
+ * same 0% default policy. */
 const ZERO_WEIGHT_BY_DEFAULT = "recreation";
 
 /** Which of the 5 composite categories are "active": at least one of their
@@ -50,14 +52,15 @@ export function getActiveCompositeCategories(
 
 /**
  * Default weight-slider seed for a set of active composite categories:
- * Recreation is always forced to 0% (product default), and the remaining
- * active categories' DB ratios are renormalized among themselves so the
- * result always sums to 1.0. If there's nothing to renormalize against --
- * every non-Recreation active category also has a 0 default ratio (which
- * also covers Recreation being the *only* active category) -- split evenly
- * across all active categories, Recreation included, instead: the "always
- * 0 by default" rule only makes sense relative to other categories that
- * actually carry a nonzero weight.
+ * Recreation and Food & Drink are always forced to 0% (product default),
+ * and the remaining active categories' DB ratios are renormalized among
+ * themselves so the result always sums to 1.0. If there's nothing to
+ * renormalize against -- every non-Recreation/Food-&-Drink active category
+ * also has a 0 default ratio (which also covers Recreation/Food & Drink
+ * being the *only* active category) -- split evenly across all active
+ * categories, Recreation/Food & Drink included, instead: the "always 0 by
+ * default" rule only makes sense relative to other categories that actually
+ * carry a nonzero weight.
  */
 export function computeDefaultWeightsForActiveCategories(
   activeCategories: string[],

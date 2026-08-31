@@ -64,6 +64,7 @@ describe('sortCategoriesForDisplay', () => {
       makeCategory('education'),
       makeCategory('healthcare'),
       makeCategory('transport'),
+      makeCategory('food_and_drink'),
     ];
 
     const sorted = sortCategoriesForDisplay(shuffled).map((c) => c.category);
