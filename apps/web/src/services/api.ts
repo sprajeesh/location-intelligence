@@ -183,7 +183,7 @@ interface WireRouteStep {
 }
 
 interface WireRouteOption {
-  coordinates: [number, number][];
+  coordinates: number[][];
   distance_m: number;
   duration_s: number;
   summary: string;
@@ -220,7 +220,7 @@ function normalizeHazardResult(raw: WireHazardResult | null): HazardResult | nul
 export function normalizeRouteResult(raw: WireRouteResult): RouteResult {
   return {
     routes: raw.routes.map((route) => ({
-      coordinates: route.coordinates,
+      coordinates: route.coordinates as [number, number][],
       durationS: route.duration_s,
       distanceM: route.distance_m,
       summary: route.summary,
