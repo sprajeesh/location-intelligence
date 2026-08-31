@@ -158,6 +158,8 @@ class TestCategoriesEndpoint:
         assert composite_by_id["parks"] == "recreation"
         assert composite_by_id["playgrounds"] == "recreation"
         assert composite_by_id["libraries"] == "recreation"
+        assert composite_by_id["restaurants"] == "food_and_drink"
+        assert composite_by_id["pubs_bars"] == "food_and_drink"
 
 
 class TestCategoryWeightsEndpoint:
@@ -175,10 +177,10 @@ class TestCategoryWeightsEndpoint:
         data = response.json()
         assert data["recreation"] == pytest.approx(0.0)
 
-    def test_category_weights_has_all_five_composite_categories(self, client: TestClient) -> None:
+    def test_category_weights_has_all_six_composite_categories(self, client: TestClient) -> None:
         response = client.get("/category-weights")
         data = response.json()
-        assert set(data) == {"education", "transport", "healthcare", "shopping", "recreation"}
+        assert set(data) == {"education", "transport", "healthcare", "shopping", "recreation", "food_and_drink"}
 
 
 class TestAnalyzeEndpointWithCoords:
