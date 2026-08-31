@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.3.0](https://github.com/sprajeesh/location-intelligence/compare/api@v0.2.2...api@v0.3.0) (2026-08-31)
+
+
+### Features
+
+* **db:** add food and drink category with restaurants and pubs facility types ([#131](https://github.com/sprajeesh/location-intelligence/issues/131)) ([d640eaa](https://github.com/sprajeesh/location-intelligence/commit/d640eaa271ce02587351edb1d36354df39b5d270))
+
+
+### Bug Fixes
+
+* **nav:** fix NaNh duration display by normalizing route API response ([#134](https://github.com/sprajeesh/location-intelligence/issues/134)) ([6cc79a8](https://github.com/sprajeesh/location-intelligence/commit/6cc79a8e7c489853a5948259fa52bd328db0eefd))
+
 ## [0.2.2](https://github.com/sprajeesh/location-intelligence/compare/api@v0.2.1...api@v0.2.2) (2026-08-31)
 
 
