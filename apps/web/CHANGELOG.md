@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.5.0](https://github.com/sprajeesh/location-intelligence/compare/web@v0.4.0...web@v0.5.0) (2026-09-02)
+
+
+### Features
+
+* **web:** highlight matched parcel on address search instead of a pin ([#140](https://github.com/sprajeesh/location-intelligence/issues/140)) ([5090034](https://github.com/sprajeesh/location-intelligence/commit/5090034fefe0110bbe5991673c91b9aeee83b5bf))
+
+
+### Bug Fixes
+
+* **ui:** prevent long facility names from pushing distance and navigate button out of alignment ([#138](https://github.com/sprajeesh/location-intelligence/issues/138)) ([b5a1095](https://github.com/sprajeesh/location-intelligence/commit/b5a1095e5c0330f6c561ace89619221d8df51d0b))
+* **web:** prevent analysis results from re-zooming map after address search ([#143](https://github.com/sprajeesh/location-intelligence/issues/143)) ([5a91bd5](https://github.com/sprajeesh/location-intelligence/commit/5a91bd553af15dee7d7a45843592e26122a5c4df))
+
 ## [0.4.0](https://github.com/sprajeesh/location-intelligence/compare/web@v0.3.1...web@v0.4.0) (2026-08-31)
 
 
