@@ -247,9 +247,7 @@ def create_app() -> FastAPI:
         dependencies=[
             Depends(verify_api_key),
             Depends(
-                rate_limiter(
-                    settings.rate_limit_parcels_times, settings.rate_limit_parcels_seconds
-                )
+                rate_limiter(settings.rate_limit_parcels_times, settings.rate_limit_parcels_seconds)
             ),
         ],
     )
