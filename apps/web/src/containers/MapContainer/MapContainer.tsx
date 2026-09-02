@@ -173,29 +173,31 @@ function MapContent() {
     }
   }, [activeRoute, map]);
 
-  // Fit map bounds to all features when analysis result changes
+  // Fit map bounds to visible category markers when user toggles category visibility
+  // Depends only on visibleCategories, not on analysisResult, so analysis results
+  // arriving don't trigger unwanted re-zoom. Uses a ref to access current feature data
+  // without re-firing the effect when analysis changes.
+  const analysisResultRef = useRef(analysisResult);
   useEffect(() => {
-    if (!analysisResult?.features || analysisResult.features.length === 0) {
-      return;
-    }
+    analysisResultRef.current = analysisResult;
+  }, [analysisResult]);
 
-    const bounds = L.latLngBounds([]);
+  useEffect(() => {
+    const features = analysisResultRef.current?.features;
+    if (!features || visibleCategories.size === 0) return;
 
-    // Add main location marker
-    if (selectedAddress) {
-      bounds.extend([selectedAddress.lat, selectedAddress.lon]);
-    }
+    const visibleFeatures = features.filter((f) =>
+      visibleCategories.has(f.category)
+    );
+    if (visibleFeatures.length === 0) return;
 
-    // Add all feature markers
-    for (const feature of analysisResult.features) {
-      bounds.extend([feature.lat, feature.lon]);
-    }
-
+    const bounds = L.latLngBounds(
+      visibleFeatures.map((f) => [f.lat, f.lon] as [number, number])
+    );
     if (bounds.isValid()) {
-      // Fit bounds with padding
       map.fitBounds(bounds, { padding: [50, 50] });
     }
-  }, [analysisResult, map, selectedAddress]);
+  }, [visibleCategories, map]);
 
   return (
     <>
