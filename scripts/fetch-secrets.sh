@@ -15,7 +15,7 @@
 # provider hosts the VM.
 #
 # Secrets arrive base64-encoded, one per line, on stdin -- in order: db_user,
-# db_password, api_shared_secret, redis_password -- rather than as CLI args.
+# db_password, api_shared_secret, redis_password, linz_api_key -- rather than as CLI args.
 # The deploy step assembles this script's invocation inside a heredoc that
 # gets re-parsed by a shell on arrival; raw secret bytes sitting in that text
 # could both break out of their quoting (injection) and show up in this
@@ -35,11 +35,13 @@ IFS= read -r DB_USER_B64
 IFS= read -r DB_PASSWORD_B64
 IFS= read -r API_SHARED_SECRET_B64
 IFS= read -r REDIS_PASSWORD_B64
+IFS= read -r LINZ_API_KEY_B64
 
 DB_USER="$(b64_decode "$DB_USER_B64")"
 DB_PASSWORD="$(b64_decode "$DB_PASSWORD_B64")"
 API_SHARED_SECRET="$(b64_decode "$API_SHARED_SECRET_B64")"
 REDIS_PASSWORD="$(b64_decode "$REDIS_PASSWORD_B64")"
+LINZ_API_KEY="$(b64_decode "$LINZ_API_KEY_B64")"
 ENV_FILE="${1:-.env}"
 SECRETS_DIR="${2:-secrets}"
 
@@ -47,6 +49,7 @@ SECRETS_DIR="${2:-secrets}"
 : "${DB_PASSWORD:?db_password required}"
 : "${REDIS_PASSWORD:?redis_password required}"
 : "${API_SHARED_SECRET:?api_shared_secret required}"
+: "${LINZ_API_KEY:?linz_api_key required}"
 
 # Compose re-scans values it substitutes into its own ${VAR} interpolation
 # (e.g. DB_USER/DB_PASSWORD as build args in docker-compose.yml) -- a literal
@@ -136,6 +139,7 @@ SCORING_ALPHA=0.6
 SCORING_BETA=0.4
 SCORING_DENSITY_FACTOR=10
 API_SHARED_SECRET=$(dotenv_quote "$(compose_escape "$API_SHARED_SECRET")")
+LINZ_API_KEY=$(dotenv_quote "$(compose_escape "$LINZ_API_KEY")")
 EOF
 chmod 600 "$ENV_FILE"
 

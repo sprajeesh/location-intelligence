@@ -141,6 +141,7 @@ jobs:
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
           API_SHARED_SECRET: ${{ secrets.API_SHARED_SECRET }}
           REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+          LINZ_API_KEY: ${{ secrets.LINZ_API_KEY }}
         run: |
           # Base64 first: the heredoc below is re-parsed as shell syntax on
           # arrival at the remote end, so embedding the raw secret values in
@@ -153,6 +154,7 @@ jobs:
           DB_PASSWORD_B64=$(printf '%s' "$DB_PASSWORD" | base64 -w0)
           API_SHARED_SECRET_B64=$(printf '%s' "$API_SHARED_SECRET" | base64 -w0)
           REDIS_PASSWORD_B64=$(printf '%s' "$REDIS_PASSWORD" | base64 -w0)
+          LINZ_API_KEY_B64=$(printf '%s' "$LINZ_API_KEY" | base64 -w0)
 
           ssh -o StrictHostKeyChecking=yes "ubuntu@$SERVER_HOST" bash -s <<REMOTE
             set -euo pipefail
@@ -168,7 +170,7 @@ jobs:
             git checkout --detach "$GIT_SHA"
 
             echo "==> Writing .env"
-            printf '%s\n%s\n%s\n%s\n' "$DB_USER_B64" "$DB_PASSWORD_B64" "$API_SHARED_SECRET_B64" "$REDIS_PASSWORD_B64" | bash scripts/fetch-secrets.sh .env
+            printf '%s\n%s\n%s\n%s\n%s\n' "$DB_USER_B64" "$DB_PASSWORD_B64" "$API_SHARED_SECRET_B64" "$REDIS_PASSWORD_B64" "$LINZ_API_KEY_B64" | bash scripts/fetch-secrets.sh .env
 
             echo "==> Rebuilding and restarting all services"
             docker compose -f docker-compose.yml -f docker-compose.prod.yml pull --quiet || true

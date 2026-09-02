@@ -71,13 +71,20 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def _require_secret_in_production(self) -> "Settings":
-        if self.environment == "production" and not self.api_shared_secret:
-            raise ValueError(
-                "api_shared_secret must be set when environment=production -- "
-                "verify_api_key (app/api/deps.py) skips enforcement entirely "
-                "when it's unset, which would leave every route open to the "
-                "public internet."
-            )
+        if self.environment == "production":
+            if not self.api_shared_secret:
+                raise ValueError(
+                    "api_shared_secret must be set when environment=production -- "
+                    "verify_api_key (app/api/deps.py) skips enforcement entirely "
+                    "when it's unset, which would leave every route open to the "
+                    "public internet."
+                )
+            if not self.linz_api_key:
+                raise ValueError(
+                    "linz_api_key must be set when environment=production -- "
+                    "every GET /parcels request fails with 502 when it's unset "
+                    "(LinzClient raises RuntimeError)."
+                )
         return self
 
 
