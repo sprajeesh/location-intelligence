@@ -18,6 +18,7 @@ import { useLocationStore } from "@/store/index";
 import { useNavigate } from "@/hooks/useNavigate";
 import { useCategories } from "@/hooks/useCategories";
 import { useHazardCells } from "@/hooks/useHazardCells";
+import { useParcelAtPoint } from "@/hooks/useParcelAtPoint";
 import { getHazardCellColor } from "@/utils/hazardColor";
 import { buildHazardTooltipHtml } from "@/utils/hazardTooltip";
 import { HazardLegend } from "@/components/HazardLegend";
@@ -28,6 +29,7 @@ import {
   MapToolbarContainer,
   TILE_LAYER_URLS,
   TILE_LAYER_ATTRIBUTIONS,
+  TILE_LAYER_MAX_ZOOM,
   type MapLayerId,
 } from "@/containers/MapToolbarContainer";
 
@@ -72,6 +74,7 @@ function MapContent() {
     routeMode,
     hazardLayerVisible,
     hazardCells,
+    parcelFeature,
     theme,
     setHoveredHazardCellId,
     setSelectedHazardCellId,
@@ -81,6 +84,11 @@ function MapContent() {
   const t = useTranslations();
   const { categories } = useCategories();
   const hazardCellsQuery = useHazardCells(hazardLayerVisible);
+  const parcelQuery = useParcelAtPoint(selectedAddress);
+  const parcelNotFound =
+    !!selectedAddress && !parcelQuery.isFetching && parcelQuery.data === null;
+  const parcelServiceError =
+    !!selectedAddress && !parcelQuery.isFetching && parcelQuery.isError;
 
   const [activeLayer, setActiveLayer] = useState<MapLayerId>("default");
 
@@ -92,6 +100,7 @@ function MapContent() {
   const isDarkDefault = theme === "dark" && activeLayer === "default";
   const tileUrl = TILE_LAYER_URLS[activeLayer];
   const tileAttribution = TILE_LAYER_ATTRIBUTIONS[activeLayer];
+  const tileMaxZoom = TILE_LAYER_MAX_ZOOM[activeLayer];
 
   // First custom Leaflet pane in this codebase -- puts the hazard polygons
   // above the tile layer but below markers/popups (default overlayPane is
@@ -105,6 +114,16 @@ function MapContent() {
     }
   }, [map]);
 
+  // Parcel highlight pane -- above hazardPane (350) but below Leaflet's own
+  // markerPane (600), so category/main markers stay on top and clickable.
+  useEffect(() => {
+    if (!map.getPane("parcelPane")) {
+      const pane = map.createPane("parcelPane");
+      pane.style.zIndex = "450";
+      pane.style.pointerEvents = "none";
+    }
+  }, [map]);
+
   // Map category id -> DB-configured color, from GET /categories
   const categoryColorMap = useMemo(() => {
     const colors: Record<string, string> = {};
@@ -114,11 +133,24 @@ function MapContent() {
     return colors;
   }, [categories]);
 
-  // Fly to selected address when it changes (before analysis)
+  // Fly to the matched parcel once the lookup settles; fall back to the
+  // address point if no parcel was found. Single decision per selection --
+  // no interim flyTo to fight, so manual zoom is never overridden. Keyed
+  // off parcelQuery directly (not the store's parcelFeature, which updates
+  // a render later) so this fires exactly once per settle. The analysis
+  // fit-bounds effect further down still re-frames the map once facility
+  // results arrive, same as before.
   useEffect(() => {
-    if (!selectedAddress) return;
+    if (!selectedAddress || parcelQuery.isFetching) return;
+    if (parcelQuery.data) {
+      const bounds = L.geoJSON(parcelQuery.data as unknown as GeoJSON.Feature).getBounds();
+      if (bounds.isValid()) {
+        map.flyToBounds(bounds, { padding: [40, 40] });
+        return;
+      }
+    }
     map.flyTo([selectedAddress.lat, selectedAddress.lon], 14);
-  }, [selectedAddress, map]);
+  }, [selectedAddress, parcelQuery.data, parcelQuery.isFetching, map]);
 
   // Pan to selected facility without changing zoom
   useEffect(() => {
@@ -175,6 +207,7 @@ function MapContent() {
         key={`${activeLayer}-${isDarkDefault}`}
         attribution={tileAttribution}
         url={tileUrl}
+        maxZoom={tileMaxZoom}
         className={isDarkDefault ? "map-tiles-inverted" : undefined}
       />
 
@@ -214,6 +247,77 @@ function MapContent() {
         />
       )}
 
+      {/* Parcel highlight -- the cadastral parcel matched to the selected
+          address, replacing the plain pin marker once resolved (see the
+          Marker below). Bold outline, light fill so the basemap/hazard
+          layer stay legible underneath. */}
+      {parcelFeature && (
+        <GeoJSON
+          key={`${selectedAddress?.lat}-${selectedAddress?.lon}`}
+          data={parcelFeature as unknown as GeoJSON.Feature}
+          pane="parcelPane"
+          style={{
+            color: "rgb(var(--color-error-500))",
+            weight: 3,
+            fillColor: "rgb(var(--color-error-500))",
+            fillOpacity: 0.15,
+          }}
+        />
+      )}
+
+      {/* No-parcel-matched notice -- shown once the parcel lookup for the
+          selected address has settled with no match, so the fallback pin
+          marker above isn't the only signal something didn't resolve.
+          Absolutely positioned like the toolbar wrapper below, so it doesn't
+          pan/zoom with the map. */}
+      {parcelNotFound && (
+        <div className="absolute top-2 left-1/2 -translate-x-1/2 z-[1000] pointer-events-none">
+          <div className="bg-white border border-warning-200 shadow-card rounded-lg px-3 py-1.5 flex items-center gap-2 text-xs text-warning-800">
+            <TriangleAlert className="w-3 h-3 flex-shrink-0" aria-hidden="true" />
+            <span>
+              {t("parcels.notFoundBanner", {
+                defaultValue:
+                  "Couldn't find a matching parcel boundary for this address.",
+              })}
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* Parcel-service error notice -- shown when the parcel lookup fails
+          due to timeout, network error, or backend service issue. Distinct
+          from the not-found message to indicate a service problem, not a
+          missing parcel for a valid address. */}
+      {parcelServiceError && (
+        <div className="absolute top-2 left-1/2 -translate-x-1/2 z-[1000] pointer-events-none">
+          <div className="bg-white border border-error-200 shadow-card rounded-lg px-3 py-1.5 flex items-center gap-2 text-xs text-error-800">
+            <TriangleAlert className="w-3 h-3 flex-shrink-0" aria-hidden="true" />
+            <span>
+              {t("parcels.serviceError", {
+                defaultValue:
+                  "Couldn't retrieve parcel information. Please check your connection and try again.",
+              })}
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* Locating-parcel notice -- shown while the parcel lookup for the
+          selected address is in flight. The lookup is a live, uncached
+          call to LINZ (see useParcelAtPoint) that can occasionally take a
+          few seconds, and the map now waits for it to settle before flying
+          anywhere, so this keeps that wait from looking like a dead click. */}
+      {!!selectedAddress && parcelQuery.isFetching && (
+        <div className="absolute top-2 left-1/2 -translate-x-1/2 z-[1000] pointer-events-none">
+          <div className="bg-white border border-slate-200 shadow-card rounded-lg px-3 py-1.5 flex items-center gap-2 text-xs text-slate-700">
+            <div className="w-3 h-3 border-2 border-slate-200 border-t-primary-500 rounded-full animate-spin" />
+            <span>
+              {t("parcels.locating", { defaultValue: "Locating parcel…" })}
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* Theme toggle + map toolbar -- grouped in one positioning wrapper so
           the toggle sits directly above the toolbar as a separate card,
           not a button inside it, while both stay vertically centered
@@ -229,8 +333,10 @@ function MapContent() {
       {/* Scale control - bottom left */}
       <ScaleControl position="bottomleft" imperial={false} metric={true} />
 
-      {/* Main location marker - show immediately on address selection */}
-      {selectedAddress && (
+      {/* Main location marker - shown immediately on address selection, and
+          as the no-parcel-matched fallback; hidden once a parcel highlight
+          is drawn above so the two aren't shown together. */}
+      {selectedAddress && !parcelFeature && (
         <Marker
           position={[selectedAddress.lat, selectedAddress.lon]}
           icon={createMainLocationIcon()}

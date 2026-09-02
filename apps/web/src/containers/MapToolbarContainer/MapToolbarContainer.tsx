@@ -24,6 +24,19 @@ export const TILE_LAYER_ATTRIBUTIONS: Record<MapLayerId, string> = {
   topo: '&copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)',
 };
 
+// Real per-provider zoom ceilings (verified against each tile server --
+// requests past these return errors (OSM) or byte-identical placeholder
+// tiles (Esri/OpenTopoMap), not genuine extra detail). Without an explicit
+// maxZoom, Leaflet's TileLayer falls back to its own default of 18, which
+// is wrong for every layer here (too low for default/satellite, too high
+// for topo) and was the reason the parcel-fit flyToBounds could get stuck
+// short of a full zoom-in.
+export const TILE_LAYER_MAX_ZOOM: Record<MapLayerId, number> = {
+  default: 19,
+  satellite: 19,
+  topo: 17,
+};
+
 export interface MapToolbarContainerProps {
   activeLayer: MapLayerId;
   onLayerChange: (layer: MapLayerId) => void;

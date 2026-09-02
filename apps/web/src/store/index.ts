@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { AddressResult, AnalyzeResponse, Feature, RouteTransportMode } from '@/types/api'
 import type { HazardCellCollection } from '@/types/hazard'
+import type { ParcelFeature } from '@/types/parcel'
 import { DEFAULT_RADIUS_KM } from '@/constants/radius'
 
 /**
@@ -55,6 +56,10 @@ export interface LocationIntelligenceStore {
   hoveredHazardCellId: string | null
   selectedHazardCellId: string | null
 
+  // Cadastral parcel matched to the selected address (see useParcelAtPoint),
+  // highlighted on the map in place of the plain address pin once resolved.
+  parcelFeature: ParcelFeature | null
+
   // UI theme -- defaults to light; persisted to localStorage once the user
   // toggles it (see THEME_STORAGE_KEY / the anti-flash script in layout.tsx)
   theme: Theme
@@ -83,6 +88,7 @@ export interface LocationIntelligenceStore {
   setHazardCells: (cells: HazardCellCollection | null) => void
   setHoveredHazardCellId: (id: string | null) => void
   setSelectedHazardCellId: (id: string | null) => void
+  setParcelFeature: (feature: ParcelFeature | null) => void
   setTheme: (theme: Theme) => void
   toggleTheme: () => void
 }
@@ -111,6 +117,8 @@ export const useLocationStore = create<LocationIntelligenceStore>()(
   hazardCells: null,
   hoveredHazardCellId: null,
   selectedHazardCellId: null,
+
+  parcelFeature: null,
 
   theme: 'light' as Theme,
 
@@ -207,6 +215,9 @@ export const useLocationStore = create<LocationIntelligenceStore>()(
 
   setSelectedHazardCellId: (id) =>
     set({ selectedHazardCellId: id }),
+
+  setParcelFeature: (feature) =>
+    set({ parcelFeature: feature }),
 
   setTheme: (theme) => {
     applyThemeClass(theme)

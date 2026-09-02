@@ -14,6 +14,7 @@ import {
   RouteTransportMode,
 } from "@/types/api";
 import type { HazardCellCollection, HazardResult, HazardSubScore } from "@/types/hazard";
+import type { ParcelFeature } from "@/types/parcel";
 
 /**
  * Base URL for API calls. Uses NEXT_PUBLIC_API_URL if set,
@@ -341,4 +342,30 @@ export async function fetchHazardCells(
   return fetchJson<HazardCellCollection>(`/hazard/cells?${params}`, {
     method: "GET",
   });
+}
+
+/**
+ * Fetch the cadastral parcel nearest a point, for highlighting the parcel a
+ * searched address sits on. Calls GET /api/parcels?lat=&lon=
+ *
+ * A 404 (no parcel within the lookup radius -- e.g. the point is over water
+ * or a road reserve) is a normal, expected outcome here, not a failure: it
+ * resolves to `null` rather than throwing, so callers can fall back to the
+ * plain marker without a try/catch. Any other error still throws ApiError.
+ */
+export async function fetchParcelAtPoint(
+  lat: number,
+  lon: number,
+): Promise<ParcelFeature | null> {
+  const params = new URLSearchParams({ lat: String(lat), lon: String(lon) });
+  try {
+    return await fetchJson<ParcelFeature>(`/parcels?${params}`, {
+      method: "GET",
+    });
+  } catch (error) {
+    if (error instanceof ApiError && error.statusCode === 404) {
+      return null;
+    }
+    throw error;
+  }
 }

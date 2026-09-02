@@ -82,6 +82,11 @@
       "proxyNote": "Illustrative proxy data — see disclaimer"
     }
   },
+  "parcels": {
+    "notFoundBanner": "Couldn't find a matching parcel boundary for this address.",
+    "locating": "Locating parcel…",
+    "serviceError": "Couldn't retrieve parcel information. Please check your connection and try again."
+  },
   "distance": {
     "driving": "Driving",
     "walking": "Walking",
@@ -102,6 +107,10 @@
   "nav": {
     "title": "Location Intelligence",
     "language": "Language"
+  },
+  "notFound": {
+    "message": "This page doesn't exist.",
+    "backHome": "Back to home"
   },
   "navigate": {
     "from": "From",
