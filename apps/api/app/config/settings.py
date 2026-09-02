@@ -19,6 +19,11 @@ class Settings(BaseSettings):
     overpass_max_concurrency: int = 2
     osrm_url: str = "http://localhost:5000"
     osrm_max_concurrency: int = 4
+    # LINZ Data Service API key -- server-side only, used to query the Query API
+    # (data.linz.govt.nz/services/query/v1/vector.json) for parcel lookups. None
+    # (unset) makes every /parcels call fail with a 502 until configured.
+    linz_api_key: str | None = None
+    linz_max_concurrency: int = 4
     # Per-facility-type, per-leg cap on how many destinations get a real OSRM
     # table call; excess destinations are dropped with a warning rather than
     # sent to OSRM uncapped (see app/services/distance.py).
@@ -36,6 +41,8 @@ class Settings(BaseSettings):
     overpass_breaker_cooldown_seconds: float = 30.0
     osrm_breaker_failure_threshold: int = 5
     osrm_breaker_cooldown_seconds: float = 30.0
+    linz_breaker_failure_threshold: int = 5
+    linz_breaker_cooldown_seconds: float = 30.0
 
     # Process-wide cap on concurrent /location/analyze requests in flight --
     # protects the single uvicorn worker from being monopolized by a handful
@@ -57,6 +64,8 @@ class Settings(BaseSettings):
     rate_limit_hazard_cells_seconds: int = 60
     rate_limit_route_times: int = 10
     rate_limit_route_seconds: int = 60
+    rate_limit_parcels_times: int = 30
+    rate_limit_parcels_seconds: int = 60
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 

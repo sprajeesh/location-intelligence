@@ -12,12 +12,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi_limiter import FastAPILimiter
 
-from app.api import analyze, categories, hazard, health, route, search
+from app.api import analyze, categories, hazard, health, parcels, route, search
 from app.api.concurrency import InFlightLimiter, analyze_capacity_guard
 from app.api.deps import verify_api_key
 from app.api.rate_limit import bff_client_identifier, rate_limit_exceeded, rate_limiter
 from app.clients import redis_client as redis_module
 from app.clients.circuit_breaker import CircuitBreaker
+from app.clients.linz import LinzClient
 from app.clients.osrm import OSRMClient
 from app.clients.overpass import OverpassClient
 from app.config.hazard_config_loader import load_hazard_config
@@ -111,6 +112,11 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         failure_threshold=settings.osrm_breaker_failure_threshold,
         cooldown_seconds=settings.osrm_breaker_cooldown_seconds,
     )
+    linz_breaker = CircuitBreaker(
+        "linz",
+        failure_threshold=settings.linz_breaker_failure_threshold,
+        cooldown_seconds=settings.linz_breaker_cooldown_seconds,
+    )
 
     # Wire up clients
     overpass = OverpassClient(
@@ -126,6 +132,13 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         max_concurrency=settings.osrm_max_concurrency,
         breaker=osrm_breaker,
     )
+    linz_client = LinzClient(
+        settings.linz_api_key,
+        http_client,
+        max_concurrency=settings.linz_max_concurrency,
+        breaker=linz_breaker,
+    )
+    app.state.linz_client = linz_client
 
     # Wire up services
     app.state.geocoding_svc = GeocodingService(AddressRepository(db_pool), cache)
@@ -226,6 +239,15 @@ def create_app() -> FastAPI:
                 rate_limiter(
                     settings.rate_limit_hazard_cells_times, settings.rate_limit_hazard_cells_seconds
                 )
+            ),
+        ],
+    )
+    app.include_router(
+        parcels.router,
+        dependencies=[
+            Depends(verify_api_key),
+            Depends(
+                rate_limiter(settings.rate_limit_parcels_times, settings.rate_limit_parcels_seconds)
             ),
         ],
     )
