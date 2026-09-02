@@ -74,5 +74,5 @@ merging a `release--` branch:
 
 Both deploy jobs require their respective secrets to be configured in the
 repo (`DEPLOY_SSH_KEY`, `DEPLOY_SERVER_HOST`, `DEPLOY_SERVER_HOST_KEY`,
-`DEPLOY_APP_DIR`, `DB_USER`, `DB_PASSWORD`, `API_SHARED_SECRET` for the API;
+`DEPLOY_APP_DIR`, `DB_USER`, `DB_PASSWORD`, `API_SHARED_SECRET`, `LINZ_API_KEY` for the API;
 `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `PROD_API_URL` for web).
