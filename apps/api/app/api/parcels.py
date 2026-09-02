@@ -7,8 +7,8 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@router.get("/parcels/at-point")
-async def get_parcel_at_point(
+@router.get("/parcels")
+async def get_parcels(
     request: Request,
     lat: float = Query(..., description="Point latitude"),
     lon: float = Query(..., description="Point longitude"),

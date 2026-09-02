@@ -21,7 +21,7 @@ class Settings(BaseSettings):
     osrm_max_concurrency: int = 4
     # LINZ Data Service API key -- server-side only, used to query the Query API
     # (data.linz.govt.nz/services/query/v1/vector.json) for parcel lookups. None
-    # (unset) makes every /parcels/at-point call fail with a 502 until configured.
+    # (unset) makes every /parcels call fail with a 502 until configured.
     linz_api_key: str | None = None
     linz_max_concurrency: int = 4
     # Per-facility-type, per-leg cap on how many destinations get a real OSRM
