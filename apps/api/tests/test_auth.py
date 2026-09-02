@@ -87,20 +87,17 @@ class TestAuthSkippedWhenNotConfigured:
     `client` fixture, which already exercises every route with zero headers."""
 
     def test_default_settings_has_no_secret(self) -> None:
-        assert (
-            Settings(
-                database_url="postgresql://testuser:testpass@localhost/testdb",
-                overpass_url="http://mock-overpass",
-                osrm_url="http://mock-osrm",
-                redis_url="redis://localhost:6379",
-            ).api_shared_secret
-            is None
-        )
+        assert not Settings(
+            database_url="postgresql://testuser:testpass@localhost/testdb",
+            overpass_url="http://mock-overpass",
+            osrm_url="http://mock-osrm",
+            redis_url="redis://localhost:6379",
+        ).api_shared_secret
 
 
 class TestProductionRequiresSecret:
-    """environment=production without api_shared_secret must fail fast at
-    startup, not silently run with verify_api_key's enforcement skipped."""
+    """environment=production without api_shared_secret or linz_api_key must
+    fail fast at startup, not silently run with enforcement skipped."""
 
     def _kwargs(self, **overrides: object) -> dict[str, object]:
         return {
@@ -111,13 +108,24 @@ class TestProductionRequiresSecret:
             **overrides,
         }
 
-    def test_production_without_secret_raises(self) -> None:
+    def test_production_without_api_secret_raises(self) -> None:
         with pytest.raises(ValueError, match="api_shared_secret must be set"):
-            Settings(**self._kwargs(environment="production"))
+            Settings(**self._kwargs(environment="production", linz_api_key="test-key"))
+
+    def test_production_without_linz_key_raises(self) -> None:
+        with pytest.raises(ValueError, match="linz_api_key must be set"):
+            Settings(**self._kwargs(environment="production", api_shared_secret=SECRET))
 
     def test_production_with_secret_is_allowed(self) -> None:
-        settings = Settings(**self._kwargs(environment="production", api_shared_secret=SECRET))
+        settings = Settings(
+            **self._kwargs(
+                environment="production",
+                api_shared_secret=SECRET,
+                linz_api_key="test-linz-key",
+            )
+        )
         assert settings.api_shared_secret == SECRET
+        assert settings.linz_api_key == "test-linz-key"
 
     def test_development_without_secret_is_allowed(self) -> None:
         settings = Settings(**self._kwargs(environment="development"))
