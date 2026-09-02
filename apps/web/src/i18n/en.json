@@ -108,6 +108,10 @@
     "title": "Location Intelligence",
     "language": "Language"
   },
+  "notFound": {
+    "message": "This page doesn't exist.",
+    "backHome": "Back to home"
+  },
   "navigate": {
     "from": "From",
     "to": "To",

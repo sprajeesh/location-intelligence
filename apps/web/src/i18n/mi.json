@@ -84,7 +84,8 @@
   },
   "parcels": {
     "notFoundBanner": "[MI] parcels.notFoundBanner",
-    "locating": "[MI] parcels.locating"
+    "locating": "[MI] parcels.locating",
+    "serviceError": "[MI] parcels.serviceError"
   },
   "distance": {
     "driving": "[MI] distance.driving",
@@ -106,6 +107,10 @@
   "nav": {
     "title": "[MI] nav.title",
     "language": "[MI] nav.language"
+  },
+  "notFound": {
+    "message": "[MI] notFound.message",
+    "backHome": "[MI] notFound.backHome"
   },
   "navigate": {
     "from": "[MI] navigate.from",
