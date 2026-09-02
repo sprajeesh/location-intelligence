@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.4.0](https://github.com/sprajeesh/location-intelligence/compare/api@v0.3.0...api@v0.4.0) (2026-09-02)
+
+
+### Features
+
+* **api:** add LINZ parcel lookup endpoint ([#139](https://github.com/sprajeesh/location-intelligence/issues/139)) ([80f96da](https://github.com/sprajeesh/location-intelligence/commit/80f96da0286e054c21d9bc90d7ae262ed5726c0a))
+* **ci:** wire LINZ_API_KEY into production deploy pipeline ([#142](https://github.com/sprajeesh/location-intelligence/issues/142)) ([76ea445](https://github.com/sprajeesh/location-intelligence/commit/76ea44570e48f3433128fc4b6189472fbc98b5c1))
+
 ## [0.3.0](https://github.com/sprajeesh/location-intelligence/compare/api@v0.2.2...api@v0.3.0) (2026-08-31)
 
 
