@@ -1,36 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { apiKeyHeaders } from '@/utils/apiAuth'
 import { clientIpHeaders } from '@/utils/clientIp'
 
 export async function GET(request: NextRequest) {
-  const searchParams = request.nextUrl.searchParams
-  const lat = searchParams.get('lat')
-  const lon = searchParams.get('lon')
-
-  if (!lat || !lon) {
-    return NextResponse.json(
-      { error: 'Missing required query parameters: lat, lon' },
-      { status: 400 }
-    )
-  }
-
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
-  const fastApiUrl = `${apiUrl}/parcels?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`
+  const queryString = request.nextUrl.search
+  const upstreamUrl = `${apiUrl}/parcels${queryString}`
 
   try {
-    const response = await fetch(fastApiUrl, {
-      headers: { ...apiKeyHeaders(), ...clientIpHeaders(request.headers) },
+    const response = await fetch(upstreamUrl, {
+      headers: clientIpHeaders(request.headers),
     })
 
-    if (!response.ok) {
-      return NextResponse.json(
-        { error: `FastAPI responded with status ${response.status}` },
-        { status: response.status }
-      )
-    }
-
-    const data = await response.json()
-    return NextResponse.json(data)
+    return new NextResponse(response.body, {
+      status: response.status,
+      headers: response.headers,
+    })
   } catch (error) {
     console.error('Error forwarding request to FastAPI:', error)
     return NextResponse.json(
