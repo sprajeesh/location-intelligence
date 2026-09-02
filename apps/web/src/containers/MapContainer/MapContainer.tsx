@@ -86,7 +86,9 @@ function MapContent() {
   const hazardCellsQuery = useHazardCells(hazardLayerVisible);
   const parcelQuery = useParcelAtPoint(selectedAddress);
   const parcelNotFound =
-    !!selectedAddress && !parcelQuery.isFetching && (parcelQuery.isError || parcelQuery.data === null);
+    !!selectedAddress && !parcelQuery.isFetching && parcelQuery.data === null;
+  const parcelServiceError =
+    !!selectedAddress && !parcelQuery.isFetching && parcelQuery.isError;
 
   const [activeLayer, setActiveLayer] = useState<MapLayerId>("default");
 
@@ -264,10 +266,10 @@ function MapContent() {
       )}
 
       {/* No-parcel-matched notice -- shown once the parcel lookup for the
-          selected address has settled with no match (or failed), so the
-          fallback pin marker above isn't the only signal something didn't
-          resolve. Absolutely positioned like the toolbar wrapper below, so
-          it doesn't pan/zoom with the map. */}
+          selected address has settled with no match, so the fallback pin
+          marker above isn't the only signal something didn't resolve.
+          Absolutely positioned like the toolbar wrapper below, so it doesn't
+          pan/zoom with the map. */}
       {parcelNotFound && (
         <div className="absolute top-2 left-1/2 -translate-x-1/2 z-[1000] pointer-events-none">
           <div className="bg-white border border-warning-200 shadow-card rounded-lg px-3 py-1.5 flex items-center gap-2 text-xs text-warning-800">
@@ -276,6 +278,24 @@ function MapContent() {
               {t("parcels.notFoundBanner", {
                 defaultValue:
                   "Couldn't find a matching parcel boundary for this address.",
+              })}
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* Parcel-service error notice -- shown when the parcel lookup fails
+          due to timeout, network error, or backend service issue. Distinct
+          from the not-found message to indicate a service problem, not a
+          missing parcel for a valid address. */}
+      {parcelServiceError && (
+        <div className="absolute top-2 left-1/2 -translate-x-1/2 z-[1000] pointer-events-none">
+          <div className="bg-white border border-error-200 shadow-card rounded-lg px-3 py-1.5 flex items-center gap-2 text-xs text-error-800">
+            <TriangleAlert className="w-3 h-3 flex-shrink-0" aria-hidden="true" />
+            <span>
+              {t("parcels.serviceError", {
+                defaultValue:
+                  "Couldn't retrieve parcel information. Please check your connection and try again.",
               })}
             </span>
           </div>

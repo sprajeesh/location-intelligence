@@ -84,7 +84,8 @@
   },
   "parcels": {
     "notFoundBanner": "Couldn't find a matching parcel boundary for this address.",
-    "locating": "Locating parcel…"
+    "locating": "Locating parcel…",
+    "serviceError": "Couldn't retrieve parcel information. Please check your connection and try again."
   },
   "distance": {
     "driving": "Driving",
