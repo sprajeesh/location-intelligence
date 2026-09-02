@@ -6,7 +6,7 @@ Handles geocoding (LINZ PostGIS), Overpass queries, distance calculation, cachin
 **Framework:** FastAPI 0.115+  
 **Language:** Python 3.13  
 **Package Manager:** uv  
-**Testing:** pytest (45 tests)  
+**Testing:** pytest (197 tests)  
 **Linting:** Ruff
 
 **Docs:** [How an address gets scored](docs/SCORING.md) — a plain-language explanation of the scoring engine, no code required. [Database tables](docs/DATA_MODEL.md) — schema for `addresses`, `facility_types`, `category_weights`. [How the API is protected](docs/PROTECTION.md) — rate limiting, circuit breakers, concurrency limits, and input validation. [Hazard data sources](docs/HAZARD_SOURCES.md) — hazard data source verification and Phase-0 scaffold.
@@ -61,6 +61,27 @@ uv run uvicorn app.main:app --reload
 
 Server runs on http://localhost:8000
 
+### LINZ API Key (Local Development)
+
+The API uses the LINZ Data Service Query API for cadastral parcel lookups (via `GET /parcels`). For local development:
+
+1. **Request a development key** from your team lead or LINZ Data Service (use a test/development key, not production)
+
+2. **Create `.env.local`** with your key (this file is gitignored and never committed):
+   ```bash
+   # In apps/api/
+   echo "LINZ_API_KEY=<your-development-key>" > .env.local
+   ```
+
+3. **Verify setup**:
+   ```bash
+   curl "http://localhost:8000/parcels?lat=-36.848&lon=174.763"
+   # Should return a GeoJSON Feature representing the nearest parcel
+   ```
+
+**Why `.env.local`?**  
+The root `.env` has `LINZ_API_KEY=` (empty placeholder) and is committed to git. Pydantic automatically merges `.env` and `.env.local`, with `.env.local` taking precedence — this keeps secrets out of git while allowing local development. Same pattern used by the frontend (`apps/web/.env.local`).
+
 ### Test Health
 
 ```bash
@@ -102,14 +123,15 @@ curl http://localhost:8000/health
 │ │ (PostGIS)      │  │          │  │        │ │
 │ └────────────────┘  └──────────┘  └────────┘ │
 │                                              │
-│ ┌──────────────────────────────────────────┐ │
-│ │ Cache Repository (Redis)                 │ │
-│ └──────────────────────────────────────────┘ │
+│ ┌──────────────┐     ┌──────────────────────┐ │
+│ │ LINZ Client  │     │ Cache Repository     │ │
+│ │ (parcels)    │     │ (Redis)              │ │
+│ └──────────────┘     └──────────────────────┘ │
 └──────────────────────────────────────────────┘
          │
 ┌────────▼────────────────────────────────┐
 │      External Services                  │
-│ PostGIS  Overpass API  OSRM  Redis      │
+│ PostGIS  Overpass  OSRM  LINZ  Redis    │
 └─────────────────────────────────────────┘
 ```
 
@@ -124,6 +146,7 @@ app/
 │   ├── health.py           # GET /health
 │   ├── search.py           # GET /search/address
 │   ├── categories.py       # GET /categories
+│   ├── parcels.py          # GET /parcels
 │   └── analyze.py          # POST /location/analyze
 ├── services/               # Business logic (pure, no HTTP)
 │   ├── __init__.py
@@ -135,6 +158,7 @@ app/
 │   ├── __init__.py
 │   ├── overpass.py         # OverpassQL facility queries
 │   ├── osrm.py             # Road distance routing
+│   ├── linz.py             # LINZ parcel lookups
 │   └── redis_client.py     # Redis async singleton
 ├── repositories/           # Data access abstractions
 │   ├── __init__.py
@@ -158,7 +182,9 @@ tests/
 ├── conftest.py             # pytest fixtures
 ├── test_api.py             # Integration tests (/health, /categories)
 ├── test_scoring.py         # Unit tests (LocationScoringService)
-└── test_distance.py        # Unit tests (Haversine)
+├── test_distance.py        # Unit tests (Haversine)
+├── test_linz_client.py     # Unit tests (LinzClient)
+└── test_parcels_api.py     # Integration tests (/parcels)
 ```
 
 ---
@@ -176,6 +202,7 @@ class Settings(BaseSettings):
     database_url: str = "postgresql://gisuser:changeme@localhost:5432/gis"
     overpass_url: str = "https://overpass-api.de/api/interpreter"
     osrm_url: str = "http://localhost:5000"
+    linz_api_key: str | None = None
     redis_url: str = "redis://localhost:6379"
     scoring_alpha: float = 0.6
     scoring_beta: float = 0.4
@@ -185,6 +212,11 @@ class Settings(BaseSettings):
 ```
 
 Access via: `settings = get_settings()` (cached singleton).
+
+**Key variables:**
+- `LINZ_API_KEY` — Server-side only, required for `/parcels` parcel lookups (LINZ Data Service Query API)
+- `LINZ_MAX_CONCURRENCY` — Default: 4, controls parallel parcel lookup requests
+- `LINZ_BREAKER_*` — Circuit breaker settings for LINZ failures (see CircuitBreaker pattern below)
 
 ### 2. Main App (`app/main.py`)
 
@@ -268,6 +300,25 @@ distance_km, used_haversine = await client.distance(
 ```
 
 **OSRM endpoint:** `GET /route/v1/{mode}/{lon},{lat};{dest_lon},{dest_lat}?overview=false`
+
+#### LinzClient (`app/clients/linz.py`)
+
+- Queries the LINZ Data Service Query API for cadastral parcel lookups
+- **Layer:** NZ Primary Parcels (layer 50772)
+- **Search:** Finds the nearest parcel to a given lat/lon point
+- **Default behavior:** Searches within 100m radius, returns top 3 results, takes nearest
+- **Returns:** GeoJSON Feature dict with parcel geometry and properties
+
+```python
+parcel = await client.find_nearest_parcel(lat=-36.848, lon=174.763)
+# → {
+#     "type": "Feature",
+#     "geometry": {...},
+#     "properties": {"id": "...", "parcel_intent": "...", ...}
+#   }
+```
+
+**LINZ endpoint:** `https://data.linz.govt.nz/services/query/v1/vector.json?key=...&layer=50772&x=...&y=...&radius=100&max_results=3`
 
 #### RedisClient (`app/clients/redis_client.py`)
 
@@ -378,6 +429,7 @@ For complete, interactive API documentation, visit **http://localhost:8000/docs*
 - `GET /health` — Health check
 - `GET /search/address?q=...` — Address autocomplete
 - `GET /categories` — List facility categories
+- `GET /parcels?lat=<lat>&lon=<lon>` — Resolve a point to its cadastral parcel (GeoJSON Feature)
 - `POST /location/analyze` — Analyze a location with facility scoring
 
 ---
@@ -487,6 +539,9 @@ All error messages are **scrubbed** before returning to client:
 | Overpass partial failure | 200    | Partial facilities + `warnings[]`         |
 | Overpass total failure   | 503    | Safe message (no technical details)       |
 | OSRM unavailable         | 200    | Haversine distances + warning in response |
+| LINZ API key not configured | 502 | `{"detail": "Parcel lookup service unavailable"}` |
+| No parcel found at point  | 404    | `{"detail": "No parcel found near this location"}` |
+| LINZ service unavailable  | 502    | Safe message (API key never logged)       |
 | Rate limit (Overpass)    | 429    | `Retry-After: 60` header                  |
 | Rate limit (this API)    | 429    | `Retry-After` header — see [docs/PROTECTION.md](docs/PROTECTION.md) |
 | Too many concurrent `/location/analyze` requests | 503 | `Retry-After: 2` header |
@@ -542,6 +597,34 @@ Integration tests via `httpx` TestClient:
 
 ```bash
 uv run pytest tests/test_api.py -v
+```
+
+#### `tests/test_linz_client.py` (4 tests)
+
+Unit tests for `LinzClient`:
+
+- API key validation (fails when key is not configured)
+- Query construction (correct params sent to LINZ Query API)
+- Response parsing (extracts nearest feature from API response)
+- No results scenario (returns None when no parcels found)
+
+```bash
+uv run pytest tests/test_linz_client.py -v
+```
+
+#### `tests/test_parcels_api.py` (6 tests)
+
+Integration tests for `/parcels` endpoint:
+
+- Valid lat/lon returns parcel GeoJSON Feature
+- Invalid lat/lon rejected with 400 Bad Request
+- No parcel found returns 404
+- LINZ service unavailable returns 502
+- API key not configured returns 502
+- Rate limiting enforced
+
+```bash
+uv run pytest tests/test_parcels_api.py -v
 ```
 
 ### Coverage
@@ -647,7 +730,9 @@ API_PORT=8000
 DATABASE_URL=postgresql://gisuser:secret@your-postgis-host:5432/gis
 OVERPASS_URL=https://your-overpass-instance
 OSRM_URL=https://your-osrm-instance
+LINZ_API_KEY=your-linz-data-service-key
 REDIS_URL=redis://your-redis-instance
+API_SHARED_SECRET=your-shared-secret-for-api-auth
 ```
 
 ---
@@ -724,6 +809,22 @@ curl http://localhost:5000/health
 curl "http://localhost:5000/route/v1/driving/174.763,-36.848;174.770,-36.852?overview=false"
 
 # If OSRM is down, API falls back to Haversine automatically
+```
+
+### Parcel lookup returns 502
+
+```bash
+# Check LINZ_API_KEY is configured
+echo $LINZ_API_KEY  # Should print your development key (or production key in CI/prod)
+
+# If unset, set it in .env.local
+echo "LINZ_API_KEY=your-key" > apps/api/.env.local
+
+# Test the LINZ Query API directly
+curl "https://data.linz.govt.nz/services/query/v1/vector.json?key=YOUR_KEY&layer=50772&x=174.763&y=-36.848&radius=100&max_results=1"
+
+# If the API call times out or returns an error, the LINZ service may be unavailable
+# The circuit breaker will open after 5 consecutive failures, failing fast with 502
 ```
 
 ---
