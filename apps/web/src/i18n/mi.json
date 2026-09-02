@@ -82,6 +82,9 @@
       "proxyNote": "[MI] hazard.legend.proxyNote"
     }
   },
+  "parcels": {
+    "notFoundBanner": "[MI] parcels.notFoundBanner"
+  },
   "distance": {
     "driving": "[MI] distance.driving",
     "walking": "[MI] distance.walking",

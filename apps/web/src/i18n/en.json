@@ -82,6 +82,9 @@
       "proxyNote": "Illustrative proxy data — see disclaimer"
     }
   },
+  "parcels": {
+    "notFoundBanner": "Couldn't find a matching parcel boundary for this address."
+  },
   "distance": {
     "driving": "Driving",
     "walking": "Walking",
