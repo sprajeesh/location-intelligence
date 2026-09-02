@@ -10,7 +10,7 @@ import type { AddressResult } from "@/types/api";
  * useParcelAtPoint hook
  *
  * Resolves the currently selected address to its cadastral parcel via
- * GET /api/parcels/at-point, so MapContainer can highlight the parcel
+ * GET /api/parcels, so MapContainer can highlight the parcel
  * polygon instead of a plain pin. Disabled until an address is selected --
  * the query key includes lat/lon so a new address selection refetches
  * (and transiently clears `parcelFeature`, same idiom as useHazardCells).

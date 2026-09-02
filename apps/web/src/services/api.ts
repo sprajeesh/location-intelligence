@@ -346,7 +346,7 @@ export async function fetchHazardCells(
 
 /**
  * Fetch the cadastral parcel nearest a point, for highlighting the parcel a
- * searched address sits on. Calls GET /api/parcels/at-point?lat=&lon=
+ * searched address sits on. Calls GET /api/parcels?lat=&lon=
  *
  * A 404 (no parcel within the lookup radius -- e.g. the point is over water
  * or a road reserve) is a normal, expected outcome here, not a failure: it
@@ -359,7 +359,7 @@ export async function fetchParcelAtPoint(
 ): Promise<ParcelFeature | null> {
   const params = new URLSearchParams({ lat: String(lat), lon: String(lon) });
   try {
-    return await fetchJson<ParcelFeature>(`/parcels/at-point?${params}`, {
+    return await fetchJson<ParcelFeature>(`/parcels?${params}`, {
       method: "GET",
     });
   } catch (error) {

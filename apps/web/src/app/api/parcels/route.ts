@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
   }
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
-  const fastApiUrl = `${apiUrl}/parcels/at-point?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`
+  const fastApiUrl = `${apiUrl}/parcels?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`
 
   try {
     const response = await fetch(fastApiUrl, {
