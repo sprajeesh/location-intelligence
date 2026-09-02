@@ -83,7 +83,8 @@
     }
   },
   "parcels": {
-    "notFoundBanner": "Couldn't find a matching parcel boundary for this address."
+    "notFoundBanner": "Couldn't find a matching parcel boundary for this address.",
+    "locating": "Locating parcel…"
   },
   "distance": {
     "driving": "Driving",

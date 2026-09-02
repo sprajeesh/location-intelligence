@@ -29,6 +29,7 @@ import {
   MapToolbarContainer,
   TILE_LAYER_URLS,
   TILE_LAYER_ATTRIBUTIONS,
+  TILE_LAYER_MAX_ZOOM,
   type MapLayerId,
 } from "@/containers/MapToolbarContainer";
 
@@ -97,6 +98,7 @@ function MapContent() {
   const isDarkDefault = theme === "dark" && activeLayer === "default";
   const tileUrl = TILE_LAYER_URLS[activeLayer];
   const tileAttribution = TILE_LAYER_ATTRIBUTIONS[activeLayer];
+  const tileMaxZoom = TILE_LAYER_MAX_ZOOM[activeLayer];
 
   // First custom Leaflet pane in this codebase -- puts the hazard polygons
   // above the tile layer but below markers/popups (default overlayPane is
@@ -129,27 +131,24 @@ function MapContent() {
     return colors;
   }, [categories]);
 
-  // Fly to selected address when it changes (before analysis). Left
-  // unconditional (not skipped even once a parcel is expected) since it's
-  // already transient -- the parcel-bounds effect below re-frames the map
-  // once the parcel resolves, and the analysis fit-bounds effect further
-  // down re-frames it again once facility results arrive.
+  // Fly to the matched parcel once the lookup settles; fall back to the
+  // address point if no parcel was found. Single decision per selection --
+  // no interim flyTo to fight, so manual zoom is never overridden. Keyed
+  // off parcelQuery directly (not the store's parcelFeature, which updates
+  // a render later) so this fires exactly once per settle. The analysis
+  // fit-bounds effect further down still re-frames the map once facility
+  // results arrive, same as before.
   useEffect(() => {
-    if (!selectedAddress) return;
-    map.flyTo([selectedAddress.lat, selectedAddress.lon], 14);
-  }, [selectedAddress, map]);
-
-  // Zoom to the matched parcel's bounds once it resolves, replacing the
-  // fixed zoom-14 flyTo above with a frame that fits the actual parcel
-  // shape. Transient by design -- the analysis fit-bounds effect further
-  // down still wins once facility results arrive, same as the flyTo above.
-  useEffect(() => {
-    if (!parcelFeature) return;
-    const bounds = L.geoJSON(parcelFeature as unknown as GeoJSON.Feature).getBounds();
-    if (bounds.isValid()) {
-      map.flyToBounds(bounds, { padding: [40, 40] });
+    if (!selectedAddress || parcelQuery.isFetching) return;
+    if (parcelQuery.data) {
+      const bounds = L.geoJSON(parcelQuery.data as unknown as GeoJSON.Feature).getBounds();
+      if (bounds.isValid()) {
+        map.flyToBounds(bounds, { padding: [40, 40] });
+        return;
+      }
     }
-  }, [parcelFeature, map]);
+    map.flyTo([selectedAddress.lat, selectedAddress.lon], 14);
+  }, [selectedAddress, parcelQuery.data, parcelQuery.isFetching, map]);
 
   // Pan to selected facility without changing zoom
   useEffect(() => {
@@ -206,6 +205,7 @@ function MapContent() {
         key={`${activeLayer}-${isDarkDefault}`}
         attribution={tileAttribution}
         url={tileUrl}
+        maxZoom={tileMaxZoom}
         className={isDarkDefault ? "map-tiles-inverted" : undefined}
       />
 
@@ -277,6 +277,22 @@ function MapContent() {
                 defaultValue:
                   "Couldn't find a matching parcel boundary for this address.",
               })}
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* Locating-parcel notice -- shown while the parcel lookup for the
+          selected address is in flight. The lookup is a live, uncached
+          call to LINZ (see useParcelAtPoint) that can occasionally take a
+          few seconds, and the map now waits for it to settle before flying
+          anywhere, so this keeps that wait from looking like a dead click. */}
+      {!!selectedAddress && parcelQuery.isFetching && (
+        <div className="absolute top-2 left-1/2 -translate-x-1/2 z-[1000] pointer-events-none">
+          <div className="bg-white border border-slate-200 shadow-card rounded-lg px-3 py-1.5 flex items-center gap-2 text-xs text-slate-700">
+            <div className="w-3 h-3 border-2 border-slate-200 border-t-primary-500 rounded-full animate-spin" />
+            <span>
+              {t("parcels.locating", { defaultValue: "Locating parcel…" })}
             </span>
           </div>
         </div>

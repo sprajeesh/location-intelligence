@@ -83,7 +83,8 @@
     }
   },
   "parcels": {
-    "notFoundBanner": "[MI] parcels.notFoundBanner"
+    "notFoundBanner": "[MI] parcels.notFoundBanner",
+    "locating": "[MI] parcels.locating"
   },
   "distance": {
     "driving": "[MI] distance.driving",
