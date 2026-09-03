@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.1](https://github.com/sprajeesh/location-intelligence/compare/web@v0.5.0...web@v0.5.1) (2026-09-03)
+
+
+### Bug Fixes
+
+* **web:** include API key header in parcels BFF proxy ([8683ab6](https://github.com/sprajeesh/location-intelligence/commit/8683ab65658f3c6a298b28f054484b4262af7832))
+
 ## [0.5.0](https://github.com/sprajeesh/location-intelligence/compare/web@v0.4.0...web@v0.5.0) (2026-09-02)
 
 
