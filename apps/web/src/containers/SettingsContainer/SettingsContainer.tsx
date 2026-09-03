@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { useTranslations } from "next-intl";
 import { Settings } from "lucide-react";
 import { SurfacePanel } from "@/components/ui/SurfacePanel";
@@ -118,23 +119,25 @@ export function SettingsContainer() {
         />
       </SurfacePanel>
 
-      {isOpen && (
-        <SettingsModal
-          categories={categories}
-          isLoading={isLoading}
-          isError={isError}
-          selectedFacilities={selectedFacilities}
-          categoryWeights={categoryWeights}
-          defaultCategoryWeights={defaultCategoryWeights}
-          isWeightsLoading={isWeightsLoading}
-          pendingReanalyze={pendingReanalyze}
-          address={selectedAddress?.displayName ?? null}
-          onClose={handleClose}
-          onSave={handleSave}
-          onConfirmReanalyze={handleConfirmReanalyze}
-          onDismissReanalyze={handleDismissReanalyze}
-        />
-      )}
+      {isOpen &&
+        createPortal(
+          <SettingsModal
+            categories={categories}
+            isLoading={isLoading}
+            isError={isError}
+            selectedFacilities={selectedFacilities}
+            categoryWeights={categoryWeights}
+            defaultCategoryWeights={defaultCategoryWeights}
+            isWeightsLoading={isWeightsLoading}
+            pendingReanalyze={pendingReanalyze}
+            address={selectedAddress?.displayName ?? null}
+            onClose={handleClose}
+            onSave={handleSave}
+            onConfirmReanalyze={handleConfirmReanalyze}
+            onDismissReanalyze={handleDismissReanalyze}
+          />,
+          document.body,
+        )}
     </>
   );
 }
