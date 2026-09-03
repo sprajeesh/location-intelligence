@@ -336,10 +336,11 @@ function MapContent() {
       )}
 
       {/* Theme toggle + map toolbar -- grouped in one positioning wrapper so
-          the toggle sits directly above the toolbar as a separate card,
-          not a button inside it, while both stay vertically centered
-          together on every screen size. */}
-      <div className="absolute md:top-1/2 top-1/4 right-3 -translate-y-1/2 z-[1000] flex flex-col items-center gap-2">
+          the toggle sits directly above the toolbar as a separate card.
+          On small screens (map is a short 40vh strip under the pinned
+          results panel) it sits bottom-right, out of the way of the top
+          banners; on md+ it's vertically centered on the right edge. */}
+      <div className="absolute right-3 bottom-3 md:top-1/2 md:bottom-auto md:-translate-y-1/2 z-[1000] flex flex-col items-center gap-2">
         <ThemeToggle />
         <MapToolbarContainer
           activeLayer={activeLayer}
@@ -495,7 +496,14 @@ export function MapContainer() {
               </span>
             </div>
           </div>
-          <div className="absolute bottom-3 right-3 z-[1000] pointer-events-auto">
+          {/* On small screens the toolbar group now docks bottom-right (see
+              above) and the map strip is too short to stack the legend
+              above it there or fit it alongside the top-center hazard
+              banner, so the legend moves to the bottom-left corner instead
+              -- clear of the toolbar, offset above Leaflet's own scale
+              control. md+ keeps its original bottom-right spot, since the
+              toolbar is vertically centered on the right edge there. */}
+          <div className="absolute bottom-10 left-3 md:top-auto md:bottom-3 md:left-auto md:right-3 z-[1000] pointer-events-auto">
             <HazardLegend />
           </div>
         </>
