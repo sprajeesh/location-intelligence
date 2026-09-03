@@ -68,6 +68,7 @@ export function NavigateSearchBar({
             placeholder={t("from")}
             ariaLabel={t("from")}
             onSelectComplete={() => toInputRef.current?.focus()}
+            hideClearButton
           />
         </div>
 
@@ -90,6 +91,7 @@ export function NavigateSearchBar({
             placeholder={t("to")}
             ariaLabel={t("to")}
             inputRef={toInputRef}
+            hideClearButton
           />
         </div>
       </div>
