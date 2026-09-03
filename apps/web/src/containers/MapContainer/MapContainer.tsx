@@ -23,6 +23,7 @@ import { getHazardCellColor } from "@/utils/hazardColor";
 import { buildHazardTooltipHtml } from "@/utils/hazardTooltip";
 import { HazardLegend } from "@/components/HazardLegend";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { SettingsContainer } from "@/containers/SettingsContainer";
 import type { HazardCellFeature } from "@/types/hazard";
 import { useTranslations } from "next-intl";
 import {
@@ -344,12 +345,13 @@ function MapContent() {
         </div>
       )}
 
-      {/* Theme toggle + map toolbar -- grouped in one positioning wrapper so
-          the toggle sits directly above the toolbar as a separate card.
+      {/* Settings, theme toggle, and map toolbar -- grouped in one positioning wrapper
+          so all three sit as separate cards stacked vertically on the right edge.
           On small screens (map is a short 40vh strip under the pinned
           results panel) it sits bottom-right, out of the way of the top
           banners; on md+ it's vertically centered on the right edge. */}
       <div className="absolute right-3 bottom-5 md:top-1/2 md:bottom-auto md:-translate-y-1/2 z-[1000] flex flex-col items-center gap-2">
+        <SettingsContainer />
         <ThemeToggle />
         <MapToolbarContainer
           activeLayer={activeLayer}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { useTranslations } from "next-intl";
 import { Settings } from "lucide-react";
 import { SurfacePanel } from "@/components/ui/SurfacePanel";
@@ -27,8 +28,8 @@ function weightsEqual(a: Record<string, number>, b: Record<string, number>): boo
 }
 
 /**
- * SettingsContainer — the gear button next to the address search box, plus
- * the Settings modal it opens. Fetches all facility types up front so the
+ * SettingsContainer — the settings gear button at the top of the map toolbar stack,
+ * plus the Settings modal it opens. Fetches all facility types up front so the
  * modal can render instantly once opened. Owns saving the user's facility
  * selection to the session store and, if an address is already analyzed,
  * confirming whether to re-run it with the updated selection.
@@ -118,23 +119,25 @@ export function SettingsContainer() {
         />
       </SurfacePanel>
 
-      {isOpen && (
-        <SettingsModal
-          categories={categories}
-          isLoading={isLoading}
-          isError={isError}
-          selectedFacilities={selectedFacilities}
-          categoryWeights={categoryWeights}
-          defaultCategoryWeights={defaultCategoryWeights}
-          isWeightsLoading={isWeightsLoading}
-          pendingReanalyze={pendingReanalyze}
-          address={selectedAddress?.displayName ?? null}
-          onClose={handleClose}
-          onSave={handleSave}
-          onConfirmReanalyze={handleConfirmReanalyze}
-          onDismissReanalyze={handleDismissReanalyze}
-        />
-      )}
+      {isOpen &&
+        createPortal(
+          <SettingsModal
+            categories={categories}
+            isLoading={isLoading}
+            isError={isError}
+            selectedFacilities={selectedFacilities}
+            categoryWeights={categoryWeights}
+            defaultCategoryWeights={defaultCategoryWeights}
+            isWeightsLoading={isWeightsLoading}
+            pendingReanalyze={pendingReanalyze}
+            address={selectedAddress?.displayName ?? null}
+            onClose={handleClose}
+            onSave={handleSave}
+            onConfirmReanalyze={handleConfirmReanalyze}
+            onDismissReanalyze={handleDismissReanalyze}
+          />,
+          document.body,
+        )}
     </>
   );
 }
