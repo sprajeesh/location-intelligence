@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.6.0](https://github.com/sprajeesh/location-intelligence/compare/web@v0.5.0...web@v0.6.0) (2026-09-03)
+
+
+### Features
+
+* **web:** hide clear button in navigation mode input fields ([#153](https://github.com/sprajeesh/location-intelligence/issues/153)) ([442cae3](https://github.com/sprajeesh/location-intelligence/commit/442cae3f602bed6cd0d4b506faf241cadb9a7075))
+* **web:** move settings button to top of map toolbar ([#152](https://github.com/sprajeesh/location-intelligence/issues/152)) ([4bebb92](https://github.com/sprajeesh/location-intelligence/commit/4bebb9211c4e9444272adc58731b7e339f060997))
+* **web:** pin results/route panel as a sidebar with mobile 60/40 split ([#150](https://github.com/sprajeesh/location-intelligence/issues/150)) ([44e5c6a](https://github.com/sprajeesh/location-intelligence/commit/44e5c6aefd39bee8217f1bf089818cb502089a0c))
+* **web:** style walking routes with dashed lines and thinner weight ([#151](https://github.com/sprajeesh/location-intelligence/issues/151)) ([e1ceb9e](https://github.com/sprajeesh/location-intelligence/commit/e1ceb9e4baa02c05b0249838e68159719bf9bea8))
+
+
+### Bug Fixes
+
+* **web:** include API key header in parcels BFF proxy ([#148](https://github.com/sprajeesh/location-intelligence/issues/148)) ([e8078f0](https://github.com/sprajeesh/location-intelligence/commit/e8078f01b2d021522c29bf496dea0502d2309196))
+
 ## [0.5.0](https://github.com/sprajeesh/location-intelligence/compare/web@v0.4.0...web@v0.5.0) (2026-09-02)
 
 
