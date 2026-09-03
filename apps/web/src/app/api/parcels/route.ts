@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiKeyHeaders } from '@/utils/apiAuth'
 import { clientIpHeaders } from '@/utils/clientIp'
 
 export async function GET(request: NextRequest) {
@@ -12,7 +13,7 @@ export async function GET(request: NextRequest) {
   try {
     const response = await fetch(upstreamUrl, {
       signal: controller.signal,
-      headers: clientIpHeaders(request.headers),
+      headers: { ...apiKeyHeaders(), ...clientIpHeaders(request.headers) },
     })
 
     clearTimeout(timeoutId)
