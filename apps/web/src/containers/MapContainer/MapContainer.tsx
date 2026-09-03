@@ -143,7 +143,9 @@ function MapContent() {
   useEffect(() => {
     if (!selectedAddress || parcelQuery.isFetching) return;
     if (parcelQuery.data) {
-      const bounds = L.geoJSON(parcelQuery.data as unknown as GeoJSON.Feature).getBounds();
+      const bounds = L.geoJSON(
+        parcelQuery.data as unknown as GeoJSON.Feature,
+      ).getBounds();
       if (bounds.isValid()) {
         map.flyToBounds(bounds, { padding: [40, 40] });
         return;
@@ -187,12 +189,12 @@ function MapContent() {
     if (!features || visibleCategories.size === 0) return;
 
     const visibleFeatures = features.filter((f) =>
-      visibleCategories.has(f.category)
+      visibleCategories.has(f.category),
     );
     if (visibleFeatures.length === 0) return;
 
     const bounds = L.latLngBounds(
-      visibleFeatures.map((f) => [f.lat, f.lon] as [number, number])
+      visibleFeatures.map((f) => [f.lat, f.lon] as [number, number]),
     );
     if (bounds.isValid()) {
       map.fitBounds(bounds, { padding: [50, 50] });
@@ -228,7 +230,8 @@ function MapContent() {
           data={hazardCells as unknown as GeoJSON.FeatureCollection}
           pane="hazardPane"
           style={(feature) => {
-            const props = feature?.properties as HazardCellFeature["properties"];
+            const props =
+              feature?.properties as HazardCellFeature["properties"];
             return {
               color: "rgb(var(--color-neutral-900))",
               weight: 1,
@@ -275,7 +278,10 @@ function MapContent() {
       {parcelNotFound && (
         <div className="absolute top-2 left-1/2 -translate-x-1/2 z-[1000] pointer-events-none">
           <div className="bg-white border border-warning-200 shadow-card rounded-lg px-3 py-1.5 flex items-center gap-2 text-xs text-warning-800">
-            <TriangleAlert className="w-3 h-3 flex-shrink-0" aria-hidden="true" />
+            <TriangleAlert
+              className="w-3 h-3 flex-shrink-0"
+              aria-hidden="true"
+            />
             <span>
               {t("parcels.notFoundBanner", {
                 defaultValue:
@@ -293,7 +299,10 @@ function MapContent() {
       {parcelServiceError && (
         <div className="absolute top-2 left-1/2 -translate-x-1/2 z-[1000] pointer-events-none">
           <div className="bg-white border border-error-200 shadow-card rounded-lg px-3 py-1.5 flex items-center gap-2 text-xs text-error-800">
-            <TriangleAlert className="w-3 h-3 flex-shrink-0" aria-hidden="true" />
+            <TriangleAlert
+              className="w-3 h-3 flex-shrink-0"
+              aria-hidden="true"
+            />
             <span>
               {t("parcels.serviceError", {
                 defaultValue:
@@ -360,7 +369,8 @@ function MapContent() {
           return null;
         }
 
-        const color = categoryColorMap[feature.category] || "rgb(var(--color-neutral-500))";
+        const color =
+          categoryColorMap[feature.category] || "rgb(var(--color-neutral-500))";
 
         return (
           <Marker
@@ -399,8 +409,10 @@ function MapContent() {
                 : routeMode === "cycling"
                   ? "rgb(var(--color-warning-500))"
                   : "rgb(var(--color-primary-500))",
-            weight: 12,
+            weight: routeMode === "walking" ? 6 : 12,
             opacity: 0.75,
+            dashArray: routeMode === "walking" ? "1, 15" : undefined,
+            lineCap: routeMode === "walking" ? "round" : undefined,
           }}
         />
       )}
@@ -411,7 +423,8 @@ function MapContent() {
           key={`selected-${selectedFeature.id}`}
           position={[selectedFeature.lat, selectedFeature.lon]}
           icon={createSelectedFeatureIcon(
-            categoryColorMap[selectedFeature.category] || "rgb(var(--color-neutral-500))",
+            categoryColorMap[selectedFeature.category] ||
+              "rgb(var(--color-neutral-500))",
           )}
           zIndexOffset={1000}
         />
@@ -426,7 +439,8 @@ function MapContent() {
  * Business logic: reads from store, manages map effects, handles marker rendering.
  */
 export function MapContainer() {
-  const { selectedAddress, isAnalyzing, hazardLayerVisible, hazardCells } = useLocationStore();
+  const { selectedAddress, isAnalyzing, hazardLayerVisible, hazardCells } =
+    useLocationStore();
   const mapRef = useRef<L.Map | null>(null);
   const mapId = useId();
   const t = useTranslations();
@@ -471,7 +485,10 @@ export function MapContainer() {
         <>
           <div className="absolute top-2 left-1/2 -translate-x-1/2 z-[1000] pointer-events-none">
             <div className="bg-white border border-warning-200 shadow-card rounded-lg px-3 py-1.5 flex items-center gap-2 text-xs text-warning-800">
-              <TriangleAlert className="w-3 h-3 flex-shrink-0" aria-hidden="true" />
+              <TriangleAlert
+                className="w-3 h-3 flex-shrink-0"
+                aria-hidden="true"
+              />
               <span>
                 {t("hazard.mapBanner", {
                   defaultValue:
