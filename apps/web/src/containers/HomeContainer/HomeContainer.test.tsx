@@ -31,11 +31,15 @@ const makeStoreState = (overrides = {}) => ({
 });
 
 // HomeContainer always renders exactly two top-level children under its
-// root: the search+results panel slot, then the map slot.
+// root: the search+results panel slot, then the map slot. Within the panel
+// slot, the search header row is always the first child of the inner flex
+// column.
 const getSlots = (container: HTMLElement) => {
   const root = container.firstElementChild as HTMLElement;
+  const panelWrapper = root.children[0] as HTMLElement;
   return {
-    panelWrapper: root.children[0] as HTMLElement,
+    panelWrapper,
+    searchHeader: panelWrapper.children[0]!.children[0] as HTMLElement,
     mapWrapper: root.children[1] as HTMLElement,
   };
 };
@@ -78,9 +82,24 @@ describe('HomeContainer', () => {
       const { panelWrapper } = getSlots(container);
       expect(panelWrapper.className).not.toContain('pointer-events-none');
       expect(panelWrapper.className).not.toContain('absolute inset-0');
-      expect(panelWrapper.className).toContain('border-b');
       expect(panelWrapper.className).toContain('h-[60vh]');
       expect(panelWrapper.className).toContain('md:w-[360px]');
+    });
+
+    it('carries no border utilities itself -- the divider lives on the search header instead', () => {
+      const { container } = render(<HomeContainer />);
+      const { panelWrapper } = getSlots(container);
+      expect(panelWrapper.className).not.toContain('border-slate-200');
+      expect(panelWrapper.className).not.toContain('border-b');
+      expect(panelWrapper.className).not.toContain('border-r');
+    });
+
+    it('puts a right-edge divider on the search header on md+, with no bottom border anywhere', () => {
+      const { container } = render(<HomeContainer />);
+      const { searchHeader } = getSlots(container);
+      expect(searchHeader.className).toContain('border-slate-200');
+      expect(searchHeader.className).toContain('md:border-r');
+      expect(searchHeader.className).not.toContain('border-b');
     });
 
     it('still renders SearchContainer at the top of the panel when not navigating', () => {

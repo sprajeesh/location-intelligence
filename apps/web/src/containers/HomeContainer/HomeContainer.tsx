@@ -23,7 +23,7 @@ export function HomeContainer() {
       <div
         className={
           hasActivePanel
-            ? "relative z-10 flex-shrink-0 flex flex-col overflow-hidden bg-white border-slate-200 border-b md:border-b-0 md:border-r h-[60vh] w-full md:h-full md:w-[360px] lg:w-[400px] xl:w-[440px]"
+            ? "relative z-10 flex-shrink-0 flex flex-col overflow-hidden bg-white h-[60vh] w-full md:h-full md:w-[360px] lg:w-[400px] xl:w-[440px]"
             : "absolute inset-0 z-10 p-4 pointer-events-none overflow-hidden"
         }
       >
@@ -38,7 +38,7 @@ export function HomeContainer() {
           <div
             className={
               hasActivePanel
-                ? "flex-shrink-0 flex items-start gap-2 p-4 pb-2"
+                ? "flex-shrink-0 flex items-start gap-2 p-4 pb-2 border-slate-200 md:border-r"
                 : "flex-shrink-0 relative z-20 pointer-events-auto flex items-start gap-2"
             }
           >
