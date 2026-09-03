@@ -22,6 +22,9 @@ jest.mock('@/components/ThemeToggle', () => ({
 jest.mock('@/components/HazardLegend', () => ({
   HazardLegend: () => <div data-testid="hazard-legend-stub" />,
 }));
+jest.mock('@/containers/SettingsContainer', () => ({
+  SettingsContainer: () => <div data-testid="settings-container-stub" />,
+}));
 jest.mock('@/containers/MapToolbarContainer', () => ({
   MapToolbarContainer: () => <div data-testid="map-toolbar-stub" />,
   TILE_LAYER_URLS: { default: 'https://tiles.example/default/{z}/{x}/{y}.png' },
@@ -138,6 +141,8 @@ describe('MapContainer', () => {
       expect(wrapper.className).toContain('bottom-5');
       expect(wrapper.className).toContain('md:top-1/2');
       expect(wrapper.className).toContain('md:bottom-auto');
+      expect(wrapper).toContainElement(screen.getByTestId('settings-container-stub'));
+      expect(wrapper).toContainElement(screen.getByTestId('theme-toggle-stub'));
       expect(wrapper).toContainElement(screen.getByTestId('map-toolbar-stub'));
     });
   });
