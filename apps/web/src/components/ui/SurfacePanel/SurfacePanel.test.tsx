@@ -23,6 +23,14 @@ describe('SurfacePanel', () => {
       const { container } = render(<SurfacePanel variant="toolbar">content</SurfacePanel>);
       expect(container.firstChild).toHaveClass('rounded-xl', 'shadow-card-lg');
     });
+
+    it('applies the sidebar variant as a flush edge, not a floating card', () => {
+      const { container } = render(<SurfacePanel variant="sidebar">content</SurfacePanel>);
+      expect(container.firstChild).toHaveClass('border-slate-200', 'border-b', 'md:border-b-0', 'md:border-r');
+      expect(container.firstChild).not.toHaveClass('rounded-xl');
+      expect(container.firstChild).not.toHaveClass('shadow-card');
+      expect(container.firstChild).not.toHaveClass('shadow-card-lg');
+    });
   });
 
   describe('className passthrough', () => {

@@ -38,8 +38,9 @@ export function RoutePanel({
   return (
     <SurfacePanel
       as="section"
+      variant="sidebar"
       aria-label="Route"
-      className="pointer-events-auto w-full h-full overflow-y-auto flex flex-col"
+      className="w-full h-full overflow-y-auto flex flex-col"
     >
       {/* Destination header */}
       <div className="px-4 sm:px-6 pt-4 pb-3 border-b border-slate-200 flex-shrink-0">

@@ -1,6 +1,6 @@
 import type { ComponentPropsWithoutRef, ElementType, Ref } from "react";
 
-export type SurfacePanelVariant = "panel" | "toolbar";
+export type SurfacePanelVariant = "panel" | "toolbar" | "sidebar";
 
 export interface SurfacePanelProps extends ComponentPropsWithoutRef<"div"> {
   variant?: SurfacePanelVariant;
@@ -11,6 +11,7 @@ export interface SurfacePanelProps extends ComponentPropsWithoutRef<"div"> {
 const VARIANT_CLASSES: Record<SurfacePanelVariant, string> = {
   panel: "bg-white border border-slate-200 rounded-xl shadow-card",
   toolbar: "bg-white border border-slate-200 rounded-xl shadow-card-lg",
+  sidebar: "bg-white border-slate-200 border-b md:border-b-0 md:border-r",
 };
 
 export function SurfacePanel({ variant = "panel", as: Tag = "div", className = "", ref, ...rest }: SurfacePanelProps) {
