@@ -210,7 +210,7 @@ export default function ResultsPanel({
   // Render loading state
   if (isAnalyzing) {
     return (
-      <SurfacePanel className={`pointer-events-auto w-full h-full overflow-y-auto p-4 sm:p-6 flex flex-col gap-4 ${className}`}>
+      <SurfacePanel variant="sidebar" className={`w-full h-full overflow-y-auto p-4 sm:p-6 flex flex-col gap-4 ${className}`}>
         <LoadingSkeleton count={3} />
       </SurfacePanel>
     );
@@ -220,7 +220,8 @@ export default function ResultsPanel({
   if (!analysisResult) {
     return (
       <SurfacePanel
-        className={`pointer-events-auto w-full h-full p-4 sm:p-6 flex flex-col items-center justify-center gap-4 text-center ${className}`}
+        variant="sidebar"
+        className={`w-full h-full p-4 sm:p-6 flex flex-col items-center justify-center gap-4 text-center ${className}`}
       >
         <div className="text-slate-400">
           <Search className="mx-auto h-12 w-12 mb-2 opacity-50" />
@@ -241,7 +242,8 @@ export default function ResultsPanel({
   if (categorySections.length === 0 && !analysisResult.score) {
     return (
       <SurfacePanel
-        className={`pointer-events-auto w-full h-full p-4 sm:p-6 flex flex-col items-center justify-center gap-4 text-center ${className}`}
+        variant="sidebar"
+        className={`w-full h-full p-4 sm:p-6 flex flex-col items-center justify-center gap-4 text-center ${className}`}
       >
         <div className="text-slate-400">
           <FileText className="mx-auto h-12 w-12 mb-2 opacity-50" />
@@ -278,8 +280,9 @@ export default function ResultsPanel({
     <SurfacePanel
       key={addressKey}
       as="section"
+      variant="sidebar"
       aria-label={t("results.title")}
-      className={`pointer-events-auto w-full h-full overflow-hidden flex flex-col animate-panel-in ${className}`}
+      className={`w-full h-full overflow-hidden flex flex-col animate-panel-in ${className}`}
     >
       <Tabs
         tabs={[

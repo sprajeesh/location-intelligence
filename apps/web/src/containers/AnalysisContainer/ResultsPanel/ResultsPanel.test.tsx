@@ -587,4 +587,47 @@ describe('ResultsPanel', () => {
       expect(screen.getByTestId('radius-adjuster-mock')).toBeInTheDocument();
     });
   });
+
+  // ResultsPanel only ever renders once an address is selected, i.e. only
+  // ever inside the pinned sidebar/mobile-split layout (see HomeContainer),
+  // so every render branch must use SurfacePanel's flush "sidebar" variant
+  // rather than the floating-card default -- never both.
+  describe('Styling (pinned sidebar, not a floating card)', () => {
+    it('uses the sidebar variant while loading', () => {
+      mockUseLocationStore.mockReturnValue(makeStoreState({ isAnalyzing: true }));
+      const { container } = render(<ResultsPanel />);
+      const panel = container.firstElementChild as HTMLElement;
+      expect(panel.className).toContain('border-slate-200');
+      expect(panel.className).not.toContain('rounded-xl');
+      expect(panel.className).not.toContain('pointer-events-auto');
+    });
+
+    it('uses the sidebar variant with no analysis result', () => {
+      const { container } = render(<ResultsPanel />);
+      const panel = container.firstElementChild as HTMLElement;
+      expect(panel.className).toContain('border-slate-200');
+      expect(panel.className).not.toContain('rounded-xl');
+      expect(panel.className).not.toContain('pointer-events-auto');
+    });
+
+    it('uses the sidebar variant in the fully-empty state', () => {
+      mockUseLocationStore.mockReturnValue(
+        makeStoreState({ analysisResult: { ...mockAnalysisResult, features: [], score: null as any } })
+      );
+      const { container } = render(<ResultsPanel />);
+      const panel = container.firstElementChild as HTMLElement;
+      expect(panel.className).toContain('border-slate-200');
+      expect(panel.className).not.toContain('rounded-xl');
+      expect(panel.className).not.toContain('pointer-events-auto');
+    });
+
+    it('uses the sidebar variant for the main results view', () => {
+      mockUseLocationStore.mockReturnValue(makeStoreState({ analysisResult: mockAnalysisResult }));
+      render(<ResultsPanel />);
+      const panel = screen.getByRole('region', { name: 'Results' });
+      expect(panel.className).toContain('border-slate-200');
+      expect(panel.className).not.toContain('rounded-xl');
+      expect(panel.className).not.toContain('pointer-events-auto');
+    });
+  });
 });

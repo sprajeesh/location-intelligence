@@ -92,6 +92,21 @@ function MapContent() {
 
   const [activeLayer, setActiveLayer] = useState<MapLayerId>("default");
 
+  // Leaflet 1.9's trackResize only reacts to the browser window's own
+  // 'resize' event -- it has no built-in ResizeObserver on the map
+  // container itself. Now that the container's box changes size purely via
+  // our own CSS layout (pinning the results sidebar, crossing the mobile/
+  // desktop breakpoint), Leaflet would never notice on its own and would
+  // keep rendering its stale tile grid, so this is required.
+  useEffect(() => {
+    const container = map.getContainer();
+    const resizeObserver = new ResizeObserver(() => {
+      map.invalidateSize();
+    });
+    resizeObserver.observe(container);
+    return () => resizeObserver.disconnect();
+  }, [map]);
+
   // Dark mode re-colors the 'default' (OSM) tiles with a CSS filter instead
   // of swapping to a separate dark tile provider (e.g. CARTO's dark_all) --
   // that keeps every OSM label/POI/road on screen (a dedicated dark basemap
@@ -143,7 +158,9 @@ function MapContent() {
   useEffect(() => {
     if (!selectedAddress || parcelQuery.isFetching) return;
     if (parcelQuery.data) {
-      const bounds = L.geoJSON(parcelQuery.data as unknown as GeoJSON.Feature).getBounds();
+      const bounds = L.geoJSON(
+        parcelQuery.data as unknown as GeoJSON.Feature,
+      ).getBounds();
       if (bounds.isValid()) {
         map.flyToBounds(bounds, { padding: [40, 40] });
         return;
@@ -187,12 +204,12 @@ function MapContent() {
     if (!features || visibleCategories.size === 0) return;
 
     const visibleFeatures = features.filter((f) =>
-      visibleCategories.has(f.category)
+      visibleCategories.has(f.category),
     );
     if (visibleFeatures.length === 0) return;
 
     const bounds = L.latLngBounds(
-      visibleFeatures.map((f) => [f.lat, f.lon] as [number, number])
+      visibleFeatures.map((f) => [f.lat, f.lon] as [number, number]),
     );
     if (bounds.isValid()) {
       map.fitBounds(bounds, { padding: [50, 50] });
@@ -228,7 +245,8 @@ function MapContent() {
           data={hazardCells as unknown as GeoJSON.FeatureCollection}
           pane="hazardPane"
           style={(feature) => {
-            const props = feature?.properties as HazardCellFeature["properties"];
+            const props =
+              feature?.properties as HazardCellFeature["properties"];
             return {
               color: "rgb(var(--color-neutral-900))",
               weight: 1,
@@ -275,7 +293,10 @@ function MapContent() {
       {parcelNotFound && (
         <div className="absolute top-2 left-1/2 -translate-x-1/2 z-[1000] pointer-events-none">
           <div className="bg-white border border-warning-200 shadow-card rounded-lg px-3 py-1.5 flex items-center gap-2 text-xs text-warning-800">
-            <TriangleAlert className="w-3 h-3 flex-shrink-0" aria-hidden="true" />
+            <TriangleAlert
+              className="w-3 h-3 flex-shrink-0"
+              aria-hidden="true"
+            />
             <span>
               {t("parcels.notFoundBanner", {
                 defaultValue:
@@ -293,7 +314,10 @@ function MapContent() {
       {parcelServiceError && (
         <div className="absolute top-2 left-1/2 -translate-x-1/2 z-[1000] pointer-events-none">
           <div className="bg-white border border-error-200 shadow-card rounded-lg px-3 py-1.5 flex items-center gap-2 text-xs text-error-800">
-            <TriangleAlert className="w-3 h-3 flex-shrink-0" aria-hidden="true" />
+            <TriangleAlert
+              className="w-3 h-3 flex-shrink-0"
+              aria-hidden="true"
+            />
             <span>
               {t("parcels.serviceError", {
                 defaultValue:
@@ -321,10 +345,11 @@ function MapContent() {
       )}
 
       {/* Theme toggle + map toolbar -- grouped in one positioning wrapper so
-          the toggle sits directly above the toolbar as a separate card,
-          not a button inside it, while both stay vertically centered
-          together on every screen size. */}
-      <div className="absolute md:top-1/2 top-1/4 right-3 -translate-y-1/2 z-[1000] flex flex-col items-center gap-2">
+          the toggle sits directly above the toolbar as a separate card.
+          On small screens (map is a short 40vh strip under the pinned
+          results panel) it sits bottom-right, out of the way of the top
+          banners; on md+ it's vertically centered on the right edge. */}
+      <div className="absolute right-3 bottom-5 md:top-1/2 md:bottom-auto md:-translate-y-1/2 z-[1000] flex flex-col items-center gap-2">
         <ThemeToggle />
         <MapToolbarContainer
           activeLayer={activeLayer}
@@ -360,7 +385,8 @@ function MapContent() {
           return null;
         }
 
-        const color = categoryColorMap[feature.category] || "rgb(var(--color-neutral-500))";
+        const color =
+          categoryColorMap[feature.category] || "rgb(var(--color-neutral-500))";
 
         return (
           <Marker
@@ -411,7 +437,8 @@ function MapContent() {
           key={`selected-${selectedFeature.id}`}
           position={[selectedFeature.lat, selectedFeature.lon]}
           icon={createSelectedFeatureIcon(
-            categoryColorMap[selectedFeature.category] || "rgb(var(--color-neutral-500))",
+            categoryColorMap[selectedFeature.category] ||
+              "rgb(var(--color-neutral-500))",
           )}
           zIndexOffset={1000}
         />
@@ -426,7 +453,8 @@ function MapContent() {
  * Business logic: reads from store, manages map effects, handles marker rendering.
  */
 export function MapContainer() {
-  const { selectedAddress, isAnalyzing, hazardLayerVisible, hazardCells } = useLocationStore();
+  const { selectedAddress, isAnalyzing, hazardLayerVisible, hazardCells } =
+    useLocationStore();
   const mapRef = useRef<L.Map | null>(null);
   const mapId = useId();
   const t = useTranslations();
@@ -471,7 +499,10 @@ export function MapContainer() {
         <>
           <div className="absolute top-2 left-1/2 -translate-x-1/2 z-[1000] pointer-events-none">
             <div className="bg-white border border-warning-200 shadow-card rounded-lg px-3 py-1.5 flex items-center gap-2 text-xs text-warning-800">
-              <TriangleAlert className="w-3 h-3 flex-shrink-0" aria-hidden="true" />
+              <TriangleAlert
+                className="w-3 h-3 flex-shrink-0"
+                aria-hidden="true"
+              />
               <span>
                 {t("hazard.mapBanner", {
                   defaultValue:
@@ -480,7 +511,14 @@ export function MapContainer() {
               </span>
             </div>
           </div>
-          <div className="absolute bottom-3 right-3 z-[1000] pointer-events-auto">
+          {/* On small screens the toolbar group now docks bottom-right (see
+              above) and the map strip is too short to stack the legend
+              above it there or fit it alongside the top-center hazard
+              banner, so the legend moves to the bottom-left corner instead
+              -- clear of the toolbar, offset above Leaflet's own scale
+              control. md+ keeps its original bottom-right spot, since the
+              toolbar is vertically centered on the right edge there. */}
+          <div className="absolute bottom-10 left-3 md:top-auto md:bottom-3 md:left-auto md:right-3 z-[1000] pointer-events-auto">
             <HazardLegend />
           </div>
         </>

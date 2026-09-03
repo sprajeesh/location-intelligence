@@ -188,4 +188,17 @@ describe('RoutePanel', () => {
       expect(onModeChange).toHaveBeenCalledWith('walking');
     });
   });
+
+  // RoutePanel only ever renders inside the pinned sidebar/mobile-split
+  // layout (see HomeContainer), so it must use SurfacePanel's flush
+  // "sidebar" variant rather than the floating-card default.
+  describe('Styling (pinned sidebar, not a floating card)', () => {
+    it('uses the sidebar variant', () => {
+      render(<RoutePanel {...defaultProps} />);
+      const panel = screen.getByRole('region', { name: 'Route' });
+      expect(panel.className).toContain('border-slate-200');
+      expect(panel.className).not.toContain('rounded-xl');
+      expect(panel.className).not.toContain('pointer-events-auto');
+    });
+  });
 });
