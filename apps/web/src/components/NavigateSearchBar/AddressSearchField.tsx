@@ -17,6 +17,7 @@ interface AddressSearchFieldProps {
   accent: "emerald" | "rose";
   inputRef?: React.RefObject<HTMLInputElement | null>;
   onSelectComplete?: () => void;
+  hideClearButton?: boolean;
 }
 
 const FIELD_LABELS = {
@@ -36,6 +37,7 @@ export function AddressSearchField({
   accent,
   inputRef: externalRef,
   onSelectComplete,
+  hideClearButton = false,
 }: AddressSearchFieldProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [highlight, setHighlight] = useState<number | null>(null);
@@ -124,7 +126,7 @@ export function AddressSearchField({
           className={`flex-shrink-0 w-3.5 h-3.5 border-2 border-slate-200 ${spinnerAccent} rounded-full animate-spin`}
         />
       )}
-      {query && !isLoading && (
+      {query && !isLoading && !hideClearButton && (
         <button
           type="button"
           onClick={() => {

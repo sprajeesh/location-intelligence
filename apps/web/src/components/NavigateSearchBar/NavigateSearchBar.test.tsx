@@ -65,9 +65,9 @@ describe('NavigateSearchBar', () => {
       expect(spinners.length).toBeGreaterThan(0);
     });
 
-    it('shows from clear button when fromQuery is non-empty and not loading', () => {
+    it('does not show from clear button in navigation mode', () => {
       render(<NavigateSearchBar {...defaultProps} fromQuery="test" fromIsLoading={false} />);
-      expect(screen.getByLabelText('Clear starting point')).toBeInTheDocument();
+      expect(screen.queryByLabelText('Clear starting point')).not.toBeInTheDocument();
     });
 
     it('does not show from clear button when fromIsLoading is true', () => {
@@ -80,9 +80,9 @@ describe('NavigateSearchBar', () => {
       expect(screen.queryByLabelText('Clear starting point')).not.toBeInTheDocument();
     });
 
-    it('shows to clear button when toQuery is non-empty and not loading', () => {
+    it('does not show to clear button in navigation mode', () => {
       render(<NavigateSearchBar {...defaultProps} toQuery="test" toIsLoading={false} />);
-      expect(screen.getByLabelText('Clear destination')).toBeInTheDocument();
+      expect(screen.queryByLabelText('Clear destination')).not.toBeInTheDocument();
     });
 
     it('does not show to clear button when toIsLoading is true', () => {
@@ -172,19 +172,6 @@ describe('NavigateSearchBar', () => {
       expect(screen.queryByRole('listbox', { name: 'Starting point suggestions' })).not.toBeInTheDocument();
     });
 
-    it('from clear button calls onFromQueryChange with empty string', async () => {
-      const onFromQueryChange = jest.fn();
-      render(
-        <NavigateSearchBar
-          {...defaultProps}
-          fromQuery="Willis"
-          fromIsLoading={false}
-          onFromQueryChange={onFromQueryChange}
-        />,
-      );
-      await userEvent.click(screen.getByLabelText('Clear starting point'));
-      expect(onFromQueryChange).toHaveBeenCalledWith('');
-    });
   });
 
   describe('To field', () => {
@@ -233,19 +220,6 @@ describe('NavigateSearchBar', () => {
       expect(onToSelect).toHaveBeenCalledWith(MOCK_ADDRESS_B);
     });
 
-    it('to clear button calls onToQueryChange with empty string', async () => {
-      const onToQueryChange = jest.fn();
-      render(
-        <NavigateSearchBar
-          {...defaultProps}
-          toQuery="Lambton"
-          toIsLoading={false}
-          onToQueryChange={onToQueryChange}
-        />,
-      );
-      await userEvent.click(screen.getByLabelText('Clear destination'));
-      expect(onToQueryChange).toHaveBeenCalledWith('');
-    });
   });
 
   describe('Keyboard navigation — From field', () => {
