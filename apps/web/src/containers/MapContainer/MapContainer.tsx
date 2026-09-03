@@ -92,6 +92,21 @@ function MapContent() {
 
   const [activeLayer, setActiveLayer] = useState<MapLayerId>("default");
 
+  // Leaflet 1.9's trackResize only reacts to the browser window's own
+  // 'resize' event -- it has no built-in ResizeObserver on the map
+  // container itself. Now that the container's box changes size purely via
+  // our own CSS layout (pinning the results sidebar, crossing the mobile/
+  // desktop breakpoint), Leaflet would never notice on its own and would
+  // keep rendering its stale tile grid, so this is required.
+  useEffect(() => {
+    const container = map.getContainer();
+    const resizeObserver = new ResizeObserver(() => {
+      map.invalidateSize();
+    });
+    resizeObserver.observe(container);
+    return () => resizeObserver.disconnect();
+  }, [map]);
+
   // Dark mode re-colors the 'default' (OSM) tiles with a CSS filter instead
   // of swapping to a separate dark tile provider (e.g. CARTO's dark_all) --
   // that keeps every OSM label/POI/road on screen (a dedicated dark basemap
