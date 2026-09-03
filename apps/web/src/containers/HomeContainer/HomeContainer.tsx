@@ -4,7 +4,6 @@ import { SearchContainer } from "@/containers/SearchContainer";
 import { NavigateSearchContainer } from "@/containers/NavigateSearchContainer";
 import { AnalysisContainer } from "@/containers/AnalysisContainer";
 import { MapContainerDynamic } from "@/containers/MapContainer";
-import { SettingsContainer } from "@/containers/SettingsContainer";
 import { useLocationStore } from "@/store";
 
 export function HomeContainer() {
@@ -34,18 +33,15 @@ export function HomeContainer() {
               : "flex flex-col h-full pointer-events-none max-w-md md:h-[75vh] md:gap-2 lg:h-full"
           }
         >
-          {/* Search bar — always at the top, with the Settings gear alongside it */}
+          {/* Search bar — always at the top */}
           <div
             className={
               hasActivePanel
-                ? "flex-shrink-0 flex items-start gap-2 p-4 pb-2 border-slate-200 md:border-r"
-                : "flex-shrink-0 relative z-20 pointer-events-auto flex items-start gap-2"
+                ? "flex-shrink-0 p-4 pb-2 border-slate-200 md:border-r"
+                : "flex-shrink-0 relative z-20 pointer-events-auto"
             }
           >
-            <div className="flex-1 min-w-0">
-              {isNavigating ? <NavigateSearchContainer /> : <SearchContainer />}
-            </div>
-            <SettingsContainer />
+            {isNavigating ? <NavigateSearchContainer /> : <SearchContainer />}
           </div>
 
           {/* Spacer — pushes the floating panel to the bottom on mobile before
