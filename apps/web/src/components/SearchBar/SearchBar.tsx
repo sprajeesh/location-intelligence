@@ -160,6 +160,7 @@ export function SearchBar({
             className="absolute right-3 p-1 text-slate-400 hover:text-slate-600 transition-colors duration-150 active:scale-[0.97] active:text-slate-700"
             aria-label="Clear search"
             type="button"
+            title="Close"
           >
             <X className="w-4 h-4" aria-hidden="true" />
           </button>
