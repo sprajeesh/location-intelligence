@@ -427,8 +427,10 @@ function MapContent() {
                 : routeMode === "cycling"
                   ? "rgb(var(--color-warning-500))"
                   : "rgb(var(--color-primary-500))",
-            weight: 12,
+            weight: routeMode === "walking" ? 6 : 12,
             opacity: 0.75,
+            dashArray: routeMode === "walking" ? "1, 15" : undefined,
+            lineCap: routeMode === "walking" ? "round" : undefined,
           }}
         />
       )}
