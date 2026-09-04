@@ -17,6 +17,18 @@ jest.mock('@/containers/MapContainer', () => ({
 jest.mock('@/containers/SettingsContainer', () => ({
   SettingsContainer: () => <div data-testid="settings-container-mock" />,
 }));
+jest.mock('@/components/PanelCollapseButton/PanelCollapseButton', () => ({
+  __esModule: true,
+  default: ({ isCollapsed, onToggle }: { isCollapsed: boolean; onToggle: () => void }) => (
+    <button
+      data-testid="panel-collapse-button"
+      data-collapsed={isCollapsed}
+      onClick={onToggle}
+    >
+      Toggle
+    </button>
+  ),
+}));
 
 import { useLocationStore } from '@/store';
 
@@ -27,19 +39,37 @@ const MOCK_ADDRESS = { displayName: '123 Main St, Auckland', lat: -36.85, lon: 1
 const makeStoreState = (overrides = {}) => ({
   selectedAddress: null,
   isNavigating: false,
+  isPanelCollapsed: false,
+  togglePanelCollapsed: jest.fn(),
   ...overrides,
 });
 
 // HomeContainer always renders exactly two top-level children under its
 // root: the search+results panel slot, then the map slot. Within the panel
-// slot, the search header row is always the first child of the inner flex
-// column.
+// slot, the first div with flex flex-col class is the inner content wrapper.
 const getSlots = (container: HTMLElement) => {
   const root = container.firstElementChild as HTMLElement;
   const panelWrapper = root.children[0] as HTMLElement;
+
+  // Find the inner flex div (skip the button which is a direct child of panelWrapper)
+  let innerFlexDiv: HTMLElement | null = null;
+  for (let i = 0; i < panelWrapper.children.length; i++) {
+    const child = panelWrapper.children[i] as HTMLElement;
+    // Look for a div with the flex flex-col classes - skip button elements
+    if (
+      child.tagName === 'DIV' &&
+      child.className &&
+      child.className.includes('flex') &&
+      child.className.includes('flex-col')
+    ) {
+      innerFlexDiv = child;
+      break;
+    }
+  }
+
   return {
     panelWrapper,
-    searchHeader: panelWrapper.children[0]!.children[0] as HTMLElement,
+    searchHeader: innerFlexDiv?.children[0] as HTMLElement,
     mapWrapper: root.children[1] as HTMLElement,
   };
 };
@@ -86,12 +116,11 @@ describe('HomeContainer', () => {
       expect(panelWrapper.className).toContain('md:w-[360px]');
     });
 
-    it('carries no border utilities itself -- the divider lives on the search header instead', () => {
+    it('has a right-edge border on the panel wrapper', () => {
       const { container } = render(<HomeContainer />);
       const { panelWrapper } = getSlots(container);
-      expect(panelWrapper.className).not.toContain('border-slate-200');
-      expect(panelWrapper.className).not.toContain('border-b');
-      expect(panelWrapper.className).not.toContain('border-r');
+      expect(panelWrapper.className).toContain('border-r');
+      expect(panelWrapper.className).toContain('border-slate-200');
     });
 
     it('puts a right-edge divider on the search header on md+, with no bottom border anywhere', () => {
@@ -136,6 +165,61 @@ describe('HomeContainer', () => {
       expect(after).toContain('flex-1');
       expect(after).toContain('min-w-0');
       expect(after).toContain('min-h-0');
+    });
+  });
+
+  describe('Panel collapse/expand', () => {
+    beforeEach(() => {
+      mockUseLocationStore.mockReturnValue(makeStoreState({ selectedAddress: MOCK_ADDRESS }));
+    });
+
+    it('renders the collapse button when a panel is active', () => {
+      render(<HomeContainer />);
+      expect(screen.getByTestId('panel-collapse-button')).toBeInTheDocument();
+    });
+
+    it('does not render the collapse button when no panel is active', () => {
+      mockUseLocationStore.mockReturnValue(makeStoreState());
+      render(<HomeContainer />);
+      expect(screen.queryByTestId('panel-collapse-button')).not.toBeInTheDocument();
+    });
+
+    it('shows the collapse button with expanded state', () => {
+      render(<HomeContainer />);
+      const button = screen.getByTestId('panel-collapse-button');
+      expect(button).toHaveAttribute('data-collapsed', 'false');
+    });
+
+    it('shows the collapse button with collapsed state', () => {
+      mockUseLocationStore.mockReturnValue(
+        makeStoreState({ selectedAddress: MOCK_ADDRESS, isPanelCollapsed: true })
+      );
+      render(<HomeContainer />);
+      const button = screen.getByTestId('panel-collapse-button');
+      expect(button).toHaveAttribute('data-collapsed', 'true');
+    });
+
+    it('adjusts panel width when collapsed on desktop', () => {
+      const togglePanelCollapsed = jest.fn();
+      mockUseLocationStore.mockReturnValue(
+        makeStoreState({
+          selectedAddress: MOCK_ADDRESS,
+          isPanelCollapsed: true,
+          togglePanelCollapsed,
+        })
+      );
+      const { container } = render(<HomeContainer />);
+      const { panelWrapper } = getSlots(container);
+      expect(panelWrapper.className).toContain('md:w-[60px]');
+    });
+
+    it('keeps full width when expanded on desktop', () => {
+      mockUseLocationStore.mockReturnValue(
+        makeStoreState({ selectedAddress: MOCK_ADDRESS, isPanelCollapsed: false })
+      );
+      const { container } = render(<HomeContainer />);
+      const { panelWrapper } = getSlots(container);
+      expect(panelWrapper.className).toContain('md:w-[360px]');
     });
   });
 });

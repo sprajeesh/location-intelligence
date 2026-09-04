@@ -64,6 +64,9 @@ export interface LocationIntelligenceStore {
   // toggles it (see THEME_STORAGE_KEY / the anti-flash script in layout.tsx)
   theme: Theme
 
+  // Results panel collapsed state -- persisted to control expand/collapse behavior
+  isPanelCollapsed: boolean
+
   // Actions
   setSelectedAddress: (address: AddressResult | null) => void
   setRadiusKm: (radius: number) => void
@@ -91,6 +94,8 @@ export interface LocationIntelligenceStore {
   setParcelFeature: (feature: ParcelFeature | null) => void
   setTheme: (theme: Theme) => void
   toggleTheme: () => void
+  setPanelCollapsed: (isCollapsed: boolean) => void
+  togglePanelCollapsed: () => void
 }
 
 export const useLocationStore = create<LocationIntelligenceStore>()(
@@ -121,6 +126,8 @@ export const useLocationStore = create<LocationIntelligenceStore>()(
   parcelFeature: null,
 
   theme: 'light' as Theme,
+
+  isPanelCollapsed: false,
 
   // Setters
   setSelectedAddress: (address) =>
@@ -229,10 +236,16 @@ export const useLocationStore = create<LocationIntelligenceStore>()(
     applyThemeClass(next)
     set({ theme: next })
   },
+
+  setPanelCollapsed: (isCollapsed) =>
+    set({ isPanelCollapsed: isCollapsed }),
+
+  togglePanelCollapsed: () =>
+    set((state) => ({ isPanelCollapsed: !state.isPanelCollapsed })),
     }),
     {
       name: THEME_STORAGE_KEY,
-      partialize: (state) => ({ theme: state.theme }),
+      partialize: (state) => ({ theme: state.theme, isPanelCollapsed: state.isPanelCollapsed }),
       onRehydrateStorage: () => (state) => {
         if (state) applyThemeClass(state.theme)
       },
