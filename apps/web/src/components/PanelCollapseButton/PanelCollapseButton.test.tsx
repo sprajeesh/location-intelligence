@@ -63,13 +63,13 @@ describe("PanelCollapseButton", () => {
     );
 
     const desktopButton = desktopContainer.querySelector("button");
-    expect(desktopButton).toHaveClass("fixed", "top-1/2", "rounded-full");
+    expect(desktopButton).toHaveClass("fixed", "top-1/2", "rounded-r-md");
 
     const { container: mobileContainer } = render(
       <PanelCollapseButton isCollapsed={false} onToggle={onToggle} isDesktop={false} />
     );
 
     const mobileButton = mobileContainer.querySelector("button");
-    expect(mobileButton).toHaveClass("absolute", "top-[60vh]", "left-1/2", "rounded-t-md");
+    expect(mobileButton).toHaveClass("absolute", "top-[60vh]", "left-1/2", "rounded-r-md");
   });
 });
