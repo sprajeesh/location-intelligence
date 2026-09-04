@@ -1,13 +1,32 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { SearchContainer } from "@/containers/SearchContainer";
 import { NavigateSearchContainer } from "@/containers/NavigateSearchContainer";
 import { AnalysisContainer } from "@/containers/AnalysisContainer";
 import { MapContainerDynamic } from "@/containers/MapContainer";
 import { useLocationStore } from "@/store";
+import PanelCollapseButton from "@/components/PanelCollapseButton/PanelCollapseButton";
 
 export function HomeContainer() {
-  const { isNavigating, selectedAddress } = useLocationStore();
+  const { isNavigating, selectedAddress, isPanelCollapsed, togglePanelCollapsed, setPanelCollapsed } =
+    useLocationStore();
+  const [isDesktop, setIsDesktop] = useState(false);
+
+  // Detect if we're on desktop (md breakpoint is 768px)
+  useEffect(() => {
+    const checkIsDesktop = () => setIsDesktop(window.innerWidth >= 768);
+    checkIsDesktop();
+    window.addEventListener("resize", checkIsDesktop);
+    return () => window.removeEventListener("resize", checkIsDesktop);
+  }, []);
+
+  // Expand panel when a new address is selected (don't collapse based on previous action)
+  useEffect(() => {
+    if (selectedAddress && isPanelCollapsed) {
+      setPanelCollapsed(false);
+    }
+  }, [selectedAddress?.lat, selectedAddress?.lon, setPanelCollapsed]);
 
   // Once an address is selected, the search+results column stops floating
   // over the map and becomes a real, pinned part of the layout (sidebar on
@@ -17,19 +36,34 @@ export function HomeContainer() {
   // gate both the results-panel and route-panel cases.
   const hasActivePanel = !!selectedAddress;
 
+  // Calculate panel width based on collapsed state
+  const getPanelWidth = () => {
+    if (!hasActivePanel) return undefined;
+    if (isPanelCollapsed) return undefined;
+    if (!isDesktop) return undefined;
+    return "md:w-[360px] lg:w-[400px] xl:w-[440px]";
+  };
+
+  const panelWidthClass = getPanelWidth();
+
   return (
+    <>
     <div className="absolute inset-0 flex flex-col md:flex-row">
+      {/* Panel container — shows only when expanded; hidden when collapsed */}
       <div
         className={
-          hasActivePanel
-            ? "relative z-10 flex-shrink-0 flex flex-col overflow-hidden bg-white h-[60vh] w-full md:h-full md:w-[360px] lg:w-[400px] xl:w-[440px]"
+          hasActivePanel && !isPanelCollapsed
+            ? `relative z-10 flex-shrink-0 flex flex-col overflow-visible bg-white h-[60vh] w-full md:h-full md:overflow-hidden ${panelWidthClass} transition-all duration-300 ease-in-out border-r border-slate-200`
+            : hasActivePanel && isPanelCollapsed
+            ? "hidden"
             : "absolute inset-0 z-10 p-4 pointer-events-none overflow-hidden"
         }
       >
+
         <div
           className={
             hasActivePanel
-              ? "flex flex-col h-full"
+              ? `flex flex-col h-full overflow-hidden ${isPanelCollapsed && isDesktop ? "opacity-0 invisible" : "opacity-100 visible"} transition-opacity duration-300`
               : "flex flex-col h-full pointer-events-none max-w-md md:h-[75vh] md:gap-2 lg:h-full"
           }
         >
@@ -60,6 +94,7 @@ export function HomeContainer() {
             <AnalysisContainer />
           </div>
         </div>
+
       </div>
 
       {/* Map — full-bleed before a panel is active (the panel above overlays
@@ -70,5 +105,17 @@ export function HomeContainer() {
         <MapContainerDynamic />
       </div>
     </div>
+
+    {/* Collapse button — positioned outside layout flow so it's always visible and clickable */}
+    {hasActivePanel && (
+      <div className="pointer-events-none fixed inset-0 z-20">
+        <PanelCollapseButton
+          isCollapsed={isPanelCollapsed}
+          onToggle={togglePanelCollapsed}
+          isDesktop={isDesktop}
+        />
+      </div>
+    )}
+    </>
   );
 }
