@@ -26,7 +26,7 @@ export function HomeContainer() {
     if (selectedAddress && isPanelCollapsed) {
       setPanelCollapsed(false);
     }
-  }, [selectedAddress?.lat, selectedAddress?.lon, isPanelCollapsed, setPanelCollapsed]);
+  }, [selectedAddress?.lat, selectedAddress?.lon, setPanelCollapsed]);
 
   // Once an address is selected, the search+results column stops floating
   // over the map and becomes a real, pinned part of the layout (sidebar on
