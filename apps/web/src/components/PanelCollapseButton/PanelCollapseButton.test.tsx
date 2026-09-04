@@ -9,7 +9,7 @@ describe("PanelCollapseButton", () => {
       <PanelCollapseButton isCollapsed={false} onToggle={onToggle} isDesktop />
     );
 
-    const button = screen.getByRole("button", { name: /close panel/i });
+    const button = screen.getByRole("button", { name: /collapse results panel/i });
     expect(button).toBeInTheDocument();
   });
 
@@ -19,7 +19,7 @@ describe("PanelCollapseButton", () => {
       <PanelCollapseButton isCollapsed={true} onToggle={onToggle} isDesktop />
     );
 
-    const button = screen.getByRole("button", { name: /open panel/i });
+    const button = screen.getByRole("button", { name: /expand results panel/i });
     expect(button).toBeInTheDocument();
   });
 
