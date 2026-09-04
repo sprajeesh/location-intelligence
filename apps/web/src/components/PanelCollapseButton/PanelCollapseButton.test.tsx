@@ -45,6 +45,6 @@ describe("PanelCollapseButton", () => {
     );
 
     const button = container.querySelector("button");
-    expect(button).toHaveClass("hidden", "md:flex", "fixed", "top-1/2", "rounded-r-md");
+    expect(button).toHaveClass("hidden", "md:flex", "fixed", "top-1/2", "rounded-r-lg");
   });
 });
