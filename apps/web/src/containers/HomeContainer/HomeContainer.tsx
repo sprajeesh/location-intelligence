@@ -32,8 +32,8 @@ export function HomeContainer() {
   // Calculate panel width based on collapsed state
   const getPanelWidth = () => {
     if (!hasActivePanel) return undefined;
+    if (isPanelCollapsed) return undefined;
     if (!isDesktop) return undefined;
-    if (isPanelCollapsed) return "md:w-[60px] lg:w-[60px] xl:w-[60px]";
     return "md:w-[360px] lg:w-[400px] xl:w-[440px]";
   };
 
@@ -41,13 +41,13 @@ export function HomeContainer() {
 
   return (
     <div className="absolute inset-0 flex flex-col md:flex-row">
-      {/* Panel container — desktop: sidebar; mobile: floating bottom sheet or hidden */}
+      {/* Panel container — shows only when expanded; hidden when collapsed */}
       <div
         className={
-          hasActivePanel && (!isPanelCollapsed || isDesktop)
+          hasActivePanel && !isPanelCollapsed
             ? `relative z-10 flex-shrink-0 flex flex-col overflow-visible bg-white h-[60vh] w-full md:h-full md:overflow-hidden ${panelWidthClass} transition-all duration-300 ease-in-out border-r border-slate-200`
-            : hasActivePanel && isPanelCollapsed && !isDesktop
-            ? "hidden md:relative md:z-10 md:flex-shrink-0 md:flex md:flex-col md:overflow-hidden md:bg-white md:h-full md:border-r md:border-slate-200"
+            : hasActivePanel && isPanelCollapsed
+            ? "hidden"
             : "absolute inset-0 z-10 p-4 pointer-events-none overflow-hidden"
         }
       >

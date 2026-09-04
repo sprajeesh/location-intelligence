@@ -199,7 +199,7 @@ describe('HomeContainer', () => {
       expect(button).toHaveAttribute('data-collapsed', 'true');
     });
 
-    it('adjusts panel width when collapsed on desktop', () => {
+    it('hides panel when collapsed on desktop', () => {
       const togglePanelCollapsed = jest.fn();
       mockUseLocationStore.mockReturnValue(
         makeStoreState({
@@ -209,11 +209,12 @@ describe('HomeContainer', () => {
         })
       );
       const { container } = render(<HomeContainer />);
-      const { panelWrapper } = getSlots(container);
-      expect(panelWrapper.className).toContain('md:w-[60px]');
+      const root = container.firstElementChild as HTMLElement;
+      const panelWrapper = root.children[0] as HTMLElement;
+      expect(panelWrapper.className).toContain('hidden');
     });
 
-    it('keeps full width when expanded on desktop', () => {
+    it('shows full width panel when expanded on desktop', () => {
       mockUseLocationStore.mockReturnValue(
         makeStoreState({ selectedAddress: MOCK_ADDRESS, isPanelCollapsed: false })
       );

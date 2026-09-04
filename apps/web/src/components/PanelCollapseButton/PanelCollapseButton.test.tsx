@@ -3,23 +3,23 @@ import userEvent from "@testing-library/user-event";
 import { PanelCollapseButton } from "./PanelCollapseButton";
 
 describe("PanelCollapseButton", () => {
-  it("renders collapse button when panel is expanded on desktop", () => {
+  it("renders close button when panel is expanded on desktop", () => {
     const onToggle = jest.fn();
     render(
       <PanelCollapseButton isCollapsed={false} onToggle={onToggle} isDesktop />
     );
 
-    const button = screen.getByRole("button", { name: /collapse panel/i });
+    const button = screen.getByRole("button", { name: /close panel/i });
     expect(button).toBeInTheDocument();
   });
 
-  it("renders expand button when panel is collapsed on desktop", () => {
+  it("renders open button when panel is collapsed on desktop", () => {
     const onToggle = jest.fn();
     render(
       <PanelCollapseButton isCollapsed={true} onToggle={onToggle} isDesktop />
     );
 
-    const button = screen.getByRole("button", { name: /expand panel/i });
+    const button = screen.getByRole("button", { name: /open panel/i });
     expect(button).toBeInTheDocument();
   });
 
@@ -63,13 +63,13 @@ describe("PanelCollapseButton", () => {
     );
 
     const desktopButton = desktopContainer.querySelector("button");
-    expect(desktopButton).toHaveClass("right-0", "top-1/2");
+    expect(desktopButton).toHaveClass("right-0", "top-1/2", "rounded-full");
 
     const { container: mobileContainer } = render(
       <PanelCollapseButton isCollapsed={false} onToggle={onToggle} isDesktop={false} />
     );
 
     const mobileButton = mobileContainer.querySelector("button");
-    expect(mobileButton).toHaveClass("absolute", "bottom-0", "left-1/2");
+    expect(mobileButton).toHaveClass("absolute", "bottom-0", "left-1/2", "rounded-t-md");
   });
 });

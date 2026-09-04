@@ -16,18 +16,18 @@ export function PanelCollapseButton({
   const isExpanded = !isCollapsed;
 
   if (isDesktop) {
-    // Desktop: button at right edge, center vertically
+    // Desktop: larger button that pokes out from right edge, center vertically
     return (
       <button
         onClick={onToggle}
-        className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 z-30 w-6 h-12 bg-white border border-slate-200 rounded-r-md flex items-center justify-center hover:bg-slate-50 transition-colors shadow-sm hover:shadow-md group pointer-events-auto"
-        aria-label={isExpanded ? "Collapse panel" : "Expand panel"}
-        title={isExpanded ? "Collapse panel" : "Expand panel"}
+        className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-3/4 z-30 w-10 h-14 bg-white border-2 border-slate-300 rounded-full flex items-center justify-center hover:bg-blue-50 hover:border-blue-400 transition-all duration-200 shadow-md hover:shadow-lg group pointer-events-auto hover:scale-110"
+        aria-label={isExpanded ? "Close panel" : "Open panel"}
+        title={isExpanded ? "Close panel" : "Open panel"}
       >
         {isExpanded ? (
-          <ChevronLeft className="w-4 h-4 text-slate-600 group-hover:text-slate-900" />
+          <ChevronLeft className="w-6 h-6 text-slate-700 group-hover:text-blue-600" />
         ) : (
-          <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-slate-900" />
+          <ChevronRight className="w-6 h-6 text-slate-700 group-hover:text-blue-600" />
         )}
       </button>
     );
