@@ -9,7 +9,7 @@ import { useLocationStore } from "@/store";
 import PanelCollapseButton from "@/components/PanelCollapseButton/PanelCollapseButton";
 
 export function HomeContainer() {
-  const { isNavigating, selectedAddress, isPanelCollapsed, togglePanelCollapsed } =
+  const { isNavigating, selectedAddress, isPanelCollapsed, togglePanelCollapsed, setPanelCollapsed } =
     useLocationStore();
   const [isDesktop, setIsDesktop] = useState(false);
 
@@ -20,6 +20,13 @@ export function HomeContainer() {
     window.addEventListener("resize", checkIsDesktop);
     return () => window.removeEventListener("resize", checkIsDesktop);
   }, []);
+
+  // Expand panel when a new address is selected (don't collapse based on previous action)
+  useEffect(() => {
+    if (selectedAddress && isPanelCollapsed) {
+      setPanelCollapsed(false);
+    }
+  }, [selectedAddress?.lat, selectedAddress?.lon, isPanelCollapsed, setPanelCollapsed]);
 
   // Once an address is selected, the search+results column stops floating
   // over the map and becomes a real, pinned part of the layout (sidebar on

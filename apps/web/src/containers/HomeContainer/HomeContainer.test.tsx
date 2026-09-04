@@ -41,6 +41,7 @@ const makeStoreState = (overrides = {}) => ({
   isNavigating: false,
   isPanelCollapsed: false,
   togglePanelCollapsed: jest.fn(),
+  setPanelCollapsed: jest.fn(),
   ...overrides,
 });
 
