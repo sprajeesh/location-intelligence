@@ -45,7 +45,7 @@ export function HomeContainer() {
       <div
         className={
           hasActivePanel
-            ? `relative z-10 flex-shrink-0 flex flex-col overflow-hidden bg-white h-[60vh] w-full md:h-full ${panelWidthClass} transition-all duration-300 ease-in-out border-r border-slate-200`
+            ? `relative z-10 flex-shrink-0 flex flex-col overflow-visible bg-white h-[60vh] w-full md:h-full md:overflow-hidden ${panelWidthClass} transition-all duration-300 ease-in-out border-r border-slate-200`
             : "absolute inset-0 z-10 p-4 pointer-events-none overflow-hidden"
         }
       >

@@ -19,7 +19,7 @@ export function PanelCollapseButton({
     return (
       <button
         onClick={onToggle}
-        className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 z-20 w-6 h-12 bg-white border border-slate-200 rounded-r-md flex items-center justify-center hover:bg-slate-50 transition-colors shadow-sm hover:shadow-md group"
+        className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 z-30 w-6 h-12 bg-white border border-slate-200 rounded-r-md flex items-center justify-center hover:bg-slate-50 transition-colors shadow-sm hover:shadow-md group pointer-events-auto"
         aria-label={isExpanded ? "Collapse panel" : "Expand panel"}
         title={isExpanded ? "Collapse panel" : "Expand panel"}
       >
@@ -35,7 +35,7 @@ export function PanelCollapseButton({
   return (
     <button
       onClick={onToggle}
-      className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 w-12 h-6 bg-white border border-slate-200 rounded-t-md flex items-center justify-center hover:bg-slate-50 transition-colors shadow-sm hover:shadow-md group"
+      className="fixed bottom-[calc(60vh-12px)] left-1/2 -translate-x-1/2 z-30 w-12 h-6 bg-white border border-slate-200 rounded-t-md flex items-center justify-center hover:bg-slate-50 transition-colors shadow-sm hover:shadow-md group pointer-events-auto md:absolute md:bottom-auto md:top-0 md:-translate-y-1/2"
       aria-label={isExpanded ? "Collapse panel" : "Expand panel"}
       title={isExpanded ? "Collapse panel" : "Expand panel"}
     >

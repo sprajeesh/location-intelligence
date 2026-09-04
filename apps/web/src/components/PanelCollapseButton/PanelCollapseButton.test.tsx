@@ -70,6 +70,6 @@ describe("PanelCollapseButton", () => {
     );
 
     const mobileButton = mobileContainer.querySelector("button");
-    expect(mobileButton).toHaveClass("top-0", "left-1/2");
+    expect(mobileButton).toHaveClass("fixed", "left-1/2");
   });
 });
