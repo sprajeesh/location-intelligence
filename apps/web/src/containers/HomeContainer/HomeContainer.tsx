@@ -41,11 +41,13 @@ export function HomeContainer() {
 
   return (
     <div className="absolute inset-0 flex flex-col md:flex-row">
-      {/* Panel container — desktop: sidebar; mobile: floating bottom sheet or collapsed peek */}
+      {/* Panel container — desktop: sidebar; mobile: floating bottom sheet or hidden */}
       <div
         className={
-          hasActivePanel
+          hasActivePanel && (!isPanelCollapsed || isDesktop)
             ? `relative z-10 flex-shrink-0 flex flex-col overflow-visible bg-white h-[60vh] w-full md:h-full md:overflow-hidden ${panelWidthClass} transition-all duration-300 ease-in-out border-r border-slate-200`
+            : hasActivePanel && isPanelCollapsed && !isDesktop
+            ? "hidden md:relative md:z-10 md:flex-shrink-0 md:flex md:flex-col md:overflow-hidden md:bg-white md:h-full md:border-r md:border-slate-200"
             : "absolute inset-0 z-10 p-4 pointer-events-none overflow-hidden"
         }
       >
@@ -93,14 +95,6 @@ export function HomeContainer() {
           </div>
         </div>
 
-        {/* Mobile collapsed peek indicator — only shown on mobile when collapsed */}
-        {hasActivePanel &&
-          isPanelCollapsed &&
-          !isDesktop && (
-            <div className="flex-shrink-0 h-12 border-t border-slate-200 flex items-center justify-center pointer-events-auto">
-              <div className="w-10 h-1 bg-slate-300 rounded-full" />
-            </div>
-          )}
       </div>
 
       {/* Map — full-bleed before a panel is active (the panel above overlays

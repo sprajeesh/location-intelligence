@@ -23,23 +23,23 @@ describe("PanelCollapseButton", () => {
     expect(button).toBeInTheDocument();
   });
 
-  it("renders collapse button when panel is expanded on mobile", () => {
+  it("renders close button when panel is expanded on mobile", () => {
     const onToggle = jest.fn();
     render(
       <PanelCollapseButton isCollapsed={false} onToggle={onToggle} isDesktop={false} />
     );
 
-    const button = screen.getByRole("button", { name: /collapse panel/i });
+    const button = screen.getByRole("button", { name: /close panel/i });
     expect(button).toBeInTheDocument();
   });
 
-  it("renders expand button when panel is collapsed on mobile", () => {
+  it("renders open button when panel is collapsed on mobile", () => {
     const onToggle = jest.fn();
     render(
       <PanelCollapseButton isCollapsed={true} onToggle={onToggle} isDesktop={false} />
     );
 
-    const button = screen.getByRole("button", { name: /expand panel/i });
+    const button = screen.getByRole("button", { name: /open panel/i });
     expect(button).toBeInTheDocument();
   });
 
@@ -70,6 +70,6 @@ describe("PanelCollapseButton", () => {
     );
 
     const mobileButton = mobileContainer.querySelector("button");
-    expect(mobileButton).toHaveClass("fixed", "left-1/2");
+    expect(mobileButton).toHaveClass("absolute", "bottom-0", "left-1/2");
   });
 });

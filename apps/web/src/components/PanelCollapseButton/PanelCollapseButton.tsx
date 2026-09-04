@@ -16,6 +16,7 @@ export function PanelCollapseButton({
   const isExpanded = !isCollapsed;
 
   if (isDesktop) {
+    // Desktop: button at right edge, center vertically
     return (
       <button
         onClick={onToggle}
@@ -32,12 +33,13 @@ export function PanelCollapseButton({
     );
   }
 
+  // Mobile: button at bottom end of panel, inside the panel container
   return (
     <button
       onClick={onToggle}
-      className="fixed bottom-[calc(60vh-12px)] left-1/2 -translate-x-1/2 z-30 w-12 h-6 bg-white border border-slate-200 rounded-t-md flex items-center justify-center hover:bg-slate-50 transition-colors shadow-sm hover:shadow-md group pointer-events-auto md:absolute md:bottom-auto md:top-0 md:-translate-y-1/2"
-      aria-label={isExpanded ? "Collapse panel" : "Expand panel"}
-      title={isExpanded ? "Collapse panel" : "Expand panel"}
+      className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 z-30 w-12 h-6 bg-white border border-slate-200 rounded-t-md flex items-center justify-center hover:bg-slate-50 transition-colors shadow-sm hover:shadow-md group pointer-events-auto"
+      aria-label={isExpanded ? "Close panel" : "Open panel"}
+      title={isExpanded ? "Close panel" : "Open panel"}
     >
       {isExpanded ? (
         <ChevronLeft className="w-4 h-4 text-slate-600 group-hover:text-slate-900 rotate-90" />
