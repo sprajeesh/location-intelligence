@@ -11,6 +11,7 @@ describe("PanelCollapseButton", () => {
 
     const button = screen.getByRole("button", { name: /collapse results panel/i });
     expect(button).toBeInTheDocument();
+    expect(button).toHaveAttribute("aria-expanded", "true");
   });
 
   it("renders open button when panel is collapsed on desktop", () => {
@@ -21,6 +22,7 @@ describe("PanelCollapseButton", () => {
 
     const button = screen.getByRole("button", { name: /expand results panel/i });
     expect(button).toBeInTheDocument();
+    expect(button).toHaveAttribute("aria-expanded", "false");
   });
 
   it("renders close button when panel is expanded on mobile", () => {
@@ -31,6 +33,7 @@ describe("PanelCollapseButton", () => {
 
     const button = screen.getByRole("button", { name: /close panel/i });
     expect(button).toBeInTheDocument();
+    expect(button).toHaveAttribute("aria-expanded", "true");
   });
 
   it("renders open button when panel is collapsed on mobile", () => {
@@ -41,6 +44,7 @@ describe("PanelCollapseButton", () => {
 
     const button = screen.getByRole("button", { name: /open panel/i });
     expect(button).toBeInTheDocument();
+    expect(button).toHaveAttribute("aria-expanded", "false");
   });
 
   it("calls onToggle when clicked", async () => {
