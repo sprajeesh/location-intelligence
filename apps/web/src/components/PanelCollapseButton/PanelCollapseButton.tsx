@@ -17,10 +17,10 @@ export function PanelCollapseButton({
 
   if (isDesktop) {
     // Desktop: button position depends on panel state
-    // When expanded: pokes out from panel edge; when collapsed: moves to top-left corner
+    // When expanded: pokes out from panel edge; when collapsed: moves to center of screen
     const positionClass = isExpanded
       ? "top-1/2 -translate-y-1/2 md:left-[calc(360px-5px)] lg:left-[calc(400px-5px)] xl:left-[calc(440px-5px)]"
-      : "top-4 left-4";
+      : "top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2";
 
     return (
       <button
@@ -39,10 +39,10 @@ export function PanelCollapseButton({
   }
 
   // Mobile: button position depends on panel state
-  // When expanded: at panel's bottom edge; when collapsed: moves to bottom-left corner
+  // When expanded: at panel's bottom edge; when collapsed: moves to center of screen
   const positionClass = isExpanded
     ? "top-[60vh] left-1/2 -translate-x-1/2 -translate-y-1/2"
-    : "bottom-4 left-4 -translate-x-0 -translate-y-0";
+    : "top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2";
 
   return (
     <button
