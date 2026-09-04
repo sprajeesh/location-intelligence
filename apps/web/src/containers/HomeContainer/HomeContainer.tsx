@@ -108,7 +108,7 @@ export function HomeContainer() {
 
     {/* Collapse button — positioned outside layout flow so it's always visible and clickable */}
     {hasActivePanel && (
-      <div className="pointer-events-none fixed inset-0">
+      <div className="pointer-events-none fixed inset-0 z-20">
         <PanelCollapseButton
           isCollapsed={isPanelCollapsed}
           onToggle={togglePanelCollapsed}

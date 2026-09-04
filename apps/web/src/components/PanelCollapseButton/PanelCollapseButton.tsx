@@ -33,11 +33,11 @@ export function PanelCollapseButton({
     );
   }
 
-  // Mobile: button at bottom end of panel, inside the panel container
+  // Mobile: button at bottom end of panel (60vh from top)
   return (
     <button
       onClick={onToggle}
-      className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 z-30 w-12 h-6 bg-white border border-slate-200 rounded-t-md flex items-center justify-center hover:bg-slate-50 transition-colors shadow-sm hover:shadow-md group pointer-events-auto"
+      className="absolute top-[60vh] left-1/2 -translate-x-1/2 -translate-y-1/2 z-30 w-12 h-6 bg-white border border-slate-200 rounded-t-md flex items-center justify-center hover:bg-slate-50 transition-colors shadow-sm hover:shadow-md group pointer-events-auto"
       aria-label={isExpanded ? "Close panel" : "Open panel"}
       title={isExpanded ? "Close panel" : "Open panel"}
     >
