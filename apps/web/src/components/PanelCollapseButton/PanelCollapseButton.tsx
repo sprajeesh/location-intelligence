@@ -20,7 +20,7 @@ export function PanelCollapseButton({
     return (
       <button
         onClick={onToggle}
-        className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-3/4 z-30 w-10 h-14 bg-white border-2 border-slate-300 rounded-full flex items-center justify-center hover:bg-blue-50 hover:border-blue-400 transition-all duration-200 shadow-md hover:shadow-lg group pointer-events-auto hover:scale-110"
+        className="fixed top-1/2 -translate-y-1/2 z-50 w-10 h-14 bg-white border-2 border-slate-300 rounded-full flex items-center justify-center hover:bg-blue-50 hover:border-blue-400 transition-all duration-200 shadow-md hover:shadow-lg group pointer-events-auto hover:scale-110 md:left-[calc(360px-5px)] lg:left-[calc(400px-5px)] xl:left-[calc(440px-5px)]"
         aria-label={isExpanded ? "Close panel" : "Open panel"}
         title={isExpanded ? "Close panel" : "Open panel"}
       >

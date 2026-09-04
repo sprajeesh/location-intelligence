@@ -63,7 +63,7 @@ describe("PanelCollapseButton", () => {
     );
 
     const desktopButton = desktopContainer.querySelector("button");
-    expect(desktopButton).toHaveClass("right-0", "top-1/2", "rounded-full");
+    expect(desktopButton).toHaveClass("fixed", "top-1/2", "rounded-full");
 
     const { container: mobileContainer } = render(
       <PanelCollapseButton isCollapsed={false} onToggle={onToggle} isDesktop={false} />

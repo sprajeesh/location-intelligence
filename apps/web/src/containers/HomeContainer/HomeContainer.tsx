@@ -47,6 +47,7 @@ export function HomeContainer() {
   const panelWidthClass = getPanelWidth();
 
   return (
+    <>
     <div className="absolute inset-0 flex flex-col md:flex-row">
       {/* Panel container — shows only when expanded; hidden when collapsed */}
       <div
@@ -58,14 +59,6 @@ export function HomeContainer() {
             : "absolute inset-0 z-10 p-4 pointer-events-none overflow-hidden"
         }
       >
-        {/* Collapse button — positioned at panel edge */}
-        {hasActivePanel && (
-          <PanelCollapseButton
-            isCollapsed={isPanelCollapsed}
-            onToggle={togglePanelCollapsed}
-            isDesktop={isDesktop}
-          />
-        )}
 
         <div
           className={
@@ -112,5 +105,17 @@ export function HomeContainer() {
         <MapContainerDynamic />
       </div>
     </div>
+
+    {/* Collapse button — positioned outside layout flow so it's always visible and clickable */}
+    {hasActivePanel && (
+      <div className="pointer-events-none fixed inset-0">
+        <PanelCollapseButton
+          isCollapsed={isPanelCollapsed}
+          onToggle={togglePanelCollapsed}
+          isDesktop={isDesktop}
+        />
+      </div>
+    )}
+    </>
   );
 }
