@@ -16,11 +16,16 @@ export function PanelCollapseButton({
   const isExpanded = !isCollapsed;
 
   if (isDesktop) {
-    // Desktop: larger button that pokes out from right edge, center vertically
+    // Desktop: button position depends on panel state
+    // When expanded: pokes out from panel edge; when collapsed: moves to top-left corner
+    const positionClass = isExpanded
+      ? "top-1/2 -translate-y-1/2 md:left-[calc(360px-5px)] lg:left-[calc(400px-5px)] xl:left-[calc(440px-5px)]"
+      : "top-4 left-4";
+
     return (
       <button
         onClick={onToggle}
-        className="fixed top-1/2 -translate-y-1/2 z-50 w-10 h-14 bg-white border-2 border-slate-300 rounded-full flex items-center justify-center hover:bg-blue-50 hover:border-blue-400 transition-all duration-200 shadow-md hover:shadow-lg group pointer-events-auto hover:scale-110 md:left-[calc(360px-5px)] lg:left-[calc(400px-5px)] xl:left-[calc(440px-5px)]"
+        className={`fixed z-50 w-10 h-14 bg-white border-2 border-slate-300 rounded-full flex items-center justify-center hover:bg-blue-50 hover:border-blue-400 transition-all duration-200 shadow-md hover:shadow-lg group pointer-events-auto hover:scale-110 ${positionClass}`}
         aria-label={isExpanded ? "Close panel" : "Open panel"}
         title={isExpanded ? "Close panel" : "Open panel"}
       >
@@ -33,11 +38,16 @@ export function PanelCollapseButton({
     );
   }
 
-  // Mobile: button at bottom end of panel (60vh from top)
+  // Mobile: button position depends on panel state
+  // When expanded: at panel's bottom edge; when collapsed: moves to bottom-left corner
+  const positionClass = isExpanded
+    ? "top-[60vh] left-1/2 -translate-x-1/2 -translate-y-1/2"
+    : "bottom-4 left-4 -translate-x-0 -translate-y-0";
+
   return (
     <button
       onClick={onToggle}
-      className="absolute top-[60vh] left-1/2 -translate-x-1/2 -translate-y-1/2 z-30 w-12 h-6 bg-white border border-slate-200 rounded-t-md flex items-center justify-center hover:bg-slate-50 transition-colors shadow-sm hover:shadow-md group pointer-events-auto"
+      className={`absolute z-30 w-12 h-6 bg-white border border-slate-200 rounded-t-md flex items-center justify-center hover:bg-slate-50 transition-all duration-200 shadow-sm hover:shadow-md group pointer-events-auto ${positionClass}`}
       aria-label={isExpanded ? "Close panel" : "Open panel"}
       title={isExpanded ? "Close panel" : "Open panel"}
     >
