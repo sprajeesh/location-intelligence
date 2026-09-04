@@ -112,7 +112,6 @@ export function HomeContainer() {
         <PanelCollapseButton
           isCollapsed={isPanelCollapsed}
           onToggle={togglePanelCollapsed}
-          isDesktop={isDesktop}
         />
       </div>
     )}
