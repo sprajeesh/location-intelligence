@@ -2,9 +2,14 @@ import { render, screen, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MapToolbarContainer } from './MapToolbarContainer';
 import { useLocationStore } from '@/store';
+import * as useIsDesktopModule from '@/hooks/useIsDesktop';
 
 jest.mock('react-leaflet', () => ({
   useMap: jest.fn(),
+}));
+
+jest.mock('@/hooks/useIsDesktop', () => ({
+  useIsDesktop: jest.fn(() => true),
 }));
 
 const mockMap = {
@@ -37,10 +42,18 @@ describe('MapToolbarContainer', () => {
       expect(screen.getByRole('toolbar', { name: 'Map controls' })).toBeInTheDocument();
     });
 
-    it('renders zoom in and zoom out buttons', () => {
+    it('renders zoom in and zoom out buttons on desktop', () => {
+      jest.spyOn(useIsDesktopModule, 'useIsDesktop').mockReturnValue(true);
       render(<MapToolbarContainer {...defaultProps} />);
       expect(screen.getByRole('button', { name: 'Zoom in' })).toBeInTheDocument();
       expect(screen.getByRole('button', { name: 'Zoom out' })).toBeInTheDocument();
+    });
+
+    it('hides zoom in and zoom out buttons on mobile', () => {
+      jest.spyOn(useIsDesktopModule, 'useIsDesktop').mockReturnValue(false);
+      render(<MapToolbarContainer {...defaultProps} />);
+      expect(screen.queryByRole('button', { name: 'Zoom in' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Zoom out' })).not.toBeInTheDocument();
     });
 
     it('renders zoom to features button', () => {
@@ -58,14 +71,26 @@ describe('MapToolbarContainer', () => {
       expect(screen.getByRole('button', { name: 'Map layers' })).toBeInTheDocument();
     });
 
-    it('renders separators between button groups', () => {
+    it('renders separators between button groups on desktop', () => {
+      jest.spyOn(useIsDesktopModule, 'useIsDesktop').mockReturnValue(true);
       const { container } = render(<MapToolbarContainer {...defaultProps} />);
       const separators = container.querySelectorAll('[role="separator"]');
       expect(separators).toHaveLength(3);
     });
+
+    it('renders fewer separators on mobile due to hidden zoom buttons', () => {
+      jest.spyOn(useIsDesktopModule, 'useIsDesktop').mockReturnValue(false);
+      const { container } = render(<MapToolbarContainer {...defaultProps} />);
+      const separators = container.querySelectorAll('[role="separator"]');
+      expect(separators).toHaveLength(2);
+    });
   });
 
   describe('Zoom controls', () => {
+    beforeEach(() => {
+      jest.spyOn(useIsDesktopModule, 'useIsDesktop').mockReturnValue(true);
+    });
+
     it('calls map.zoomIn when zoom in is clicked', async () => {
       const user = userEvent.setup();
       render(<MapToolbarContainer {...defaultProps} />);

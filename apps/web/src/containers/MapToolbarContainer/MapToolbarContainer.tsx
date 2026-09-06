@@ -4,6 +4,7 @@ import React, { useCallback, useState } from "react";
 import { useMap } from "react-leaflet";
 import { Plus, Minus, Crosshair, Navigation, TriangleAlert } from "lucide-react";
 import { useLocationStore } from "@/store/index";
+import { useIsDesktop } from "@/hooks/useIsDesktop";
 import { ToolbarButton } from "@/components/ToolbarButton";
 import { LayerSelector, type MapLayerId } from "@/components/LayerSelector";
 import { SurfacePanel } from "@/components/ui/SurfacePanel";
@@ -47,6 +48,7 @@ export function MapToolbarContainer({
 }: MapToolbarContainerProps) {
   const map = useMap();
   const [isLocating, setIsLocating] = useState(false);
+  const isDesktop = useIsDesktop();
 
   const selectedAddress = useLocationStore((s) => s.selectedAddress);
   const analysisResult = useLocationStore((s) => s.analysisResult);
@@ -126,10 +128,14 @@ export function MapToolbarContainer({
       onMouseDown={(e) => e.stopPropagation()}
       onTouchStart={(e) => e.stopPropagation()}
     >
-      <ToolbarButton icon={Plus} label="Zoom in" onClick={handleZoomIn} />
-      <ToolbarButton icon={Minus} label="Zoom out" onClick={handleZoomOut} />
+      {isDesktop && (
+        <>
+          <ToolbarButton icon={Plus} label="Zoom in" onClick={handleZoomIn} />
+          <ToolbarButton icon={Minus} label="Zoom out" onClick={handleZoomOut} />
 
-      <div className="w-5 h-px bg-slate-200 my-0.5" role="separator" />
+          <div className="w-5 h-px bg-slate-200 my-0.5" role="separator" />
+        </>
+      )}
 
       <ToolbarButton
         icon={Crosshair}
