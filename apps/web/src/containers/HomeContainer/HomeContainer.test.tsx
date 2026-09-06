@@ -113,7 +113,7 @@ describe('HomeContainer', () => {
       const { panelWrapper } = getSlots(container);
       expect(panelWrapper.className).not.toContain('pointer-events-none');
       expect(panelWrapper.className).not.toContain('absolute inset-0');
-      expect(panelWrapper.className).toContain('h-[60vh]');
+      expect(panelWrapper.className).toContain('h-full');
       expect(panelWrapper.className).toContain('md:w-[360px]');
     });
 
@@ -124,12 +124,13 @@ describe('HomeContainer', () => {
       expect(panelWrapper.className).toContain('border-slate-200');
     });
 
-    it('puts a right-edge divider on the search header on md+, with no bottom border anywhere', () => {
+    it('puts a bottom border on mobile and right-edge divider on md+', () => {
       const { container } = render(<HomeContainer />);
       const { searchHeader } = getSlots(container);
       expect(searchHeader.className).toContain('border-slate-200');
+      expect(searchHeader.className).toContain('border-b');
       expect(searchHeader.className).toContain('md:border-r');
-      expect(searchHeader.className).not.toContain('border-b');
+      expect(searchHeader.className).toContain('md:border-b-0');
     });
 
     it('still renders SearchContainer at the top of the panel when not navigating', () => {
