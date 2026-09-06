@@ -1,28 +1,21 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { SearchContainer } from "@/containers/SearchContainer";
 import { NavigateSearchContainer } from "@/containers/NavigateSearchContainer";
 import { AnalysisContainer } from "@/containers/AnalysisContainer";
 import { MapContainerDynamic } from "@/containers/MapContainer";
 import { useLocationStore } from "@/store";
 import { useAddressSearch } from "@/hooks/useAddressSearch";
+import { useIsDesktop } from "@/hooks/useIsDesktop";
 import PanelCollapseButton from "@/components/PanelCollapseButton/PanelCollapseButton";
 import { Map, BarChart3 } from "lucide-react";
 
 export function HomeContainer() {
   const { isNavigating, selectedAddress, isPanelCollapsed, togglePanelCollapsed, setPanelCollapsed, isMapViewOnMobile, setIsMapViewOnMobile } =
     useLocationStore();
-  const [isDesktop, setIsDesktop] = useState(false);
+  const isDesktop = useIsDesktop();
   const addressSearch = useAddressSearch();
-
-  // Detect if we're on desktop (md breakpoint is 768px)
-  useEffect(() => {
-    const checkIsDesktop = () => setIsDesktop(window.innerWidth >= 768);
-    checkIsDesktop();
-    window.addEventListener("resize", checkIsDesktop);
-    return () => window.removeEventListener("resize", checkIsDesktop);
-  }, []);
 
   // Expand panel when a new address is selected (don't collapse based on previous action)
   useEffect(() => {
