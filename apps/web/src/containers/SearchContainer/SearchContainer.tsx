@@ -12,7 +12,7 @@ import type { AddressResult } from "@/types/api";
 
 export function SearchContainer() {
   const { query, setQuery, suggestions, isLoading, error } = useAddressSearch();
-  const { selectedAddress, setSelectedAddress, setRadiusKm, distanceMode } =
+  const { selectedAddress, setSelectedAddress, setRadiusKm, distanceMode, setIsMapViewOnMobile } =
     useLocationStore();
 
   const seeded = useRef(false);
@@ -37,6 +37,7 @@ export function SearchContainer() {
       setSelectedAddress(address);
       setQuery(address.displayName);
       setRadiusKm(DEFAULT_RADIUS_KM);
+      setIsMapViewOnMobile(false);
       analyze({
         address: address.displayName,
         lat: address.lat,
@@ -51,6 +52,7 @@ export function SearchContainer() {
       setSelectedAddress,
       setQuery,
       setRadiusKm,
+      setIsMapViewOnMobile,
       analyze,
       distanceMode,
       analyzeCategories,
