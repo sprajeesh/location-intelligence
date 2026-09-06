@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.7.0](https://github.com/sprajeesh/location-intelligence/compare/web@v0.6.0...web@v0.7.0) (2026-09-06)
+
+
+### Features
+
+* **web:** Add collapsible results panel with responsive positioning ([#156](https://github.com/sprajeesh/location-intelligence/issues/156)) ([f97a20a](https://github.com/sprajeesh/location-intelligence/commit/f97a20a44e0a14a19353ef4697c5e28be29be216))
+* **web:** Hide zoom buttons on mobile screens ([#160](https://github.com/sprajeesh/location-intelligence/issues/160)) ([86fddb5](https://github.com/sprajeesh/location-intelligence/commit/86fddb5223a881125786118085b333c0b3599170))
+* **web:** Remove mobile-specific code from PanelCollapseButton ([#157](https://github.com/sprajeesh/location-intelligence/issues/157)) ([e6aa0fc](https://github.com/sprajeesh/location-intelligence/commit/e6aa0fc75dcd41fc388de1cc39b431ce0c468235))
+* **web:** responsive results panel layout in mobile screen ([#159](https://github.com/sprajeesh/location-intelligence/issues/159)) ([b26c841](https://github.com/sprajeesh/location-intelligence/commit/b26c84181f89701c59b69774fef7bfa0dadafda6))
+
 ## [0.6.0](https://github.com/sprajeesh/location-intelligence/compare/web@v0.5.0...web@v0.6.0) (2026-09-03)
 
 
