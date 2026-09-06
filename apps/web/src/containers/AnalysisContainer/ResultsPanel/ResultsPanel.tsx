@@ -68,6 +68,7 @@ export default function ResultsPanel({
     setRadiusKm,
     setAnalysisResult,
     clearVisibleCategories,
+    setIsMapViewOnMobile,
   } = useLocationStore();
 
   const { mutate: analyze } = useAnalyze();
@@ -149,9 +150,15 @@ export default function ResultsPanel({
   const handleToggleVisibility = useCallback(
     (categoryId: string, e: React.MouseEvent) => {
       e.stopPropagation();
+      const isCurrentlyHidden = !visibleCategories.has(categoryId);
       toggleCategoryVisibility(categoryId);
+
+      // Switch to map view when showing markers on mobile
+      if (isCurrentlyHidden && typeof window !== 'undefined' && window.innerWidth < 768) {
+        setIsMapViewOnMobile(true);
+      }
     },
-    [toggleCategoryVisibility],
+    [toggleCategoryVisibility, visibleCategories, setIsMapViewOnMobile],
   );
 
   // Handle facility click
