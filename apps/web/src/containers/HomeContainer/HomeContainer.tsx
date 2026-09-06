@@ -6,12 +6,15 @@ import { NavigateSearchContainer } from "@/containers/NavigateSearchContainer";
 import { AnalysisContainer } from "@/containers/AnalysisContainer";
 import { MapContainerDynamic } from "@/containers/MapContainer";
 import { useLocationStore } from "@/store";
+import { useAddressSearch } from "@/hooks/useAddressSearch";
 import PanelCollapseButton from "@/components/PanelCollapseButton/PanelCollapseButton";
+import { Map, BarChart3 } from "lucide-react";
 
 export function HomeContainer() {
-  const { isNavigating, selectedAddress, isPanelCollapsed, togglePanelCollapsed, setPanelCollapsed } =
+  const { isNavigating, selectedAddress, isPanelCollapsed, togglePanelCollapsed, setPanelCollapsed, isMapViewOnMobile, setIsMapViewOnMobile } =
     useLocationStore();
   const [isDesktop, setIsDesktop] = useState(false);
+  const addressSearch = useAddressSearch();
 
   // Detect if we're on desktop (md breakpoint is 768px)
   useEffect(() => {
@@ -46,16 +49,21 @@ export function HomeContainer() {
 
   const panelWidthClass = getPanelWidth();
 
+  const showMapOnMobile = isMapViewOnMobile && !isDesktop && hasActivePanel;
+  const showResultsOnMobile = !isMapViewOnMobile && !isDesktop && hasActivePanel;
+
   return (
     <>
     <div className="absolute inset-0 flex flex-col md:flex-row">
       {/* Panel container — shows only when expanded; hidden when collapsed */}
       <div
         className={
-          hasActivePanel && !isPanelCollapsed
-            ? `relative z-10 flex-shrink-0 flex flex-col overflow-visible bg-white h-[60vh] w-full md:h-full md:overflow-hidden ${panelWidthClass} transition-all duration-300 ease-in-out border-r border-slate-200`
-            : hasActivePanel && isPanelCollapsed
+          hasActivePanel && !isPanelCollapsed && !showMapOnMobile
+            ? `relative z-10 flex-shrink-0 flex flex-col overflow-visible bg-white h-full w-full md:h-full md:overflow-hidden ${panelWidthClass} transition-all duration-300 ease-in-out border-r border-slate-200`
+            : hasActivePanel && !showMapOnMobile && isPanelCollapsed
             ? "hidden"
+            : showMapOnMobile
+            ? "hidden md:flex"
             : "absolute inset-0 z-10 p-4 pointer-events-none overflow-hidden"
         }
       >
@@ -71,11 +79,34 @@ export function HomeContainer() {
           <div
             className={
               hasActivePanel
-                ? "flex-shrink-0 p-4 pb-2 border-slate-200 md:border-r"
+                ? "flex-shrink-0 p-4 pb-2 border-b border-slate-200 md:border-r md:border-b-0 flex items-center gap-2"
                 : "flex-shrink-0 relative z-20 pointer-events-auto"
             }
           >
-            {isNavigating ? <NavigateSearchContainer /> : <SearchContainer />}
+            <div className="flex-1">
+              {isNavigating ? (
+                <NavigateSearchContainer />
+              ) : (
+                <SearchContainer
+                  query={addressSearch.query}
+                  setQuery={addressSearch.setQuery}
+                  suggestions={addressSearch.suggestions}
+                  isLoading={addressSearch.isLoading}
+                  error={addressSearch.error}
+                />
+              )}
+            </div>
+            {/* Show Map button on mobile results view */}
+            {hasActivePanel && !isDesktop && !isMapViewOnMobile && (
+              <button
+                onClick={() => setIsMapViewOnMobile(true)}
+                className="flex-shrink-0 md:hidden p-2 hover:bg-slate-100 rounded-lg transition-colors"
+                title="Show map"
+                aria-label="Show map"
+              >
+                <Map className="w-5 h-5 text-slate-600" />
+              </button>
+            )}
           </div>
 
           {/* Spacer — pushes the floating panel to the bottom on mobile before
@@ -97,17 +128,44 @@ export function HomeContainer() {
 
       </div>
 
-      {/* Map — full-bleed before a panel is active (the panel above overlays
-          it); shrinks into the remaining flex space once pinned. min-w-0/
-          min-h-0 let it actually shrink below its intrinsic size instead of
-          overflowing the flex row/column. */}
-      <div className="flex-1 min-w-0 min-h-0 relative z-0">
+      {/* Map container — full-bleed before a panel is active; on mobile in map view, shows full screen */}
+      <div className={`flex-1 min-w-0 min-h-0 relative z-0 ${showResultsOnMobile ? "hidden" : ""} md:flex`}>
         <MapContainerDynamic />
       </div>
     </div>
 
+    {/* Search bar for mobile map view — floats above map */}
+    {showMapOnMobile && (
+      <div className="absolute top-0 left-0 right-0 z-20 md:hidden p-4 pb-2 bg-white border-b border-slate-200 pointer-events-auto">
+        <div className="flex items-center gap-2">
+          <div className="flex-1">
+            {isNavigating ? (
+              <NavigateSearchContainer />
+            ) : (
+              <SearchContainer
+                query={addressSearch.query}
+                setQuery={addressSearch.setQuery}
+                suggestions={addressSearch.suggestions}
+                isLoading={addressSearch.isLoading}
+                error={addressSearch.error}
+              />
+            )}
+          </div>
+          {/* View Score button on mobile map view */}
+          <button
+            onClick={() => setIsMapViewOnMobile(false)}
+            className="flex-shrink-0 p-2 hover:bg-slate-100 rounded-lg transition-colors"
+            title="View scores"
+            aria-label="View scores"
+          >
+            <BarChart3 className="w-5 h-5 text-slate-600" />
+          </button>
+        </div>
+      </div>
+    )}
+
     {/* Collapse button — positioned outside layout flow so it's always visible and clickable */}
-    {hasActivePanel && (
+    {hasActivePanel && !showMapOnMobile && (
       <div className="pointer-events-none fixed inset-0 z-0">
         <PanelCollapseButton
           isCollapsed={isPanelCollapsed}

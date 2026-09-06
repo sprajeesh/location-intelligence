@@ -67,6 +67,9 @@ export interface LocationIntelligenceStore {
   // Results panel collapsed state -- persisted to control expand/collapse behavior
   isPanelCollapsed: boolean
 
+  // Mobile map view state -- shows full-screen map instead of results panel on mobile
+  isMapViewOnMobile: boolean
+
   // Actions
   setSelectedAddress: (address: AddressResult | null) => void
   setRadiusKm: (radius: number) => void
@@ -96,6 +99,7 @@ export interface LocationIntelligenceStore {
   toggleTheme: () => void
   setPanelCollapsed: (isCollapsed: boolean) => void
   togglePanelCollapsed: () => void
+  setIsMapViewOnMobile: (isMapView: boolean) => void
 }
 
 export const useLocationStore = create<LocationIntelligenceStore>()(
@@ -128,6 +132,8 @@ export const useLocationStore = create<LocationIntelligenceStore>()(
   theme: 'light' as Theme,
 
   isPanelCollapsed: false,
+
+  isMapViewOnMobile: false,
 
   // Setters
   setSelectedAddress: (address) =>
@@ -242,6 +248,9 @@ export const useLocationStore = create<LocationIntelligenceStore>()(
 
   togglePanelCollapsed: () =>
     set((state) => ({ isPanelCollapsed: !state.isPanelCollapsed })),
+
+  setIsMapViewOnMobile: (isMapView) =>
+    set({ isMapViewOnMobile: isMapView }),
     }),
     {
       name: THEME_STORAGE_KEY,

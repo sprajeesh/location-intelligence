@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react';
 import { HomeContainer } from './HomeContainer';
 
 jest.mock('@/store');
+jest.mock('@/hooks/useAddressSearch');
 jest.mock('@/containers/SearchContainer', () => ({
   SearchContainer: () => <div data-testid="search-container-mock" />,
 }));
@@ -31,8 +32,10 @@ jest.mock('@/components/PanelCollapseButton/PanelCollapseButton', () => ({
 }));
 
 import { useLocationStore } from '@/store';
+import { useAddressSearch } from '@/hooks/useAddressSearch';
 
 const mockUseLocationStore = useLocationStore as jest.MockedFunction<typeof useLocationStore>;
+const mockUseAddressSearch = useAddressSearch as jest.MockedFunction<typeof useAddressSearch>;
 
 const MOCK_ADDRESS = { displayName: '123 Main St, Auckland', lat: -36.85, lon: 174.76 };
 
@@ -79,6 +82,13 @@ describe('HomeContainer', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseLocationStore.mockReturnValue(makeStoreState());
+    mockUseAddressSearch.mockReturnValue({
+      query: '',
+      setQuery: jest.fn(),
+      suggestions: [],
+      isLoading: false,
+      error: null,
+    });
   });
 
   describe('Before an address is selected', () => {
@@ -113,7 +123,7 @@ describe('HomeContainer', () => {
       const { panelWrapper } = getSlots(container);
       expect(panelWrapper.className).not.toContain('pointer-events-none');
       expect(panelWrapper.className).not.toContain('absolute inset-0');
-      expect(panelWrapper.className).toContain('h-[60vh]');
+      expect(panelWrapper.className).toContain('h-full');
       expect(panelWrapper.className).toContain('md:w-[360px]');
     });
 
@@ -124,12 +134,13 @@ describe('HomeContainer', () => {
       expect(panelWrapper.className).toContain('border-slate-200');
     });
 
-    it('puts a right-edge divider on the search header on md+, with no bottom border anywhere', () => {
+    it('puts a bottom border on mobile and right-edge divider on md+', () => {
       const { container } = render(<HomeContainer />);
       const { searchHeader } = getSlots(container);
       expect(searchHeader.className).toContain('border-slate-200');
+      expect(searchHeader.className).toContain('border-b');
       expect(searchHeader.className).toContain('md:border-r');
-      expect(searchHeader.className).not.toContain('border-b');
+      expect(searchHeader.className).toContain('md:border-b-0');
     });
 
     it('still renders SearchContainer at the top of the panel when not navigating', () => {
@@ -222,6 +233,58 @@ describe('HomeContainer', () => {
       const { container } = render(<HomeContainer />);
       const { panelWrapper } = getSlots(container);
       expect(panelWrapper.className).toContain('md:w-[360px]');
+    });
+  });
+
+  describe('Mobile search and view switching regression', () => {
+    it('maintains functionality when toggling between map and scores views on mobile', () => {
+      const mockSetIsMapViewOnMobile = jest.fn();
+      mockUseLocationStore.mockReturnValue(
+        makeStoreState({
+          selectedAddress: MOCK_ADDRESS,
+          isMapViewOnMobile: false,
+          setIsMapViewOnMobile: mockSetIsMapViewOnMobile,
+        })
+      );
+
+      const { rerender } = render(<HomeContainer />);
+
+      // Verify in scores view: search and analysis both in DOM
+      expect(screen.getByTestId('search-container-mock')).toBeInTheDocument();
+      expect(screen.getByTestId('analysis-container-mock')).toBeInTheDocument();
+      expect(screen.getByTestId('map-container-mock')).toBeInTheDocument();
+
+      // Simulate switching to map view (isMapViewOnMobile: true)
+      mockUseLocationStore.mockReturnValue(
+        makeStoreState({
+          selectedAddress: MOCK_ADDRESS,
+          isMapViewOnMobile: true,
+          setIsMapViewOnMobile: mockSetIsMapViewOnMobile,
+        })
+      );
+      rerender(<HomeContainer />);
+
+      // In map view: layout applies "hidden" to panel, but components still in DOM
+      // Map should be present, and floating search bar should exist
+      expect(screen.getByTestId('map-container-mock')).toBeInTheDocument();
+      // Both search containers are in DOM (one hidden, one floating)
+      const searchMocks = screen.getAllByTestId('search-container-mock');
+      expect(searchMocks.length).toBeGreaterThan(0);
+
+      // Simulate switching back to scores view
+      mockUseLocationStore.mockReturnValue(
+        makeStoreState({
+          selectedAddress: MOCK_ADDRESS,
+          isMapViewOnMobile: false,
+          setIsMapViewOnMobile: mockSetIsMapViewOnMobile,
+        })
+      );
+      rerender(<HomeContainer />);
+
+      // Back in scores view: all components accessible
+      expect(screen.getByTestId('search-container-mock')).toBeInTheDocument();
+      expect(screen.getByTestId('analysis-container-mock')).toBeInTheDocument();
+      expect(screen.getByTestId('map-container-mock')).toBeInTheDocument();
     });
   });
 });
