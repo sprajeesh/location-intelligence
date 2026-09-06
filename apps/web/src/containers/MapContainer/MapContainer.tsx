@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useMemo, useId, useState } from "react";
+import { useEffect, useRef, useMemo, useId, useState, useCallback } from "react";
 import {
   MapContainer as LeafletMapContainer,
   TileLayer,
@@ -21,6 +21,7 @@ import { useHazardCells } from "@/hooks/useHazardCells";
 import { useParcelAtPoint } from "@/hooks/useParcelAtPoint";
 import { getHazardCellColor } from "@/utils/hazardColor";
 import { buildHazardTooltipHtml } from "@/utils/hazardTooltip";
+import { computeMapBounds } from "@/utils/mapBounds";
 import { HazardLegend } from "@/components/HazardLegend";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { SettingsContainer } from "@/containers/SettingsContainer";
@@ -201,45 +202,46 @@ function MapContent() {
     analysisResultRef.current = analysisResult;
   }, [analysisResult]);
 
-  useEffect(() => {
-    const features = analysisResultRef.current?.features;
-    if (!features || visibleCategories.size === 0) return;
-
-    const visibleFeatures = features.filter((f) =>
-      visibleCategories.has(f.category),
+  // Fit bounds to everything currently shown on the map (parcel, visible
+  // category markers, active route, and the address point). Reads
+  // parcel/route/address fresh from the store at call time (not as deps) so
+  // this only re-fires for the two named triggers below, not on every
+  // parcel/route change (those already have their own dedicated fly-to
+  // effects above).
+  const fitBoundsToMapContent = useCallback(() => {
+    const visibleFeatures = (analysisResultRef.current?.features ?? []).filter(
+      (f) => visibleCategories.has(f.category),
     );
-    if (visibleFeatures.length === 0) return;
+    const { selectedAddress: addr, parcelFeature: parcel, activeRoute: route } =
+      useLocationStore.getState();
 
-    const bounds = L.latLngBounds(
-      visibleFeatures.map((f) => [f.lat, f.lon] as [number, number]),
-    );
-    if (bounds.isValid()) {
-      map.fitBounds(bounds, { padding: [50, 50] });
-    }
+    const bounds = computeMapBounds({
+      selectedAddress: addr,
+      parcelFeature: parcel,
+      features: visibleFeatures,
+      activeRoute: route,
+    });
+    if (bounds) map.fitBounds(bounds, { padding: [50, 50] });
   }, [visibleCategories, map]);
 
-  // Fit map bounds to all visible markers when switching to map view on mobile
+  // Fit when the user toggles category visibility. Skips when nothing is
+  // toggled on so hiding the last category doesn't yank the view back to
+  // the parcel/address.
+  useEffect(() => {
+    if (visibleCategories.size === 0) return;
+    fitBoundsToMapContent();
+  }, [visibleCategories, fitBoundsToMapContent]);
+
+  // Fit everything when switching to full-screen map view on mobile — always
+  // runs (even with 0 visible categories) since this is a deliberate
+  // "show me everything" action, not an automatic re-frame while browsing.
+  // Slight delay so the fit happens after the mobile layout swaps the panel
+  // out for the full-screen map (map size must update first).
   useEffect(() => {
     if (!isMapViewOnMobile) return;
-
-    const features = analysisResultRef.current?.features;
-    if (!features || visibleCategories.size === 0) return;
-
-    const visibleFeatures = features.filter((f) =>
-      visibleCategories.has(f.category),
-    );
-    if (visibleFeatures.length === 0) return;
-
-    const bounds = L.latLngBounds(
-      visibleFeatures.map((f) => [f.lat, f.lon] as [number, number]),
-    );
-    if (bounds.isValid()) {
-      // Use fitBounds with a slight delay to ensure map size is updated
-      setTimeout(() => {
-        map.fitBounds(bounds, { padding: [50, 50] });
-      }, 0);
-    }
-  }, [isMapViewOnMobile, visibleCategories, map]);
+    const timer = setTimeout(fitBoundsToMapContent, 0);
+    return () => clearTimeout(timer);
+  }, [isMapViewOnMobile, fitBoundsToMapContent]);
 
   return (
     <>

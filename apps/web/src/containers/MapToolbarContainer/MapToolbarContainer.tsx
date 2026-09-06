@@ -2,13 +2,12 @@
 
 import React, { useCallback, useState } from "react";
 import { useMap } from "react-leaflet";
-import L from "leaflet";
 import { Plus, Minus, Crosshair, Navigation, TriangleAlert } from "lucide-react";
 import { useLocationStore } from "@/store/index";
 import { ToolbarButton } from "@/components/ToolbarButton";
 import { LayerSelector, type MapLayerId } from "@/components/LayerSelector";
 import { SurfacePanel } from "@/components/ui/SurfacePanel";
-import type { Feature } from "@/types/api";
+import { computeMapBounds } from "@/utils/mapBounds";
 
 export const TILE_LAYER_URLS: Record<MapLayerId, string> = {
   default: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
@@ -51,6 +50,8 @@ export function MapToolbarContainer({
 
   const selectedAddress = useLocationStore((s) => s.selectedAddress);
   const analysisResult = useLocationStore((s) => s.analysisResult);
+  const parcelFeature = useLocationStore((s) => s.parcelFeature);
+  const activeRoute = useLocationStore((s) => s.activeRoute);
   const hazardLayerVisible = useLocationStore((s) => s.hazardLayerVisible);
   const toggleHazardLayerVisible = useLocationStore((s) => s.toggleHazardLayerVisible);
 
@@ -73,22 +74,15 @@ export function MapToolbarContainer({
   const handleZoomToFeatures = useCallback(
     (e: React.MouseEvent<HTMLButtonElement>) => {
       e.stopPropagation();
-
-      const features: Feature[] | undefined = analysisResult?.features;
-      if (!features || features.length === 0) return;
-
-      const bounds = L.latLngBounds([]);
-      if (selectedAddress) {
-        bounds.extend([selectedAddress.lat, selectedAddress.lon]);
-      }
-      for (const feature of features) {
-        bounds.extend([feature.lat, feature.lon]);
-      }
-      if (bounds.isValid()) {
-        map.fitBounds(bounds, { padding: [50, 50] });
-      }
+      const bounds = computeMapBounds({
+        selectedAddress,
+        parcelFeature,
+        features: analysisResult?.features,
+        activeRoute,
+      });
+      if (bounds) map.fitBounds(bounds, { padding: [50, 50] });
     },
-    [analysisResult, selectedAddress, map],
+    [selectedAddress, parcelFeature, analysisResult, activeRoute, map],
   );
 
   const handleCurrentLocation = useCallback(
