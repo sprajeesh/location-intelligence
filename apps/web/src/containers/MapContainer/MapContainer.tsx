@@ -77,6 +77,7 @@ function MapContent() {
     hazardCells,
     parcelFeature,
     theme,
+    isMapViewOnMobile,
     setHoveredHazardCellId,
     setSelectedHazardCellId,
   } = useLocationStore();
@@ -216,6 +217,29 @@ function MapContent() {
       map.fitBounds(bounds, { padding: [50, 50] });
     }
   }, [visibleCategories, map]);
+
+  // Fit map bounds to all visible markers when switching to map view on mobile
+  useEffect(() => {
+    if (!isMapViewOnMobile) return;
+
+    const features = analysisResultRef.current?.features;
+    if (!features || visibleCategories.size === 0) return;
+
+    const visibleFeatures = features.filter((f) =>
+      visibleCategories.has(f.category),
+    );
+    if (visibleFeatures.length === 0) return;
+
+    const bounds = L.latLngBounds(
+      visibleFeatures.map((f) => [f.lat, f.lon] as [number, number]),
+    );
+    if (bounds.isValid()) {
+      // Use fitBounds with a slight delay to ensure map size is updated
+      setTimeout(() => {
+        map.fitBounds(bounds, { padding: [50, 50] });
+      }, 0);
+    }
+  }, [isMapViewOnMobile, visibleCategories, map]);
 
   return (
     <>
