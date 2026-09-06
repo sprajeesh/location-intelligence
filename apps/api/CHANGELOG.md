@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.0](https://github.com/sprajeesh/location-intelligence/compare/api@v0.4.0...api@v0.5.0) (2026-09-06)
+
+
+### Features
+
+* **web:** Add collapsible results panel with responsive positioning ([#156](https://github.com/sprajeesh/location-intelligence/issues/156)) ([f97a20a](https://github.com/sprajeesh/location-intelligence/commit/f97a20a44e0a14a19353ef4697c5e28be29be216))
+
 ## [0.4.0](https://github.com/sprajeesh/location-intelligence/compare/api@v0.3.0...api@v0.4.0) (2026-09-02)
 
 
