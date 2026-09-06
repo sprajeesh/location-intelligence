@@ -6,6 +6,7 @@ import { NavigateSearchContainer } from "@/containers/NavigateSearchContainer";
 import { AnalysisContainer } from "@/containers/AnalysisContainer";
 import { MapContainerDynamic } from "@/containers/MapContainer";
 import { useLocationStore } from "@/store";
+import { useAddressSearch } from "@/hooks/useAddressSearch";
 import PanelCollapseButton from "@/components/PanelCollapseButton/PanelCollapseButton";
 import { Map, BarChart3 } from "lucide-react";
 
@@ -13,6 +14,7 @@ export function HomeContainer() {
   const { isNavigating, selectedAddress, isPanelCollapsed, togglePanelCollapsed, setPanelCollapsed, isMapViewOnMobile, setIsMapViewOnMobile } =
     useLocationStore();
   const [isDesktop, setIsDesktop] = useState(false);
+  const addressSearch = useAddressSearch();
 
   // Detect if we're on desktop (md breakpoint is 768px)
   useEffect(() => {
@@ -82,7 +84,17 @@ export function HomeContainer() {
             }
           >
             <div className="flex-1">
-              {isNavigating ? <NavigateSearchContainer /> : <SearchContainer />}
+              {isNavigating ? (
+                <NavigateSearchContainer />
+              ) : (
+                <SearchContainer
+                  query={addressSearch.query}
+                  setQuery={addressSearch.setQuery}
+                  suggestions={addressSearch.suggestions}
+                  isLoading={addressSearch.isLoading}
+                  error={addressSearch.error}
+                />
+              )}
             </div>
             {/* Show Map button on mobile results view */}
             {hasActivePanel && !isDesktop && !isMapViewOnMobile && (
@@ -127,7 +139,17 @@ export function HomeContainer() {
       <div className="absolute top-0 left-0 right-0 z-20 md:hidden p-4 pb-2 bg-white border-b border-slate-200 pointer-events-auto">
         <div className="flex items-center gap-2">
           <div className="flex-1">
-            {isNavigating ? <NavigateSearchContainer /> : <SearchContainer />}
+            {isNavigating ? (
+              <NavigateSearchContainer />
+            ) : (
+              <SearchContainer
+                query={addressSearch.query}
+                setQuery={addressSearch.setQuery}
+                suggestions={addressSearch.suggestions}
+                isLoading={addressSearch.isLoading}
+                error={addressSearch.error}
+              />
+            )}
           </div>
           {/* View Score button on mobile map view */}
           <button

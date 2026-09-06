@@ -3,7 +3,6 @@ import userEvent from '@testing-library/user-event';
 import { SearchContainer } from './SearchContainer';
 import type { AddressResult } from '@/types/api';
 
-jest.mock('@/hooks/useAddressSearch');
 jest.mock('@/hooks/useAnalyze');
 jest.mock('@/hooks/useAnalyzeCategories');
 jest.mock('@/store');
@@ -47,14 +46,10 @@ jest.mock('@/components/SearchBar', () => ({
   ),
 }));
 
-import { useAddressSearch } from '@/hooks/useAddressSearch';
 import { useAnalyze } from '@/hooks/useAnalyze';
 import { useAnalyzeCategories } from '@/hooks/useAnalyzeCategories';
 import { useLocationStore } from '@/store';
 
-const mockUseAddressSearch = useAddressSearch as jest.MockedFunction<
-  typeof useAddressSearch
->;
 const mockUseAnalyze = useAnalyze as jest.MockedFunction<typeof useAnalyze>;
 const mockUseAnalyzeCategories = useAnalyzeCategories as jest.MockedFunction<
   typeof useAnalyzeCategories
@@ -83,18 +78,18 @@ describe('SearchContainer', () => {
     lon: 174.7633,
   };
 
+  const defaultSearchProps = {
+    query: '',
+    setQuery: jest.fn(),
+    suggestions: [] as AddressResult[],
+    isLoading: false,
+    error: null,
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
 
     mockUseAnalyzeCategories.mockReturnValue(undefined);
-
-    mockUseAddressSearch.mockReturnValue({
-      query: '',
-      setQuery: jest.fn(),
-      suggestions: [],
-      isLoading: false,
-      error: null,
-    });
 
     mockUseAnalyze.mockReturnValue({
       mutate: jest.fn(),
@@ -129,40 +124,33 @@ describe('SearchContainer', () => {
 
   describe('Rendering', () => {
     it('renders the SearchBar component', () => {
-      render(<SearchContainer />);
+      render(<SearchContainer {...defaultSearchProps} />);
       expect(screen.getByTestId('search-bar-mock')).toBeInTheDocument();
     });
 
     it('renders the search input', () => {
-      render(<SearchContainer />);
+      render(<SearchContainer {...defaultSearchProps} />);
       expect(screen.getByTestId('search-input')).toBeInTheDocument();
     });
   });
 
   describe('Props Passing', () => {
     it('passes query from useAddressSearch to SearchBar', () => {
-      mockUseAddressSearch.mockReturnValue({
-        query: 'Main Street',
-        setQuery: jest.fn(),
-        suggestions: [],
-        isLoading: false,
-        error: null,
-      });
-
-      render(<SearchContainer />);
+      const setQuery = jest.fn();
+      render(
+        <SearchContainer
+          query="Main Street"
+          setQuery={setQuery}
+          suggestions={[]}
+          isLoading={false}
+          error={null}
+        />
+      );
       const input = screen.getByTestId('search-input') as HTMLInputElement;
       expect(input.value).toBe('Main Street');
     });
 
     it('displays current query even when address is selected', () => {
-      mockUseAddressSearch.mockReturnValue({
-        query: 'Main',
-        setQuery: jest.fn(),
-        suggestions: [],
-        isLoading: false,
-        error: null,
-      });
-
       mockUseLocationStore.mockReturnValue({
         selectedAddress: mockAddressResult,
         radiusKm: 10,
@@ -183,21 +171,21 @@ describe('SearchContainer', () => {
         clearToasts: jest.fn(),
       });
 
-      render(<SearchContainer />);
+      render(
+        <SearchContainer
+          query="Main"
+          setQuery={jest.fn()}
+          suggestions={[]}
+          isLoading={false}
+          error={null}
+        />
+      );
       const input = screen.getByTestId('search-input') as HTMLInputElement;
       // displayValue is always the current query, not selectedAddress displayName
       expect(input.value).toBe('Main');
     });
 
     it('falls back to query from hook when no selectedAddress', () => {
-      mockUseAddressSearch.mockReturnValue({
-        query: 'Main Street',
-        setQuery: jest.fn(),
-        suggestions: [],
-        isLoading: false,
-        error: null,
-      });
-
       mockUseLocationStore.mockReturnValue({
         selectedAddress: null,
         radiusKm: 10,
@@ -218,21 +206,29 @@ describe('SearchContainer', () => {
         clearToasts: jest.fn(),
       });
 
-      render(<SearchContainer />);
+      render(
+        <SearchContainer
+          query="Main Street"
+          setQuery={jest.fn()}
+          suggestions={[]}
+          isLoading={false}
+          error={null}
+        />
+      );
       const input = screen.getByTestId('search-input') as HTMLInputElement;
       expect(input.value).toBe('Main Street');
     });
 
     it('passes suggestions from useAddressSearch to SearchBar', () => {
-      mockUseAddressSearch.mockReturnValue({
-        query: 'Main',
-        setQuery: jest.fn(),
-        suggestions: mockSuggestions,
-        isLoading: false,
-        error: null,
-      });
-
-      render(<SearchContainer />);
+      render(
+        <SearchContainer
+          query="Main"
+          setQuery={jest.fn()}
+          suggestions={mockSuggestions}
+          isLoading={false}
+          error={null}
+        />
+      );
       mockSuggestions.forEach((suggestion) => {
         expect(
           screen.getByTestId(`suggestion-${suggestion.displayName}`)
@@ -241,28 +237,28 @@ describe('SearchContainer', () => {
     });
 
     it('passes isLoading state to SearchBar', () => {
-      mockUseAddressSearch.mockReturnValue({
-        query: '',
-        setQuery: jest.fn(),
-        suggestions: [],
-        isLoading: true,
-        error: null,
-      });
-
-      render(<SearchContainer />);
+      render(
+        <SearchContainer
+          query=""
+          setQuery={jest.fn()}
+          suggestions={[]}
+          isLoading={true}
+          error={null}
+        />
+      );
       expect(screen.getByTestId('loading-state')).toHaveTextContent('Loading');
     });
 
     it('passes error state to SearchBar', () => {
-      mockUseAddressSearch.mockReturnValue({
-        query: '',
-        setQuery: jest.fn(),
-        suggestions: [],
-        isLoading: false,
-        error: 'API Error occurred',
-      });
-
-      render(<SearchContainer />);
+      render(
+        <SearchContainer
+          query=""
+          setQuery={jest.fn()}
+          suggestions={[]}
+          isLoading={false}
+          error="API Error occurred"
+        />
+      );
       expect(screen.getByTestId('error-state')).toHaveTextContent(
         'API Error occurred'
       );
@@ -272,15 +268,16 @@ describe('SearchContainer', () => {
   describe('Event Handlers', () => {
     it('calls setQuery when onQueryChange is fired', async () => {
       const setQuery = jest.fn();
-      mockUseAddressSearch.mockReturnValue({
-        query: '',
-        setQuery,
-        suggestions: [],
-        isLoading: false,
-        error: null,
-      });
 
-      render(<SearchContainer />);
+      render(
+        <SearchContainer
+          query=""
+          setQuery={setQuery}
+          suggestions={[]}
+          isLoading={false}
+          error={null}
+        />
+      );
       const input = screen.getByTestId('search-input');
 
       fireEvent.change(input, { target: { value: 'Main' } });
@@ -291,14 +288,6 @@ describe('SearchContainer', () => {
     it('calls setSelectedAddress and setQuery when address is selected', async () => {
       const setQuery = jest.fn();
       const setSelectedAddress = jest.fn();
-
-      mockUseAddressSearch.mockReturnValue({
-        query: '',
-        setQuery,
-        suggestions: mockSuggestions,
-        isLoading: false,
-        error: null,
-      });
 
       mockUseLocationStore.mockReturnValue({
         selectedAddress: null,
@@ -320,7 +309,15 @@ describe('SearchContainer', () => {
         clearToasts: jest.fn(),
       });
 
-      render(<SearchContainer />);
+      render(
+        <SearchContainer
+          query=""
+          setQuery={setQuery}
+          suggestions={mockSuggestions}
+          isLoading={false}
+          error={null}
+        />
+      );
       const firstSuggestion = mockSuggestions[0]!;
       const suggestionButton = screen.getByTestId(
         `suggestion-${firstSuggestion.displayName}`
@@ -336,14 +333,6 @@ describe('SearchContainer', () => {
       const setQuery = jest.fn();
       const setSelectedAddress = jest.fn();
 
-      mockUseAddressSearch.mockReturnValue({
-        query: 'Main Street',
-        setQuery,
-        suggestions: [],
-        isLoading: false,
-        error: null,
-      });
-
       mockUseLocationStore.mockReturnValue({
         selectedAddress: mockAddressResult,
         radiusKm: 10,
@@ -364,7 +353,15 @@ describe('SearchContainer', () => {
         clearToasts: jest.fn(),
       });
 
-      render(<SearchContainer />);
+      render(
+        <SearchContainer
+          query="Main Street"
+          setQuery={setQuery}
+          suggestions={[]}
+          isLoading={false}
+          error={null}
+        />
+      );
       const clearButton = screen.getByTestId('clear-button');
 
       await userEvent.click(clearButton);
@@ -379,14 +376,6 @@ describe('SearchContainer', () => {
       const setQuery = jest.fn();
       const setSelectedAddress = jest.fn();
 
-      mockUseAddressSearch.mockReturnValue({
-        query: 'Main',
-        setQuery,
-        suggestions: [],
-        isLoading: false,
-        error: null,
-      });
-
       mockUseLocationStore.mockReturnValue({
         selectedAddress: mockAddressResult,
         radiusKm: 10,
@@ -407,7 +396,15 @@ describe('SearchContainer', () => {
         clearToasts: jest.fn(),
       });
 
-      render(<SearchContainer />);
+      render(
+        <SearchContainer
+          query="Main"
+          setQuery={setQuery}
+          suggestions={[]}
+          isLoading={false}
+          error={null}
+        />
+      );
       const input = screen.getByTestId('search-input');
 
       // displayValue is always the current query
@@ -424,14 +421,6 @@ describe('SearchContainer', () => {
       const setQuery = jest.fn();
       const setSelectedAddress = jest.fn();
 
-      mockUseAddressSearch.mockReturnValue({
-        query: 'Main',
-        setQuery,
-        suggestions: mockSuggestions,
-        isLoading: false,
-        error: null,
-      });
-
       mockUseLocationStore.mockReturnValue({
         selectedAddress: null,
         radiusKm: 10,
@@ -452,7 +441,15 @@ describe('SearchContainer', () => {
         clearToasts: jest.fn(),
       });
 
-      render(<SearchContainer />);
+      render(
+        <SearchContainer
+          query="Main"
+          setQuery={setQuery}
+          suggestions={mockSuggestions}
+          isLoading={false}
+          error={null}
+        />
+      );
 
       const firstSuggestion = mockSuggestions[0]!;
       const suggestionButton = screen.getByTestId(
@@ -469,14 +466,6 @@ describe('SearchContainer', () => {
     it('resets radiusKm to the default and analyzes at the default, even if a wider radius was previously set', async () => {
       const setRadiusKm = jest.fn();
       const analyze = jest.fn();
-
-      mockUseAddressSearch.mockReturnValue({
-        query: '',
-        setQuery: jest.fn(),
-        suggestions: mockSuggestions,
-        isLoading: false,
-        error: null,
-      });
 
       mockUseAnalyze.mockReturnValue({
         mutate: analyze,
@@ -508,7 +497,15 @@ describe('SearchContainer', () => {
         clearToasts: jest.fn(),
       });
 
-      render(<SearchContainer />);
+      render(
+        <SearchContainer
+          query=""
+          setQuery={jest.fn()}
+          suggestions={mockSuggestions}
+          isLoading={false}
+          error={null}
+        />
+      );
       const firstSuggestion = mockSuggestions[0]!;
       await userEvent.click(
         screen.getByTestId(`suggestion-${firstSuggestion.displayName}`)
@@ -534,15 +531,15 @@ describe('SearchContainer', () => {
       } as any);
       mockUseAnalyzeCategories.mockReturnValue(['kindergartens']);
 
-      mockUseAddressSearch.mockReturnValue({
-        query: '',
-        setQuery: jest.fn(),
-        suggestions: mockSuggestions,
-        isLoading: false,
-        error: null,
-      });
-
-      render(<SearchContainer />);
+      render(
+        <SearchContainer
+          query=""
+          setQuery={jest.fn()}
+          suggestions={mockSuggestions}
+          isLoading={false}
+          error={null}
+        />
+      );
       await userEvent.click(
         screen.getByTestId(`suggestion-${mockSuggestions[0]!.displayName}`)
       );
