@@ -247,7 +247,7 @@ describe('HomeContainer', () => {
         })
       );
 
-      const { rerender, container } = render(<HomeContainer />);
+      const { rerender } = render(<HomeContainer />);
 
       // Verify in scores view: search and analysis both in DOM
       expect(screen.getByTestId('search-container-mock')).toBeInTheDocument();
