@@ -134,13 +134,12 @@ describe('MapContainer', () => {
   });
 
   describe('Toolbar positioning', () => {
-    it('docks bottom-right on small screens and vertically centered on the right edge on md+', () => {
+    it('is vertically centered on the right edge on all screen sizes', () => {
       render(<MapContainer />);
       const wrapper = screen.getByTestId('theme-toggle-stub').parentElement as HTMLElement;
       expect(wrapper.className).toContain('right-3');
-      expect(wrapper.className).toContain('bottom-5');
-      expect(wrapper.className).toContain('md:top-1/2');
-      expect(wrapper.className).toContain('md:bottom-auto');
+      expect(wrapper.className).toContain('top-1/2');
+      expect(wrapper.className).toContain('-translate-y-1/2');
       expect(wrapper).toContainElement(screen.getByTestId('settings-container-stub'));
       expect(wrapper).toContainElement(screen.getByTestId('theme-toggle-stub'));
       expect(wrapper).toContainElement(screen.getByTestId('map-toolbar-stub'));
