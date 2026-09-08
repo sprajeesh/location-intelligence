@@ -372,11 +372,9 @@ function MapContent() {
       )}
 
       {/* Settings, theme toggle, and map toolbar -- grouped in one positioning wrapper
-          so all three sit as separate cards stacked vertically on the right edge.
-          On small screens (map is a short 40vh strip under the pinned
-          results panel) it sits bottom-right, out of the way of the top
-          banners; on md+ it's vertically centered on the right edge. */}
-      <div className="absolute right-3 bottom-5 md:top-1/2 md:bottom-auto md:-translate-y-1/2 z-[1000] flex flex-col items-center gap-2">
+          so all three sit as separate cards stacked vertically on the right edge,
+          vertically centered on all screen sizes. */}
+      <div className="absolute right-3 top-1/2 -translate-y-1/2 z-[1000] flex flex-col items-center gap-2">
         <SettingsContainer />
         <ThemeToggle />
         <MapToolbarContainer
