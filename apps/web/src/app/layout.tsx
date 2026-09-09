@@ -1,4 +1,5 @@
 import { ReactNode } from 'react';
+import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import '../i18n/globals.css';
 
@@ -7,7 +8,7 @@ const inter = Inter({
   variable: '--font-inter',
 });
 
-export const metadata = {
+export const metadata: Metadata = {
   // Resolves relative canonical/OpenGraph URLs set by route metadata (e.g.
   // src/app/[locale]/page.tsx). Set NEXT_PUBLIC_SITE_URL in production to the
   // real deployed hostname.
@@ -15,9 +16,20 @@ export const metadata = {
   title: 'Location Intelligence',
   description:
     'Discover nearby facilities and neighborhood scores for any NZ address',
+  manifest: '/manifest.json',
   icons: {
-    icon: '/favicon.ico',
+    icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+      { url: '/favicon-32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/favicon-16.png', sizes: '16x16', type: 'image/png' },
+      { url: '/favicon.ico', sizes: 'any' },
+    ],
+    apple: '/apple-touch-icon.png',
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: '#0B5CFF',
 };
 
 // Reads the persisted theme choice and sets the `dark` class before React
