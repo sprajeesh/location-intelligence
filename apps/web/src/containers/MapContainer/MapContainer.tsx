@@ -8,6 +8,7 @@ import {
   useState,
   useCallback,
 } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 import {
   MapContainer as LeafletMapContainer,
   TileLayer,
@@ -20,7 +21,7 @@ import {
 } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { Navigation, TriangleAlert } from "lucide-react";
+import { Navigation, TriangleAlert, MapPin } from "lucide-react";
 import { useLocationStore } from "@/store/index";
 import { useNavigate } from "@/hooks/useNavigate";
 import { useCategories } from "@/hooks/useCategories";
@@ -29,6 +30,8 @@ import { useParcelAtPoint } from "@/hooks/useParcelAtPoint";
 import { getHazardCellColor } from "@/utils/hazardColor";
 import { buildHazardTooltipHtml } from "@/utils/hazardTooltip";
 import { computeMapBounds } from "@/utils/mapBounds";
+import { getCategoryIcon } from "@/utils/categoryIcons";
+import { useCategoryColorMap } from "@/hooks/useCategoryColorMap";
 import { HazardLegend } from "@/components/HazardLegend";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { SettingsContainer } from "@/containers/SettingsContainer";
@@ -164,12 +167,26 @@ function MapContent() {
   }, [map]);
 
   // Map category id -> DB-configured color, from GET /categories
-  const categoryColorMap = useMemo(() => {
-    const colors: Record<string, string> = {};
+  const categoryColorMap = useCategoryColorMap();
+
+  // Pre-render Lucide icons to SVG strings for use in L.divIcon markers
+  const defaultMarkerIconMarkup = useMemo(
+    () =>
+      renderToStaticMarkup(
+        <MapPin color="white" size={14} strokeWidth={2.5} />,
+      ),
+    [],
+  );
+
+  const categoryIconMarkupMap = useMemo(() => {
+    const markup: Record<string, string> = {};
     for (const category of categories) {
-      colors[category.id] = category.color;
+      const Icon = getCategoryIcon(category.id);
+      markup[category.id] = renderToStaticMarkup(
+        <Icon color="white" size={14} strokeWidth={2.5} />,
+      );
     }
-    return colors;
+    return markup;
   }, [categories]);
 
   // Fly to the matched parcel once the lookup settles; fall back to the
@@ -507,12 +524,14 @@ function MapContent() {
 
         const color =
           categoryColorMap[feature.category] || "rgb(var(--color-neutral-500))";
+        const iconMarkup =
+          categoryIconMarkupMap[feature.category] ?? defaultMarkerIconMarkup;
 
         return (
           <Marker
             key={feature.id}
             position={[feature.lat, feature.lon]}
-            icon={createCategoryIcon(color)}
+            icon={createCategoryIcon(color, iconMarkup)}
           >
             <Popup>
               <div className="text-sm font-semibold mb-1">{feature.name}</div>
@@ -561,6 +580,8 @@ function MapContent() {
           icon={createSelectedFeatureIcon(
             categoryColorMap[selectedFeature.category] ||
               "rgb(var(--color-neutral-500))",
+            categoryIconMarkupMap[selectedFeature.category] ??
+              defaultMarkerIconMarkup,
           )}
           zIndexOffset={1000}
         />
@@ -698,7 +719,7 @@ function createMainLocationIcon(): L.DivIcon {
 /**
  * Create a colored icon for category markers
  */
-function createCategoryIcon(color: string): L.DivIcon {
+function createCategoryIcon(color: string, iconMarkup: string): L.DivIcon {
   const html = `
     <div style="
       display: flex;
@@ -711,12 +732,7 @@ function createCategoryIcon(color: string): L.DivIcon {
       border-radius: 50%;
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
     ">
-      <div style="
-        width: 6px;
-        height: 6px;
-        background: white;
-        border-radius: 50%;
-      "></div>
+      ${iconMarkup}
     </div>
   `;
 
@@ -733,7 +749,10 @@ function createCategoryIcon(color: string): L.DivIcon {
  * Create a highlighted icon for the currently selected facility.
  * Renders a larger version with a glowing ring to distinguish it from regular markers.
  */
-function createSelectedFeatureIcon(color: string): L.DivIcon {
+function createSelectedFeatureIcon(
+  color: string,
+  iconMarkup: string,
+): L.DivIcon {
   const html = `
     <div style="
       position: relative;
@@ -766,12 +785,7 @@ function createSelectedFeatureIcon(color: string): L.DivIcon {
         box-shadow: 0 2px 8px rgba(0,0,0,0.4);
         z-index: 1;
       ">
-        <div style="
-          width: 6px;
-          height: 6px;
-          background: white;
-          border-radius: 50%;
-        "></div>
+        ${iconMarkup}
       </div>
     </div>
   `;

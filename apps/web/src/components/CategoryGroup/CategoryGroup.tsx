@@ -4,6 +4,7 @@ import React, { ReactNode } from "react";
 import { Eye, EyeOff, ChevronUp } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
 import { IconButton } from "@/components/ui/IconButton";
+import { getCategoryIcon } from "@/utils/categoryIcons";
 
 /**
  * CategoryGroup — Collapsible category header with visibility toggle.
@@ -59,12 +60,18 @@ export default function CategoryGroup({
           aria-controls={isExpanded ? `category-${id}` : undefined}
         >
           <div className="flex items-center gap-3 min-w-0">
-            {/* Color dot */}
-            <div
-              className="w-3 h-3 rounded-full flex-shrink-0"
-              style={{ backgroundColor: color }}
-              aria-label={`${label} marker color`}
-            />
+            {/* Category icon in colored circle */}
+            {(() => {
+              const Icon = getCategoryIcon(id);
+              return (
+                <div
+                  className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
+                  style={{ backgroundColor: color }}
+                >
+                  <Icon size={12} color="white" aria-hidden="true" />
+                </div>
+              );
+            })()}
 
             {/* Label and count */}
             <div className="flex items-center gap-2 min-w-0">

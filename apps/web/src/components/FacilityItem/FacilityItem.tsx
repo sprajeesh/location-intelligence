@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { Navigation } from "lucide-react";
 import type { Feature } from "@/types/api";
 import { IconButton } from "@/components/ui/IconButton";
+import { getCategoryIcon } from "@/utils/categoryIcons";
 
 export interface FacilityItemProps {
   feature: Feature;
@@ -21,14 +22,16 @@ export default function FacilityItem({
   const t = useTranslations();
 
   const rowLabel = `${feature.name}, ${feature.distanceKm.toFixed(1)} km away`;
+  const Icon = getCategoryIcon(feature.category);
   const rowContent = (
     <div className="flex items-start justify-between gap-2 min-w-0">
       <div className="flex items-start gap-2 flex-1 min-w-0">
         <div
-          className="w-2 h-2 rounded-full mt-1.5 flex-shrink-0"
+          className="w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 mt-1"
           style={{ backgroundColor: markerColor }}
-          aria-hidden="true"
-        />
+        >
+          <Icon size={10} color="white" aria-hidden="true" />
+        </div>
         <span className="text-sm text-slate-700 truncate group-hover:text-slate-900 transition-colors">
           {feature.name}
         </span>
