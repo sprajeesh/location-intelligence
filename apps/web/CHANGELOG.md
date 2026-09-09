@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.9.0](https://github.com/sprajeesh/location-intelligence/compare/web@v0.8.0...web@v0.9.0) (2026-09-09)
+
+
+### Features
+
+* **web:** add brand logo and wired into the app manifest ([#170](https://github.com/sprajeesh/location-intelligence/issues/170)) ([370fbdb](https://github.com/sprajeesh/location-intelligence/commit/370fbdb877bf400ea94d4742169b47c41b5e2d04))
+
+
+### Bug Fixes
+
+* **web:** Restore search bar visibility on mobile landing screen ([#169](https://github.com/sprajeesh/location-intelligence/issues/169)) ([ea1026b](https://github.com/sprajeesh/location-intelligence/commit/ea1026b5bbe47584a66568bf32e4eaf3fe29cfa1))
+
 ## [0.8.0](https://github.com/sprajeesh/location-intelligence/compare/web@v0.7.0...web@v0.8.0) (2026-09-09)
 
 
