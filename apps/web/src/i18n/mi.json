@@ -85,7 +85,13 @@
   "parcels": {
     "notFoundBanner": "[MI] parcels.notFoundBanner",
     "locating": "[MI] parcels.locating",
-    "serviceError": "[MI] parcels.serviceError"
+    "serviceError": "[MI] parcels.serviceError",
+    "info": {
+      "title": "[MI] parcels.info.title",
+      "appellation": "[MI] parcels.info.appellation",
+      "parcelIntent": "[MI] parcels.info.parcelIntent",
+      "titles": "[MI] parcels.info.titles"
+    }
   },
   "distance": {
     "driving": "[MI] distance.driving",

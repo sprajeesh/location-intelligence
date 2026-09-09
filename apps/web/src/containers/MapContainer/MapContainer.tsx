@@ -1,6 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useMemo, useId, useState, useCallback } from "react";
+import {
+  useEffect,
+  useRef,
+  useMemo,
+  useId,
+  useState,
+  useCallback,
+} from "react";
 import {
   MapContainer as LeafletMapContainer,
   TileLayer,
@@ -34,6 +41,7 @@ import {
   TILE_LAYER_MAX_ZOOM,
   type MapLayerId,
 } from "@/containers/MapToolbarContainer";
+import { FeatureInfoCard } from "@/components/FeatureInfoCard";
 
 /**
  * Fix Leaflet icon issue in Next.js (dynamic imports break default icon URLs)
@@ -94,6 +102,17 @@ function MapContent() {
     !!selectedAddress && !parcelQuery.isFetching && parcelQuery.isError;
 
   const [activeLayer, setActiveLayer] = useState<MapLayerId>("default");
+  const [showParcelInfo, setShowParcelInfo] = useState(false);
+  const [cardPosition, setCardPosition] = useState<{
+    top?: number;
+    left?: number;
+  } | null>(null);
+
+  // Reset card visibility and position when search changes so new address doesn't inherit prior state
+  useEffect(() => {
+    setShowParcelInfo(false);
+    setCardPosition(null);
+  }, [selectedAddress]);
 
   // Leaflet 1.9's trackResize only reacts to the browser window's own
   // 'resize' event -- it has no built-in ResizeObserver on the map
@@ -134,11 +153,13 @@ function MapContent() {
 
   // Parcel highlight pane -- above hazardPane (350) but below Leaflet's own
   // markerPane (600), so category/main markers stay on top and clickable.
+  // Interaction (click to show popup) is enabled like hazardPane, since the
+  // parcel layer itself doesn't block markers (those sit in a higher pane).
   useEffect(() => {
     if (!map.getPane("parcelPane")) {
       const pane = map.createPane("parcelPane");
       pane.style.zIndex = "450";
-      pane.style.pointerEvents = "none";
+      pane.style.pointerEvents = "auto";
     }
   }, [map]);
 
@@ -212,8 +233,11 @@ function MapContent() {
     const visibleFeatures = (analysisResultRef.current?.features ?? []).filter(
       (f) => visibleCategories.has(f.category),
     );
-    const { selectedAddress: addr, parcelFeature: parcel, activeRoute: route } =
-      useLocationStore.getState();
+    const {
+      selectedAddress: addr,
+      parcelFeature: parcel,
+      activeRoute: route,
+    } = useLocationStore.getState();
 
     const bounds = computeMapBounds({
       selectedAddress: addr,
@@ -309,6 +333,37 @@ function MapContent() {
             fillColor: "rgb(var(--color-error-500))",
             fillOpacity: 0.15,
           }}
+          onEachFeature={(_, layer) => {
+            layer.on("click", (e) => {
+              const point = map.latLngToContainerPoint(e.latlng);
+              const container = map.getContainer();
+              const containerRect = container.getBoundingClientRect();
+
+              const CARD_WIDTH = 320;
+              const CARD_HEIGHT = 160;
+              const MIN_MARGIN = 10;
+              const OFFSET = 50;
+
+              const idealTop = point.y - OFFSET;
+              const idealLeft = point.x - OFFSET;
+
+              const clampedTop = Math.max(
+                MIN_MARGIN,
+                Math.min(idealTop, containerRect.height - CARD_HEIGHT - MIN_MARGIN)
+              );
+
+              const clampedLeft = Math.max(
+                MIN_MARGIN,
+                Math.min(idealLeft, containerRect.width - CARD_WIDTH - MIN_MARGIN)
+              );
+
+              setCardPosition({
+                top: clampedTop,
+                left: clampedLeft,
+              });
+              setShowParcelInfo(true);
+            });
+          }}
         />
       )}
 
@@ -370,6 +425,45 @@ function MapContent() {
           </div>
         </div>
       )}
+
+      {/* Parcel info card -- shows appellation, intent, titles only when clicked */}
+      {parcelFeature &&
+        showParcelInfo &&
+        (() => {
+          const rows = [];
+          if (parcelFeature.properties.appellation !== null) {
+            rows.push({
+              label: t("parcels.info.appellation", {
+                defaultValue: "Appellation",
+              }),
+              value: parcelFeature.properties.appellation,
+            });
+          }
+          if (parcelFeature.properties.parcel_intent !== null) {
+            rows.push({
+              label: t("parcels.info.parcelIntent", {
+                defaultValue: "Parcel intent",
+              }),
+              value: parcelFeature.properties.parcel_intent,
+            });
+          }
+          if (parcelFeature.properties.titles !== null) {
+            rows.push({
+              label: t("parcels.info.titles", { defaultValue: "Title(s)" }),
+              value: parcelFeature.properties.titles,
+            });
+          }
+          return (
+            <FeatureInfoCard
+              title={t("parcels.info.title", {
+                defaultValue: "Property Details",
+              })}
+              rows={rows}
+              position={cardPosition || undefined}
+              onClose={() => setShowParcelInfo(false)}
+            />
+          );
+        })()}
 
       {/* Settings, theme toggle, and map toolbar -- grouped in one positioning wrapper
           so all three sit as separate cards stacked vertically on the right edge,
