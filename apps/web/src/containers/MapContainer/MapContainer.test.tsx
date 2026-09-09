@@ -12,6 +12,9 @@ jest.mock('@/hooks/useParcelAtPoint');
 jest.mock('@/hooks/useNavigate', () => ({
   useNavigate: () => jest.fn(),
 }));
+jest.mock('react-dom/server', () => ({
+  renderToStaticMarkup: (element: React.ReactElement) => '<svg mock="true"></svg>',
+}));
 jest.mock('next-intl', () => ({
   useTranslations: () => (key: string, opts?: { defaultValue?: string }) =>
     opts?.defaultValue ?? key,

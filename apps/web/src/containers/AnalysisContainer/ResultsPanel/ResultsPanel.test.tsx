@@ -8,6 +8,9 @@ import type { HazardResult } from '@/types/hazard';
 jest.mock('@/store');
 jest.mock('@/hooks/useAnalyze');
 jest.mock('@/hooks/useAnalyzeCategories');
+jest.mock('@/hooks/useCategoryColorMap', () => ({
+  useCategoryColorMap: () => ({}),
+}));
 jest.mock('next-intl', () => ({
   useTranslations: () => (key: string, opts?: { defaultValue?: string }) => {
     if (opts?.defaultValue) return opts.defaultValue;
