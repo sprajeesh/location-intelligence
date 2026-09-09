@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.8.0](https://github.com/sprajeesh/location-intelligence/compare/web@v0.7.0...web@v0.8.0) (2026-09-09)
+
+
+### Features
+
+* **web:** improved icon styling for map markers ([#166](https://github.com/sprajeesh/location-intelligence/issues/166)) ([ccbae58](https://github.com/sprajeesh/location-intelligence/commit/ccbae586ee8cfa6138fa3675b03af741aa2c3a5f))
+* **web:** Show parcel details card on click with contextual positioning ([#165](https://github.com/sprajeesh/location-intelligence/issues/165)) ([62c3ae4](https://github.com/sprajeesh/location-intelligence/commit/62c3ae48b07f1c5a85f01c4916cf8d28b4212b68))
+
+
+### Bug Fixes
+
+* **web:** Make MapToolbarContainer accessible on small screens ([#164](https://github.com/sprajeesh/location-intelligence/issues/164)) ([f8fa6b5](https://github.com/sprajeesh/location-intelligence/commit/f8fa6b572f995db76b979c7262ff4560962d74c8))
+
 ## [0.7.0](https://github.com/sprajeesh/location-intelligence/compare/web@v0.6.0...web@v0.7.0) (2026-09-06)
 
 
