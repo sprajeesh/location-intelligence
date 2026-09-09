@@ -336,9 +336,30 @@ function MapContent() {
           onEachFeature={(_, layer) => {
             layer.on("click", (e) => {
               const point = map.latLngToContainerPoint(e.latlng);
+              const container = map.getContainer();
+              const containerRect = container.getBoundingClientRect();
+
+              const CARD_WIDTH = 320;
+              const CARD_HEIGHT = 160;
+              const MIN_MARGIN = 10;
+              const OFFSET = 50;
+
+              const idealTop = point.y - OFFSET;
+              const idealLeft = point.x - OFFSET;
+
+              const clampedTop = Math.max(
+                MIN_MARGIN,
+                Math.min(idealTop, containerRect.height - CARD_HEIGHT - MIN_MARGIN)
+              );
+
+              const clampedLeft = Math.max(
+                MIN_MARGIN,
+                Math.min(idealLeft, containerRect.width - CARD_WIDTH - MIN_MARGIN)
+              );
+
               setCardPosition({
-                top: Math.max(10, point.y - 50),
-                left: Math.max(10, point.x - 50),
+                top: clampedTop,
+                left: clampedLeft,
               });
               setShowParcelInfo(true);
             });

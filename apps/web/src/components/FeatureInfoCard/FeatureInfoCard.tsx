@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef, useEffect, useId } from "react";
 import { X } from "lucide-react";
 import { SurfacePanel } from "@/components/ui/SurfacePanel";
 
@@ -13,18 +14,43 @@ export interface FeatureInfoCardProps {
   rows: FeatureInfoRow[];
   onClose: () => void;
   position?: { top?: number; left?: number; right?: number; bottom?: number };
+  triggerRef?: React.RefObject<HTMLElement>;
 }
 
 /**
  * Displays feature details in a dismissible card overlay on the map.
  * Generic component that can display any feature's properties.
  * Originally built for parcel details, reusable for other geometry types.
+ * Accessible dialog with focus management and screen reader support.
  */
-export function FeatureInfoCard({ title, rows, onClose, position }: FeatureInfoCardProps) {
+export function FeatureInfoCard({ title, rows, onClose, position, triggerRef }: FeatureInfoCardProps) {
   // Don't render if no rows to display
   if (rows.length === 0) {
     return null;
   }
+
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const dialogId = useId();
+  const titleId = useId();
+
+  // Focus close button when card opens
+  useEffect(() => {
+    closeButtonRef.current?.focus();
+  }, []);
+
+  // Restore focus when dialog closes
+  const handleClose = () => {
+    if (triggerRef?.current) {
+      triggerRef.current.focus();
+    } else {
+      // Fall back to focusing the map container if no trigger ref provided
+      const mapContainer = document.querySelector("[data-testid='map']");
+      if (mapContainer instanceof HTMLElement) {
+        mapContainer.focus();
+      }
+    }
+    onClose();
+  };
 
   // Build positioning classes: if position is provided, use inline styles; otherwise use default classes
   const positionStyle = position
@@ -40,14 +66,19 @@ export function FeatureInfoCard({ title, rows, onClose, position }: FeatureInfoC
 
   return (
     <div
+      id={dialogId}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby={titleId}
       className={`absolute z-[1000] pointer-events-auto ${defaultClasses}`}
       style={positionStyle}
     >
       <SurfacePanel variant="panel" className="p-3 text-xs max-w-xs">
         <div className="flex items-start justify-between gap-2 mb-2">
-          <div className="font-semibold text-slate-900">{title}</div>
+          <div id={titleId} className="font-semibold text-slate-900">{title}</div>
           <button
-            onClick={onClose}
+            ref={closeButtonRef}
+            onClick={handleClose}
             className="p-0.5 text-slate-400 hover:text-slate-600 transition-colors"
             aria-label="Close feature details"
             type="button"
