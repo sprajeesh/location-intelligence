@@ -333,7 +333,7 @@ function MapContent() {
             fillColor: "rgb(var(--color-error-500))",
             fillOpacity: 0.15,
           }}
-          onEachFeature={(feature, layer) => {
+          onEachFeature={(_, layer) => {
             layer.on("click", (e) => {
               const point = map.latLngToContainerPoint(e.latlng);
               setCardPosition({

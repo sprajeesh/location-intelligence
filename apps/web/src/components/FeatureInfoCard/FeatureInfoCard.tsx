@@ -1,9 +1,7 @@
 "use client";
 
-import { useTranslations } from "next-intl";
 import { X } from "lucide-react";
 import { SurfacePanel } from "@/components/ui/SurfacePanel";
-import type { ParcelProperties } from "@/types/parcel";
 
 export interface FeatureInfoRow {
   label: string;
