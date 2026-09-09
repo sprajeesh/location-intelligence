@@ -31,6 +31,7 @@ import { getHazardCellColor } from "@/utils/hazardColor";
 import { buildHazardTooltipHtml } from "@/utils/hazardTooltip";
 import { computeMapBounds } from "@/utils/mapBounds";
 import { getCategoryIcon } from "@/utils/categoryIcons";
+import { useCategoryColorMap } from "@/hooks/useCategoryColorMap";
 import { HazardLegend } from "@/components/HazardLegend";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { SettingsContainer } from "@/containers/SettingsContainer";
@@ -166,13 +167,7 @@ function MapContent() {
   }, [map]);
 
   // Map category id -> DB-configured color, from GET /categories
-  const categoryColorMap = useMemo(() => {
-    const colors: Record<string, string> = {};
-    for (const category of categories) {
-      colors[category.id] = category.color;
-    }
-    return colors;
-  }, [categories]);
+  const categoryColorMap = useCategoryColorMap();
 
   // Pre-render Lucide icons to SVG strings for use in L.divIcon markers
   const defaultMarkerIconMarkup = useMemo(

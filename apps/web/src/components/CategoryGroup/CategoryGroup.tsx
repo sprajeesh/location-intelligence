@@ -60,16 +60,16 @@ export default function CategoryGroup({
           aria-controls={isExpanded ? `category-${id}` : undefined}
         >
           <div className="flex items-center gap-3 min-w-0">
-            {/* Category icon */}
+            {/* Category icon in colored circle */}
             {(() => {
               const Icon = getCategoryIcon(id);
               return (
-                <Icon
-                  size={16}
-                  color={color}
-                  aria-hidden="true"
-                  className="flex-shrink-0"
-                />
+                <div
+                  className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
+                  style={{ backgroundColor: color }}
+                >
+                  <Icon size={12} color="white" aria-hidden="true" />
+                </div>
               );
             })()}
 

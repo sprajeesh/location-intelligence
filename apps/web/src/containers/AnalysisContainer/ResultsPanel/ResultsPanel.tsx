@@ -18,6 +18,7 @@ import { useNavigate } from "@/hooks/useNavigate";
 import { useAnalyze } from "@/hooks/useAnalyze";
 import { useAnalyzeCategories } from "@/hooks/useAnalyzeCategories";
 import { useAnalyzeCategoryWeights } from "@/hooks/useAnalyzeCategoryWeights";
+import { useCategoryColorMap } from "@/hooks/useCategoryColorMap";
 
 type ResultsTab = "score" | "facilities";
 
@@ -74,6 +75,7 @@ export default function ResultsPanel({
   const { mutate: analyze } = useAnalyze();
   const analyzeCategories = useAnalyzeCategories();
   const analyzeCategoryWeights = useAnalyzeCategoryWeights();
+  const categoryColorMap = useCategoryColorMap();
 
   // Local UI state for expanded/collapsed categories
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
@@ -114,7 +116,7 @@ export default function ResultsPanel({
         categoryMap.set(feature.category, {
           features: [],
           label,
-          color: "rgb(var(--color-success-500))", // fallback, overridden by API-configured category color if available
+          color: categoryColorMap[feature.category] || "rgb(var(--color-neutral-500))",
         });
       }
 
@@ -131,7 +133,7 @@ export default function ResultsPanel({
         features: data.features.sort((a, b) => a.distanceKm - b.distanceKm),
       }))
       .sort((a, b) => a.label.localeCompare(b.label));
-  }, [analysisResult?.features]);
+  }, [analysisResult?.features, categoryColorMap]);
 
   // Toggle category expansion
   const toggleCategoryExpanded = useCallback((categoryId: string) => {
