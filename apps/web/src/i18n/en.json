@@ -85,7 +85,13 @@
   "parcels": {
     "notFoundBanner": "Couldn't find a matching parcel boundary for this address.",
     "locating": "Locating parcel…",
-    "serviceError": "Couldn't retrieve parcel information. Please check your connection and try again."
+    "serviceError": "Couldn't retrieve parcel information. Please check your connection and try again.",
+    "info": {
+      "title": "Parcel Details",
+      "appellation": "Appellation",
+      "parcelIntent": "Parcel intent",
+      "titles": "Title(s)"
+    }
   },
   "distance": {
     "driving": "Driving",
