@@ -123,7 +123,7 @@ export function HomeContainer() {
 
       {/* Map container — full-bleed before a panel is active; on mobile in map view, shows full screen.
           On mobile when showing map, use z-20 to ensure toolbar sits above the results panel's z-10. */}
-      <div className={`flex-1 min-w-0 min-h-0 relative ${showResultsOnMobile ? "hidden z-0" : "z-20 md:z-0"} md:flex`}>
+      <div className={`flex-1 min-w-0 min-h-0 relative ${showResultsOnMobile ? "hidden z-0" : showMapOnMobile ? "z-20 md:z-0" : "z-0"} md:flex`}>
         <MapContainerDynamic />
       </div>
     </div>
