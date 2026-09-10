@@ -63,12 +63,12 @@ export async function searchAddress(page: any, addressQuery: string) {
   await searchInput.fill(addressQuery);
   await page.waitForTimeout(500); // Wait for suggestions to appear
 
-  // Look for the first suggestion in the dropdown
-  const firstSuggestion = page.locator('[role="option"], li:has-text("Parliament"), li:first').first();
+  // Look for matching suggestion in the listbox dropdown
+  const firstSuggestion = page.locator('[role="listbox"] [role="option"]').filter({ hasText: addressQuery }).first();
   if (await firstSuggestion.isVisible({ timeout: 5000 }).catch(() => false)) {
     await firstSuggestion.click();
   } else {
-    // If no dropdown, just press Enter
+    // If no matching suggestion visible, just press Enter
     await searchInput.press('Enter');
   }
 }

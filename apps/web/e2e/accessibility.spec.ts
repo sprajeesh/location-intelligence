@@ -76,7 +76,7 @@ test.describe('Accessibility', () => {
       // First heading should be h1
       const firstHeading = page.locator('h1');
       const h1Count = await firstHeading.count();
-      expect(h1Count).toBeGreaterThanOrEqual(0);
+      expect(h1Count).toBeGreaterThanOrEqual(1);
     }
   );
 
@@ -92,13 +92,8 @@ test.describe('Accessibility', () => {
       expect(count).toBeGreaterThan(0);
 
       // All buttons should be visible (good contrast)
-      for (let i = 0; i < Math.min(count, 5); i++) {
-        const button = buttons.nth(i);
-        const isVisible = await button.isVisible().catch(() => false);
-        if (isVisible) {
-          expect(true).toBeTruthy();
-        }
-      }
+      const firstButton = buttons.first();
+      await expect(firstButton).toBeVisible();
     }
   );
 
