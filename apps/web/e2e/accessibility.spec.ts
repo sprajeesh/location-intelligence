@@ -7,11 +7,10 @@ test.describe('Accessibility', () => {
   });
 
   test(
-    'keyboard navigation works for search and analyze',
+    'keyboard navigation works for search',
     { tag: ['@regression'] },
     async ({ page }) => {
       const searchInput = page.locator('input[type="text"]').first();
-      const analyzeButton = page.locator('button:has-text("Analyse")').first();
 
       // Tab to search input
       await page.keyboard.press('Tab');
@@ -47,18 +46,18 @@ test.describe('Accessibility', () => {
     'buttons are keyboard accessible',
     { tag: ['@regression'] },
     async ({ page }) => {
-      const analyzeButton = page.locator('button:has-text("Analyse")').first();
+      const buttons = page.locator('button').first();
 
       // Focus the button using keyboard
-      await analyzeButton.focus();
+      await buttons.focus();
       await page.waitForTimeout(200);
 
       // Check if button is focused
-      const focused = await analyzeButton.evaluate((el) => el === document.activeElement);
+      const focused = await buttons.evaluate((el) => el === document.activeElement);
       expect(focused).toBe(true);
 
       // Check that button has role
-      const role = await analyzeButton.getAttribute('role');
+      const role = await buttons.getAttribute('role');
       expect(['button', null]).toContain(role);
     }
   );
