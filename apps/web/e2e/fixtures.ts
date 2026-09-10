@@ -1,6 +1,6 @@
 import { test as baseTest, expect } from '@playwright/test';
 
-type Fixtures = {};
+type Fixtures = Record<string, never>;
 
 export const test = baseTest.extend<Fixtures>({});
 
@@ -89,7 +89,7 @@ export async function verifyScoreDisplayed(page: any) {
   // Look for score display in various forms
   const scoreLocators = [
     page.locator('[data-testid="location-score"]'),
-    page.locator('text=/Score.*\/.*10/'),
+    page.locator('text=/Score.*/.*10/'),
     page.locator('text=/Location Score/'),
   ];
 
