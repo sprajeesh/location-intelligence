@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import type { CategoryScoreResult } from "@/types/api";
 import { formatScoreValue, getScoreColorClass, sortFacilitiesForDisplay } from "@/utils/scoreDisplay";
+import { getScoreCategoryIcon } from "@/utils/categoryIcons";
 import { FacilityScoreRow } from "@/components/FacilityScoreRow";
 import { StatusPill } from "@/components/StatusPill";
 import { CollapsibleCard } from "@/components/ui/CollapsibleCard";
@@ -34,6 +35,7 @@ export function CategoryScoreCard({
   const label = t(`score.categories.${category.category}`, {
     defaultValue: category.category,
   });
+  const Icon = getScoreCategoryIcon(category.category);
 
   return (
     <CollapsibleCard
@@ -47,7 +49,12 @@ export function CategoryScoreCard({
         "data-testid": `category-score-card-${category.category}`,
         "data-status": category.status,
       }}
-      header={<span className="font-medium text-slate-900">{label}</span>}
+      header={
+        <span className="flex items-center gap-2 font-medium text-slate-900">
+          <Icon className="w-4 h-4 text-slate-500 flex-shrink-0" aria-hidden="true" />
+          {label}
+        </span>
+      }
       headerEnd={
         isNotChecked ? (
           <StatusPill label={t("score.status.notAssessed", { defaultValue: "Not assessed" })} />
