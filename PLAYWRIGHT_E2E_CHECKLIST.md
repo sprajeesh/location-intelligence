@@ -163,6 +163,9 @@ apps/web/e2e/
 # Install Playwright (automatic with pnpm install)
 pnpm install
 
+# Install Playwright browsers
+pnpm exec playwright install --with-deps chromium
+
 # Ensure services are running
 pnpm services:up
 

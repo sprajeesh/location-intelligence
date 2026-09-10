@@ -179,6 +179,9 @@ End-to-end tests verify real user workflows across the application. See [E2E_TES
 pnpm services:up
 pnpm dev
 
+# Install Playwright browsers (in another terminal, or before running tests)
+pnpm exec playwright install --with-deps chromium
+
 # In another terminal:
 pnpm test:e2e:smoke       # Run fast smoke tests (~5-10 tests)
 pnpm test:e2e              # Run full E2E suite
