@@ -15,7 +15,11 @@ import {
   UtensilsCrossed,
   Martini,
   MapPin,
+  GraduationCap,
+  HeartPulse,
+  ShoppingBag,
 } from "lucide-react";
+import type { CategoryId } from "@/types/api";
 
 const CATEGORY_ICONS: Record<string, LucideIcon> = {
   schools: School,
@@ -36,4 +40,17 @@ const CATEGORY_ICONS: Record<string, LucideIcon> = {
 
 export function getCategoryIcon(categoryId: string): LucideIcon {
   return CATEGORY_ICONS[categoryId] ?? MapPin;
+}
+
+const SCORE_CATEGORY_ICONS: Record<CategoryId, LucideIcon> = {
+  education: GraduationCap,
+  transport: Bus,
+  healthcare: HeartPulse,
+  shopping: ShoppingBag,
+  recreation: Trees,
+  food_and_drink: UtensilsCrossed,
+};
+
+export function getScoreCategoryIcon(categoryId: CategoryId): LucideIcon {
+  return SCORE_CATEGORY_ICONS[categoryId];
 }
