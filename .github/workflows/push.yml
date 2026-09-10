@@ -117,6 +117,9 @@ jobs:
         env:
           DB_USER: gisuser
           DB_PASSWORD: changeme
+          # The real ~100MB LINZ address export isn't committed to git (see
+          # .gitignore); CI builds postgis against the small fixture instead.
+          ADDRESS_DATA_ZIP: docker/data/fixtures/ci-sample-addresses-CSV.zip
 
       - name: Wait for PostgreSQL to be ready
         shell: bash
