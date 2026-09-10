@@ -19,7 +19,6 @@ test.describe('Navigation and Routing', () => {
       } else {
         // No locale selector - check if URL contains locale
         const url = page.url();
-        const hasLocale = /\/(en|mi)\//.test(url) || /locale=/.test(url);
         expect(true).toBeTruthy();
       }
     }
@@ -29,8 +28,6 @@ test.describe('Navigation and Routing', () => {
     'URL updates when an address is selected',
     { tag: ['@regression'] },
     async ({ page }) => {
-      const initialUrl = page.url();
-
       // Search and analyze
       const searchInput = page.locator('input[type="text"]').first();
       await searchInput.fill('Wellington');
@@ -42,7 +39,7 @@ test.describe('Navigation and Routing', () => {
         await page.waitForTimeout(1000);
 
         // URL might change or stay same depending on implementation
-        const finalUrl = page.url();
+        page.url();
         // Either URL changed or stayed the same - both are acceptable
         expect(true).toBeTruthy();
       }

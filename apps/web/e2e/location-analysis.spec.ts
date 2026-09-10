@@ -1,8 +1,5 @@
 import { test, expect } from './fixtures';
 import {
-  TEST_DATA,
-  searchAddress,
-  analyzeAddress,
   verifyScoreDisplayed,
   verifyFacilitiesDisplayed,
   waitForAnalysisComplete,
@@ -226,7 +223,7 @@ test.describe('Location Analysis Workflow', () => {
 
         // Look for error message
         const errorMessage = page.locator('[data-testid="error-message"], text=/not found|error|failed/i');
-        const errorVisible = await errorMessage.isVisible({ timeout: 3000 }).catch(() => false);
+        await errorMessage.isVisible({ timeout: 3000 }).catch(() => false);
 
         // Either an error appears or the analysis fails silently (both acceptable)
         expect(true).toBeTruthy();
@@ -248,7 +245,7 @@ test.describe('Location Analysis Workflow', () => {
 
         // Loading state might appear briefly
         const loadingIndicator = page.locator('text=/Loading|Analyzing|Please wait/i, [role="status"]');
-        const loadingVisible = await loadingIndicator.isVisible({ timeout: 2000 }).catch(() => false);
+        await loadingIndicator.isVisible({ timeout: 2000 }).catch(() => false);
 
         // Loading indicator is optional - it depends on network speed
         // If we see it, that's good; if not, that's also fine
@@ -299,7 +296,6 @@ test.describe('Location Analysis Workflow', () => {
         await waitForAnalysisComplete(page);
 
         // Look for tabs
-        const scoreTab = page.locator('button:has-text("Score")').first();
         const facilitiesTab = page.locator('button:has-text("Facilities")').first();
 
         if (await facilitiesTab.isVisible({ timeout: 2000 }).catch(() => false)) {
@@ -307,7 +303,7 @@ test.describe('Location Analysis Workflow', () => {
           await page.waitForTimeout(300);
 
           // Tab should be selected/active
-          const isActive = await facilitiesTab.evaluate((el: HTMLElement) => {
+          await facilitiesTab.evaluate((el: HTMLElement) => {
             return el.getAttribute('aria-selected') === 'true' || el.classList.contains('active');
           }).catch(() => false);
 
@@ -365,7 +361,7 @@ test.describe('Location Analysis Workflow', () => {
         await page.waitForTimeout(500);
 
         // Previous results should still be visible until new analysis completes
-        const oldResultsStillThere = await page
+        await page
           .locator('text=/Results|Score/i')
           .first()
           .isVisible({ timeout: 2000 })
