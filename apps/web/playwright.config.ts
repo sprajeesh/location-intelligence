@@ -20,14 +20,12 @@ export default defineConfig({
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
   },
-  webServer: process.env.CI
-    ? undefined
-    : {
-        command: 'pnpm dev',
-        url: baseURL,
-        reuseExistingServer: !process.env.CI,
-        timeout: 120000,
-      },
+  webServer: {
+    command: 'pnpm dev',
+    url: baseURL,
+    reuseExistingServer: !process.env.CI,
+    timeout: 120000,
+  },
   projects: [
     {
       name: 'chromium',
