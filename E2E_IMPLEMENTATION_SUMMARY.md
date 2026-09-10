@@ -412,7 +412,6 @@ pnpm test:e2e:ui
 # After committing, CI will:
 # 1. Run smoke tests on PR
 # 2. Run full suite on merge
-# 3. Run production tests post-deploy
 ```
 
 ---

@@ -209,7 +209,6 @@ The test suite integrates with GitHub Actions (`.github/workflows/push.yml`):
 
 1. **PR/Push** — Runs smoke tests (`@smoke`) for fast feedback
 2. **Merge to main** — Runs full suite (all tags)
-3. **Post-deploy** — Runs production smoke tests against production
 
 ### Test Results
 
