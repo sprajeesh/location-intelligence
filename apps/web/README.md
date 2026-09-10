@@ -160,13 +160,48 @@ Changes to components, hooks, and pages auto-refresh (Fast Refresh).
 
 ## Testing
 
-### Run Tests
+### Unit & Integration Tests (Jest)
 
 ```bash
 pnpm test                  # Run all tests
-pnpm test --watch        # Watch mode
-pnpm test --coverage     # Coverage report
+pnpm test --watch         # Watch mode
+pnpm test --coverage      # Coverage report
 ```
+
+### E2E Tests (Playwright)
+
+End-to-end tests verify real user workflows across the application. See [E2E_TESTING.md](E2E_TESTING.md) for detailed documentation.
+
+**Quick start:**
+
+```bash
+# Ensure services and dev server are running
+pnpm services:up
+pnpm dev
+
+# In another terminal:
+pnpm test:e2e:smoke       # Run fast smoke tests (~5-10 tests)
+pnpm test:e2e              # Run full E2E suite
+pnpm test:e2e:ui           # Run tests with interactive UI
+pnpm test:e2e:debug        # Debug a test with Playwright Inspector
+```
+
+**Test tags:**
+
+- `@smoke` — Minimal critical tests (fast feedback)
+- `@critical` — Important business workflows
+- `@regression` — Extended coverage with edge cases
+- `@production-smoke` — Safe tests for production environments
+
+**Filter tests by tag:**
+
+```bash
+pnpm test:e2e:smoke          # @smoke tests
+pnpm test:e2e:critical       # @critical tests
+pnpm test:e2e:production-smoke # @production-smoke tests
+```
+
+For comprehensive E2E testing guidance, see [e2e/README.md](e2e/README.md).
 
 ### Linting
 
