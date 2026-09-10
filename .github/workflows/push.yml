@@ -92,6 +92,87 @@ jobs:
       - name: Run unit and integration tests
         run: cd apps/web && pnpm test && cd ../api && uv run pytest
 
+      - name: Start web application for E2E tests
+        run: cd apps/web && pnpm dev &
+        env:
+          NODE_ENV: development
+
+      - name: Wait for web application to be ready
+        shell: bash
+        run: |
+          echo "Waiting for http://localhost:3000 to be ready..."
+          DEADLINE=$((SECONDS + 120))
+          until curl -sf http://localhost:3000 > /dev/null 2>&1; do
+            if [ "$SECONDS" -ge "$DEADLINE" ]; then
+              echo "Timeout waiting for web app to be ready" >&2
+              exit 1
+            fi
+            echo "Web app not ready yet, retrying in 2s..."
+            sleep 2
+          done
+          echo "Web app is ready!"
+
+      - name: Start API dependencies (PostgreSQL, Redis, OSRM) via Docker
+        run: docker compose up -d postgis redis osrm
+        env:
+          DB_USER: gisuser
+          DB_PASSWORD: changeme
+
+      - name: Wait for PostgreSQL to be ready
+        shell: bash
+        run: |
+          echo "Waiting for PostgreSQL to be ready..."
+          DEADLINE=$((SECONDS + 180))
+          until pg_isready -h localhost -U gisuser -d gis 2>/dev/null; do
+            if [ "$SECONDS" -ge "$DEADLINE" ]; then
+              echo "Timeout waiting for PostgreSQL" >&2
+              exit 1
+            fi
+            echo "PostgreSQL not ready yet, retrying in 2s..."
+            sleep 2
+          done
+          echo "PostgreSQL is ready!"
+
+      - name: Wait for Redis to be ready
+        shell: bash
+        run: |
+          echo "Waiting for Redis to be ready..."
+          DEADLINE=$((SECONDS + 120))
+          until redis-cli -p 6379 ping | grep -q PONG 2>/dev/null; do
+            if [ "$SECONDS" -ge "$DEADLINE" ]; then
+              echo "Timeout waiting for Redis" >&2
+              exit 1
+            fi
+            echo "Redis not ready yet, retrying in 2s..."
+            sleep 2
+          done
+          echo "Redis is ready!"
+
+      - name: Start FastAPI service
+        run: cd apps/api && uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 &
+        env:
+          DATABASE_URL: postgresql://gisuser:changeme@localhost:5432/gis
+          REDIS_URL: redis://localhost:6379
+          OSRM_URL: http://localhost:5000
+          LINZ_API_KEY: test-key
+          API_SHARED_SECRET: test-secret
+          NEXT_PUBLIC_API_URL: http://localhost:8000
+
+      - name: Wait for FastAPI service to be ready
+        shell: bash
+        run: |
+          echo "Waiting for http://localhost:8000/health to be ready..."
+          DEADLINE=$((SECONDS + 120))
+          until curl -sf http://localhost:8000/health > /dev/null 2>&1; do
+            if [ "$SECONDS" -ge "$DEADLINE" ]; then
+              echo "Timeout waiting for API to be ready" >&2
+              exit 1
+            fi
+            echo "API not ready yet, retrying in 2s..."
+            sleep 2
+          done
+          echo "API is ready!"
+
       - name: Run E2E smoke tests (all branches)
         if: github.ref != 'refs/heads/main'
         run: cd apps/web && pnpm test:e2e:smoke --reporter=list
