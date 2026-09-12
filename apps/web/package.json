@@ -10,6 +10,13 @@
     "lint": "eslint .",
     "test": "jest",
     "test:watch": "jest --watch",
+    "test:e2e": "playwright test",
+    "test:e2e:smoke": "playwright test --grep @smoke",
+    "test:e2e:critical": "playwright test --grep @critical",
+    "test:e2e:regression": "playwright test --grep @regression",
+    "test:e2e:production-smoke": "playwright test --grep @production-smoke",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:debug": "playwright test --debug",
     "build:cf": "opennextjs-cloudflare build"
   },
   "dependencies": {
@@ -30,6 +37,7 @@
   },
   "devDependencies": {
     "@opennextjs/cloudflare": "^1.20.1",
+    "@playwright/test": "^1.48.2",
     "@testing-library/jest-dom": "^6.0.0",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.0.0",
