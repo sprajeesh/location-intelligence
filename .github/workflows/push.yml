@@ -4,14 +4,10 @@ on: [push]
 jobs:
   test:
     name: Test and Security Scan
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
     env:
       SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
-        node-version: [24]
-        python-version: [3.13]
     steps:
       - name: Checkout code
         uses: actions/checkout@2d1c1198e79c30cca5c3957b1e3b65ce95b5356e
@@ -21,27 +17,27 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@69b2dd252ee5a3ae9d2f38e3b402b037b4c4170c
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: 24
 
       - name: Set up Python
         uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065  # v5.6.0
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: 3.13
 
       - name: Install pnpm
         run: npm install -g pnpm
+
+      - name: Cache node modules
+        uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
 
       - name: Install node dependencies
         run: cd apps/web && pnpm install
 
       - name: Install Playwright browsers
         run: cd apps/web && pnpm exec playwright install --with-deps chromium
-
-      - name: Cache node modules
-        uses: actions/cache@v3
-        with:
-          path: ~/.pnpm-store
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
 
       - name: Install uv
         uses: astral-sh/setup-uv@v8.1.0
@@ -92,26 +88,6 @@ jobs:
       - name: Run unit and integration tests
         run: cd apps/web && pnpm test && cd ../api && uv run pytest
 
-      - name: Start web application for E2E tests
-        run: cd apps/web && pnpm dev &
-        env:
-          NODE_ENV: development
-
-      - name: Wait for web application to be ready
-        shell: bash
-        run: |
-          echo "Waiting for http://localhost:3000 to be ready..."
-          DEADLINE=$((SECONDS + 120))
-          until curl -sf http://localhost:3000 > /dev/null 2>&1; do
-            if [ "$SECONDS" -ge "$DEADLINE" ]; then
-              echo "Timeout waiting for web app to be ready" >&2
-              exit 1
-            fi
-            echo "Web app not ready yet, retrying in 2s..."
-            sleep 2
-          done
-          echo "Web app is ready!"
-
       - name: Start API dependencies (PostgreSQL, Redis, OSRM) via Docker
         run: docker compose up -d postgis redis osrm
         env:
@@ -159,7 +135,6 @@ jobs:
           OSRM_URL: http://localhost:5000
           LINZ_API_KEY: test-key
           API_SHARED_SECRET: test-secret
-          NEXT_PUBLIC_API_URL: http://localhost:8000
 
       - name: Wait for FastAPI service to be ready
         shell: bash
@@ -180,11 +155,15 @@ jobs:
         if: github.ref != 'refs/heads/main'
         run: cd apps/web && pnpm test:e2e:smoke --reporter=list
         continue-on-error: false
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:8000
 
       - name: Run full E2E suite (main branch only)
         if: github.ref == 'refs/heads/main'
         run: cd apps/web && pnpm test:e2e --reporter=list
         continue-on-error: false
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:8000
 
       - name: Upload E2E test results
         if: always()
