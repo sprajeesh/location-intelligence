@@ -89,43 +89,13 @@ jobs:
         run: cd apps/web && pnpm test && cd ../api && uv run pytest
 
       - name: Start API dependencies (PostgreSQL, Redis, OSRM) via Docker
-        run: docker compose up -d postgis redis osrm
+        run: docker compose up -d --wait --wait-timeout 180 postgis redis osrm
         env:
           DB_USER: gisuser
           DB_PASSWORD: changeme
           # The real ~100MB LINZ address export isn't committed to git (see
           # .gitignore); CI builds postgis against the small fixture instead.
           ADDRESS_DATA_ZIP: docker/data/fixtures/ci-sample-addresses-CSV.zip
-
-      - name: Wait for PostgreSQL to be ready
-        shell: bash
-        run: |
-          echo "Waiting for PostgreSQL to be ready..."
-          DEADLINE=$((SECONDS + 180))
-          until pg_isready -h localhost -U gisuser -d gis 2>/dev/null; do
-            if [ "$SECONDS" -ge "$DEADLINE" ]; then
-              echo "Timeout waiting for PostgreSQL" >&2
-              exit 1
-            fi
-            echo "PostgreSQL not ready yet, retrying in 2s..."
-            sleep 2
-          done
-          echo "PostgreSQL is ready!"
-
-      - name: Wait for Redis to be ready
-        shell: bash
-        run: |
-          echo "Waiting for Redis to be ready..."
-          DEADLINE=$((SECONDS + 120))
-          until redis-cli -p 6379 ping | grep -q PONG 2>/dev/null; do
-            if [ "$SECONDS" -ge "$DEADLINE" ]; then
-              echo "Timeout waiting for Redis" >&2
-              exit 1
-            fi
-            echo "Redis not ready yet, retrying in 2s..."
-            sleep 2
-          done
-          echo "Redis is ready!"
 
       - name: Start FastAPI service
         run: cd apps/api && uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 &
