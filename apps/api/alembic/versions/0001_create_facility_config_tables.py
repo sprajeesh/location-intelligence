@@ -75,6 +75,12 @@ def upgrade() -> None:
         ),
     )
 
+    # "food_and_drink" is seeded by migration 0005, not here -- CATEGORY_WEIGHTS
+    # is the live app config, which has grown to include it since this migration
+    # was first written, so it must be excluded to avoid a duplicate insert when
+    # 0005 runs.
+    _category_weights = {k: v for k, v in CATEGORY_WEIGHTS.items() if k != "food_and_drink"}
+
     category_weights_table = sa.table(
         "category_weights",
         sa.column("category", sa.Text()),
@@ -82,7 +88,7 @@ def upgrade() -> None:
     )
     op.bulk_insert(
         category_weights_table,
-        [{"category": category, "weight": weight} for category, weight in CATEGORY_WEIGHTS.items()],
+        [{"category": category, "weight": weight} for category, weight in _category_weights.items()],
     )
 
     facility_types_table = sa.table(
@@ -107,6 +113,13 @@ def upgrade() -> None:
         sa.column("drive_hard_cutoff", sa.Float()),
         sa.column("osm_tags", postgresql.JSONB()),
     )
+
+    # "restaurants"/"pubs_bars" are seeded by migration 0005, not here -- same
+    # reason as _category_weights above.
+    _facility_configs = {
+        slug: cfg for slug, cfg in FACILITY_CONFIGS.items() if slug not in ("restaurants", "pubs_bars")
+    }
+
     op.bulk_insert(
         facility_types_table,
         [
@@ -131,7 +144,7 @@ def upgrade() -> None:
                 "drive_hard_cutoff": cfg.drive_hard_cutoff,
                 "osm_tags": [list(pair) for pair in cfg.osm_tags],
             }
-            for slug, cfg in FACILITY_CONFIGS.items()
+            for slug, cfg in _facility_configs.items()
         ],
     )
 
