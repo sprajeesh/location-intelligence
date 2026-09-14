@@ -124,7 +124,8 @@
     "reanalyze": "[MI] settings.reanalyze",
     "notNow": "[MI] settings.notNow",
     "weights": {
-      "footerTotal": "[MI] settings.weights.footerTotal"
+      "footerTotal": "[MI] settings.weights.footerTotal",
+      "percentInputLabel": "[MI] settings.weights.percentInputLabel"
     }
   }
 }

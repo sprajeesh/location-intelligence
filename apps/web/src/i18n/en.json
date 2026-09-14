@@ -124,7 +124,8 @@
     "reanalyze": "Re-analyze",
     "notNow": "Not now",
     "weights": {
-      "footerTotal": "Total Weightage: {total}%"
+      "footerTotal": "Total Weightage: {total}%",
+      "percentInputLabel": "{category} weight percent"
     }
   }
 }

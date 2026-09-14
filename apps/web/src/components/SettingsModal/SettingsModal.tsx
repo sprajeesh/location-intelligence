@@ -248,11 +248,35 @@ export function SettingsModal({
               <section key={group.compositeCategory}>
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-medium text-slate-700">{label}</h3>
-                  <span
-                    className={`text-xs tabular-nums font-medium ${isActive ? "text-slate-500" : "text-slate-300"}`}
-                  >
-                    {percent}%
-                  </span>
+                  <div className="flex items-center gap-1">
+                    <input
+                      type="number"
+                      inputMode="decimal"
+                      min={0}
+                      max={100}
+                      step={0.01}
+                      value={percent}
+                      disabled={!isActive || weightDraft === null}
+                      onChange={(e) => {
+                        const parsed = parseFloat(e.target.value);
+                        const clamped = Number.isNaN(parsed) ? 0 : Math.min(100, Math.max(0, parsed));
+                        setWeightDraft((prev) => ({
+                          ...(prev ?? {}),
+                          [group.compositeCategory]: clamped / 100,
+                        }));
+                      }}
+                      aria-label={t("settings.weights.percentInputLabel", {
+                        category: label,
+                        defaultValue: `${label} weight percent`,
+                      })}
+                      className={`w-14 bg-white border border-slate-200 rounded px-1.5 py-0.5 text-xs text-right tabular-nums font-medium disabled:opacity-40 disabled:cursor-not-allowed focus-ring-flush ${
+                        isActive ? "text-slate-700" : "text-slate-300"
+                      }`}
+                    />
+                    <span className={`text-xs font-medium ${isActive ? "text-slate-500" : "text-slate-300"}`}>
+                      %
+                    </span>
+                  </div>
                 </div>
                 <WeightSlider
                   label={label}
