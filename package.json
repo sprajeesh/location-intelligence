@@ -7,6 +7,12 @@
     "build:web": "pnpm --filter @location-intelligence/web build",
     "lint:web": "pnpm --filter @location-intelligence/web lint",
     "test:web": "pnpm --filter @location-intelligence/web test",
+    "test:e2e": "pnpm --filter @location-intelligence/web test:e2e",
+    "test:e2e:smoke": "pnpm --filter @location-intelligence/web test:e2e:smoke",
+    "test:e2e:critical": "pnpm --filter @location-intelligence/web test:e2e:critical",
+    "test:e2e:regression": "pnpm --filter @location-intelligence/web test:e2e:regression",
+    "test:e2e:production-smoke": "pnpm --filter @location-intelligence/web test:e2e:production-smoke",
+    "test:e2e:ui": "pnpm --filter @location-intelligence/web test:e2e:ui",
     "generate:types": "pnpm --filter @location-intelligence/web generate:types",
     "services:up": "docker compose up -d",
     "services:down": "docker compose down"

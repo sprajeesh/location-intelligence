@@ -1,0 +1,80 @@
+name: Security Scan
+
+on:
+  workflow_call:
+    secrets:
+      SNYK_TOKEN:
+        required: true
+
+jobs:
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@2d1c1198e79c30cca5c3957b1e3b65ce95b5356e
+        with:
+          persist-credentials: false
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@69b2dd252ee5a3ae9d2f38e3b402b037b4c4170c
+        with:
+          node-version: 24
+          cache: 'pnpm'
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065  # v5.6.0
+        with:
+          python-version: 3.13
+
+      - name: Install node dependencies
+        run: cd apps/web && pnpm install
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v8.1.0
+        with:
+          enable-cache: true
+
+      - name: Install Python dependencies
+        run: cd apps/api && uv sync
+
+      - name: Setup Snyk CLI
+        uses: snyk/actions/setup@9adf32b1121593767fc3c057af55b55db032dc04  # v1.0.0
+
+      - name: Test source code for vulnerabilities
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        run: snyk code test --all-projects --severity-threshold=high
+
+      - name: Export Python dependencies for Snyk (uv.lock has no native Snyk support)
+        run: cd apps/api && uv export --format requirements.txt --no-hashes -o requirements.txt
+
+      - name: Prepare Python Deps for Snyk
+        run: |
+          python -m venv /tmp/snyk-venv
+          /tmp/snyk-venv/bin/pip install --quiet -r apps/api/requirements.txt
+
+      - name: Test dependencies for vulnerabilities
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        run: |
+          snyk test --all-projects \
+            --exclude=requirements.txt \
+            --severity-threshold=high
+
+          snyk test --file=apps/api/requirements.txt --command=/tmp/snyk-venv/bin/python3 --severity-threshold=high
+        continue-on-error: true
+
+      - name: Monitor dependencies for vulnerabilities
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        run: |
+          snyk monitor --all-projects --severity-threshold=high --exclude=requirements.txt
+          snyk monitor --file=apps/api/requirements.txt --command=/tmp/snyk-venv/bin/python3 --severity-threshold=high
+        continue-on-error: true

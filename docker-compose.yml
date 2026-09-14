@@ -21,6 +21,9 @@ services:
       args:
         DB_USER: ${DB_USER}
         DB_PASSWORD: ${DB_PASSWORD}
+        # Overridden in CI to the small committed fixture -- the real ~100MB
+        # LINZ export isn't in git, see docker/Dockerfile.postgis.
+        ADDRESS_DATA_ZIP: ${ADDRESS_DATA_ZIP:-docker/data/lds-nz-addresses-CSV.zip}
     ports:
       - "127.0.0.1:5432:5432"
     volumes:

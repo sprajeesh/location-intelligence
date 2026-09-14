@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<osm version="0.6" generator="ci-fixture">
+  <bounds minlat="-41.30" minlon="174.77" maxlat="-41.28" maxlon="174.79"/>
+  <node id="1" lat="-41.290000" lon="174.780000" version="1"/>
+  <node id="2" lat="-41.291000" lon="174.781000" version="1"/>
+  <node id="3" lat="-41.292000" lon="174.782000" version="1"/>
+  <way id="100" version="1">
+    <nd ref="1"/>
+    <nd ref="2"/>
+    <nd ref="3"/>
+    <tag k="highway" v="residential"/>
+    <tag k="name" v="CI Fixture Road"/>
+  </way>
+</osm>

@@ -7,6 +7,12 @@ ARG DB_USER
 ARG DB_PASSWORD
 # TODO: Inject DB_USER and DB_PASSWORD at runtime (env/secrets)
 
+# Full LINZ export (~100MB) isn't committed to git -- it's placed manually
+# next to this Dockerfile for local/prod builds. CI has no such file, so it
+# overrides this to the small committed fixture at
+# docker/data/fixtures/ci-sample-addresses-CSV.zip instead.
+ARG ADDRESS_DATA_ZIP=docker/data/lds-nz-addresses-CSV.zip
+
 RUN apt-get update && apt-get -y dist-upgrade && \
   apt-get install -y --no-install-recommends \
   wget gnupg2 ca-certificates gdal-bin sudo vim lsb-release unzip && \
@@ -22,8 +28,9 @@ COPY docker/sql/01_schema.sql /tmp/sql/01_schema.sql
 COPY docker/sql/02_load.sql /tmp/sql/02_load.sql
 COPY docker/sql/03_post_load.sql /tmp/sql/03_post_load.sql
 
-# Extract pre-downloaded LINZ NZ Street Address CSV (layer 123113)
-COPY docker/data/lds-nz-addresses-CSV.zip /tmp/nz_addresses.zip
+# Extract pre-downloaded LINZ NZ Street Address CSV (layer 123113), or the
+# small CI fixture when ADDRESS_DATA_ZIP is overridden.
+COPY ${ADDRESS_DATA_ZIP} /tmp/nz_addresses.zip
 RUN unzip /tmp/nz_addresses.zip -d /tmp/linz_extract \
   && find /tmp/linz_extract -name "*.csv" | head -1 | xargs -I{} cp {} /tmp/nz_addresses.csv \
   && rm -rf /tmp/nz_addresses.zip /tmp/linz_extract
