@@ -2,7 +2,7 @@
 
 import React, { useCallback, useState } from "react";
 import { useMap } from "react-leaflet";
-import { Plus, Minus, Crosshair, Navigation, TriangleAlert } from "lucide-react";
+import { Plus, Minus, Crosshair, Navigation } from "lucide-react";
 import { useLocationStore } from "@/store/index";
 import { useIsDesktop } from "@/hooks/useIsDesktop";
 import { ToolbarButton } from "@/components/ToolbarButton";
@@ -54,8 +54,6 @@ export function MapToolbarContainer({
   const analysisResult = useLocationStore((s) => s.analysisResult);
   const parcelFeature = useLocationStore((s) => s.parcelFeature);
   const activeRoute = useLocationStore((s) => s.activeRoute);
-  const hazardLayerVisible = useLocationStore((s) => s.hazardLayerVisible);
-  const toggleHazardLayerVisible = useLocationStore((s) => s.toggleHazardLayerVisible);
 
   const handleZoomIn = useCallback(
     (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -109,14 +107,6 @@ export function MapToolbarContainer({
     [map],
   );
 
-  const handleToggleHazardLayer = useCallback(
-    (e: React.MouseEvent<HTMLButtonElement>) => {
-      e.stopPropagation();
-      toggleHazardLayerVisible();
-    },
-    [toggleHazardLayerVisible],
-  );
-
   const hasFeatures = (analysisResult?.features?.length ?? 0) > 0;
 
   return (
@@ -148,15 +138,6 @@ export function MapToolbarContainer({
         label={isLocating ? "Locating..." : "Current location"}
         onClick={handleCurrentLocation}
         disabled={isLocating}
-      />
-
-      <div className="w-5 h-px bg-slate-200 my-0.5" role="separator" />
-
-      <ToolbarButton
-        icon={TriangleAlert}
-        label={hazardLayerVisible ? "Hide hazard layer" : "Show hazard layer"}
-        onClick={handleToggleHazardLayer}
-        active={hazardLayerVisible}
       />
 
       <div className="w-5 h-px bg-slate-200 my-0.5" role="separator" />
