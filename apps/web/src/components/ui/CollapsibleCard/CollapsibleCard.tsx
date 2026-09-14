@@ -12,6 +12,11 @@ export interface CollapsibleCardProps {
   // header button rather than inside it -- a <button> cannot legally
   // contain another <button>.
   actions?: ReactNode;
+  // Accessible name for the chevron button in each state. Callers that
+  // render translated UI (e.g. CategoryScoreCard) should pass localized
+  // text; defaults to English for callers that don't.
+  expandLabel?: string;
+  collapseLabel?: string;
   children?: ReactNode;
   contentId?: string;
   className?: string;
@@ -26,6 +31,8 @@ export function CollapsibleCard({
   header,
   headerEnd,
   actions,
+  expandLabel = "Expand",
+  collapseLabel = "Collapse",
   children,
   contentId,
   className = "",
@@ -60,7 +67,7 @@ export function CollapsibleCard({
           type="button"
           onClick={onToggle}
           className="flex items-center flex-shrink-0 ml-2 p-1 -m-1 focus-ring-inset rounded-lg"
-          aria-label={isExpanded ? "Collapse" : "Expand"}
+          aria-label={isExpanded ? collapseLabel : expandLabel}
         >
           <ChevronDown
             className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`}

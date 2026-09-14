@@ -79,6 +79,30 @@ describe('CollapsibleCard', () => {
       expect(screen.getByRole('button', { name: 'Collapse' })).toBeInTheDocument();
     });
 
+    it('uses expandLabel/collapseLabel when provided, for localized callers', () => {
+      const { rerender } = render(
+        <CollapsibleCard
+          isExpanded={false}
+          onToggle={jest.fn()}
+          header={<span>Schools</span>}
+          expandLabel="Whakawhānui"
+          collapseLabel="Kōpani"
+        />,
+      );
+      expect(screen.getByRole('button', { name: 'Whakawhānui' })).toBeInTheDocument();
+
+      rerender(
+        <CollapsibleCard
+          isExpanded={true}
+          onToggle={jest.fn()}
+          header={<span>Schools</span>}
+          expandLabel="Whakawhānui"
+          collapseLabel="Kōpani"
+        />,
+      );
+      expect(screen.getByRole('button', { name: 'Kōpani' })).toBeInTheDocument();
+    });
+
     it('pairs aria-controls/id when contentId is given', () => {
       render(
         <CollapsibleCard

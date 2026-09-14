@@ -34,6 +34,10 @@
       "notAssessed": "Not assessed",
       "noDataFound": "None found nearby"
     },
+    "actions": {
+      "expand": "Expand",
+      "collapse": "Collapse"
+    },
     "categories": {
       "education": "Education",
       "transport": "Transport",

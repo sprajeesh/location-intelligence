@@ -4,7 +4,7 @@ import { CategoryScoreCard } from './CategoryScoreCard';
 import type { CategoryScoreResult, Feature } from '@/types/api';
 
 jest.mock('next-intl', () => {
-  const messages = require('@/i18n/en.json');
+  let messages: unknown = require('@/i18n/en.json');
   const resolve = (key: string) =>
     key.split('.').reduce<unknown>((obj, segment) => (obj as Record<string, unknown> | undefined)?.[segment], messages);
   return {
@@ -13,8 +13,15 @@ jest.mock('next-intl', () => {
       if (typeof template !== 'string' || !opts) return template;
       return template.replace(/\{(\w+)\}/g, (_match, name: string) => String(opts[name] ?? ''));
     },
+    // Test-only hook to switch the mocked message source, so a single test
+    // can verify the /mi results flow without a full NextIntlClientProvider.
+    __setMessages: (next: unknown) => {
+      messages = next;
+    },
   };
 });
+
+const nextIntlMock = jest.requireMock('next-intl') as { __setMessages: (messages: unknown) => void };
 
 const notCheckedCategory: CategoryScoreResult = {
   category: 'recreation',
@@ -224,6 +231,34 @@ describe('CategoryScoreCard', () => {
       );
       await userEvent.click(screen.getByRole('button', { name: /show bus stops markers on map/i }));
       expect(onToggleCategoryVisibility).toHaveBeenCalledWith(['bus-1'], true);
+    });
+  });
+
+  describe('Localized expand/collapse label', () => {
+    afterEach(() => {
+      nextIntlMock.__setMessages(require('@/i18n/en.json'));
+    });
+
+    it('gives the chevron button the localized expand/collapse label', () => {
+      const { rerender } = render(
+        <CategoryScoreCard category={checkedZeroCategory} isExpanded={false} onToggleExpand={jest.fn()} />
+      );
+      expect(screen.getByRole('button', { name: 'Expand' })).toBeInTheDocument();
+
+      rerender(
+        <CategoryScoreCard category={checkedZeroCategory} isExpanded={true} onToggleExpand={jest.fn()} />
+      );
+      expect(screen.getByRole('button', { name: 'Collapse' })).toBeInTheDocument();
+    });
+
+    it('uses the mi locale label for the /mi results flow', () => {
+      nextIntlMock.__setMessages(require('@/i18n/mi.json'));
+      render(
+        <CategoryScoreCard category={checkedZeroCategory} isExpanded={false} onToggleExpand={jest.fn()} />
+      );
+      expect(
+        screen.getByRole('button', { name: '[MI] score.actions.expand' })
+      ).toBeInTheDocument();
     });
   });
 });

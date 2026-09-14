@@ -34,6 +34,10 @@
       "notAssessed": "[MI] score.status.notAssessed",
       "noDataFound": "[MI] score.status.noDataFound"
     },
+    "actions": {
+      "expand": "[MI] score.actions.expand",
+      "collapse": "[MI] score.actions.collapse"
+    },
     "categories": {
       "education": "[MI] score.categories.education",
       "transport": "[MI] score.categories.transport",
