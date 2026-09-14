@@ -117,7 +117,11 @@ export function SettingsModal({
     draft === null ? [] : getActiveCompositeCategories(categories, draft);
   const total = activeCategories.reduce((sum, category) => sum + (weightDraft?.[category] ?? 0), 0);
   const totalPercent = weightToPercent(total);
-  const weightsAreValid = activeCategories.length === 0 || Math.abs(total - 1) < WEIGHT_SUM_TOLERANCE;
+  const totalIsValid = Math.abs(total - 1) < WEIGHT_SUM_TOLERANCE;
+  const hasZeroWeightCategory = activeCategories.some(
+    (category) => (weightDraft?.[category] ?? 0) <= 0,
+  );
+  const weightsAreValid = activeCategories.length === 0 || (totalIsValid && !hasZeroWeightCategory);
 
   const handleToggle = (facilityId: string, checked: boolean) => {
     setDraft((prev) => {
@@ -306,17 +310,30 @@ export function SettingsModal({
 
       <ModalFooter>
         {weightDraft !== null && activeCategories.length > 0 && (
-          <p
-            className={`mr-auto text-xs font-medium ${
-              weightsAreValid ? "text-success-600" : total < 1 ? "text-warning-600" : "text-error-600"
-            }`}
-          >
-            {t("settings.weights.footerTotal", {
-              total: totalPercent,
-              defaultValue: `Total Weightage: ${totalPercent}%`,
-            })}
-            {weightsAreValid ? " ✓" : ""}
-          </p>
+          <div className="mr-auto">
+            <p
+              className={`text-xs font-medium ${
+                weightsAreValid ? "text-success-600" : totalIsValid ? "text-warning-600" : "text-error-600"
+              }`}
+            >
+              {t("settings.weights.footerTotal", {
+                total: totalPercent,
+                defaultValue: `Total Weightage: ${totalPercent}%`,
+              })}
+              {weightsAreValid ? " ✓" : ""}
+            </p>
+            {!weightsAreValid && (
+              <p className="text-xs text-slate-500">
+                {!totalIsValid
+                  ? t("settings.weights.helpNotHundred", {
+                      defaultValue: "Adjust weights so they total 100% to save.",
+                    })
+                  : t("settings.weights.helpZeroWeight", {
+                      defaultValue: "Every selected category needs a weight greater than 0% to save.",
+                    })}
+              </p>
+            )}
+          </div>
         )}
         <button
           type="button"
