@@ -204,8 +204,6 @@ pnpm test:e2e:critical       # @critical tests
 pnpm test:e2e:production-smoke # @production-smoke tests
 ```
 
-For comprehensive E2E testing guidance, see [e2e/README.md](e2e/README.md).
-
 ### Linting
 
 ```bash

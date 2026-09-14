@@ -205,7 +205,7 @@ await page.waitForLoadState('networkidle');
 
 ### GitHub Actions Workflow
 
-The test suite integrates with GitHub Actions (`.github/workflows/push.yml`):
+The test suite integrates with GitHub Actions (`.github/workflows/e2e-tests.yml`, called from `push.yml`):
 
 1. **PR/Push** — Runs smoke tests (`@smoke`) for fast feedback
 2. **Merge to main** — Runs full suite (all tags)
