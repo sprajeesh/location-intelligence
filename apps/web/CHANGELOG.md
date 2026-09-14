@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.0](https://github.com/sprajeesh/location-intelligence/compare/web@v0.9.0...web@v0.10.0) (2026-09-14)
+
+
+### Features
+
+* **web:** add lucide icons to score panel categories ([#173](https://github.com/sprajeesh/location-intelligence/issues/173)) ([e00e963](https://github.com/sprajeesh/location-intelligence/commit/e00e9638d3e7b78c07a97ee6927b959360b43a24))
+
 ## [0.9.0](https://github.com/sprajeesh/location-intelligence/compare/web@v0.8.0...web@v0.9.0) (2026-09-09)
 
 
