@@ -62,7 +62,11 @@
       "show": "[MI] score.markers.show",
       "hide": "[MI] score.markers.hide",
       "showTitle": "[MI] score.markers.showTitle",
-      "hideTitle": "[MI] score.markers.hideTitle"
+      "hideTitle": "[MI] score.markers.hideTitle",
+      "showOne": "[MI] score.markers.showOne",
+      "hideOne": "[MI] score.markers.hideOne",
+      "showTitleOne": "[MI] score.markers.showTitleOne",
+      "hideTitleOne": "[MI] score.markers.hideTitleOne"
     }
   },
   "parcels": {

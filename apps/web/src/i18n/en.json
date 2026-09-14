@@ -62,7 +62,11 @@
       "show": "Show {label} markers on map",
       "hide": "Hide {label} markers on map",
       "showTitle": "Show markers",
-      "hideTitle": "Hide markers"
+      "hideTitle": "Hide markers",
+      "showOne": "Show {name} marker on map",
+      "hideOne": "Hide {name} marker on map",
+      "showTitleOne": "Show marker",
+      "hideTitleOne": "Hide marker"
     }
   },
   "parcels": {

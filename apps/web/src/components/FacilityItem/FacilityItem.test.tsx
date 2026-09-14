@@ -3,9 +3,18 @@ import userEvent from '@testing-library/user-event';
 import FacilityItem from './FacilityItem';
 import type { Feature } from '@/types/api';
 
-jest.mock('next-intl', () => ({
-  useTranslations: () => (key: string, opts?: { defaultValue?: string }) => opts?.defaultValue ?? key,
-}));
+jest.mock('next-intl', () => {
+  const messages = require('@/i18n/en.json');
+  const resolve = (key: string) =>
+    key.split('.').reduce<unknown>((obj, segment) => (obj as Record<string, unknown> | undefined)?.[segment], messages);
+  return {
+    useTranslations: () => (key: string, opts?: Record<string, unknown> & { defaultValue?: string }) => {
+      const template = resolve(key) ?? opts?.defaultValue ?? key;
+      if (typeof template !== 'string' || !opts) return template;
+      return template.replace(/\{(\w+)\}/g, (_match, name: string) => String(opts[name] ?? ''));
+    },
+  };
+});
 
 const feature: Feature = {
   id: 'osm_node_1',

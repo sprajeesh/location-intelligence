@@ -88,8 +88,13 @@ export default function FacilityItem({
               ? "flex-shrink-0 text-primary-600 hover:text-primary-700 hover:bg-primary-50"
               : "flex-shrink-0 text-slate-400 hover:text-slate-500 hover:bg-slate-100"
           }
-          label={`${isVisible ? "Hide" : "Show"} ${feature.name} marker on map`}
-          title={`${isVisible ? "Hide" : "Show"} marker`}
+          label={t(isVisible ? "score.markers.hideOne" : "score.markers.showOne", {
+            name: feature.name,
+            defaultValue: `${isVisible ? "Hide" : "Show"} ${feature.name} marker on map`,
+          })}
+          title={t(isVisible ? "score.markers.hideTitleOne" : "score.markers.showTitleOne", {
+            defaultValue: isVisible ? "Hide marker" : "Show marker",
+          })}
         />
       )}
 
