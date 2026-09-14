@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { CategoryScoreCard } from './CategoryScoreCard';
-import type { CategoryScoreResult } from '@/types/api';
+import type { CategoryScoreResult, Feature } from '@/types/api';
 
 jest.mock('next-intl', () => ({
   useTranslations: () => (key: string, opts?: { defaultValue?: string }) => opts?.defaultValue ?? key,
@@ -93,5 +94,127 @@ describe('CategoryScoreCard', () => {
       <CategoryScoreCard category={checkedZeroCategory} isExpanded={true} onToggleExpand={jest.fn()} />
     );
     expect(screen.getByTestId('facility-score-row-bus_stops')).toBeInTheDocument();
+  });
+
+  describe('Category-level marker toggle', () => {
+    const busStopFeatures: Feature[] = [
+      { id: 'bus-1', name: 'Queen St Stop', category: 'bus_stops', lat: -36.84, lon: 174.77, distanceKm: 1.63 },
+    ];
+
+    it('does not render an eye icon when there are no matching features', () => {
+      render(
+        <CategoryScoreCard
+          category={checkedZeroCategory}
+          isExpanded={false}
+          onToggleExpand={jest.fn()}
+          onToggleCategoryVisibility={jest.fn()}
+        />
+      );
+      expect(screen.queryByRole('button', { name: /markers on map/i })).not.toBeInTheDocument();
+    });
+
+    it('does not render an eye icon when onToggleCategoryVisibility is not provided', () => {
+      render(
+        <CategoryScoreCard
+          category={checkedZeroCategory}
+          isExpanded={false}
+          onToggleExpand={jest.fn()}
+          features={busStopFeatures}
+        />
+      );
+      expect(screen.queryByRole('button', { name: /markers on map/i })).not.toBeInTheDocument();
+    });
+
+    it('does not render an eye icon for a not_checked category even with matching features', () => {
+      render(
+        <CategoryScoreCard
+          category={notCheckedCategory}
+          isExpanded={false}
+          onToggleExpand={jest.fn()}
+          features={[
+            { id: 'park-1', name: 'Some Park', category: 'parks', lat: 0, lon: 0, distanceKm: 1 },
+          ]}
+          onToggleCategoryVisibility={jest.fn()}
+        />
+      );
+      expect(screen.queryByRole('button', { name: /markers on map/i })).not.toBeInTheDocument();
+    });
+
+    it('renders a "Show" eye icon when the category has assessed facilities and none are currently visible', () => {
+      render(
+        <CategoryScoreCard
+          category={checkedZeroCategory}
+          isExpanded={false}
+          onToggleExpand={jest.fn()}
+          features={busStopFeatures}
+          visibleFacilityIds={new Set()}
+          onToggleCategoryVisibility={jest.fn()}
+        />
+      );
+      expect(screen.getByRole('button', { name: /show transport markers on map/i })).toBeInTheDocument();
+    });
+
+    it('renders a "Hide" eye icon when every matching feature is already visible', () => {
+      render(
+        <CategoryScoreCard
+          category={checkedZeroCategory}
+          isExpanded={false}
+          onToggleExpand={jest.fn()}
+          features={busStopFeatures}
+          visibleFacilityIds={new Set(['bus-1'])}
+          onToggleCategoryVisibility={jest.fn()}
+        />
+      );
+      const button = screen.getByRole('button', { name: /hide transport markers on map/i });
+      expect(button).toHaveAttribute('aria-pressed', 'true');
+    });
+
+    it('calls onToggleCategoryVisibility with every matching feature id and the target state', async () => {
+      const onToggleCategoryVisibility = jest.fn();
+      render(
+        <CategoryScoreCard
+          category={checkedZeroCategory}
+          isExpanded={false}
+          onToggleExpand={jest.fn()}
+          features={busStopFeatures}
+          visibleFacilityIds={new Set()}
+          onToggleCategoryVisibility={onToggleCategoryVisibility}
+        />
+      );
+      await userEvent.click(screen.getByRole('button', { name: /show transport markers on map/i }));
+      expect(onToggleCategoryVisibility).toHaveBeenCalledWith(['bus-1'], true);
+    });
+
+    it('clicking the eye icon does not also trigger onToggleExpand', async () => {
+      const onToggleExpand = jest.fn();
+      render(
+        <CategoryScoreCard
+          category={checkedZeroCategory}
+          isExpanded={false}
+          onToggleExpand={onToggleExpand}
+          features={busStopFeatures}
+          visibleFacilityIds={new Set()}
+          onToggleCategoryVisibility={jest.fn()}
+        />
+      );
+      await userEvent.click(screen.getByRole('button', { name: /show transport markers on map/i }));
+      expect(onToggleExpand).not.toHaveBeenCalled();
+    });
+
+    it('forwards the same handler to each nested facility-type row as its type-level toggle', async () => {
+      const onToggleCategoryVisibility = jest.fn();
+      render(
+        <CategoryScoreCard
+          category={checkedZeroCategory}
+          isExpanded={true}
+          onToggleExpand={jest.fn()}
+          features={busStopFeatures}
+          visibleFacilityIds={new Set()}
+          onToggleCategoryVisibility={onToggleCategoryVisibility}
+        />
+      );
+      await userEvent.click(screen.getByRole('button', { name: /show bus_stops markers on map/i }));
+      expect(onToggleCategoryVisibility).toHaveBeenCalledWith(['bus-1'], true);
+    });
   });
 });
