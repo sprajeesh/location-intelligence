@@ -9,7 +9,7 @@ Handles geocoding (LINZ PostGIS), Overpass queries, distance calculation, cachin
 **Testing:** pytest (197 tests)  
 **Linting:** Ruff
 
-**Docs:** [How an address gets scored](docs/SCORING.md) — a plain-language explanation of the scoring engine, no code required. [Database tables](docs/DATA_MODEL.md) — schema for `addresses`, `facility_types`, `category_weights`. [How the API is protected](docs/PROTECTION.md) — rate limiting, circuit breakers, concurrency limits, and input validation. [Hazard data sources](docs/HAZARD_SOURCES.md) — hazard data source verification and Phase-0 scaffold.
+**Docs:** [How an address gets scored](docs/SCORING.md) — a plain-language explanation of the scoring engine, no code required. [Database tables](docs/DATA_MODEL.md) — schema for `addresses`, `facility_types`, `category_weights`. [How the API is protected](docs/PROTECTION.md) — rate limiting, circuit breakers, concurrency limits, and input validation.
 
 ---
 
@@ -21,7 +21,7 @@ Handles geocoding (LINZ PostGIS), Overpass queries, distance calculation, cachin
 
 **Implementation Details**
 - [Key Components](#key-components) — Settings, main app, repositories, clients, services, and endpoints
-- [Database Migrations](#database-migrations) — Alembic migrations and hazard demo data setup
+- [Database Migrations](#database-migrations) — Alembic migrations
 - [PostGIS Address Data](#postgis-address-data) — How LINZ data loads and gets indexed
 
 **Quality & Deployment**
@@ -464,18 +464,6 @@ will fail to start if these tables don't exist yet — always run migrations
 before starting the server on a fresh database.
 
 See [`docs/DATA_MODEL.md`](docs/DATA_MODEL.md) for the full table schemas.
-
-### Hazard Demo Data
-
-The hazard scoring feature is currently a **Phase-0 scaffold** (see [`docs/HAZARD_SOURCES.md`](docs/HAZARD_SOURCES.md) for the hazard data source verification, and `HAZARD.md` for the full build spec): one fabricated "demo hazard" over a fixed Auckland bbox, proving the pipeline end to end before any real hazard source is ingested.
-
-`alembic upgrade head` creates the `hazard_*` tables and seeds `hazard_types` with the `demo_hazard` config row — the API starts fine at this point, but every `/location/analyze` response has `hazard: null` (no coverage) until the demo cells are populated:
-
-```bash
-./scripts/setup-hazard-demo.sh
-```
-
-This is idempotent — safe to re-run, it upserts the same 286 deterministic cells rather than duplicating them. Like `facility_types`, these tables live in the `postgis-data` volume, so they survive image rebuilds and only need re-running after `docker compose down -v`.
 
 ---
 
