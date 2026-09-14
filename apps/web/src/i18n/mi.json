@@ -57,6 +57,12 @@
       "supermarkets": "[MI] score.facilityTypes.supermarkets",
       "restaurants": "[MI] score.facilityTypes.restaurants",
       "pubs_bars": "[MI] score.facilityTypes.pubs_bars"
+    },
+    "markers": {
+      "show": "[MI] score.markers.show",
+      "hide": "[MI] score.markers.hide",
+      "showTitle": "[MI] score.markers.showTitle",
+      "hideTitle": "[MI] score.markers.hideTitle"
     }
   },
   "parcels": {

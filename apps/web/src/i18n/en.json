@@ -57,6 +57,12 @@
       "supermarkets": "Supermarkets",
       "restaurants": "Restaurants",
       "pubs_bars": "Pubs & Bars"
+    },
+    "markers": {
+      "show": "Show {label} markers on map",
+      "hide": "Hide {label} markers on map",
+      "showTitle": "Show markers",
+      "hideTitle": "Hide markers"
     }
   },
   "parcels": {

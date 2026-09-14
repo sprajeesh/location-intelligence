@@ -128,8 +128,13 @@ export function CategoryScoreCard({
             size="sm"
             pressed={isCategoryVisible}
             onClick={() => onToggleCategoryVisibility(categoryFeatureIds, !isCategoryVisible)}
-            label={`${isCategoryVisible ? "Hide" : "Show"} ${label} markers on map`}
-            title={`${isCategoryVisible ? "Hide" : "Show"} markers`}
+            label={t(isCategoryVisible ? "score.markers.hide" : "score.markers.show", {
+              label,
+              defaultValue: `${isCategoryVisible ? "Hide" : "Show"} ${label} markers on map`,
+            })}
+            title={t(isCategoryVisible ? "score.markers.hideTitle" : "score.markers.showTitle", {
+              defaultValue: isCategoryVisible ? "Hide markers" : "Show markers",
+            })}
             className={
               isCategoryVisible
                 ? "text-primary-600 hover:text-primary-700 hover:bg-primary-50"

@@ -88,8 +88,13 @@ export function FacilityScoreRow({
               size="sm"
               pressed={isTypeVisible}
               onClick={() => onToggleTypeVisibility(typeFeatureIds, !isTypeVisible)}
-              label={`${isTypeVisible ? "Hide" : "Show"} ${label} markers on map`}
-              title={`${isTypeVisible ? "Hide" : "Show"} markers`}
+              label={t(isTypeVisible ? "score.markers.hide" : "score.markers.show", {
+                label,
+                defaultValue: `${isTypeVisible ? "Hide" : "Show"} ${label} markers on map`,
+              })}
+              title={t(isTypeVisible ? "score.markers.hideTitle" : "score.markers.showTitle", {
+                defaultValue: isTypeVisible ? "Hide markers" : "Show markers",
+              })}
               className={
                 isTypeVisible
                   ? "text-primary-600 hover:text-primary-700 hover:bg-primary-50"
