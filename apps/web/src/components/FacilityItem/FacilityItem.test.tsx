@@ -65,6 +65,11 @@ describe('FacilityItem', () => {
       expect(screen.queryByRole('button', { name: /marker/i })).not.toBeInTheDocument();
     });
 
+    it('does not render an eye icon when isVisible is not provided', () => {
+      render(<FacilityItem feature={feature} markerColor="#10B981" onToggleVisibility={jest.fn()} />);
+      expect(screen.queryByRole('button', { name: /marker/i })).not.toBeInTheDocument();
+    });
+
     it('renders an eye icon when onToggleVisibility is provided', () => {
       render(
         <FacilityItem feature={feature} markerColor="#10B981" isVisible={false} onToggleVisibility={jest.fn()} />,

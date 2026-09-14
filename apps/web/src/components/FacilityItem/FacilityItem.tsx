@@ -77,7 +77,7 @@ export default function FacilityItem({
         </div>
       )}
 
-      {onToggleVisibility && (
+      {onToggleVisibility && isVisible !== undefined && (
         <IconButton
           icon={isVisible ? Eye : EyeOff}
           size="sm"
