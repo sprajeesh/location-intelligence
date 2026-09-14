@@ -1,7 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { AddressResult, AnalyzeResponse, Feature, RouteTransportMode } from '@/types/api'
-import type { HazardCellCollection } from '@/types/hazard'
 import type { ParcelFeature } from '@/types/parcel'
 import { DEFAULT_RADIUS_KM } from '@/constants/radius'
 
@@ -49,13 +48,6 @@ export interface LocationIntelligenceStore {
   navigateFrom: AddressResult | null
   navigateTo: AddressResult | null
 
-  // Hazard map layer state -- opt-in (default hidden), separate from the
-  // per-address hazard result already carried inside analysisResult.hazard
-  hazardLayerVisible: boolean
-  hazardCells: HazardCellCollection | null
-  hoveredHazardCellId: string | null
-  selectedHazardCellId: string | null
-
   // Cadastral parcel matched to the selected address (see useParcelAtPoint),
   // highlighted on the map in place of the plain address pin once resolved.
   parcelFeature: ParcelFeature | null
@@ -90,10 +82,6 @@ export interface LocationIntelligenceStore {
   setNavigateFrom: (address: AddressResult | null) => void
   setNavigateTo: (address: AddressResult | null) => void
   exitNavigation: () => void
-  toggleHazardLayerVisible: () => void
-  setHazardCells: (cells: HazardCellCollection | null) => void
-  setHoveredHazardCellId: (id: string | null) => void
-  setSelectedHazardCellId: (id: string | null) => void
   setParcelFeature: (feature: ParcelFeature | null) => void
   setTheme: (theme: Theme) => void
   toggleTheme: () => void
@@ -121,11 +109,6 @@ export const useLocationStore = create<LocationIntelligenceStore>()(
   routeMode: 'driving' as RouteTransportMode,
   navigateFrom: null,
   navigateTo: null,
-
-  hazardLayerVisible: false,
-  hazardCells: null,
-  hoveredHazardCellId: null,
-  selectedHazardCellId: null,
 
   parcelFeature: null,
 
@@ -216,18 +199,6 @@ export const useLocationStore = create<LocationIntelligenceStore>()(
       navigateFrom: null,
       navigateTo: null,
     }),
-
-  toggleHazardLayerVisible: () =>
-    set((state) => ({ hazardLayerVisible: !state.hazardLayerVisible })),
-
-  setHazardCells: (cells) =>
-    set({ hazardCells: cells }),
-
-  setHoveredHazardCellId: (id) =>
-    set({ hoveredHazardCellId: id }),
-
-  setSelectedHazardCellId: (id) =>
-    set({ selectedHazardCellId: id }),
 
   setParcelFeature: (feature) =>
     set({ parcelFeature: feature }),

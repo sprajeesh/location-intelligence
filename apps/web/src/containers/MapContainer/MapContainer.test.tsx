@@ -2,12 +2,10 @@ import { render, screen } from '@testing-library/react';
 import { MapContainer } from './MapContainer';
 import { useLocationStore } from '@/store';
 import { useCategories } from '@/hooks/useCategories';
-import { useHazardCells } from '@/hooks/useHazardCells';
 import { useParcelAtPoint } from '@/hooks/useParcelAtPoint';
 
 jest.mock('@/store');
 jest.mock('@/hooks/useCategories');
-jest.mock('@/hooks/useHazardCells');
 jest.mock('@/hooks/useParcelAtPoint');
 jest.mock('@/hooks/useNavigate', () => ({
   useNavigate: () => jest.fn(),
@@ -21,9 +19,6 @@ jest.mock('next-intl', () => ({
 }));
 jest.mock('@/components/ThemeToggle', () => ({
   ThemeToggle: () => <div data-testid="theme-toggle-stub" />,
-}));
-jest.mock('@/components/HazardLegend', () => ({
-  HazardLegend: () => <div data-testid="hazard-legend-stub" />,
 }));
 jest.mock('@/containers/SettingsContainer', () => ({
   SettingsContainer: () => <div data-testid="settings-container-stub" />,
@@ -92,7 +87,6 @@ class MockResizeObserver {
 
 const mockUseLocationStore = useLocationStore as jest.MockedFunction<typeof useLocationStore>;
 const mockUseCategories = useCategories as jest.MockedFunction<typeof useCategories>;
-const mockUseHazardCells = useHazardCells as jest.MockedFunction<typeof useHazardCells>;
 const mockUseParcelAtPoint = useParcelAtPoint as jest.MockedFunction<typeof useParcelAtPoint>;
 
 const makeStoreState = (overrides = {}) => ({
@@ -102,13 +96,9 @@ const makeStoreState = (overrides = {}) => ({
   activeRoute: null,
   selectedFeature: null,
   routeMode: 'driving' as const,
-  hazardLayerVisible: false,
-  hazardCells: null,
   parcelFeature: null,
   theme: 'light' as const,
   isAnalyzing: false,
-  setHoveredHazardCellId: jest.fn(),
-  setSelectedHazardCellId: jest.fn(),
   ...overrides,
 });
 
@@ -119,7 +109,6 @@ beforeEach(() => {
   mockMap.getContainer.mockReturnValue(mapContainerEl);
   mockUseLocationStore.mockReturnValue(makeStoreState());
   mockUseCategories.mockReturnValue({ categories: [], isLoading: false, isError: false } as any);
-  mockUseHazardCells.mockReturnValue({ dataUpdatedAt: 0 } as any);
   mockUseParcelAtPoint.mockReturnValue({ isFetching: false, data: null, isError: false } as any);
 });
 
@@ -153,28 +142,6 @@ describe('MapContainer', () => {
       expect(wrapper).toContainElement(screen.getByTestId('settings-container-stub'));
       expect(wrapper).toContainElement(screen.getByTestId('theme-toggle-stub'));
       expect(wrapper).toContainElement(screen.getByTestId('map-toolbar-stub'));
-    });
-  });
-
-  describe('Hazard legend positioning', () => {
-    it('is not rendered when the hazard layer is off', () => {
-      render(<MapContainer />);
-      expect(screen.queryByTestId('hazard-legend-stub')).not.toBeInTheDocument();
-    });
-
-    it('docks bottom-left on small screens, clear of the toolbar, and bottom-right on md+', () => {
-      mockUseLocationStore.mockReturnValue(
-        makeStoreState({
-          hazardLayerVisible: true,
-          hazardCells: { type: 'FeatureCollection', features: [] },
-        }),
-      );
-      render(<MapContainer />);
-      const wrapper = screen.getByTestId('hazard-legend-stub').parentElement as HTMLElement;
-      expect(wrapper.className).toContain('bottom-10');
-      expect(wrapper.className).toContain('left-3');
-      expect(wrapper.className).toContain('md:bottom-3');
-      expect(wrapper.className).toContain('md:right-3');
     });
   });
 
