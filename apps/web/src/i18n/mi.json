@@ -125,7 +125,9 @@
     "notNow": "[MI] settings.notNow",
     "weights": {
       "footerTotal": "[MI] settings.weights.footerTotal",
-      "percentInputLabel": "[MI] settings.weights.percentInputLabel"
+      "percentInputLabel": "[MI] settings.weights.percentInputLabel",
+      "helpNotHundred": "[MI] settings.weights.helpNotHundred",
+      "helpZeroWeight": "[MI] settings.weights.helpZeroWeight"
     }
   }
 }

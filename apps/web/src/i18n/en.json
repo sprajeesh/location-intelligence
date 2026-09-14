@@ -125,7 +125,9 @@
     "notNow": "Not now",
     "weights": {
       "footerTotal": "Total Weightage: {total}%",
-      "percentInputLabel": "{category} weight percent"
+      "percentInputLabel": "{category} weight percent",
+      "helpNotHundred": "Adjust weights so they total 100% to save.",
+      "helpZeroWeight": "Every selected category needs a weight greater than 0% to save."
     }
   }
 }

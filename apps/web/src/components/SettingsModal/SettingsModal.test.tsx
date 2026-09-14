@@ -209,6 +209,7 @@ describe("SettingsModal", () => {
 
       expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
       expect(screen.getByText(/Total Weightage: 120%/)).toBeInTheDocument();
+      expect(screen.getByText("Adjust weights so they total 100% to save.")).toBeInTheDocument();
     });
 
     it("re-enables Save once the weights are dragged back to sum to 100", async () => {
@@ -220,6 +221,25 @@ describe("SettingsModal", () => {
       fireEvent.change(screen.getByLabelText("transport"), { target: { value: "20" } });
       expect(screen.getByRole("button", { name: "Save" })).not.toBeDisabled();
       expect(screen.getByText(/Total Weightage: 100%/)).toBeInTheDocument();
+      expect(
+        screen.queryByText("Adjust weights so they total 100% to save."),
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByText("Every selected category needs a weight greater than 0% to save."),
+      ).not.toBeInTheDocument();
+    });
+
+    it("disables Save when an active category is left at 0% even though the total sums to 100", () => {
+      render(<SettingsModal {...defaultProps} />);
+
+      fireEvent.change(screen.getByLabelText("education"), { target: { value: "100" } });
+      fireEvent.change(screen.getByLabelText("transport"), { target: { value: "0" } });
+
+      expect(screen.getByText(/Total Weightage: 100%/)).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
+      expect(
+        screen.getByText("Every selected category needs a weight greater than 0% to save."),
+      ).toBeInTheDocument();
     });
 
     it("disables sliders and hides the footer total while the defaults query is still loading", () => {
