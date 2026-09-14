@@ -98,8 +98,9 @@ export function CategoryScoreCard({
     <CollapsibleCard
       isExpanded={isExpanded}
       onToggle={onToggleExpand}
-      expandLabel={t("score.actions.expand", { defaultValue: "Expand" })}
-      collapseLabel={t("score.actions.collapse", { defaultValue: "Collapse" })}
+      cardLabel={label}
+      expandLabel={t("score.actions.expand", { label, defaultValue: `Expand ${label}` })}
+      collapseLabel={t("score.actions.collapse", { label, defaultValue: `Collapse ${label}` })}
       contentId={`category-score-${category.category}`}
       className={isNotChecked ? "border-dashed border-slate-200 opacity-60" : "border-slate-200"}
       headerClassName="items-center"

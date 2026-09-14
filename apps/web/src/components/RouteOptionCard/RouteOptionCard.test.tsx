@@ -72,8 +72,13 @@ describe('RouteOptionCard', () => {
     it('calls onToggle when the chevron is clicked', async () => {
       const onToggle = jest.fn();
       render(<RouteOptionCard route={routeWithSteps} isExpanded={false} onToggle={onToggle} />);
-      await userEvent.click(screen.getByRole('button', { name: 'Expand' }));
+      await userEvent.click(screen.getByRole('button', { name: 'Expand via Main Road' }));
       expect(onToggle).toHaveBeenCalledTimes(1);
+    });
+
+    it('gives the chevron button a route-specific accessible name', () => {
+      render(<RouteOptionCard route={routeWithSteps} isExpanded={false} onToggle={jest.fn()} />);
+      expect(screen.getByRole('button', { name: 'Expand via Main Road' })).toBeInTheDocument();
     });
   });
 

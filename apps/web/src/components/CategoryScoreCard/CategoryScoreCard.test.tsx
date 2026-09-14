@@ -239,16 +239,16 @@ describe('CategoryScoreCard', () => {
       nextIntlMock.__setMessages(require('@/i18n/en.json'));
     });
 
-    it('gives the chevron button the localized expand/collapse label', () => {
+    it('gives the chevron button the localized expand/collapse label, including the category name', () => {
       const { rerender } = render(
         <CategoryScoreCard category={checkedZeroCategory} isExpanded={false} onToggleExpand={jest.fn()} />
       );
-      expect(screen.getByRole('button', { name: 'Expand' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Expand Transport' })).toBeInTheDocument();
 
       rerender(
         <CategoryScoreCard category={checkedZeroCategory} isExpanded={true} onToggleExpand={jest.fn()} />
       );
-      expect(screen.getByRole('button', { name: 'Collapse' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Collapse Transport' })).toBeInTheDocument();
     });
 
     it('uses the mi locale label for the /mi results flow', () => {

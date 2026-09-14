@@ -35,8 +35,8 @@
       "noDataFound": "None found nearby"
     },
     "actions": {
-      "expand": "Expand",
-      "collapse": "Collapse"
+      "expand": "Expand {label}",
+      "collapse": "Collapse {label}"
     },
     "categories": {
       "education": "Education",
