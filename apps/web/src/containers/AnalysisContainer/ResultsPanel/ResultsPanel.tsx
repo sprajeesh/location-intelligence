@@ -1,44 +1,32 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { Search, FileText } from "lucide-react";
 import { useLocationStore } from "@/store/index";
 import type { Feature } from "@/types/api";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
-import { FacilityItem } from "@/components/FacilityItem";
 import ScoreDisplay from "@/components/ScoreDisplay";
-import { CategoryGroup } from "@/components/CategoryGroup";
 import { RadiusAdjuster } from "@/components/RadiusAdjuster";
 import { SurfacePanel } from "@/components/ui/SurfacePanel";
-import { Tabs } from "@/components/ui/Tabs";
 import { useNavigate } from "@/hooks/useNavigate";
 import { useAnalyze } from "@/hooks/useAnalyze";
 import { useAnalyzeCategories } from "@/hooks/useAnalyzeCategories";
 import { useAnalyzeCategoryWeights } from "@/hooks/useAnalyzeCategoryWeights";
 import { useCategoryColorMap } from "@/hooks/useCategoryColorMap";
 
-type ResultsTab = "score" | "facilities";
-
 /**
  * ResultsPanel — Left side panel (desktop) or bottom sheet (mobile).
  *
  * Features:
- * - Groups facilities by category with collapsible headers
- * - Toggle to show/hide markers for each category on the map
- * - Click facility to center map and open popup
- * - Score display with coverage
+ * - Score display with coverage and per-category, per-facility breakdown
+ * - Toggle to show/hide markers on the map, at category level (every
+ *   assessed facility in the category at once) or per individual facility
+ * - Click a facility to center the map and open its popup
  * - Loading skeletons while analyzing
  * - Empty state with option to increase radius
  * - Responsive (desktop panel left / mobile bottom sheet)
  */
-
-interface CategorySection {
-  id: string;
-  label: string;
-  color: string;
-  features: Feature[];
-}
 
 export interface ResultsPanelProps {
   // Optional callback when a facility is clicked
@@ -58,15 +46,16 @@ export default function ResultsPanel({
     analysisResult,
     isAnalyzing,
     radiusKm,
-    visibleCategories,
-    toggleCategoryVisibility,
+    visibleFacilityIds,
+    toggleFacilityVisibility,
+    setFacilitiesVisibility,
     setActiveRoute,
     setSelectedFeature,
     selectedAddress,
     distanceMode,
     setRadiusKm,
     setAnalysisResult,
-    clearVisibleCategories,
+    clearVisibleFacilityIds,
     setIsMapViewOnMobile,
   } = useLocationStore();
 
@@ -75,87 +64,31 @@ export default function ResultsPanel({
   const analyzeCategoryWeights = useAnalyzeCategoryWeights();
   const categoryColorMap = useCategoryColorMap();
 
-  // Local UI state for expanded/collapsed categories
-  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
-    new Set(),
+  // On mobile, showing a marker switches from the results panel to the
+  // full-screen map so the newly-shown pin is actually visible.
+  const switchToMapViewOnMobile = useCallback(() => {
+    if (typeof window !== "undefined" && window.innerWidth < 768) {
+      setIsMapViewOnMobile(true);
+    }
+  }, [setIsMapViewOnMobile]);
+
+  // Toggle a single facility's marker
+  const handleToggleFacilityVisibility = useCallback(
+    (feature: Feature) => {
+      const isCurrentlyHidden = !visibleFacilityIds.has(feature.id);
+      toggleFacilityVisibility(feature.id);
+      if (isCurrentlyHidden) switchToMapViewOnMobile();
+    },
+    [toggleFacilityVisibility, visibleFacilityIds, switchToMapViewOnMobile],
   );
 
-  // Active results tab -- defaults to Score, resets on a new search below
-  const [activeTab, setActiveTab] = useState<ResultsTab>("score");
-
-  // Group features by category
-  const categorySections = useMemo<CategorySection[]>(() => {
-    if (!analysisResult?.features || analysisResult.features.length === 0) {
-      return [];
-    }
-
-    // Build a map of categoryId -> { features, color }
-    const categoryMap = new Map<
-      string,
-      {
-        features: Feature[];
-        label: string;
-        color: string;
-      }
-    >();
-
-    for (const feature of analysisResult.features) {
-      if (!categoryMap.has(feature.category)) {
-        // Infer label from category ID (kebab-case to Title Case)
-        const label =
-          feature.category
-            .split("_")
-            .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-            .join(" ") || feature.category;
-
-        categoryMap.set(feature.category, {
-          features: [],
-          label,
-          color: categoryColorMap[feature.category] || "rgb(var(--color-neutral-500))",
-        });
-      }
-
-      const cat = categoryMap.get(feature.category)!;
-      cat.features.push(feature);
-    }
-
-    // Convert to array and sort by category ID for consistency
-    return Array.from(categoryMap.entries())
-      .map(([id, data]) => ({
-        id,
-        label: data.label,
-        color: data.color,
-        features: data.features.sort((a, b) => a.distanceKm - b.distanceKm),
-      }))
-      .sort((a, b) => a.label.localeCompare(b.label));
-  }, [analysisResult?.features, categoryColorMap]);
-
-  // Toggle category expansion
-  const toggleCategoryExpanded = useCallback((categoryId: string) => {
-    setExpandedCategories((prev) => {
-      const next = new Set(prev);
-      if (next.has(categoryId)) {
-        next.delete(categoryId);
-      } else {
-        next.add(categoryId);
-      }
-      return next;
-    });
-  }, []);
-
-  // Handle visibility toggle
-  const handleToggleVisibility = useCallback(
-    (categoryId: string, e: React.MouseEvent) => {
-      e.stopPropagation();
-      const isCurrentlyHidden = !visibleCategories.has(categoryId);
-      toggleCategoryVisibility(categoryId);
-
-      // Switch to map view when showing markers on mobile
-      if (isCurrentlyHidden && typeof window !== 'undefined' && window.innerWidth < 768) {
-        setIsMapViewOnMobile(true);
-      }
+  // Bulk-toggle every assessed facility in a category at once
+  const handleToggleCategoryVisibility = useCallback(
+    (featureIds: string[], makeVisible: boolean) => {
+      setFacilitiesVisibility(featureIds, makeVisible);
+      if (makeVisible) switchToMapViewOnMobile();
     },
-    [toggleCategoryVisibility, visibleCategories, setIsMapViewOnMobile],
+    [setFacilitiesVisibility, switchToMapViewOnMobile],
   );
 
   // Handle facility click
@@ -175,7 +108,7 @@ export default function ResultsPanel({
     (newRadius: number) => {
       setRadiusKm(newRadius);
       setAnalysisResult(null);
-      clearVisibleCategories();
+      clearVisibleFacilityIds();
 
       if (selectedAddress) {
         analyze({
@@ -194,7 +127,7 @@ export default function ResultsPanel({
       distanceMode,
       setRadiusKm,
       setAnalysisResult,
-      clearVisibleCategories,
+      clearVisibleFacilityIds,
       analyze,
       analyzeCategories,
       analyzeCategoryWeights,
@@ -205,11 +138,6 @@ export default function ResultsPanel({
   const addressKey = selectedAddress
     ? `${selectedAddress.lat},${selectedAddress.lon}`
     : "no-address";
-
-  // A fresh search always lands back on the Score tab
-  useEffect(() => {
-    setActiveTab("score");
-  }, [addressKey]);
 
   // Render loading state
   if (isAnalyzing) {
@@ -240,10 +168,9 @@ export default function ResultsPanel({
   }
 
   // Render fully-empty results state -- no score AND no facilities. When a
-  // score exists, fall through to the tabbed view below so the Score panel
-  // keeps rendering; the empty-facilities message is scoped to the
-  // Facilities tab instead.
-  if (categorySections.length === 0 && !analysisResult.score) {
+  // score exists, fall through to the Score panel below, which surfaces
+  // per-category/per-facility-type "none found nearby" status on its own.
+  if (analysisResult.features.length === 0 && !analysisResult.score) {
     return (
       <SurfacePanel
         variant="sidebar"
@@ -280,101 +207,24 @@ export default function ResultsPanel({
       aria-label={t("results.title")}
       className={`w-full h-full overflow-hidden flex flex-col animate-panel-in ${className}`}
     >
-      <Tabs
-        tabs={[
-          { id: "score", label: t("results.tabs.score", { defaultValue: "Score" }) },
-          { id: "facilities", label: t("results.tabs.facilities", { defaultValue: "Nearby Facilities" }) },
-        ]}
-        activeTab={activeTab}
-        onChange={(id) => setActiveTab(id as ResultsTab)}
-        className="flex-shrink-0 px-2"
-      />
-
-      {/* Tab content -- the only part that scrolls */}
+      {/* Score -- the only part that scrolls */}
       <div className="flex-1 min-h-0 overflow-y-auto px-4 sm:px-6 py-3 sm:py-4 space-y-3">
-        {activeTab === "score" && (
-          <div id="panel-score" role="tabpanel" aria-labelledby="tab-score" className="space-y-3">
-            {analysisResult?.score && (
-              <ScoreDisplay
-                score={analysisResult.score}
-                warnings={analysisResult.warnings}
-              />
-            )}
-          </div>
-        )}
-
-        {activeTab === "facilities" && categorySections.length === 0 && (
-          <div
-            id="panel-facilities"
-            role="tabpanel"
-            aria-labelledby="tab-facilities"
-            className="flex flex-col items-center justify-center gap-2 text-center py-8"
-          >
-            <div className="text-slate-400">
-              <FileText className="mx-auto h-10 w-10 mb-1 opacity-50" />
-            </div>
-            <p className="text-sm text-slate-600">
-              {t("results.noFacilities", {
-                radius: radiusKm,
-                defaultValue: `No facilities found within ${radiusKm}km. Try increasing your search radius.`,
-              })}
-            </p>
-          </div>
-        )}
-
-        {activeTab === "facilities" && categorySections.length > 0 && (
-          <ul
-            id="panel-facilities"
-            role="tabpanel"
-            aria-labelledby="tab-facilities"
-            className="space-y-3"
-          >
-            {categorySections.map((section) => {
-              const isExpanded = expandedCategories.has(section.id);
-              const isVisible = visibleCategories.has(section.id);
-
-              return (
-                <li key={section.id}>
-                  <CategoryGroup
-                    id={section.id}
-                    label={section.label}
-                    color={section.color}
-                    count={section.features.length}
-                    isExpanded={isExpanded}
-                    isVisible={isVisible}
-                    onToggleExpand={() => toggleCategoryExpanded(section.id)}
-                    onToggleVisibility={(e) =>
-                      handleToggleVisibility(section.id, e)
-                    }
-                  >
-                    {isExpanded && (
-                      <ul className="space-y-2 pl-4 mt-2">
-                        {section.features.slice(0, 3).map((feature) => (
-                          <li key={feature.id}>
-                            <FacilityItem
-                              feature={feature}
-                              markerColor={section.color}
-                              onClick={() => handleFacilityClick(feature)}
-                              onNavigate={navigate}
-                            />
-                          </li>
-                        ))}
-                        {section.features.length > 3 && (
-                          <li className="px-3 py-1 text-xs text-slate-400">
-                            +{section.features.length - 3} more nearby
-                          </li>
-                        )}
-                      </ul>
-                    )}
-                  </CategoryGroup>
-                </li>
-              );
-            })}
-          </ul>
+        {analysisResult?.score && (
+          <ScoreDisplay
+            score={analysisResult.score}
+            warnings={analysisResult.warnings}
+            features={analysisResult.features}
+            categoryColorMap={categoryColorMap}
+            visibleFacilityIds={visibleFacilityIds}
+            onToggleFacilityVisibility={handleToggleFacilityVisibility}
+            onToggleCategoryVisibility={handleToggleCategoryVisibility}
+            onFacilityClick={handleFacilityClick}
+            onNavigate={navigate}
+          />
         )}
       </div>
 
-      {/* Radius adjuster — persistent, visible regardless of active tab */}
+      {/* Radius adjuster — persistent, visible below the score */}
       <div className="flex-shrink-0 border-t border-slate-200 px-4 sm:px-6 py-3 sm:py-4">
         <RadiusAdjuster
           key={addressKey}

@@ -18,10 +18,6 @@
     "noFacilities": "No facilities found within {radius}km. Try increasing your search radius.",
     "schools": "Schools",
     "busStops": "Bus Stops",
-    "tabs": {
-      "score": "Score",
-      "facilities": "Nearby Facilities"
-    },
     "adjustRadius": {
       "caption": "Not seeing expected results? Adjust the search radius",
       "label": "Search radius",
@@ -37,6 +33,10 @@
     "status": {
       "notAssessed": "Not assessed",
       "noDataFound": "None found nearby"
+    },
+    "actions": {
+      "expand": "Expand {label}",
+      "collapse": "Collapse {label}"
     },
     "categories": {
       "education": "Education",
@@ -61,6 +61,16 @@
       "supermarkets": "Supermarkets",
       "restaurants": "Restaurants",
       "pubs_bars": "Pubs & Bars"
+    },
+    "markers": {
+      "show": "Show {label} markers on map",
+      "hide": "Hide {label} markers on map",
+      "showTitle": "Show markers",
+      "hideTitle": "Hide markers",
+      "showOne": "Show {name} marker on map",
+      "hideOne": "Hide {name} marker on map",
+      "showTitleOne": "Show marker",
+      "hideTitleOne": "Hide marker"
     }
   },
   "parcels": {

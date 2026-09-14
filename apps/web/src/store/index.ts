@@ -34,7 +34,8 @@ export interface LocationIntelligenceStore {
   distanceMode: 'driving' | 'walking'
   analysisResult: AnalyzeResponse | null
   isAnalyzing: boolean
-  visibleCategories: Set<string>
+  // Individual facilities (by Feature.id) currently shown as markers on the map.
+  visibleFacilityIds: Set<string>
   selectedFacilities: string[] | null
   // Composite category -> weight fraction (e.g. { education: 0.40 }).
   // null = use the server's DB-configured default weights. Same
@@ -68,8 +69,9 @@ export interface LocationIntelligenceStore {
   setDistanceMode: (mode: 'driving' | 'walking') => void
   setAnalysisResult: (result: AnalyzeResponse | null) => void
   setIsAnalyzing: (isAnalyzing: boolean) => void
-  toggleCategoryVisibility: (categoryId: string) => void
-  clearVisibleCategories: () => void
+  toggleFacilityVisibility: (featureId: string) => void
+  setFacilitiesVisibility: (featureIds: string[], visible: boolean) => void
+  clearVisibleFacilityIds: () => void
   setSelectedFacilities: (facilityIds: string[] | null) => void
   setCategoryWeights: (weights: Record<string, number> | null) => void
   addToast: (toast: Omit<Toast, 'id'>) => void
@@ -99,7 +101,7 @@ export const useLocationStore = create<LocationIntelligenceStore>()(
   distanceMode: 'driving',
   analysisResult: null,
   isAnalyzing: false,
-  visibleCategories: new Set(),
+  visibleFacilityIds: new Set(),
   selectedFacilities: null,
   categoryWeights: null,
   toasts: [],
@@ -134,20 +136,34 @@ export const useLocationStore = create<LocationIntelligenceStore>()(
   setIsAnalyzing: (isAnalyzing) =>
     set({ isAnalyzing }),
 
-  // Toggle category visibility on map
-  toggleCategoryVisibility: (categoryId) =>
+  // Toggle a single facility's marker visibility on the map
+  toggleFacilityVisibility: (featureId) =>
     set((state) => {
-      const updated = new Set(state.visibleCategories)
-      if (updated.has(categoryId)) {
-        updated.delete(categoryId)
+      const updated = new Set(state.visibleFacilityIds)
+      if (updated.has(featureId)) {
+        updated.delete(featureId)
       } else {
-        updated.add(categoryId)
+        updated.add(featureId)
       }
-      return { visibleCategories: updated }
+      return { visibleFacilityIds: updated }
     }),
 
-  clearVisibleCategories: () =>
-    set({ visibleCategories: new Set() }),
+  // Bulk show/hide a set of facilities at once (e.g. a category-level toggle)
+  setFacilitiesVisibility: (featureIds, visible) =>
+    set((state) => {
+      const updated = new Set(state.visibleFacilityIds)
+      for (const id of featureIds) {
+        if (visible) {
+          updated.add(id)
+        } else {
+          updated.delete(id)
+        }
+      }
+      return { visibleFacilityIds: updated }
+    }),
+
+  clearVisibleFacilityIds: () =>
+    set({ visibleFacilityIds: new Set() }),
 
   setSelectedFacilities: (facilityIds) =>
     set({ selectedFacilities: facilityIds }),

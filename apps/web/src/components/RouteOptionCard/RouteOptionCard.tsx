@@ -29,6 +29,7 @@ export function RouteOptionCard({
     <CollapsibleCard
       isExpanded={isExpanded}
       onToggle={onToggle}
+      cardLabel={`${t("via")} ${getPrimaryRoad(route.summary)}`}
       contentId={contentId}
       className="border-slate-200 overflow-hidden"
       headerClassName="items-start text-left px-4 py-3 gap-3 hover:bg-slate-50 transition-colors duration-150"

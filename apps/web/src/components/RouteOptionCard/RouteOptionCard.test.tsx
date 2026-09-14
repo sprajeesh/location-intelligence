@@ -65,8 +65,20 @@ describe('RouteOptionCard', () => {
     it('calls onToggle when the header is clicked', async () => {
       const onToggle = jest.fn();
       render(<RouteOptionCard route={routeWithSteps} isExpanded={false} onToggle={onToggle} />);
-      await userEvent.click(screen.getByRole('button'));
+      await userEvent.click(screen.getByText(/Main Road/));
       expect(onToggle).toHaveBeenCalledTimes(1);
+    });
+
+    it('calls onToggle when the chevron is clicked', async () => {
+      const onToggle = jest.fn();
+      render(<RouteOptionCard route={routeWithSteps} isExpanded={false} onToggle={onToggle} />);
+      await userEvent.click(screen.getByRole('button', { name: 'Expand via Main Road' }));
+      expect(onToggle).toHaveBeenCalledTimes(1);
+    });
+
+    it('gives the chevron button a route-specific accessible name', () => {
+      render(<RouteOptionCard route={routeWithSteps} isExpanded={false} onToggle={jest.fn()} />);
+      expect(screen.getByRole('button', { name: 'Expand via Main Road' })).toBeInTheDocument();
     });
   });
 
@@ -75,10 +87,10 @@ describe('RouteOptionCard', () => {
       const { rerender } = render(
         <RouteOptionCard route={routeWithSteps} isExpanded={false} onToggle={jest.fn()} />,
       );
-      expect(screen.getByRole('button')).toHaveAttribute('aria-expanded', 'false');
+      expect(screen.getByText('via Main Road').closest('button')).toHaveAttribute('aria-expanded', 'false');
 
       rerender(<RouteOptionCard route={routeWithSteps} isExpanded={true} onToggle={jest.fn()} />);
-      expect(screen.getByRole('button')).toHaveAttribute('aria-expanded', 'true');
+      expect(screen.getByText('via Main Road').closest('button')).toHaveAttribute('aria-expanded', 'true');
     });
   });
 });

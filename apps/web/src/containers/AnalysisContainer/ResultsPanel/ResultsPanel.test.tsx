@@ -1,5 +1,4 @@
-import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import ResultsPanel from './ResultsPanel';
 import type { AnalyzeResponse, Feature, ScoreResult } from '@/types/api';
@@ -8,7 +7,11 @@ jest.mock('@/store');
 jest.mock('@/hooks/useAnalyze');
 jest.mock('@/hooks/useAnalyzeCategories');
 jest.mock('@/hooks/useCategoryColorMap', () => ({
-  useCategoryColorMap: () => ({}),
+  useCategoryColorMap: () => ({ schools: '#F59E0B', bus_stops: '#3B82F6' }),
+}));
+const mockNavigate = jest.fn();
+jest.mock('@/hooks/useNavigate', () => ({
+  useNavigate: () => mockNavigate,
 }));
 jest.mock('next-intl', () => ({
   useTranslations: () => (key: string, opts?: { defaultValue?: string }) => {
@@ -48,50 +51,67 @@ jest.mock('@/components/LoadingSkeleton', () => ({
     <div data-testid="loading-skeleton">Loading ({count})</div>
   ),
 }));
-jest.mock('@/components/FacilityItem', () => ({
-  __esModule: true,
-  FacilityItem: ({ feature, onClick }: { feature: Feature; onClick: () => void }) => (
-    <button data-testid={`facility-${feature.id}`} onClick={onClick}>
-      {feature.name}
-    </button>
-  ),
-}));
 jest.mock('@/components/ScoreDisplay', () => ({
   __esModule: true,
-  default: ({ score }: { score: ScoreResult }) => (
-    <div data-testid="score-display">Overall: {score.overall}</div>
-  ),
-}));
-jest.mock('@/components/CategoryGroup', () => ({
-  __esModule: true,
-  CategoryGroup: ({
-    id,
-    label,
-    count,
-    onToggleExpand,
-    onToggleVisibility,
-    children,
+  default: ({
+    score,
+    features,
+    categoryColorMap,
+    visibleFacilityIds,
+    onToggleFacilityVisibility,
+    onToggleCategoryVisibility,
+    onFacilityClick,
+    onNavigate,
   }: {
-    id: string;
-    label: string;
-    count: number;
-    onToggleExpand: () => void;
-    onToggleVisibility: (e: React.MouseEvent) => void;
-    children?: React.ReactNode;
-  }) => (
-    <div data-testid={`category-group-${id}`}>
-      <button data-testid={`toggle-expand-${id}`} onClick={onToggleExpand}>
-        {label} ({count})
+    score: ScoreResult;
+    features?: Feature[];
+    categoryColorMap?: Record<string, string>;
+    visibleFacilityIds?: Set<string>;
+    onToggleFacilityVisibility?: (feature: Feature) => void;
+    onToggleCategoryVisibility?: (featureIds: string[], makeVisible: boolean) => void;
+    onFacilityClick?: (feature: Feature) => void;
+    onNavigate?: (feature: Feature) => void;
+  }) => {
+    const firstFeature = features?.[0];
+    return (
+    <div data-testid="score-display">
+      <span>Overall: {score.overall}</span>
+      <span data-testid="features-count">{features?.length ?? 0}</span>
+      <span data-testid="has-color-map">{String(!!categoryColorMap && Object.keys(categoryColorMap).length > 0)}</span>
+      {features?.map((feature) => (
+        <button
+          key={feature.id}
+          data-testid={`toggle-facility-${feature.id}`}
+          onClick={() => onToggleFacilityVisibility?.(feature)}
+        >
+          {visibleFacilityIds?.has(feature.id) ? 'Hide' : 'Show'} {feature.id}
+        </button>
+      ))}
+      <button
+        data-testid="toggle-category"
+        onClick={() => onToggleCategoryVisibility?.(['school-1'], true)}
+      >
+        toggle category on
       </button>
       <button
-        data-testid={`toggle-visibility-${id}`}
-        onClick={(e) => onToggleVisibility(e)}
+        data-testid="toggle-category-off"
+        onClick={() => onToggleCategoryVisibility?.(['school-1'], false)}
       >
-        Toggle Visibility
+        toggle category off
       </button>
-      {children}
+      {firstFeature && (
+        <>
+          <button data-testid="facility-click" onClick={() => onFacilityClick?.(firstFeature)}>
+            click facility
+          </button>
+          <button data-testid="navigate-btn" onClick={() => onNavigate?.(firstFeature)}>
+            navigate
+          </button>
+        </>
+      )}
     </div>
-  ),
+    );
+  },
 }));
 
 import { useLocationStore } from '@/store';
@@ -175,9 +195,10 @@ const makeStoreState = (overrides = {}) => ({
   analysisResult: null,
   isAnalyzing: false,
   radiusKm: 10,
-  visibleCategories: new Set<string>(),
-  toggleCategoryVisibility: jest.fn(),
-  clearVisibleCategories: jest.fn(),
+  visibleFacilityIds: new Set<string>(),
+  toggleFacilityVisibility: jest.fn(),
+  setFacilitiesVisibility: jest.fn(),
+  clearVisibleFacilityIds: jest.fn(),
   selectedAddress: null,
   distanceMode: 'driving' as const,
   setSelectedAddress: jest.fn(),
@@ -195,12 +216,20 @@ const makeStoreState = (overrides = {}) => ({
   setActiveRoute: jest.fn(),
   setNavigatingFeatureId: jest.fn(),
   setSelectedFeature: jest.fn(),
+  setIsMapViewOnMobile: jest.fn(),
   ...overrides,
 });
+
+// Resets jsdom's window.innerWidth back to a desktop-sized default so mobile
+// behaviour is opt-in per test.
+const setViewportWidth = (width: number) => {
+  Object.defineProperty(window, 'innerWidth', { writable: true, configurable: true, value: width });
+};
 
 describe('ResultsPanel', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    setViewportWidth(1024);
     mockUseLocationStore.mockReturnValue(makeStoreState());
     mockUseAnalyzeCategories.mockReturnValue(undefined);
     mockUseAnalyze.mockReturnValue({
@@ -220,10 +249,10 @@ describe('ResultsPanel', () => {
       expect(screen.getByTestId('loading-skeleton')).toBeInTheDocument();
     });
 
-    it('does not render category groups while analyzing', () => {
+    it('does not render the score display while analyzing', () => {
       mockUseLocationStore.mockReturnValue(makeStoreState({ isAnalyzing: true }));
       render(<ResultsPanel />);
-      expect(screen.queryByTestId(/^category-group/)).not.toBeInTheDocument();
+      expect(screen.queryByTestId('score-display')).not.toBeInTheDocument();
     });
   });
 
@@ -242,14 +271,13 @@ describe('ResultsPanel', () => {
   describe('Empty results state (score present, no facilities)', () => {
     const emptyFacilitiesResult = { ...mockAnalysisResult, features: [] };
 
-    it('keeps the Score tab active and visible by default', () => {
+    it('still renders the score display', () => {
       mockUseLocationStore.mockReturnValue(makeStoreState({ analysisResult: emptyFacilitiesResult }));
       render(<ResultsPanel />);
-      expect(screen.getByRole('tab', { name: 'Score' })).toHaveAttribute('aria-selected', 'true');
       expect(screen.getByTestId('score-display')).toBeInTheDocument();
     });
 
-    it('does not show the no-facilities message on the Score tab', () => {
+    it('does not show the no-facilities message', () => {
       mockUseLocationStore.mockReturnValue(
         makeStoreState({ analysisResult: emptyFacilitiesResult, radiusKm: 10 })
       );
@@ -257,68 +285,6 @@ describe('ResultsPanel', () => {
       expect(
         screen.queryByText('No facilities found within 10km. Try increasing your search radius.')
       ).not.toBeInTheDocument();
-    });
-
-    it('shows the no-facilities message on the Nearby Facilities tab', async () => {
-      mockUseLocationStore.mockReturnValue(
-        makeStoreState({ analysisResult: emptyFacilitiesResult, radiusKm: 10 })
-      );
-      render(<ResultsPanel />);
-      await userEvent.click(screen.getByRole('tab', { name: 'Nearby Facilities' }));
-      expect(
-        screen.getByText('No facilities found within 10km. Try increasing your search radius.')
-      ).toBeInTheDocument();
-    });
-
-    it('does not render any CategoryGroup on the Nearby Facilities tab', async () => {
-      mockUseLocationStore.mockReturnValue(makeStoreState({ analysisResult: emptyFacilitiesResult }));
-      render(<ResultsPanel />);
-      await userEvent.click(screen.getByRole('tab', { name: 'Nearby Facilities' }));
-      expect(screen.queryByTestId(/^category-group/)).not.toBeInTheDocument();
-    });
-
-    it('re-analyzes with the new radius when the adjuster search is triggered', async () => {
-      const analyze = jest.fn();
-      const setRadiusKm = jest.fn();
-      const setAnalysisResult = jest.fn();
-      const clearVisibleCategories = jest.fn();
-      mockUseAnalyze.mockReturnValue({ mutate: analyze } as any);
-      mockUseLocationStore.mockReturnValue(
-        makeStoreState({
-          analysisResult: emptyFacilitiesResult,
-          selectedAddress: MOCK_ADDRESS,
-          setRadiusKm,
-          setAnalysisResult,
-          clearVisibleCategories,
-        })
-      );
-      render(<ResultsPanel />);
-      await userEvent.click(screen.getByTestId('radius-adjuster-search'));
-
-      expect(setRadiusKm).toHaveBeenCalledWith(8);
-      expect(setAnalysisResult).toHaveBeenCalledWith(null);
-      expect(clearVisibleCategories).toHaveBeenCalledTimes(1);
-      expect(analyze).toHaveBeenCalledWith({
-        address: MOCK_ADDRESS.displayName,
-        lat: MOCK_ADDRESS.lat,
-        lon: MOCK_ADDRESS.lon,
-        radiusKm: 8,
-        distanceMode: 'driving',
-      });
-    });
-
-    it('does not call analyze when no address is selected', async () => {
-      const analyze = jest.fn();
-      mockUseAnalyze.mockReturnValue({ mutate: analyze } as any);
-      mockUseLocationStore.mockReturnValue(
-        makeStoreState({
-          analysisResult: emptyFacilitiesResult,
-          selectedAddress: null,
-        })
-      );
-      render(<ResultsPanel />);
-      await userEvent.click(screen.getByTestId('radius-adjuster-search'));
-      expect(analyze).not.toHaveBeenCalled();
     });
   });
 
@@ -335,13 +301,6 @@ describe('ResultsPanel', () => {
       ).toBeInTheDocument();
     });
 
-    it('does not render the Score / Nearby Facilities tabs', () => {
-      mockUseLocationStore.mockReturnValue(makeStoreState({ analysisResult: fullyEmptyResult }));
-      render(<ResultsPanel />);
-      expect(screen.queryByRole('tab', { name: 'Score' })).not.toBeInTheDocument();
-      expect(screen.queryByRole('tab', { name: 'Nearby Facilities' })).not.toBeInTheDocument();
-    });
-
     it('renders the radius adjuster pre-expanded', () => {
       mockUseLocationStore.mockReturnValue(makeStoreState({ analysisResult: fullyEmptyResult }));
       render(<ResultsPanel />);
@@ -352,7 +311,7 @@ describe('ResultsPanel', () => {
       const analyze = jest.fn();
       const setRadiusKm = jest.fn();
       const setAnalysisResult = jest.fn();
-      const clearVisibleCategories = jest.fn();
+      const clearVisibleFacilityIds = jest.fn();
       mockUseAnalyze.mockReturnValue({ mutate: analyze } as any);
       mockUseLocationStore.mockReturnValue(
         makeStoreState({
@@ -360,7 +319,7 @@ describe('ResultsPanel', () => {
           selectedAddress: MOCK_ADDRESS,
           setRadiusKm,
           setAnalysisResult,
-          clearVisibleCategories,
+          clearVisibleFacilityIds,
         })
       );
       render(<ResultsPanel />);
@@ -368,7 +327,7 @@ describe('ResultsPanel', () => {
 
       expect(setRadiusKm).toHaveBeenCalledWith(8);
       expect(setAnalysisResult).toHaveBeenCalledWith(null);
-      expect(clearVisibleCategories).toHaveBeenCalledTimes(1);
+      expect(clearVisibleFacilityIds).toHaveBeenCalledTimes(1);
       expect(analyze).toHaveBeenCalledWith({
         address: MOCK_ADDRESS.displayName,
         lat: MOCK_ADDRESS.lat,
@@ -400,14 +359,6 @@ describe('ResultsPanel', () => {
       expect(screen.getByTestId('radius-adjuster-expanded')).toHaveTextContent('false');
     });
 
-    it('renders a CategoryGroup for each distinct category on the Nearby Facilities tab', async () => {
-      mockUseLocationStore.mockReturnValue(makeStoreState({ analysisResult: mockAnalysisResult }));
-      render(<ResultsPanel />);
-      await userEvent.click(screen.getByRole('tab', { name: 'Nearby Facilities' }));
-      expect(screen.getByTestId('category-group-schools')).toBeInTheDocument();
-      expect(screen.getByTestId('category-group-bus_stops')).toBeInTheDocument();
-    });
-
     it('renders ScoreDisplay when score is present', () => {
       mockUseLocationStore.mockReturnValue(makeStoreState({ analysisResult: mockAnalysisResult }));
       render(<ResultsPanel />);
@@ -423,103 +374,161 @@ describe('ResultsPanel', () => {
       render(<ResultsPanel />);
       expect(screen.queryByTestId('score-display')).not.toBeInTheDocument();
     });
-  });
 
-  describe('Category expansion', () => {
-    it('shows FacilityItems after clicking toggle expand', async () => {
+    it('passes the analysis features and category color map down to ScoreDisplay', () => {
       mockUseLocationStore.mockReturnValue(makeStoreState({ analysisResult: mockAnalysisResult }));
       render(<ResultsPanel />);
-      await userEvent.click(screen.getByRole('tab', { name: 'Nearby Facilities' }));
-      await userEvent.click(screen.getByTestId('toggle-expand-schools'));
-      expect(screen.getByTestId('facility-school-1')).toBeInTheDocument();
+      expect(screen.getByTestId('features-count')).toHaveTextContent('2');
+      expect(screen.getByTestId('has-color-map')).toHaveTextContent('true');
     });
 
-    it('hides FacilityItems after collapsing an expanded category', async () => {
+    it('no longer renders a tabbed Score / Nearby Facilities interface', () => {
       mockUseLocationStore.mockReturnValue(makeStoreState({ analysisResult: mockAnalysisResult }));
       render(<ResultsPanel />);
-      await userEvent.click(screen.getByRole('tab', { name: 'Nearby Facilities' }));
-      await userEvent.click(screen.getByTestId('toggle-expand-schools'));
-      expect(screen.getByTestId('facility-school-1')).toBeInTheDocument();
-      await userEvent.click(screen.getByTestId('toggle-expand-schools'));
-      expect(screen.queryByTestId('facility-school-1')).not.toBeInTheDocument();
-    });
-
-    it('expanding one category does not expand another', async () => {
-      mockUseLocationStore.mockReturnValue(makeStoreState({ analysisResult: mockAnalysisResult }));
-      render(<ResultsPanel />);
-      await userEvent.click(screen.getByRole('tab', { name: 'Nearby Facilities' }));
-      await userEvent.click(screen.getByTestId('toggle-expand-schools'));
-      expect(screen.getByTestId('facility-school-1')).toBeInTheDocument();
-      expect(screen.queryByTestId('facility-bus-1')).not.toBeInTheDocument();
+      expect(screen.queryByRole('tab')).not.toBeInTheDocument();
+      expect(screen.queryByText('Nearby Facilities')).not.toBeInTheDocument();
     });
   });
 
   describe('Callbacks', () => {
-    it('calls onFacilityClick with the feature when a facility item is clicked', async () => {
+    it('calls onFacilityClick with the feature when a facility is clicked via ScoreDisplay', async () => {
       const onFacilityClick = jest.fn();
       mockUseLocationStore.mockReturnValue(makeStoreState({ analysisResult: mockAnalysisResult }));
       render(<ResultsPanel onFacilityClick={onFacilityClick} />);
-      await userEvent.click(screen.getByRole('tab', { name: 'Nearby Facilities' }));
-      await userEvent.click(screen.getByTestId('toggle-expand-schools'));
-      await userEvent.click(screen.getByTestId('facility-school-1'));
+      await userEvent.click(screen.getByTestId('facility-click'));
       expect(onFacilityClick).toHaveBeenCalledWith(mockFeatures[0]);
     });
 
-    it('calls toggleCategoryVisibility from store when visibility is toggled', async () => {
-      const toggleCategoryVisibility = jest.fn();
+    it('sets the selected feature and clears the active route on facility click', async () => {
+      const setSelectedFeature = jest.fn();
+      const setActiveRoute = jest.fn();
       mockUseLocationStore.mockReturnValue(
-        makeStoreState({ analysisResult: mockAnalysisResult, toggleCategoryVisibility })
+        makeStoreState({ analysisResult: mockAnalysisResult, setSelectedFeature, setActiveRoute })
       );
       render(<ResultsPanel />);
-      await userEvent.click(screen.getByRole('tab', { name: 'Nearby Facilities' }));
-      fireEvent.click(screen.getByTestId('toggle-visibility-schools'));
-      expect(toggleCategoryVisibility).toHaveBeenCalledWith('schools');
+      await userEvent.click(screen.getByTestId('facility-click'));
+      expect(setSelectedFeature).toHaveBeenCalledWith(mockFeatures[0]);
+      expect(setActiveRoute).toHaveBeenCalledWith(null);
     });
-  });
 
-  describe('Score / Nearby Facilities tabs', () => {
-    it('defaults to the Score tab', () => {
+    it('forwards navigate calls from ScoreDisplay to useNavigate', async () => {
       mockUseLocationStore.mockReturnValue(makeStoreState({ analysisResult: mockAnalysisResult }));
       render(<ResultsPanel />);
-      expect(screen.getByRole('tab', { name: 'Score' })).toHaveAttribute('aria-selected', 'true');
-      expect(screen.getByTestId('score-display')).toBeInTheDocument();
-      expect(screen.queryByTestId('category-group-schools')).not.toBeInTheDocument();
+      await userEvent.click(screen.getByTestId('navigate-btn'));
+      expect(mockNavigate).toHaveBeenCalledWith(mockFeatures[0]);
     });
 
-    it('switches panels when Nearby Facilities is clicked, hiding Score content', async () => {
-      mockUseLocationStore.mockReturnValue(makeStoreState({ analysisResult: mockAnalysisResult }));
-      render(<ResultsPanel />);
-      await userEvent.click(screen.getByRole('tab', { name: 'Nearby Facilities' }));
-      expect(screen.getByRole('tab', { name: 'Nearby Facilities' })).toHaveAttribute('aria-selected', 'true');
-      expect(screen.queryByTestId('score-display')).not.toBeInTheDocument();
-      expect(screen.getByTestId('category-group-schools')).toBeInTheDocument();
+    describe('individual facility visibility toggle', () => {
+      it('calls toggleFacilityVisibility with the feature id', async () => {
+        const toggleFacilityVisibility = jest.fn();
+        mockUseLocationStore.mockReturnValue(
+          makeStoreState({ analysisResult: mockAnalysisResult, toggleFacilityVisibility })
+        );
+        render(<ResultsPanel />);
+        await userEvent.click(screen.getByTestId('toggle-facility-school-1'));
+        expect(toggleFacilityVisibility).toHaveBeenCalledWith('school-1');
+      });
+
+      it('switches to mobile map view when showing a marker on a small screen', async () => {
+        setViewportWidth(500);
+        const setIsMapViewOnMobile = jest.fn();
+        mockUseLocationStore.mockReturnValue(
+          makeStoreState({ analysisResult: mockAnalysisResult, setIsMapViewOnMobile })
+        );
+        render(<ResultsPanel />);
+        await userEvent.click(screen.getByTestId('toggle-facility-school-1'));
+        expect(setIsMapViewOnMobile).toHaveBeenCalledWith(true);
+      });
+
+      it('does not switch to mobile map view on a desktop-sized screen', async () => {
+        setViewportWidth(1280);
+        const setIsMapViewOnMobile = jest.fn();
+        mockUseLocationStore.mockReturnValue(
+          makeStoreState({ analysisResult: mockAnalysisResult, setIsMapViewOnMobile })
+        );
+        render(<ResultsPanel />);
+        await userEvent.click(screen.getByTestId('toggle-facility-school-1'));
+        expect(setIsMapViewOnMobile).not.toHaveBeenCalled();
+      });
+
+      it('does not switch to mobile map view when hiding an already-visible marker', async () => {
+        setViewportWidth(500);
+        const setIsMapViewOnMobile = jest.fn();
+        mockUseLocationStore.mockReturnValue(
+          makeStoreState({
+            analysisResult: mockAnalysisResult,
+            visibleFacilityIds: new Set(['school-1']),
+            setIsMapViewOnMobile,
+          })
+        );
+        render(<ResultsPanel />);
+        await userEvent.click(screen.getByTestId('toggle-facility-school-1'));
+        expect(setIsMapViewOnMobile).not.toHaveBeenCalled();
+      });
     });
 
-    it('resets back to the Score tab when a new address is searched', async () => {
-      const { rerender } = render(<ResultsPanel />);
-      mockUseLocationStore.mockReturnValue(
-        makeStoreState({ analysisResult: mockAnalysisResult, selectedAddress: MOCK_ADDRESS })
-      );
-      rerender(<ResultsPanel />);
-      await userEvent.click(screen.getByRole('tab', { name: 'Nearby Facilities' }));
-      expect(screen.getByRole('tab', { name: 'Nearby Facilities' })).toHaveAttribute('aria-selected', 'true');
+    describe('category-level bulk visibility toggle', () => {
+      it('calls setFacilitiesVisibility with the feature ids and target state', async () => {
+        const setFacilitiesVisibility = jest.fn();
+        mockUseLocationStore.mockReturnValue(
+          makeStoreState({ analysisResult: mockAnalysisResult, setFacilitiesVisibility })
+        );
+        render(<ResultsPanel />);
+        await userEvent.click(screen.getByTestId('toggle-category'));
+        expect(setFacilitiesVisibility).toHaveBeenCalledWith(['school-1'], true);
+      });
 
+      it('switches to mobile map view when showing a category on a small screen', async () => {
+        setViewportWidth(500);
+        const setIsMapViewOnMobile = jest.fn();
+        mockUseLocationStore.mockReturnValue(
+          makeStoreState({ analysisResult: mockAnalysisResult, setIsMapViewOnMobile })
+        );
+        render(<ResultsPanel />);
+        await userEvent.click(screen.getByTestId('toggle-category'));
+        expect(setIsMapViewOnMobile).toHaveBeenCalledWith(true);
+      });
+
+      it('does not switch to mobile map view when hiding a category', async () => {
+        setViewportWidth(500);
+        const setIsMapViewOnMobile = jest.fn();
+        mockUseLocationStore.mockReturnValue(
+          makeStoreState({ analysisResult: mockAnalysisResult, setIsMapViewOnMobile })
+        );
+        render(<ResultsPanel />);
+        await userEvent.click(screen.getByTestId('toggle-category-off'));
+        expect(setIsMapViewOnMobile).not.toHaveBeenCalled();
+      });
+    });
+
+    it('re-analyzes with the new radius when the adjuster search is triggered', async () => {
+      const analyze = jest.fn();
+      const setRadiusKm = jest.fn();
+      const setAnalysisResult = jest.fn();
+      const clearVisibleFacilityIds = jest.fn();
+      mockUseAnalyze.mockReturnValue({ mutate: analyze } as any);
       mockUseLocationStore.mockReturnValue(
         makeStoreState({
           analysisResult: mockAnalysisResult,
-          selectedAddress: { ...MOCK_ADDRESS, lat: MOCK_ADDRESS.lat + 1 },
+          selectedAddress: MOCK_ADDRESS,
+          setRadiusKm,
+          setAnalysisResult,
+          clearVisibleFacilityIds,
         })
       );
-      rerender(<ResultsPanel />);
-      expect(screen.getByRole('tab', { name: 'Score' })).toHaveAttribute('aria-selected', 'true');
-    });
-
-    it('renders the radius adjuster regardless of the active tab', async () => {
-      mockUseLocationStore.mockReturnValue(makeStoreState({ analysisResult: mockAnalysisResult }));
       render(<ResultsPanel />);
-      expect(screen.getByTestId('radius-adjuster-mock')).toBeInTheDocument();
-      await userEvent.click(screen.getByRole('tab', { name: 'Nearby Facilities' }));
-      expect(screen.getByTestId('radius-adjuster-mock')).toBeInTheDocument();
+      await userEvent.click(screen.getByTestId('radius-adjuster-search'));
+
+      expect(setRadiusKm).toHaveBeenCalledWith(8);
+      expect(setAnalysisResult).toHaveBeenCalledWith(null);
+      expect(clearVisibleFacilityIds).toHaveBeenCalledTimes(1);
+      expect(analyze).toHaveBeenCalledWith({
+        address: MOCK_ADDRESS.displayName,
+        lat: MOCK_ADDRESS.lat,
+        lon: MOCK_ADDRESS.lon,
+        radiusKm: 8,
+        distanceMode: 'driving',
+      });
     });
   });
 

@@ -1,7 +1,8 @@
 "use client";
 
+import type { MouseEvent } from "react";
 import { useTranslations } from "next-intl";
-import { Navigation } from "lucide-react";
+import { Navigation, Eye, EyeOff } from "lucide-react";
 import type { Feature } from "@/types/api";
 import { IconButton } from "@/components/ui/IconButton";
 import { getCategoryIcon } from "@/utils/categoryIcons";
@@ -11,6 +12,10 @@ export interface FacilityItemProps {
   markerColor: string;
   onClick?: () => void;
   onNavigate?: (feature: Feature) => void;
+  // Marker visibility toggle -- omitted entirely (no eye icon rendered)
+  // unless both isVisible and onToggleVisibility are provided.
+  isVisible?: boolean;
+  onToggleVisibility?: (e: MouseEvent) => void;
 }
 
 export default function FacilityItem({
@@ -18,6 +23,8 @@ export default function FacilityItem({
   markerColor,
   onClick,
   onNavigate,
+  isVisible,
+  onToggleVisibility,
 }: FacilityItemProps) {
   const t = useTranslations();
 
@@ -68,6 +75,27 @@ export default function FacilityItem({
         >
           {rowContent}
         </div>
+      )}
+
+      {onToggleVisibility && isVisible !== undefined && (
+        <IconButton
+          icon={isVisible ? Eye : EyeOff}
+          size="sm"
+          pressed={isVisible}
+          onClick={onToggleVisibility}
+          className={
+            isVisible
+              ? "flex-shrink-0 text-primary-600 hover:text-primary-700 hover:bg-primary-50"
+              : "flex-shrink-0 text-slate-400 hover:text-slate-500 hover:bg-slate-100"
+          }
+          label={t(isVisible ? "score.markers.hideOne" : "score.markers.showOne", {
+            name: feature.name,
+            defaultValue: `${isVisible ? "Hide" : "Show"} ${feature.name} marker on map`,
+          })}
+          title={t(isVisible ? "score.markers.hideTitleOne" : "score.markers.showTitleOne", {
+            defaultValue: isVisible ? "Hide marker" : "Show marker",
+          })}
+        />
       )}
 
       {onNavigate && (

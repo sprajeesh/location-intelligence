@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { TriangleAlert } from "lucide-react";
-import type { CategoryId, ScoreResult } from "@/types/api";
+import type { CategoryId, Feature, ScoreResult } from "@/types/api";
 import { parseCoverage, sortCategoriesForDisplay } from "@/utils/scoreDisplay";
 import { CoverageBadge } from "@/components/CoverageBadge";
 import { CategoryScoreCard } from "@/components/CategoryScoreCard";
@@ -11,15 +11,36 @@ import { ScoreRing } from "@/components/ScoreRing";
 
 /**
  * ScoreDisplay — Shows the composite location score, coverage indicator,
- * and the five-category breakdown, plus any warnings.
+ * and the five-category breakdown (each with a category-level marker
+ * toggle and, per facility type, the individual facilities found), plus
+ * any warnings.
  */
 
 export interface ScoreDisplayProps {
   score: ScoreResult;
   warnings?: string[];
+  // Nearby facilities for the address, and map-marker plumbing -- all
+  // optional so ScoreDisplay still works with just a score (e.g. in tests).
+  features?: Feature[];
+  categoryColorMap?: Record<string, string>;
+  visibleFacilityIds?: Set<string>;
+  onToggleFacilityVisibility?: (feature: Feature) => void;
+  onToggleCategoryVisibility?: (featureIds: string[], makeVisible: boolean) => void;
+  onFacilityClick?: (feature: Feature) => void;
+  onNavigate?: (feature: Feature) => void;
 }
 
-export function ScoreDisplay({ score, warnings = [] }: ScoreDisplayProps) {
+export function ScoreDisplay({
+  score,
+  warnings = [],
+  features,
+  categoryColorMap,
+  visibleFacilityIds,
+  onToggleFacilityVisibility,
+  onToggleCategoryVisibility,
+  onFacilityClick,
+  onNavigate,
+}: ScoreDisplayProps) {
   const t = useTranslations();
   const [expandedCategories, setExpandedCategories] = useState<Set<CategoryId>>(new Set());
 
@@ -64,6 +85,13 @@ export function ScoreDisplay({ score, warnings = [] }: ScoreDisplayProps) {
               category={category}
               isExpanded={expandedCategories.has(category.category)}
               onToggleExpand={() => toggleExpanded(category.category)}
+              features={features}
+              categoryColorMap={categoryColorMap}
+              visibleFacilityIds={visibleFacilityIds}
+              onToggleFacilityVisibility={onToggleFacilityVisibility}
+              onToggleCategoryVisibility={onToggleCategoryVisibility}
+              onFacilityClick={onFacilityClick}
+              onNavigate={onNavigate}
             />
           </li>
         ))}
