@@ -75,14 +75,14 @@ describe('MapToolbarContainer', () => {
       jest.spyOn(useIsDesktopModule, 'useIsDesktop').mockReturnValue(true);
       const { container } = render(<MapToolbarContainer {...defaultProps} />);
       const separators = container.querySelectorAll('[role="separator"]');
-      expect(separators).toHaveLength(3);
+      expect(separators).toHaveLength(2);
     });
 
     it('renders fewer separators on mobile due to hidden zoom buttons', () => {
       jest.spyOn(useIsDesktopModule, 'useIsDesktop').mockReturnValue(false);
       const { container } = render(<MapToolbarContainer {...defaultProps} />);
       const separators = container.querySelectorAll('[role="separator"]');
-      expect(separators).toHaveLength(2);
+      expect(separators).toHaveLength(1);
     });
   });
 
@@ -119,7 +119,6 @@ describe('MapToolbarContainer', () => {
           features: [],
           score: { overall: null, coverage: '0/5', categories: [] },
           warnings: [],
-          hazard: null,
         },
       });
       render(<MapToolbarContainer {...defaultProps} />);
@@ -135,7 +134,6 @@ describe('MapToolbarContainer', () => {
           ],
           score: { overall: 72, coverage: '1/5', categories: [] },
           warnings: [],
-          hazard: null,
         },
       });
       render(<MapToolbarContainer {...defaultProps} />);
@@ -154,7 +152,6 @@ describe('MapToolbarContainer', () => {
           ],
           score: { overall: 77, coverage: '2/5', categories: [] },
           warnings: [],
-          hazard: null,
         },
       });
       render(<MapToolbarContainer {...defaultProps} />);
@@ -173,7 +170,6 @@ describe('MapToolbarContainer', () => {
           features: [],
           score: { overall: null, coverage: '0/5', categories: [] },
           warnings: [],
-          hazard: null,
         },
       });
       render(<MapToolbarContainer {...defaultProps} />);
