@@ -347,16 +347,17 @@ CATEGORY_FACILITY_WEIGHTS: dict[str, dict[str, float]] = build_category_facility
 
 # Composite weight per category. Recreation and Food & Drink default to 0% by
 # design (none of their facility types are in the default facility set); the
-# other four are rescaled from their original 0.40/0.30/0.20/0.07 (summing to
-# 0.97) up to 1.0, preserving their relative ratios. See migration 0004. Users
-# can still override these per-request via AnalyzeRequest.category_weights once
-# Recreation/Food & Drink are activated in Settings. Named constant per spec §4
-# since it's the most likely value to change post-launch.
+# other four use simple round defaults for clarity in the Settings UI (see
+# migration 0007, which superseded the proportional-rescale decimals from
+# migration 0004). Users can still override these per-request via
+# AnalyzeRequest.category_weights once Recreation/Food & Drink are activated
+# in Settings. Named constant per spec §4 since it's the most likely value to
+# change post-launch.
 CATEGORY_WEIGHTS: dict[str, float] = {
-    "education": 0.4124,
-    "transport": 0.3093,
-    "healthcare": 0.2062,
-    "shopping": 0.0721,
+    "education": 0.40,
+    "transport": 0.30,
+    "healthcare": 0.20,
+    "shopping": 0.10,
     "recreation": 0.0000,
     "food_and_drink": 0.0000,
 }

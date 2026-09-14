@@ -36,7 +36,7 @@ export interface LocationIntelligenceStore {
   isAnalyzing: boolean
   visibleCategories: Set<string>
   selectedFacilities: string[] | null
-  // Composite category -> weight fraction (e.g. { education: 0.4124 }).
+  // Composite category -> weight fraction (e.g. { education: 0.40 }).
   // null = use the server's DB-configured default weights. Same
   // non-persisted, in-memory "session" semantics as selectedFacilities.
   categoryWeights: Record<string, number> | null

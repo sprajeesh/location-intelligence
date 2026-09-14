@@ -83,11 +83,11 @@ export function computeDefaultWeightsForActiveCategories(
 
 /**
  * Converts a weight fraction to a percent for display, keeping up to 2
- * decimal places -- the precision DB-configured ratios (e.g. 0.4124) and
- * renormalized results actually carry -- instead of collapsing to a whole
- * percent. Used everywhere a weight is shown (slider position/readout,
- * category header, footer total) so they never disagree with each other or
- * with the exact fraction that's validated and saved.
+ * decimal places -- the precision renormalized results can actually carry
+ * (e.g. 33.33% when three active categories split evenly) -- instead of
+ * collapsing to a whole percent. Used everywhere a weight is shown (slider
+ * position/readout, category header, footer total) so they never disagree
+ * with each other or with the exact fraction that's validated and saved.
  */
 export function weightToPercent(fraction: number): number {
   return Math.round(fraction * 10000) / 100;
