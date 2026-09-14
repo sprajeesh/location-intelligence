@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.11.0](https://github.com/sprajeesh/location-intelligence/compare/web@v0.10.0...web@v0.11.0) (2026-09-14)
+
+
+### Features
+
+* **web:** add exact-value input alongside each category weight slider ([#182](https://github.com/sprajeesh/location-intelligence/issues/182)) ([69bd112](https://github.com/sprajeesh/location-intelligence/commit/69bd112b268cd8cb14cb9a4852f18fe233ab26a8))
+* **web:** merge Nearby Facilities tab into Score tab with per-facility marker visibility ([#184](https://github.com/sprajeesh/location-intelligence/issues/184)) ([3ef68cc](https://github.com/sprajeesh/location-intelligence/commit/3ef68cc0eccb87a758c4c1b863722cde04e5a4e5))
+
+
+### Bug Fixes
+
+* **web:** block Save on zero-weight categories, explain why in Settings ([#183](https://github.com/sprajeesh/location-intelligence/issues/183)) ([92d106f](https://github.com/sprajeesh/location-intelligence/commit/92d106fc73d989b0cae08aa0eda0504987c42ecc))
+
 ## [0.10.0](https://github.com/sprajeesh/location-intelligence/compare/web@v0.9.0...web@v0.10.0) (2026-09-14)
 
 
