@@ -59,6 +59,53 @@ describe('FacilityItem', () => {
     });
   });
 
+  describe('Visibility toggle', () => {
+    it('does not render an eye icon when onToggleVisibility is not provided', () => {
+      render(<FacilityItem feature={feature} markerColor="#10B981" isVisible={true} />);
+      expect(screen.queryByRole('button', { name: /marker/i })).not.toBeInTheDocument();
+    });
+
+    it('renders an eye icon when onToggleVisibility is provided', () => {
+      render(
+        <FacilityItem feature={feature} markerColor="#10B981" isVisible={false} onToggleVisibility={jest.fn()} />,
+      );
+      expect(screen.getByRole('button', { name: /show wellington east school marker on map/i })).toBeInTheDocument();
+    });
+
+    it('shows "Hide" label when visible', () => {
+      render(
+        <FacilityItem feature={feature} markerColor="#10B981" isVisible={true} onToggleVisibility={jest.fn()} />,
+      );
+      expect(screen.getByRole('button', { name: /hide wellington east school marker on map/i })).toBeInTheDocument();
+    });
+
+    it('calls onToggleVisibility when the eye icon is clicked, without also firing onClick', async () => {
+      const onClick = jest.fn();
+      const onToggleVisibility = jest.fn();
+      render(
+        <FacilityItem
+          feature={feature}
+          markerColor="#10B981"
+          isVisible={false}
+          onClick={onClick}
+          onToggleVisibility={onToggleVisibility}
+        />,
+      );
+      await userEvent.click(screen.getByRole('button', { name: /show wellington east school marker on map/i }));
+      expect(onToggleVisibility).toHaveBeenCalledTimes(1);
+      expect(onClick).not.toHaveBeenCalled();
+    });
+
+    it('exposes aria-pressed reflecting isVisible', () => {
+      render(
+        <FacilityItem feature={feature} markerColor="#10B981" isVisible={true} onToggleVisibility={jest.fn()} />,
+      );
+      expect(
+        screen.getByRole('button', { name: /hide wellington east school marker on map/i }),
+      ).toHaveAttribute('aria-pressed', 'true');
+    });
+  });
+
   describe('Accessibility', () => {
     it('gives the main row an accessible name with name and distance', () => {
       render(<FacilityItem feature={feature} markerColor="#10B981" />);
