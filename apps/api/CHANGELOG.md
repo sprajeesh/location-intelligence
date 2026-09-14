@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.1](https://github.com/sprajeesh/location-intelligence/compare/api@v0.5.0...api@v0.5.1) (2026-09-14)
+
+
+### Bug Fixes
+
+* **api:** freeze migration 0001's seed data as a historical snapshot ([#178](https://github.com/sprajeesh/location-intelligence/issues/178)) ([71fdf57](https://github.com/sprajeesh/location-intelligence/commit/71fdf5784fa534265995d79a572a5a9651531244))
+
 ## [0.5.0](https://github.com/sprajeesh/location-intelligence/compare/api@v0.4.0...api@v0.5.0) (2026-09-06)
 
 
