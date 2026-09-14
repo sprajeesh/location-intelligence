@@ -13,7 +13,7 @@ import type { AddressResult } from "@/types/api";
  * GET /api/parcels, so MapContainer can highlight the parcel
  * polygon instead of a plain pin. Disabled until an address is selected --
  * the query key includes lat/lon so a new address selection refetches
- * (and transiently clears `parcelFeature`, same idiom as useHazardCells).
+ * (and transiently clears `parcelFeature`).
  */
 export function useParcelAtPoint(selectedAddress: AddressResult | null) {
   const setParcelFeature = useLocationStore((s) => s.setParcelFeature);

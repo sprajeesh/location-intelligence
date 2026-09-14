@@ -13,7 +13,6 @@ import {
   RouteResult,
   RouteTransportMode,
 } from "@/types/api";
-import type { HazardCellCollection, HazardResult, HazardSubScore } from "@/types/hazard";
 import type { ParcelFeature } from "@/types/parcel";
 
 /**
@@ -150,30 +149,8 @@ interface WireScoreResult {
   categories: WireCategoryScoreResult[];
 }
 
-interface WireHazardSubScore {
-  hazard_type: string;
-  score: number;
-  severe: boolean;
-  is_proxy: boolean;
-  source_name: string;
-  licence: string;
-  data_currency_date: string;
-}
-
-interface WireHazardResult {
-  h3_index: string;
-  resolution: number;
-  composite_score: number;
-  worst_hazard_type: string;
-  worst_hazard_score: number;
-  any_severe: boolean;
-  hazards: WireHazardSubScore[];
-  disclaimer: string;
-}
-
-interface WireAnalyzeResponse extends Omit<AnalyzeResponse, "score" | "hazard"> {
+interface WireAnalyzeResponse extends Omit<AnalyzeResponse, "score"> {
   score: WireScoreResult;
-  hazard: WireHazardResult | null;
 }
 
 interface WireRouteStep {
@@ -194,28 +171,6 @@ interface WireRouteOption {
 interface WireRouteResult {
   routes: WireRouteOption[];
   fallback?: boolean;
-}
-
-function normalizeHazardResult(raw: WireHazardResult | null): HazardResult | null {
-  if (!raw) return null;
-
-  return {
-    composite: raw.composite_score,
-    worstHazard: raw.worst_hazard_score,
-    worstHazardType: raw.worst_hazard_type,
-    anySevere: raw.any_severe,
-    disclaimer: raw.disclaimer,
-    hazards: raw.hazards.map(
-      (h): HazardSubScore => ({
-        hazardType: h.hazard_type,
-        score: h.score,
-        source: h.source_name,
-        currencyDate: h.data_currency_date,
-        isProxy: h.is_proxy,
-        isSevere: h.severe,
-      }),
-    ),
-  };
 }
 
 export function normalizeRouteResult(raw: WireRouteResult): RouteResult {
@@ -243,7 +198,6 @@ export function normalizeAnalyzeResponse(
     location: raw.location,
     features: raw.features,
     warnings: raw.warnings,
-    hazard: normalizeHazardResult(raw.hazard),
     score: {
       overall: raw.score.overall,
       coverage: raw.score.coverage,
@@ -325,23 +279,6 @@ export async function fetchRoute(
   });
   const raw = await fetchJson<WireRouteResult>(`/route?${params}`, { method: "GET" });
   return normalizeRouteResult(raw);
-}
-
-/**
- * Fetch the GeoJSON hazard cell layer for the map, within a bbox.
- * Calls GET /api/hazard/cells?bbox=minLon,minLat,maxLon,maxLat
- *
- * Unlike the rest of this API, the backend emits these properties already
- * camelCase (a bulk/tile-like payload, not worth per-record remapping), so
- * no wire/normalize step is needed here.
- */
-export async function fetchHazardCells(
-  bbox: [number, number, number, number],
-): Promise<HazardCellCollection> {
-  const params = new URLSearchParams({ bbox: bbox.join(",") });
-  return fetchJson<HazardCellCollection>(`/hazard/cells?${params}`, {
-    method: "GET",
-  });
 }
 
 /**

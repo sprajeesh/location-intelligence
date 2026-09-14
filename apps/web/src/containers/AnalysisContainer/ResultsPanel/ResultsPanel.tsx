@@ -2,17 +2,15 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Search, FileText, TriangleAlert } from "lucide-react";
+import { Search, FileText } from "lucide-react";
 import { useLocationStore } from "@/store/index";
 import type { Feature } from "@/types/api";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
 import { FacilityItem } from "@/components/FacilityItem";
 import ScoreDisplay from "@/components/ScoreDisplay";
-import HazardDisplay from "@/components/HazardDisplay";
 import { CategoryGroup } from "@/components/CategoryGroup";
 import { RadiusAdjuster } from "@/components/RadiusAdjuster";
 import { SurfacePanel } from "@/components/ui/SurfacePanel";
-import { CollapsibleCard } from "@/components/ui/CollapsibleCard";
 import { Tabs } from "@/components/ui/Tabs";
 import { useNavigate } from "@/hooks/useNavigate";
 import { useAnalyze } from "@/hooks/useAnalyze";
@@ -84,9 +82,6 @@ export default function ResultsPanel({
 
   // Active results tab -- defaults to Score, resets on a new search below
   const [activeTab, setActiveTab] = useState<ResultsTab>("score");
-
-  // Hazard is tucked away (collapsed) behind the location score by default
-  const [hazardExpanded, setHazardExpanded] = useState(false);
 
   // Group features by category
   const categorySections = useMemo<CategorySection[]>(() => {
@@ -272,14 +267,6 @@ export default function ResultsPanel({
             onSearch={handleRadiusSearch}
           />
         </div>
-        {/* Hazard Section — separate from facility score per product decision;
-            still shown here since hazard lookup is independent of facility
-            results (see app/api/analyze.py's Step 3 ordering) */}
-        {analysisResult?.hazard && (
-          <div className="w-full pt-3 border-t border-slate-200 text-left">
-            <HazardDisplay hazard={analysisResult.hazard} />
-          </div>
-        )}
       </SurfacePanel>
     );
   }
@@ -312,36 +299,6 @@ export default function ResultsPanel({
                 score={analysisResult.score}
                 warnings={analysisResult.warnings}
               />
-            )}
-
-            {/* Hazard Section — tucked away behind a collapsed disclosure so
-                it doesn't compete with the location score focal point; not
-                fully implemented yet (see HazardDisplay.tsx). */}
-            {analysisResult?.hazard && (
-              <div className="pt-3 border-t border-slate-200">
-                <CollapsibleCard
-                  isExpanded={hazardExpanded}
-                  onToggle={() => setHazardExpanded((prev) => !prev)}
-                  contentId="hazard-score-panel"
-                  className="border-slate-200"
-                  contentClassName="px-3 pb-3"
-                  header={
-                    <span className="font-medium text-slate-900">
-                      {t("hazard.title", { defaultValue: "Hazard Score" })}
-                    </span>
-                  }
-                  headerEnd={
-                    analysisResult.hazard.anySevere ? (
-                      <TriangleAlert
-                        className="w-4 h-4 text-error-500"
-                        aria-hidden="true"
-                      />
-                    ) : undefined
-                  }
-                >
-                  <HazardDisplay hazard={analysisResult.hazard} hideTitle />
-                </CollapsibleCard>
-              </div>
             )}
           </div>
         )}

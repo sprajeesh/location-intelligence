@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
 
   // Transparent proxy -- the response body, status, and headers pass
   // through unchanged (not parsed/re-serialized), including the upstream's
-  // own error responses, matching hazard/cells/route.ts.
+  // own error responses.
   try {
     const response = await fetch(fastApiUrl, {
       headers: { ...apiKeyHeaders(), ...clientIpHeaders(request.headers) },

@@ -25,17 +25,12 @@ import { Navigation, TriangleAlert, MapPin } from "lucide-react";
 import { useLocationStore } from "@/store/index";
 import { useNavigate } from "@/hooks/useNavigate";
 import { useCategories } from "@/hooks/useCategories";
-import { useHazardCells } from "@/hooks/useHazardCells";
 import { useParcelAtPoint } from "@/hooks/useParcelAtPoint";
-import { getHazardCellColor } from "@/utils/hazardColor";
-import { buildHazardTooltipHtml } from "@/utils/hazardTooltip";
 import { computeMapBounds } from "@/utils/mapBounds";
 import { getCategoryIcon } from "@/utils/categoryIcons";
 import { useCategoryColorMap } from "@/hooks/useCategoryColorMap";
-import { HazardLegend } from "@/components/HazardLegend";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { SettingsContainer } from "@/containers/SettingsContainer";
-import type { HazardCellFeature } from "@/types/hazard";
 import { useTranslations } from "next-intl";
 import {
   MapToolbarContainer,
@@ -85,19 +80,14 @@ function MapContent() {
     activeRoute,
     selectedFeature,
     routeMode,
-    hazardLayerVisible,
-    hazardCells,
     parcelFeature,
     theme,
     isMapViewOnMobile,
-    setHoveredHazardCellId,
-    setSelectedHazardCellId,
   } = useLocationStore();
 
   const navigate = useNavigate();
   const t = useTranslations();
   const { categories } = useCategories();
-  const hazardCellsQuery = useHazardCells(hazardLayerVisible);
   const parcelQuery = useParcelAtPoint(selectedAddress);
   const parcelNotFound =
     !!selectedAddress && !parcelQuery.isFetching && parcelQuery.data === null;
@@ -142,22 +132,10 @@ function MapContent() {
   const tileAttribution = TILE_LAYER_ATTRIBUTIONS[activeLayer];
   const tileMaxZoom = TILE_LAYER_MAX_ZOOM[activeLayer];
 
-  // First custom Leaflet pane in this codebase -- puts the hazard polygons
-  // above the tile layer but below markers/popups (default overlayPane is
-  // 400, markerPane is 600), so category/main markers always stay on top
-  // and clickable.
-  useEffect(() => {
-    if (!map.getPane("hazardPane")) {
-      const pane = map.createPane("hazardPane");
-      pane.style.zIndex = "350";
-      pane.style.pointerEvents = "auto";
-    }
-  }, [map]);
-
-  // Parcel highlight pane -- above hazardPane (350) but below Leaflet's own
-  // markerPane (600), so category/main markers stay on top and clickable.
-  // Interaction (click to show popup) is enabled like hazardPane, since the
-  // parcel layer itself doesn't block markers (those sit in a higher pane).
+  // Parcel highlight pane -- below Leaflet's own markerPane (600), so
+  // category/main markers stay on top and clickable. Interaction (click to
+  // show popup) is enabled since the parcel layer itself doesn't block
+  // markers (those sit in a higher pane).
   useEffect(() => {
     if (!map.getPane("parcelPane")) {
       const pane = map.createPane("parcelPane");
@@ -298,47 +276,10 @@ function MapContent() {
         className={isDarkDefault ? "map-tiles-inverted" : undefined}
       />
 
-      {/* Hazard layer -- GeoJSON polygon overlay, this codebase's first.
-          Rendered via react-leaflet's <GeoJSON> (many imperative Leaflet
-          layers under one declarative data prop), not per-feature <Marker>s. */}
-      {hazardLayerVisible && hazardCells && (
-        <GeoJSON
-          // react-leaflet's GeoJSON layer doesn't diff `data` -- it only
-          // updates when React remounts it, so the key must change whenever
-          // the collection's content changes, not just its length. TanStack
-          // Query bumps dataUpdatedAt on every successful fetch (including a
-          // refetch of the same bbox after cache invalidation), so it's a
-          // free, correct revision marker without hashing feature content.
-          key={hazardCellsQuery.dataUpdatedAt}
-          data={hazardCells as unknown as GeoJSON.FeatureCollection}
-          pane="hazardPane"
-          style={(feature) => {
-            const props =
-              feature?.properties as HazardCellFeature["properties"];
-            return {
-              color: "rgb(var(--color-neutral-900))",
-              weight: 1,
-              fillColor: getHazardCellColor(props.composite),
-              fillOpacity: 0.55,
-            };
-          }}
-          onEachFeature={(feature, layer) => {
-            const props = feature.properties as HazardCellFeature["properties"];
-            layer.bindTooltip(buildHazardTooltipHtml(props), {
-              sticky: true,
-              className: "hazard-tooltip",
-            });
-            layer.on("mouseover", () => setHoveredHazardCellId(props.cellId));
-            layer.on("mouseout", () => setHoveredHazardCellId(null));
-            layer.on("click", () => setSelectedHazardCellId(props.cellId));
-          }}
-        />
-      )}
-
       {/* Parcel highlight -- the cadastral parcel matched to the selected
           address, replacing the plain pin marker once resolved (see the
-          Marker below). Bold outline, light fill so the basemap/hazard
-          layer stay legible underneath. */}
+          Marker below). Bold outline, light fill so the basemap stays
+          legible underneath. */}
       {parcelFeature && (
         <GeoJSON
           key={`${selectedAddress?.lat}-${selectedAddress?.lon}`}
@@ -596,11 +537,9 @@ function MapContent() {
  * Business logic: reads from store, manages map effects, handles marker rendering.
  */
 export function MapContainer() {
-  const { selectedAddress, isAnalyzing, hazardLayerVisible, hazardCells } =
-    useLocationStore();
+  const { selectedAddress, isAnalyzing } = useLocationStore();
   const mapRef = useRef<L.Map | null>(null);
   const mapId = useId();
-  const t = useTranslations();
 
   // Default map center (central New Zealand) if no address selected
   const defaultCenter: [number, number] = [-41.2865, 172.9988];
@@ -634,38 +573,6 @@ export function MapContainer() {
       >
         <MapContent />
       </LeafletMapContainer>
-
-      {/* Hazard layer chrome -- fixed to the viewport (outside the Leaflet
-          map tree) so it doesn't pan/zoom with the map, unlike the toolbar
-          which lives inside MapContent and is a Leaflet-aware control. */}
-      {hazardLayerVisible && hazardCells && (
-        <>
-          <div className="absolute top-2 left-1/2 -translate-x-1/2 z-[1000] pointer-events-none">
-            <div className="bg-white border border-warning-200 shadow-card rounded-lg px-3 py-1.5 flex items-center gap-2 text-xs text-warning-800">
-              <TriangleAlert
-                className="w-3 h-3 flex-shrink-0"
-                aria-hidden="true"
-              />
-              <span>
-                {t("hazard.mapBanner", {
-                  defaultValue:
-                    "Illustrative hazard estimate — grid-cell resolution, not a LIM or property-specific advice.",
-                })}
-              </span>
-            </div>
-          </div>
-          {/* On small screens the toolbar group now docks bottom-right (see
-              above) and the map strip is too short to stack the legend
-              above it there or fit it alongside the top-center hazard
-              banner, so the legend moves to the bottom-left corner instead
-              -- clear of the toolbar, offset above Leaflet's own scale
-              control. md+ keeps its original bottom-right spot, since the
-              toolbar is vertically centered on the right edge there. */}
-          <div className="absolute bottom-10 left-3 md:top-auto md:bottom-3 md:left-auto md:right-3 z-[1000] pointer-events-auto">
-            <HazardLegend />
-          </div>
-        </>
-      )}
 
       {/* Loading overlay */}
       {isAnalyzing && (
