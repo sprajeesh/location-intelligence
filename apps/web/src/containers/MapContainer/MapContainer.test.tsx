@@ -92,7 +92,7 @@ const mockUseParcelAtPoint = useParcelAtPoint as jest.MockedFunction<typeof useP
 const makeStoreState = (overrides = {}) => ({
   selectedAddress: null,
   analysisResult: null,
-  visibleCategories: new Set<string>(),
+  visibleFacilityIds: new Set<string>(),
   activeRoute: null,
   selectedFeature: null,
   routeMode: 'driving' as const,
@@ -108,6 +108,16 @@ beforeEach(() => {
   useMap.mockReturnValue(mockMap);
   mockMap.getContainer.mockReturnValue(mapContainerEl);
   mockUseLocationStore.mockReturnValue(makeStoreState());
+  // MapContainer also reads a few fields directly via useLocationStore.getState()
+  // (see fitBoundsToMapContent) rather than through the hook -- zustand's real
+  // hook carries this as a static, but the module auto-mock doesn't, so it's
+  // stubbed here for the tests below that have non-empty visibleFacilityIds
+  // and therefore actually trigger a fit-bounds pass.
+  (mockUseLocationStore as unknown as { getState: () => unknown }).getState = () => ({
+    selectedAddress: null,
+    parcelFeature: null,
+    activeRoute: null,
+  });
   mockUseCategories.mockReturnValue({ categories: [], isLoading: false, isError: false } as any);
   mockUseParcelAtPoint.mockReturnValue({ isFetching: false, data: null, isError: false } as any);
 });
@@ -176,6 +186,45 @@ describe('MapContainer', () => {
       mockUseLocationStore.mockReturnValue(makeStoreState({ parcelFeature: null }));
       render(<MapContainer />);
       expect(screen.queryByTestId('feature-info-card-stub')).not.toBeInTheDocument();
+    });
+  });
+
+  describe('Facility markers', () => {
+    const analysisResult = {
+      location: { lat: -36.85, lon: 174.76, displayName: '123 Main St' },
+      features: [
+        { id: 'school-1', name: 'Auckland Primary', category: 'schools', lat: -36.85, lon: 174.76, distanceKm: 0.5 },
+        { id: 'bus-1', name: 'Queen St Stop', category: 'bus_stops', lat: -36.84, lon: 174.77, distanceKm: 0.3 },
+      ],
+      score: { overall: 50, coverage: '1/5', categories: [] },
+      warnings: [],
+    };
+
+    it('only renders markers whose feature id is in visibleFacilityIds', () => {
+      mockUseLocationStore.mockReturnValue(
+        makeStoreState({ analysisResult, visibleFacilityIds: new Set(['school-1']) }),
+      );
+      render(<MapContainer />);
+      expect(screen.getByText('Auckland Primary')).toBeInTheDocument();
+      expect(screen.queryByText('Queen St Stop')).not.toBeInTheDocument();
+    });
+
+    it('renders no facility markers when visibleFacilityIds is empty, even with two facilities of the same type', () => {
+      mockUseLocationStore.mockReturnValue(
+        makeStoreState({ analysisResult, visibleFacilityIds: new Set() }),
+      );
+      render(<MapContainer />);
+      expect(screen.queryByText('Auckland Primary')).not.toBeInTheDocument();
+      expect(screen.queryByText('Queen St Stop')).not.toBeInTheDocument();
+    });
+
+    it('renders every visible facility marker, independent of the others sharing its facility type', () => {
+      mockUseLocationStore.mockReturnValue(
+        makeStoreState({ analysisResult, visibleFacilityIds: new Set(['school-1', 'bus-1']) }),
+      );
+      render(<MapContainer />);
+      expect(screen.getByText('Auckland Primary')).toBeInTheDocument();
+      expect(screen.getByText('Queen St Stop')).toBeInTheDocument();
     });
   });
 });

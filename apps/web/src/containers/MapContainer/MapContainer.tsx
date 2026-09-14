@@ -76,7 +76,7 @@ function MapContent() {
   const {
     selectedAddress,
     analysisResult,
-    visibleCategories,
+    visibleFacilityIds,
     activeRoute,
     selectedFeature,
     routeMode,
@@ -209,8 +209,8 @@ function MapContent() {
     }
   }, [activeRoute, map]);
 
-  // Fit map bounds to visible category markers when user toggles category visibility
-  // Depends only on visibleCategories, not on analysisResult, so analysis results
+  // Fit map bounds to visible markers when the user toggles facility visibility.
+  // Depends only on visibleFacilityIds, not on analysisResult, so analysis results
   // arriving don't trigger unwanted re-zoom. Uses a ref to access current feature data
   // without re-firing the effect when analysis changes.
   const analysisResultRef = useRef(analysisResult);
@@ -226,7 +226,7 @@ function MapContent() {
   // effects above).
   const fitBoundsToMapContent = useCallback(() => {
     const visibleFeatures = (analysisResultRef.current?.features ?? []).filter(
-      (f) => visibleCategories.has(f.category),
+      (f) => visibleFacilityIds.has(f.id),
     );
     const {
       selectedAddress: addr,
@@ -241,18 +241,18 @@ function MapContent() {
       activeRoute: route,
     });
     if (bounds) map.fitBounds(bounds, { padding: [50, 50] });
-  }, [visibleCategories, map]);
+  }, [visibleFacilityIds, map]);
 
-  // Fit when the user toggles category visibility. Skips when nothing is
-  // toggled on so hiding the last category doesn't yank the view back to
+  // Fit when the user toggles facility visibility. Skips when nothing is
+  // toggled on so hiding the last facility doesn't yank the view back to
   // the parcel/address.
   useEffect(() => {
-    if (visibleCategories.size === 0) return;
+    if (visibleFacilityIds.size === 0) return;
     fitBoundsToMapContent();
-  }, [visibleCategories, fitBoundsToMapContent]);
+  }, [visibleFacilityIds, fitBoundsToMapContent]);
 
   // Fit everything when switching to full-screen map view on mobile — always
-  // runs (even with 0 visible categories) since this is a deliberate
+  // runs (even with 0 visible facilities) since this is a deliberate
   // "show me everything" action, not an automatic re-frame while browsing.
   // Slight delay so the fit happens after the mobile layout swaps the panel
   // out for the full-screen map (map size must update first).
@@ -459,7 +459,7 @@ function MapContent() {
 
       {/* Category markers - show after analysis */}
       {analysisResult?.features.map((feature) => {
-        if (!visibleCategories.has(feature.category)) {
+        if (!visibleFacilityIds.has(feature.id)) {
           return null;
         }
 
