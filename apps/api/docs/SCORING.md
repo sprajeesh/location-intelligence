@@ -86,10 +86,10 @@ The six categories don't count equally toward the final number. Education
 and Transport matter most; Shopping, Recreation, and Food & Drink matter
 least (for now — see the note below):
 
-- **Education — 41.24%**
-- **Transport — 30.93%**
-- **Healthcare — 20.62%**
-- **Shopping — 7.21%**
+- **Education — 40%**
+- **Transport — 30%**
+- **Healthcare — 20%**
+- **Shopping — 10%**
 - **Recreation — 0%**
 - **Food & Drink — 0%**
 

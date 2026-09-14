@@ -139,8 +139,8 @@ All 6 rows' `weight` values must sum to `1.0` — validated in Python at
 startup (`scoring_config_loader.load_scoring_config`), not as a DB
 constraint (a cross-row invariant doesn't translate to a single-row `CHECK`).
 
-**Current seed values:** education `0.4124`, transport `0.3093`, healthcare
-`0.2062`, shopping `0.0721`, recreation `0.0000`, food_and_drink `0.0000`.
+**Current seed values:** education `0.40`, transport `0.30`, healthcare
+`0.20`, shopping `0.10`, recreation `0.0000`, food_and_drink `0.0000`.
 
 ---
 

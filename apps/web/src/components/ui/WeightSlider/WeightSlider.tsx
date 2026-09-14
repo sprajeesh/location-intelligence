@@ -32,7 +32,7 @@ function prefersReducedMotion() {
  * the track is drawn as a background gradient for a subtle visual cue on
  * drag -- see .animate-slider-fill in globals.css. Renders (and reports)
  * the weight to 2 decimal places of percent -- see weightToPercent -- so a
- * DB-configured ratio like 0.4124 shows as 41.24%, not a lossy 41%.
+ * renormalized ratio like 0.3333 shows as 33.33%, not a lossy 33%.
  *
  * On mount (or whenever the category becomes active/enabled), the slider
  * fill animates smoothly from 0 to the target weight over 450ms with an
