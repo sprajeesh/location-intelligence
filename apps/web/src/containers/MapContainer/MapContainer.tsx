@@ -21,11 +21,11 @@ import {
 } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { Navigation, TriangleAlert, MapPin } from "lucide-react";
+import { TriangleAlert, MapPin, BarChart3 } from "lucide-react";
 import { useLocationStore } from "@/store/index";
-import { useNavigate } from "@/hooks/useNavigate";
 import { useCategories } from "@/hooks/useCategories";
 import { useParcelAtPoint } from "@/hooks/useParcelAtPoint";
+import { useIsDesktop } from "@/hooks/useIsDesktop";
 import { computeMapBounds } from "@/utils/mapBounds";
 import { getCategoryIcon } from "@/utils/categoryIcons";
 import { useCategoryColorMap } from "@/hooks/useCategoryColorMap";
@@ -40,6 +40,7 @@ import {
   type MapLayerId,
 } from "@/containers/MapToolbarContainer";
 import { FeatureInfoCard } from "@/components/FeatureInfoCard";
+import { FacilityRouteModePicker } from "@/components/FacilityRouteModePicker";
 
 /**
  * Fix Leaflet icon issue in Next.js (dynamic imports break default icon URLs)
@@ -83,9 +84,10 @@ function MapContent() {
     parcelFeature,
     theme,
     isMapViewOnMobile,
+    setIsMapViewOnMobile,
   } = useLocationStore();
 
-  const navigate = useNavigate();
+  const isDesktop = useIsDesktop();
   const t = useTranslations();
   const { categories } = useCategories();
   const parcelQuery = useParcelAtPoint(selectedAddress);
@@ -474,21 +476,24 @@ function MapContent() {
             position={[feature.lat, feature.lon]}
             icon={createCategoryIcon(color, iconMarkup)}
           >
-            <Popup>
+            <Popup minWidth={200}>
               <div className="text-sm font-semibold mb-1">{feature.name}</div>
               <div className="text-xs text-slate-600 mb-2">
                 <strong>{t("map.markerPopup.distance")}:</strong>{" "}
                 {feature.distanceKm.toFixed(2)} km
               </div>
-              <button
-                type="button"
-                onClick={() => navigate(feature)}
-                className="flex items-center justify-center w-7 h-7 rounded-md border border-slate-300 bg-slate-50 text-slate-700 cursor-pointer p-0 transition-colors duration-150 hover:bg-slate-100 active:bg-slate-200 active:scale-[0.97] focus-ring-flush"
-                title="Show route"
-                aria-label={`Navigate to ${feature.name}`}
-              >
-                <Navigation style={{ width: "14px", height: "14px" }} />
-              </button>
+              {!isDesktop && (
+                <button
+                  type="button"
+                  onClick={() => setIsMapViewOnMobile(false)}
+                  className="flex items-center justify-center w-7 h-7 rounded-md border border-slate-300 bg-slate-50 text-slate-700 cursor-pointer p-0 mb-2 transition-colors duration-150 hover:bg-slate-100 active:bg-slate-200 active:scale-[0.97] focus-ring-flush"
+                  title="View scores"
+                  aria-label="View scores"
+                >
+                  <BarChart3 style={{ width: "14px", height: "14px" }} />
+                </button>
+              )}
+              <FacilityRouteModePicker feature={feature} />
             </Popup>
           </Marker>
         );

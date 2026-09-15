@@ -1,3 +1,9 @@
+import type { RouteOption } from "@/types/api";
+
+export function getFastestRoute(routes: RouteOption[]): RouteOption {
+  return routes.reduce((a, b) => (a.durationS <= b.durationS ? a : b));
+}
+
 export function formatDuration(seconds: number): string {
   const mins = Math.round(seconds / 60);
   if (mins < 60) return `${mins} min`;
