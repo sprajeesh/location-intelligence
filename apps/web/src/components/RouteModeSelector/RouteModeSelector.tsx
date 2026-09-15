@@ -1,36 +1,26 @@
 "use client";
 
-import React from "react";
 import { useTranslations } from "next-intl";
-import { Car, PersonStanding, Bike } from "lucide-react";
 import type { RouteTransportMode } from "@/types/api";
-
-interface RouteModeButton {
-  mode: RouteTransportMode;
-  labelKey: string;
-  icon: React.ReactNode;
-}
+import { ROUTE_MODES } from "./routeModes";
 
 export interface RouteModesSelectorProps {
-  activeMode: RouteTransportMode;
+  activeMode: RouteTransportMode | null;
   onModeChange: (mode: RouteTransportMode) => void;
+  variant?: "full" | "icon";
 }
 
 export function RouteModeSelector({
   activeMode,
   onModeChange,
+  variant = "full",
 }: RouteModesSelectorProps) {
   const t = useTranslations("navigate");
-
-  const modes: RouteModeButton[] = [
-    { mode: "driving", labelKey: "driving", icon: <Car className="w-4 h-4" aria-hidden="true" /> },
-    { mode: "walking", labelKey: "walking", icon: <PersonStanding className="w-4 h-4" aria-hidden="true" /> },
-    { mode: "cycling", labelKey: "cycling", icon: <Bike className="w-4 h-4" aria-hidden="true" /> },
-  ];
+  const isIconOnly = variant === "icon";
 
   return (
     <div className="flex items-center gap-1" role="group" aria-label="Transport mode">
-      {modes.map(({ mode, labelKey, icon }) => {
+      {ROUTE_MODES.map(({ mode, labelKey, icon }) => {
         const label = t(labelKey);
         const isActive = activeMode === mode;
         return (
@@ -39,9 +29,10 @@ export function RouteModeSelector({
             type="button"
             onClick={() => onModeChange(mode)}
             className={`
-              flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium
+              flex items-center gap-1.5 rounded-lg text-sm font-medium
               transition-all duration-200
               active:scale-[0.97]
+              ${isIconOnly ? "justify-center w-7 h-7 p-0" : "px-3 py-1.5"}
               ${
                 isActive
                   ? "bg-primary-600 text-white shadow-sm active:bg-primary-700"
@@ -52,7 +43,7 @@ export function RouteModeSelector({
             aria-label={label}
           >
             {icon}
-            <span className="hidden sm:inline">{label}</span>
+            {!isIconOnly && <span className="hidden sm:inline">{label}</span>}
           </button>
         );
       })}
