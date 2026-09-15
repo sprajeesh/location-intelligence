@@ -2,7 +2,7 @@
 
 import { useCallback } from "react";
 import { useLocationStore } from "@/store/index";
-import type { Feature } from "@/types/api";
+import type { Feature, RouteTransportMode } from "@/types/api";
 
 export function useNavigate() {
   const {
@@ -16,10 +16,10 @@ export function useNavigate() {
   } = useLocationStore();
 
   return useCallback(
-    (feature: Feature) => {
+    (feature: Feature, mode: RouteTransportMode = "driving") => {
       setSelectedFeature(feature);
       setIsNavigating(true);
-      setRouteMode("driving");
+      setRouteMode(mode);
       setActiveRoute(null);
       setNavigateFrom(selectedAddress);
       setNavigateTo({
