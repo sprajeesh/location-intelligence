@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.6.0](https://github.com/sprajeesh/location-intelligence/compare/api@v0.5.1...api@v0.6.0) (2026-09-15)
+
+
+### Features
+
+* **web:** pick route mode directly from facility marker popups ([#187](https://github.com/sprajeesh/location-intelligence/issues/187)) ([7cce2bf](https://github.com/sprajeesh/location-intelligence/commit/7cce2bf603e95b2be0e60fae8191cff10e5a7f23))
+
+
+### Bug Fixes
+
+* **nav:** serve walking/cycling routes from real OSRM profiles ([#188](https://github.com/sprajeesh/location-intelligence/issues/188)) ([e52dd8a](https://github.com/sprajeesh/location-intelligence/commit/e52dd8a2b81dd1c85193107ce129760af092ef71))
+
 ## [0.5.1](https://github.com/sprajeesh/location-intelligence/compare/api@v0.5.0...api@v0.5.1) (2026-09-14)
 
 
