@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { MapContainer } from './MapContainer';
 import { useLocationStore } from '@/store';
 import { useCategories } from '@/hooks/useCategories';
@@ -7,9 +7,6 @@ import { useParcelAtPoint } from '@/hooks/useParcelAtPoint';
 jest.mock('@/store');
 jest.mock('@/hooks/useCategories');
 jest.mock('@/hooks/useParcelAtPoint');
-jest.mock('@/hooks/useNavigate', () => ({
-  useNavigate: () => jest.fn(),
-}));
 jest.mock('react-dom/server', () => ({
   renderToStaticMarkup: (_element: React.ReactElement) => '<svg mock="true"></svg>',
 }));
@@ -29,6 +26,9 @@ jest.mock('@/components/FeatureInfoCard', () => ({
       Feature Info
     </div>
   ),
+}));
+jest.mock('@/components/FacilityRouteModePicker', () => ({
+  FacilityRouteModePicker: () => <div data-testid="facility-route-mode-picker-stub" />,
 }));
 jest.mock('@/containers/MapToolbarContainer', () => ({
   MapToolbarContainer: () => <div data-testid="map-toolbar-stub" />,
@@ -99,6 +99,8 @@ const makeStoreState = (overrides = {}) => ({
   parcelFeature: null,
   theme: 'light' as const,
   isAnalyzing: false,
+  isMapViewOnMobile: false,
+  setIsMapViewOnMobile: jest.fn(),
   ...overrides,
 });
 
@@ -225,6 +227,53 @@ describe('MapContainer', () => {
       render(<MapContainer />);
       expect(screen.getByText('Auckland Primary')).toBeInTheDocument();
       expect(screen.getByText('Queen St Stop')).toBeInTheDocument();
+    });
+  });
+
+  describe('Mobile "View scores" button in facility popup', () => {
+    const analysisResult = {
+      location: { lat: -36.85, lon: 174.76, displayName: '123 Main St' },
+      features: [
+        { id: 'school-1', name: 'Auckland Primary', category: 'schools', lat: -36.85, lon: 174.76, distanceKm: 0.5 },
+      ],
+      score: { overall: 50, coverage: '1/5', categories: [] },
+      warnings: [],
+    };
+
+    const setInnerWidth = (width: number) => {
+      Object.defineProperty(window, 'innerWidth', {
+        writable: true,
+        configurable: true,
+        value: width,
+      });
+    };
+
+    afterEach(() => {
+      setInnerWidth(1024);
+    });
+
+    it('is hidden on desktop, where the results panel and map are both already visible', () => {
+      setInnerWidth(1024);
+      mockUseLocationStore.mockReturnValue(
+        makeStoreState({ analysisResult, visibleFacilityIds: new Set(['school-1']) }),
+      );
+      render(<MapContainer />);
+      expect(screen.queryByRole('button', { name: 'View scores' })).not.toBeInTheDocument();
+    });
+
+    it('switches back to the results panel on mobile', () => {
+      setInnerWidth(500);
+      const setIsMapViewOnMobile = jest.fn();
+      mockUseLocationStore.mockReturnValue(
+        makeStoreState({
+          analysisResult,
+          visibleFacilityIds: new Set(['school-1']),
+          setIsMapViewOnMobile,
+        }),
+      );
+      render(<MapContainer />);
+      fireEvent.click(screen.getByRole('button', { name: 'View scores' }));
+      expect(setIsMapViewOnMobile).toHaveBeenCalledWith(false);
     });
   });
 });
