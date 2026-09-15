@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.0](https://github.com/sprajeesh/location-intelligence/compare/web@v0.11.0...web@v0.12.0) (2026-09-15)
+
+
+### Features
+
+* **web:** pick route mode directly from facility marker popups ([#187](https://github.com/sprajeesh/location-intelligence/issues/187)) ([7cce2bf](https://github.com/sprajeesh/location-intelligence/commit/7cce2bf603e95b2be0e60fae8191cff10e5a7f23))
+
 ## [0.11.0](https://github.com/sprajeesh/location-intelligence/compare/web@v0.10.0...web@v0.11.0) (2026-09-14)
 
 
