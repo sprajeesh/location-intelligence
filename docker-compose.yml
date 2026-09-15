@@ -37,6 +37,11 @@ services:
     networks:
       - backend
 
+  # Driving/car routing. See scripts/setup-osrm.sh -- each mode below is a
+  # separate osrm-routed process because a single instance is baked to one
+  # profile at extract time and doesn't validate its URL's profile segment
+  # against what's actually loaded (requesting /route/v1/foot/... against a
+  # car-only instance silently returns car-profile results).
   osrm:
     image: osrm/osrm-backend
     ports:
@@ -44,6 +49,40 @@ services:
     volumes:
       - ./osrm-data:/data
     command: osrm-routed --algorithm mld /data/new-zealand-latest.osrm
+    healthcheck:
+      test: ["CMD-SHELL", "grep -q osrm-routed /proc/1/cmdline || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    networks:
+      - backend
+
+  # Walking routing (foot.lua profile).
+  osrm-foot:
+    image: osrm/osrm-backend
+    ports:
+      - "127.0.0.1:5001:5000"
+    volumes:
+      - ./osrm-data:/data
+    command: osrm-routed --algorithm mld /data/new-zealand-latest-foot.osrm
+    healthcheck:
+      test: ["CMD-SHELL", "grep -q osrm-routed /proc/1/cmdline || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    networks:
+      - backend
+
+  # Cycling routing (bicycle.lua profile).
+  osrm-bike:
+    image: osrm/osrm-backend
+    ports:
+      - "127.0.0.1:5002:5000"
+    volumes:
+      - ./osrm-data:/data
+    command: osrm-routed --algorithm mld /data/new-zealand-latest-bicycle.osrm
     healthcheck:
       test: ["CMD-SHELL", "grep -q osrm-routed /proc/1/cmdline || exit 1"]
       interval: 10s

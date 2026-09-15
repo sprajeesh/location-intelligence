@@ -46,12 +46,20 @@ jobs:
         run: |
           mkdir -p osrm-data
           cp docker/data/fixtures/ci-sample.osm osrm-data/new-zealand-latest.osm
-          docker run --rm -v "$PWD/osrm-data:/data" osrm/osrm-backend osrm-extract -p /opt/car.lua /data/new-zealand-latest.osm
-          docker run --rm -v "$PWD/osrm-data:/data" osrm/osrm-backend osrm-partition /data/new-zealand-latest.osrm
-          docker run --rm -v "$PWD/osrm-data:/data" osrm/osrm-backend osrm-customize /data/new-zealand-latest.osrm
+          for spec in "car:/opt/car.lua:new-zealand-latest" \
+                      "foot:/opt/foot.lua:new-zealand-latest-foot" \
+                      "bicycle:/opt/bicycle.lua:new-zealand-latest-bicycle"; do
+            IFS=":" read -r name lua base <<< "$spec"
+            if [ "$base" != "new-zealand-latest" ]; then
+              ln osrm-data/new-zealand-latest.osm "osrm-data/$base.osm"
+            fi
+            docker run --rm -v "$PWD/osrm-data:/data" osrm/osrm-backend osrm-extract -p "$lua" "/data/$base.osm"
+            docker run --rm -v "$PWD/osrm-data:/data" osrm/osrm-backend osrm-partition "/data/$base.osrm"
+            docker run --rm -v "$PWD/osrm-data:/data" osrm/osrm-backend osrm-customize "/data/$base.osrm"
+          done
 
       - name: Start API dependencies (PostgreSQL, Redis, OSRM) via Docker
-        run: docker compose up -d --wait --wait-timeout 180 postgis redis osrm
+        run: docker compose up -d --wait --wait-timeout 180 postgis redis osrm osrm-foot osrm-bike
         env:
           DB_USER: gisuser
           DB_PASSWORD: changeme
@@ -70,6 +78,8 @@ jobs:
           DATABASE_URL: postgresql://gisuser:changeme@localhost:5432/gis
           REDIS_URL: redis://localhost:6379
           OSRM_URL: http://localhost:5000
+          OSRM_FOOT_URL: http://localhost:5001
+          OSRM_BIKE_URL: http://localhost:5002
           LINZ_API_KEY: test-key
           API_SHARED_SECRET: test-secret
 

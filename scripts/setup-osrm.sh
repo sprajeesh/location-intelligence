@@ -7,7 +7,8 @@
 #
 # Prerequisites:
 #   - Docker must be running
-#   - ~500MB free disk space
+#   - ~1.5GB free disk space (car, foot, and bicycle profiles are each
+#     extracted/partitioned/customized separately -- see docker-compose.yml)
 #
 set -euo pipefail
 
@@ -41,38 +42,61 @@ else
   echo "✓ Download complete."
 fi
 
-# Step 2: Extract
-if [ -f "$DATA_DIR/new-zealand-latest.osrm" ]; then
-  echo "✓ OSRM extract already exists, skipping."
-else
-  echo "⚙ Extracting road network (this may take a few minutes)..."
-  docker run --rm -v "$DATA_DIR:/data" "$OSRM_IMAGE" \
-    osrm-extract -p /opt/car.lua /data/new-zealand-latest.osm.pbf
-  echo "✓ Extraction complete."
-fi
+# Steps 2-4: Extract, partition, customize -- once per transport profile.
+# Each profile needs its own dataset because a single osrm-routed instance
+# is baked to whatever profile it was extracted with; it doesn't validate
+# its URL's profile segment against the loaded data. car/foot/bicycle.lua
+# ship inside the osrm-backend image at /opt/.
+#
+# osrm-extract has no output-path flag -- it derives the .osrm basename from
+# the input filename -- so each non-car profile gets a hardlink of the
+# already-downloaded PBF under its own basename (no extra disk cost) before
+# extracting.
+PROFILES=(
+  "car:/opt/car.lua:new-zealand-latest"
+  "foot:/opt/foot.lua:new-zealand-latest-foot"
+  "bicycle:/opt/bicycle.lua:new-zealand-latest-bicycle"
+)
 
-# Step 3: Partition
-if [ -f "$DATA_DIR/new-zealand-latest.osrm.partition" ]; then
-  echo "✓ OSRM partition already exists, skipping."
-else
-  echo "⚙ Partitioning..."
-  docker run --rm -v "$DATA_DIR:/data" "$OSRM_IMAGE" \
-    osrm-partition /data/new-zealand-latest.osrm
-  echo "✓ Partition complete."
-fi
+for entry in "${PROFILES[@]}"; do
+  IFS=":" read -r name lua_path basename <<< "$entry"
+  pbf_link="$DATA_DIR/$basename.osm.pbf"
+  osrm_file="$DATA_DIR/$basename.osrm"
 
-# Step 4: Customize
-if [ -f "$DATA_DIR/new-zealand-latest.osrm.cell_metrics" ]; then
-  echo "✓ OSRM customization already exists, skipping."
-else
-  echo "⚙ Customizing..."
-  docker run --rm -v "$DATA_DIR:/data" "$OSRM_IMAGE" \
-    osrm-customize /data/new-zealand-latest.osrm
-  echo "✓ Customization complete."
-fi
+  if [ ! -e "$pbf_link" ]; then
+    ln "$PBF_FILE" "$pbf_link" 2>/dev/null || cp "$PBF_FILE" "$pbf_link"
+  fi
+
+  if [ -f "$osrm_file" ]; then
+    echo "✓ [$name] OSRM extract already exists, skipping."
+  else
+    echo "⚙ [$name] Extracting road network (this may take a few minutes)..."
+    docker run --rm -v "$DATA_DIR:/data" "$OSRM_IMAGE" \
+      osrm-extract -p "$lua_path" "/data/$basename.osm.pbf"
+    echo "✓ [$name] Extraction complete."
+  fi
+
+  if [ -f "$DATA_DIR/$basename.osrm.partition" ]; then
+    echo "✓ [$name] OSRM partition already exists, skipping."
+  else
+    echo "⚙ [$name] Partitioning..."
+    docker run --rm -v "$DATA_DIR:/data" "$OSRM_IMAGE" \
+      osrm-partition "/data/$basename.osrm"
+    echo "✓ [$name] Partition complete."
+  fi
+
+  if [ -f "$DATA_DIR/$basename.osrm.cell_metrics" ]; then
+    echo "✓ [$name] OSRM customization already exists, skipping."
+  else
+    echo "⚙ [$name] Customizing..."
+    docker run --rm -v "$DATA_DIR:/data" "$OSRM_IMAGE" \
+      osrm-customize "/data/$basename.osrm"
+    echo "✓ [$name] Customization complete."
+  fi
+done
 
 echo ""
 echo "══════════════════════════════════════════"
 echo "  ✓ OSRM data ready!"
-echo "  Run 'docker compose up osrm' to start the service."
+echo "  Run 'docker compose up osrm osrm-foot osrm-bike' to start the services."
 echo "══════════════════════════════════════════"

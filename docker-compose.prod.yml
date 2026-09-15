@@ -66,6 +66,12 @@ services:
   osrm:
     restart: unless-stopped
 
+  osrm-foot:
+    restart: unless-stopped
+
+  osrm-bike:
+    restart: unless-stopped
+
   # TLS-terminating reverse proxy in front of the api service -- Cloudflare
   # Workers (the web BFF) can't reliably fetch() a custom port in production,
   # and .env.example already requires HTTPS on a real hostname for

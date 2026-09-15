@@ -7,7 +7,15 @@ logger = logging.getLogger(__name__)
 
 
 class RoutingService:
-    """Turn-by-turn routing via OSRM."""
+    """Turn-by-turn routing via OSRM.
+
+    Each transport mode is backed by its own self-hosted OSRM instance (see
+    docker-compose.yml's osrm/osrm-foot/osrm-bike services) -- osrm-routed
+    doesn't validate the URL's profile segment against what's actually
+    loaded, so genuinely different per-mode results require genuinely
+    different instances/datasets, not just a different URL path against one
+    shared instance.
+    """
 
     OSRM_PROFILE = {
         "driving": "car",
@@ -15,8 +23,8 @@ class RoutingService:
         "cycling": "bike",
     }
 
-    def __init__(self, osrm_client: OSRMClient) -> None:
-        self._osrm = osrm_client
+    def __init__(self, osrm_clients: dict[str, OSRMClient]) -> None:
+        self._osrm_clients = osrm_clients
 
     async def get_routes(
         self,
@@ -27,10 +35,11 @@ class RoutingService:
         mode: str = "driving",
     ) -> list[RouteOption]:
         """Get turn-by-turn routes between two points."""
+        client = self._osrm_clients.get(mode, self._osrm_clients["driving"])
         profile = self.OSRM_PROFILE.get(mode, "car")
         coords = f"{from_lon},{from_lat};{to_lon},{to_lat}"
 
-        osrm_response = await self._osrm.route(profile, coords)
+        osrm_response = await client.route(profile, coords)
         routes = osrm_response.get("routes", [])
 
         result = []

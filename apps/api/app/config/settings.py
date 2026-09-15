@@ -17,7 +17,13 @@ class Settings(BaseSettings):
     database_url: str = "postgresql://gisuser:gisuser@localhost:5432/gis"
     overpass_url: str = "https://overpass-api.de/api/interpreter"
     overpass_max_concurrency: int = 2
+    # Driving routes and DistanceService's facility-distance scoring both use
+    # this instance. Walking/cycling routes use their own OSRM instances
+    # (separate self-hosted profile extracts -- see docker-compose.yml)
+    # since a single osrm-routed process is baked to one profile.
     osrm_url: str = "http://localhost:5000"
+    osrm_foot_url: str = "http://localhost:5001"
+    osrm_bike_url: str = "http://localhost:5002"
     osrm_max_concurrency: int = 4
     # LINZ Data Service API key -- server-side only, used to query the Query API
     # (data.linz.govt.nz/services/query/v1/vector.json) for parcel lookups. None
