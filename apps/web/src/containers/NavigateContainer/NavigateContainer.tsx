@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useLocationStore } from "@/store";
 import { useRoute } from "@/hooks/useRoute";
 import RoutePanel from "@/components/RoutePanel";
+import { getFastestRoute } from "@/utils/routeFormat";
 import type { RouteTransportMode } from "@/types/api";
 
 export function NavigateContainer() {
@@ -27,9 +28,7 @@ export function NavigateContainer() {
 
   useEffect(() => {
     if (!data?.routes?.length) return;
-    const fastest = data.routes.reduce((a, b) =>
-      a.durationS <= b.durationS ? a : b,
-    );
+    const fastest = getFastestRoute(data.routes);
     setActiveRoute(fastest.coordinates);
   }, [data, setActiveRoute]);
 
