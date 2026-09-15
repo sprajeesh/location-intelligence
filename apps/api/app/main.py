@@ -101,6 +101,18 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         failure_threshold=settings.osrm_breaker_failure_threshold,
         cooldown_seconds=settings.osrm_breaker_cooldown_seconds,
     )
+    # Separate breakers per mode so a walking/cycling OSRM outage doesn't
+    # trip the breaker shared by driving routes and facility-distance scoring.
+    osrm_foot_breaker = CircuitBreaker(
+        "osrm-foot",
+        failure_threshold=settings.osrm_breaker_failure_threshold,
+        cooldown_seconds=settings.osrm_breaker_cooldown_seconds,
+    )
+    osrm_bike_breaker = CircuitBreaker(
+        "osrm-bike",
+        failure_threshold=settings.osrm_breaker_failure_threshold,
+        cooldown_seconds=settings.osrm_breaker_cooldown_seconds,
+    )
     linz_breaker = CircuitBreaker(
         "linz",
         failure_threshold=settings.linz_breaker_failure_threshold,
@@ -121,6 +133,18 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         max_concurrency=settings.osrm_max_concurrency,
         breaker=osrm_breaker,
     )
+    osrm_foot = OSRMClient(
+        settings.osrm_foot_url,
+        http_client,
+        max_concurrency=settings.osrm_max_concurrency,
+        breaker=osrm_foot_breaker,
+    )
+    osrm_bike = OSRMClient(
+        settings.osrm_bike_url,
+        http_client,
+        max_concurrency=settings.osrm_max_concurrency,
+        breaker=osrm_bike_breaker,
+    )
     linz_client = LinzClient(
         settings.linz_api_key,
         http_client,
@@ -138,7 +162,9 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         scoring_config.facility_configs,
         max_destinations_per_leg=settings.osrm_max_destinations_per_leg,
     )
-    app.state.routing_svc = RoutingService(osrm)
+    app.state.routing_svc = RoutingService(
+        {"driving": osrm, "walking": osrm_foot, "cycling": osrm_bike}
+    )
     app.state.scoring_svc = LocationScoringService(
         scoring_config.facility_configs,
         scoring_config.category_facility_weights,

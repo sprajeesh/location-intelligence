@@ -35,7 +35,9 @@ check_service() {
 # Check Docker services
 echo "─── Docker Services ───"
 check_service "Redis" "http://localhost:6379"
-check_service "OSRM" "http://localhost:5000/health" 3
+check_service "OSRM (driving)" "http://localhost:5000/health" 3
+check_service "OSRM (walking)" "http://localhost:5001/health" 3
+check_service "OSRM (cycling)" "http://localhost:5002/health" 3
 
 echo -n "Checking PostGIS... "
 if pg_isready -h localhost -p 5432 -U "${DB_USER:-gisuser}" -d gis > /dev/null 2>&1; then
@@ -53,18 +55,26 @@ echo ""
 echo "─── Ports in Use ───"
 lsof -i :6379 > /dev/null 2>&1 && echo -e "  ${GREEN}✓${NC} 6379 (Redis)" || echo -e "  ${RED}✗${NC} 6379 (Redis)"
 lsof -i :5432 > /dev/null 2>&1 && echo -e "  ${GREEN}✓${NC} 5432 (PostGIS)" || echo -e "  ${RED}✗${NC} 5432 (PostGIS)"
-lsof -i :5000 > /dev/null 2>&1 && echo -e "  ${GREEN}✓${NC} 5000 (OSRM)" || echo -e "  ${RED}✗${NC} 5000 (OSRM)"
+lsof -i :5000 > /dev/null 2>&1 && echo -e "  ${GREEN}✓${NC} 5000 (OSRM driving)" || echo -e "  ${RED}✗${NC} 5000 (OSRM driving)"
+lsof -i :5001 > /dev/null 2>&1 && echo -e "  ${GREEN}✓${NC} 5001 (OSRM walking)" || echo -e "  ${RED}✗${NC} 5001 (OSRM walking)"
+lsof -i :5002 > /dev/null 2>&1 && echo -e "  ${GREEN}✓${NC} 5002 (OSRM cycling)" || echo -e "  ${RED}✗${NC} 5002 (OSRM cycling)"
 lsof -i :8000 > /dev/null 2>&1 && echo -e "  ${GREEN}✓${NC} 8000 (FastAPI)" || echo -e "  ${RED}✗${NC} 8000 (FastAPI)"
 lsof -i :3000 > /dev/null 2>&1 && echo -e "  ${GREEN}✓${NC} 3000 (Next.js)" || echo -e "  ${YELLOW}○${NC} 3000 (Next.js - may not be running yet)"
 
 echo ""
 echo "─── OSRM Data Files ───"
-if [ -f "./osrm-data/new-zealand-latest.osrm" ]; then
-  echo -e "  ${GREEN}✓${NC} OSRM extract file exists"
-else
-  echo -e "  ${RED}✗${NC} OSRM extract missing - run ./scripts/setup-osrm.sh"
-  ERRORS=$((ERRORS + 1))
-fi
+for profile_file in \
+  "new-zealand-latest.osrm:driving" \
+  "new-zealand-latest-foot.osrm:walking" \
+  "new-zealand-latest-bicycle.osrm:cycling"; do
+  IFS=":" read -r file mode <<< "$profile_file"
+  if [ -f "./osrm-data/$file" ]; then
+    echo -e "  ${GREEN}✓${NC} OSRM extract file exists ($mode)"
+  else
+    echo -e "  ${RED}✗${NC} OSRM extract missing ($mode) - run ./scripts/setup-osrm.sh"
+    ERRORS=$((ERRORS + 1))
+  fi
+done
 
 echo ""
 echo "─── Environment Files ───"

@@ -72,7 +72,13 @@ settable via environment variables, no code change needed.
 
 Overpass and OSRM each get their own circuit breaker
 (`app/clients/circuit_breaker.py`) so a sustained outage fails fast instead
-of every concurrent request paying the full timeout-and-retry cost:
+of every concurrent request paying the full timeout-and-retry cost. OSRM is
+actually three self-hosted instances -- one per transport profile, since a
+single `osrm-routed` process can only serve the profile it was extracted
+with (see root `docker-compose.yml`'s `osrm`/`osrm-foot`/`osrm-bike`
+services) -- so each gets its own breaker: `osrm` (driving routes +
+`DistanceService`'s facility-distance scoring), `osrm-foot` (walking
+routes), `osrm-bike` (cycling routes). That's 4 breakers total.
 
 - **Closed** (normal): calls go through as usual.
 - **Open**: after 5 consecutive failures, the breaker skips the network call
@@ -81,13 +87,19 @@ of every concurrent request paying the full timeout-and-retry cost:
   through — success closes the breaker again, failure reopens it for another
   cooldown.
 
-The two clients react differently to an open breaker, matching what they
-already did on individual failures:
+Each breaker's client reacts differently to an open breaker, matching what
+it already did on individual failures:
 
-- **OSRM**: skips straight to straight-line (haversine) distance, the same
-  fallback it already uses for a single failed call — just without waiting
-  out the 15-second HTTP timeout first. The response still carries the
-  existing `"Using straight-line distance"` warning.
+- **`osrm` (facility-distance scoring)**: skips straight to straight-line
+  (haversine) distance, the same fallback it already uses for a single
+  failed call — just without waiting out the 15-second HTTP timeout first.
+  The response still carries the existing `"Using straight-line distance"`
+  warning.
+- **`osrm-foot` / `osrm-bike` (turn-by-turn routing, `RoutingService`)**:
+  no haversine equivalent exists for a full route, so `GET /route` just
+  fails fast with the same `502 Routing service unavailable` an individual
+  OSRM failure already returns — driving routes are unaffected since they
+  use the separate `osrm` breaker/instance.
 - **Overpass**: the whole merged-query call (including its own internal
   retries) counts as one breaker outcome, not each HTTP attempt. When open,
   that batch of categories fails immediately and is reported the same way
@@ -96,7 +108,9 @@ already did on individual failures:
 
 **Tuning:** `overpass_breaker_failure_threshold` /
 `overpass_breaker_cooldown_seconds` and the `osrm_breaker_*` equivalents in
-`app/config/settings.py`.
+`app/config/settings.py` — the latter is shared across all three OSRM
+breaker instances (same thresholds, tracked independently per instance),
+not a separate setting per profile.
 
 ## Concurrency limits
 
@@ -106,7 +120,7 @@ shared resources:
 | Limit | Default | Setting | Why |
 |---|---|---|---|
 | Concurrent Overpass calls (app-wide) | 2 | `overpass_max_concurrency` | The public Overpass API tolerates only ~2 concurrent slots per IP |
-| Concurrent OSRM calls (app-wide) | 4 | `osrm_max_concurrency` | OSRM is self-hosted on the same VM, so it can take a bit more, but it's still one process |
+| Concurrent OSRM calls (per instance) | 4 | `osrm_max_concurrency` | OSRM is self-hosted on the same VM, so it can take a bit more, but it's still one process per profile. Each of the 3 OSRM instances (driving, walking, cycling — see Circuit breakers below) has its own independent semaphore at this limit, not one shared app-wide cap |
 | Concurrent `/location/analyze` requests in flight (process-wide) | 8 | `analyze_max_in_flight` | Protects the single uvicorn worker itself, independent of which client the requests came from |
 
 The first two are `asyncio.Semaphore`s inside each client. The third
@@ -171,7 +185,8 @@ Not implemented yet -- tracked as future work.
 |---|---|---|
 | Legitimate-looking requests getting `429` | Limit too strict for real usage, or several visitors sharing one IP (e.g. behind NAT/school wifi) | Raise the relevant `rate_limit_*_times`/`_seconds` setting |
 | Every request from one visitor 503ing | `analyze_max_in_flight` reached — either genuinely high concurrent load, or requests that aren't completing (check for a stuck downstream call) | `analyze_max_in_flight`, application logs |
-| Distances suddenly all straight-line | OSRM circuit breaker open (or OSRM actually down) | `docker compose logs osrm`; breaker recovers automatically after the cooldown |
+| Distances suddenly all straight-line | `osrm` circuit breaker open (or that OSRM instance actually down) | `docker compose logs osrm`; breaker recovers automatically after the cooldown |
+| Walking/cycling routes suddenly 502ing (driving still fine) | `osrm-foot`/`osrm-bike` circuit breaker open, or that instance down/missing its dataset | `docker compose logs osrm-foot` / `osrm-bike`; confirm `./osrm-data/new-zealand-latest-foot.osrm` / `-bicycle.osrm` exist (`./scripts/setup-osrm.sh` if not) |
 | A batch of categories missing with "Could not fetch ... data" | Overpass circuit breaker open, or Overpass itself failing/rate-limiting this app's IP | Application logs (`Circuit breaker overpass: opening ...`) |
 | Rate limiting silently not enforcing | Redis unreachable — intentional fail-open | `Rate limiting disabled -- Redis unavailable, failing open` in logs; check `docker compose ps redis` |
 

@@ -29,7 +29,8 @@ cd location-intelligence
 cp .env.example .env
 # Edit .env: set DB_USER, DB_PASSWORD, DATABASE_URL
 
-# IMPORTANT: Prepare OSRM data (required, ~5 min, downloads 500MB NZ road data)
+# IMPORTANT: Prepare OSRM data (required, ~15 min, downloads 500MB NZ road
+# data once and builds separate driving/walking/cycling routing profiles)
 ./scripts/setup-osrm.sh
 
 # Build and start Docker services (Redis, PostGIS + LINZ data, OSRM)
@@ -46,7 +47,7 @@ docker compose ps  # All should show "healthy"
 
 - Redis: `localhost:6379`
 - PostGIS: `localhost:5432` (database: `gis`)
-- OSRM: `http://localhost:5000`
+- OSRM: `http://localhost:5000` (driving), `:5001` (walking), `:5002` (cycling) — see [AGENTS.md](AGENTS.md#environment-variables)
 
 ### Backend (FastAPI)
 
@@ -72,8 +73,8 @@ See [apps/web/README.md](apps/web/README.md#quick-start)
 | ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `docker compose build postgis` fails | Ensure `docker/data/lds-nz-addresses-CSV.zip` exists (download from [LINZ Data Service](https://data.linz.govt.nz/layer/123113-nz-street-addresses/)) |
 | PostGIS build takes long             | Expected — downloads 2.6M addresses and builds indexes (~10–20 min)                                                                                   |
-| `docker compose up` fails on `osrm`  | Run `./scripts/setup-osrm.sh` first (downloads NZ road data)                                                                                          |
-| OSRM takes too long to start         | Normal; OSRM loads large dataset into memory on startup (~1-2 min)                                                                                    |
+| `docker compose up` fails on `osrm`/`osrm-foot`/`osrm-bike` | Run `./scripts/setup-osrm.sh` first (downloads NZ road data, builds all 3 profiles)                                                                    |
+| OSRM takes too long to start         | Normal; each OSRM instance loads its dataset into memory on startup (~1-2 min each)                                                                   |
 
 ---
 
@@ -200,15 +201,17 @@ docker compose ps
 pg_isready -h localhost -p 5432 -U $DB_USER -d gis
 psql -h localhost -U $DB_USER -d gis -c "SELECT count(*) FROM addresses;"
 
-# Check OSRM
+# Check OSRM (driving/walking/cycling)
 curl http://localhost:5000/health
+curl http://localhost:5001/health
+curl http://localhost:5002/health
 
 # Check Redis
 redis-cli ping
 
 # View service logs
 docker compose logs postgis
-docker compose logs osrm
+docker compose logs osrm osrm-foot osrm-bike
 docker compose logs redis
 ```
 
