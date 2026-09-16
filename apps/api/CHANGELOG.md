@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.6.1](https://github.com/sprajeesh/location-intelligence/compare/api@v0.6.0...api@v0.6.1) (2026-09-16)
+
+
+### Bug Fixes
+
+* **api:** compute overall score when all scored categories default to zero weight ([#195](https://github.com/sprajeesh/location-intelligence/issues/195)) ([31ffb75](https://github.com/sprajeesh/location-intelligence/commit/31ffb75ae59cff342d1081b3f9218e239988919c))
+* **deploy:** auto-provision OSRM datasets and health-check all profiles ([#192](https://github.com/sprajeesh/location-intelligence/issues/192)) ([ceeb839](https://github.com/sprajeesh/location-intelligence/commit/ceeb8398fd37e99de6cea674893c8fc24729e8b7))
+* **deploy:** stop auto-running setup-osrm.sh in deploy-api, it OOMs the VM ([#194](https://github.com/sprajeesh/location-intelligence/issues/194)) ([458dba3](https://github.com/sprajeesh/location-intelligence/commit/458dba3e56bb7f1f04d5244f766da3fb124fcfee))
+
 ## [0.6.0](https://github.com/sprajeesh/location-intelligence/compare/api@v0.5.1...api@v0.6.0) (2026-09-15)
 
 
