@@ -303,6 +303,30 @@ class TestOverallComposite:
         ) / weight_sum
         assert score.overall == pytest.approx(expected, rel=1e-2)
 
+    def test_only_zero_default_weight_categories_still_produce_an_overall(
+        self, svc: LocationScoringService
+    ) -> None:
+        # Recreation and Food & Drink both default to 0.0 composite weight
+        # (see CATEGORY_WEIGHTS). Selecting only these, with no explicit
+        # weight override, must not silently leave overall at None despite
+        # both categories having a real score.
+        park = make_facility("parks", distance_km=0.0, fid="p1")
+        restaurant = make_facility("restaurants", distance_km=0.0, fid="r1")
+        score = svc.score(
+            [park, restaurant],
+            categories=["parks", "restaurants"],
+            unavailable=set(),
+        )
+
+        recreation = next(c for c in score.categories if c.category == "recreation")
+        food_and_drink = next(c for c in score.categories if c.category == "food_and_drink")
+        assert recreation.status == "scored"
+        assert food_and_drink.status == "scored"
+
+        assert score.overall is not None
+        expected = (recreation.score + food_and_drink.score) / 2
+        assert score.overall == pytest.approx(expected, rel=1e-2)
+
 
 class TestCategoryWeightOverrides:
     def test_no_override_matches_default_behavior(self, svc: LocationScoringService) -> None:
