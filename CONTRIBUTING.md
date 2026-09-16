@@ -63,13 +63,23 @@ merging a `release--` branch:
    `release: add facility filtering`).
 4. On `main`, CI/CD's `test` job re-runs; once it passes, `deploy-api` and
    `deploy-web` run in parallel automatically (`.github/workflows/push.yml`):
-   - `deploy-api` SSHes into the app VM, runs `scripts/setup-osrm.sh`
-     (idempotent — a no-op once each profile's dataset already exists, so
-     this only does real work the first time a profile is added) to ensure
-     the driving/walking/cycling OSRM datasets are extracted, then runs
-     `docker compose up -d --build` for the API, PostGIS, Redis, and the
-     three OSRM instances, then polls `apps/api`'s `/health` plus each OSRM
-     instance (port 5000/5001/5002) until all report ready.
+   - `deploy-api` SSHes into the app VM and runs `docker compose up -d
+     --build` for the API, PostGIS, Redis, and the OSRM instances
+     (driving/walking/cycling — **each needs its dataset already extracted
+     on the VM via `scripts/setup-osrm.sh`, run manually**; see below), then
+     polls `apps/api`'s `/health` plus each OSRM instance (port
+     5000/5001/5002) until all report ready — a deploy fails loudly if any
+     profile's dataset is missing, instead of silently shipping 502s on
+     that profile.
+   - **`scripts/setup-osrm.sh` is deliberately not run automatically as
+     part of `deploy-api`.** It's a one-time, per-profile data-prep step
+     (`osrm-extract`/`osrm-partition`/`osrm-customize`) that is memory-heavy
+     enough to OOM-kill itself on the production VM if run alongside the
+     live stack (confirmed in practice — see the deploy-api run that failed
+     with exit 137 mid-`osrm-extract` when this was briefly automated). Run
+     it manually over SSH when adding or updating a profile, ideally after
+     checking free memory (`free -h`) and, if needed, temporarily stopping
+     non-essential containers or adding swap first.
    - `deploy-web` builds the Next.js app for Cloudflare (OpenNext) and
      deploys it to Cloudflare Workers via Wrangler.
 5. If the release included version-worthy changes, follow up by merging the
