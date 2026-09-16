@@ -63,11 +63,13 @@ merging a `release--` branch:
    `release: add facility filtering`).
 4. On `main`, CI/CD's `test` job re-runs; once it passes, `deploy-api` and
    `deploy-web` run in parallel automatically (`.github/workflows/push.yml`):
-   - `deploy-api` SSHes into the app VM and runs
+   - `deploy-api` SSHes into the app VM, runs `scripts/setup-osrm.sh`
+     (idempotent — a no-op once each profile's dataset already exists, so
+     this only does real work the first time a profile is added) to ensure
+     the driving/walking/cycling OSRM datasets are extracted, then runs
      `docker compose up -d --build` for the API, PostGIS, Redis, and the
-     OSRM instances (driving/walking/cycling — each needs its dataset
-     already extracted on the VM via `scripts/setup-osrm.sh`), then polls
-     `/health` until it reports `ok`.
+     three OSRM instances, then polls `apps/api`'s `/health` plus each OSRM
+     instance (port 5000/5001/5002) until all report ready.
    - `deploy-web` builds the Next.js app for Cloudflare (OpenNext) and
      deploys it to Cloudflare Workers via Wrangler.
 5. If the release included version-worthy changes, follow up by merging the
