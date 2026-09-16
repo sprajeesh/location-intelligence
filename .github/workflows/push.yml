@@ -138,14 +138,6 @@ jobs:
             echo "==> Writing .env"
             printf '%s\n%s\n%s\n%s\n%s\n' "$DB_USER_B64" "$DB_PASSWORD_B64" "$API_SHARED_SECRET_B64" "$REDIS_PASSWORD_B64" "$LINZ_API_KEY_B64" | bash scripts/fetch-secrets.sh .env
 
-            echo "==> Ensuring OSRM datasets exist for all profiles (driving/walking/cycling)"
-            # Idempotent: skips download/extract/partition/customize steps whose
-            # output file already exists, so this is a no-op on most deploys and
-            # only does real work the first time a new profile is introduced (as
-            # it will be on the first deploy after this change -- expect ~15
-            # extra minutes for the one-time PBF download+extract).
-            bash scripts/setup-osrm.sh
-
             echo "==> Rebuilding and restarting all services"
             docker compose -f docker-compose.yml -f docker-compose.prod.yml pull --quiet || true
             docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build --remove-orphans
