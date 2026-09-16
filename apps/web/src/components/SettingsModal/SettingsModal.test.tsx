@@ -32,6 +32,20 @@ const withHealthcare: Category[] = [
   { id: "clinics", label: "Clinics", implemented: true, color: "#EF4444", isDefault: false, compositeCategory: "healthcare" },
 ];
 
+const recreationAndFoodCategories: Category[] = [
+  { id: "parks", label: "Parks", implemented: true, color: "#22C55E", isDefault: false, compositeCategory: "recreation" },
+  { id: "restaurants", label: "Restaurants", implemented: true, color: "#F97316", isDefault: false, compositeCategory: "food_and_drink" },
+];
+
+const zeroWeightDefaults = {
+  education: 0.4,
+  transport: 0.3,
+  healthcare: 0.2,
+  shopping: 0.1,
+  recreation: 0,
+  food_and_drink: 0,
+};
+
 const defaultCategoryWeights = {
   education: 0.6,
   transport: 0.4,
@@ -164,6 +178,59 @@ describe("SettingsModal", () => {
       expect(onSave).toHaveBeenCalledTimes(1);
       expect(onSave.mock.calls[0][0].slice().sort()).toEqual(["bus_stops", "kindergartens", "schools"]);
       expect(onSave.mock.calls[0][1]).toEqual({ education: 0.6, transport: 0.4 });
+    });
+
+    it("marks weights as touched with the exact entered split, even when it equals the computed default", async () => {
+      // Recreation and Food & Drink both default to 0% weight, so selecting
+      // only these two makes computeDefaultWeightsForActiveCategories fall
+      // back to an even 50/50 split -- coincidentally identical to what the
+      // user is about to type in. onSave must still report this as touched.
+      const onSave = jest.fn();
+      render(
+        <SettingsModal
+          {...defaultProps}
+          categories={recreationAndFoodCategories}
+          defaultCategoryWeights={zeroWeightDefaults}
+          onSave={onSave}
+        />,
+      );
+
+      await userEvent.click(screen.getByLabelText("Parks"));
+      await userEvent.click(screen.getByLabelText("Restaurants"));
+
+      expect(screen.getByLabelText("recreation")).toHaveValue("50");
+      expect(screen.getByLabelText("food_and_drink")).toHaveValue("50");
+
+      // Simulate the user actually typing "50" into each percent field
+      // (already showing 50 from the coincidental default) -- real typing
+      // fires onChange with intermediate values, unlike a single
+      // fireEvent.change to an already-identical string.
+      const recreationInput = screen.getByLabelText("recreation weight percent");
+      await userEvent.clear(recreationInput);
+      await userEvent.type(recreationInput, "50");
+      const foodInput = screen.getByLabelText("food_and_drink weight percent");
+      await userEvent.clear(foodInput);
+      await userEvent.type(foodInput, "50");
+      await userEvent.click(screen.getByRole("button", { name: "Save" }));
+
+      expect(onSave).toHaveBeenCalledWith(
+        expect.arrayContaining(["parks", "restaurants"]),
+        { recreation: 0.5, food_and_drink: 0.5 },
+        true,
+      );
+    });
+
+    it("reports weights as untouched when the user saves without editing any slider", async () => {
+      const onSave = jest.fn();
+      render(<SettingsModal {...defaultProps} onSave={onSave} />);
+
+      await userEvent.click(screen.getByRole("button", { name: "Save" }));
+
+      expect(onSave).toHaveBeenCalledWith(
+        expect.arrayContaining(["schools", "bus_stops"]),
+        { education: 0.6, transport: 0.4 },
+        false,
+      );
     });
   });
 

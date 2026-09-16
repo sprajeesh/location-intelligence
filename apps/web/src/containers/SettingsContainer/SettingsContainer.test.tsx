@@ -136,6 +136,45 @@ describe("SettingsContainer", () => {
       expect(setSelectedFacilities).toHaveBeenCalledWith(null);
     });
 
+    it("saves the user's explicit weights even when they coincidentally equal the computed default", async () => {
+      // Regression test: Recreation and Food & Drink both default to 0%
+      // composite weight, so selecting only these two makes the computed
+      // default an even 50/50 split -- identical to what the user is about
+      // to enter. Previously this caused categoryWeights to be nulled out,
+      // silently dropping the override and leaving the overall score
+      // uncalculable (both categories carry 0 weight server-side).
+      const categoriesWithRecreationAndFood = [
+        { id: "parks", label: "Parks", implemented: true, color: "#22C55E", isDefault: false, compositeCategory: "recreation" },
+        { id: "restaurants", label: "Restaurants", implemented: true, color: "#F97316", isDefault: false, compositeCategory: "food_and_drink" },
+      ];
+      mockUseCategories.mockReturnValue({
+        categories: categoriesWithRecreationAndFood,
+        isLoading: false,
+        isError: false,
+      });
+      mockUseCategoryWeights.mockReturnValue({
+        categoryWeights: { education: 0.4, transport: 0.3, healthcare: 0.2, shopping: 0.1, recreation: 0, food_and_drink: 0 },
+        isLoading: false,
+        isError: false,
+      });
+      const setCategoryWeights = jest.fn();
+      mockUseLocationStore.mockReturnValue(makeStoreState({ setCategoryWeights }));
+
+      render(<SettingsContainer />);
+      await userEvent.click(screen.getByRole("button", { name: "Settings" }));
+      await userEvent.click(screen.getByLabelText("Parks"));
+      await userEvent.click(screen.getByLabelText("Restaurants"));
+      const recreationInput = screen.getByLabelText("recreation weight percent");
+      await userEvent.clear(recreationInput);
+      await userEvent.type(recreationInput, "50");
+      const foodInput = screen.getByLabelText("food_and_drink weight percent");
+      await userEvent.clear(foodInput);
+      await userEvent.type(foodInput, "50");
+      await userEvent.click(screen.getByRole("button", { name: "Save" }));
+
+      expect(setCategoryWeights).toHaveBeenCalledWith({ recreation: 0.5, food_and_drink: 0.5 });
+    });
+
     it("asks for confirmation before re-analyzing when an address is already analyzed and the selection changed", async () => {
       const setSelectedFacilities = jest.fn();
       const analyze = jest.fn();

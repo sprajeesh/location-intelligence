@@ -33,7 +33,11 @@ export interface SettingsModalProps {
   pendingReanalyze: boolean;
   address: string | null;
   onClose: () => void;
-  onSave: (facilityIds: string[], categoryWeights: Record<string, number>) => void;
+  onSave: (
+    facilityIds: string[],
+    categoryWeights: Record<string, number>,
+    weightsTouched: boolean,
+  ) => void;
   onConfirmReanalyze: () => void;
   onDismissReanalyze: () => void;
 }
@@ -65,6 +69,12 @@ export function SettingsModal({
 
   const [draft, setDraft] = useState<string[] | null>(null);
   const [weightDraft, setWeightDraft] = useState<Record<string, number> | null>(null);
+  // True once the user has directly edited a weight slider/input this
+  // session, or the modal opened with already-customized weights. Used
+  // instead of diffing weightDraft against a freshly computed default,
+  // since a deliberate value (e.g. an even 50/50 split) can coincidentally
+  // equal that default -- see onSave in SettingsContainer.
+  const [weightsTouched, setWeightsTouched] = useState(categoryWeights !== null);
   const [showLimitWarning, setShowLimitWarning] = useState(false);
   // Set by handleToggle when a facility toggle changes the active-category
   // set while defaultCategoryWeights is still loading -- recomputing right
@@ -141,6 +151,10 @@ export function SettingsModal({
       const prevActive = getActiveCompositeCategories(categories, prev);
       const nextActive = getActiveCompositeCategories(categories, next);
       if (nextActive.length !== prevActive.length || !nextActive.every((c) => prevActive.includes(c))) {
+        // The active category set changed, so weightDraft is about to be
+        // reseeded to a fresh computed default -- not a user edit, so any
+        // prior customization no longer applies.
+        setWeightsTouched(false);
         if (isWeightsLoading) {
           // defaultCategoryWeights isn't ready yet -- clear weightDraft and
           // defer the recompute to the seeding effect once loading settles,
@@ -264,6 +278,7 @@ export function SettingsModal({
                       onChange={(e) => {
                         const parsed = parseFloat(e.target.value);
                         const clamped = Number.isNaN(parsed) ? 0 : Math.min(100, Math.max(0, parsed));
+                        setWeightsTouched(true);
                         setWeightDraft((prev) => ({
                           ...(prev ?? {}),
                           [group.compositeCategory]: clamped / 100,
@@ -287,6 +302,7 @@ export function SettingsModal({
                   value={weight}
                   disabled={!isActive || weightDraft === null}
                   onChange={(next) => {
+                    setWeightsTouched(true);
                     setWeightDraft((prev) => ({ ...(prev ?? {}), [group.compositeCategory]: next }));
                   }}
                 />
@@ -343,7 +359,7 @@ export function SettingsModal({
             const activeOnlyWeights = Object.fromEntries(
               activeCategories.map((category) => [category, weightDraft[category] ?? 0]),
             );
-            onSave(draft, activeOnlyWeights);
+            onSave(draft, activeOnlyWeights, weightsTouched);
           }}
           disabled={draft === null || weightDraft === null || !weightsAreValid}
           className="px-4 py-1.5 rounded-lg font-medium text-sm bg-primary-600 hover:bg-primary-700 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed active:bg-primary-800 active:scale-[0.98]"
