@@ -138,6 +138,14 @@ jobs:
             echo "==> Writing .env"
             printf '%s\n%s\n%s\n%s\n%s\n' "$DB_USER_B64" "$DB_PASSWORD_B64" "$API_SHARED_SECRET_B64" "$REDIS_PASSWORD_B64" "$LINZ_API_KEY_B64" | bash scripts/fetch-secrets.sh .env
 
+            echo "==> Ensuring OSRM datasets exist for all profiles (driving/walking/cycling)"
+            # Idempotent: skips download/extract/partition/customize steps whose
+            # output file already exists, so this is a no-op on most deploys and
+            # only does real work the first time a new profile is introduced (as
+            # it will be on the first deploy after this change -- expect ~15
+            # extra minutes for the one-time PBF download+extract).
+            bash scripts/setup-osrm.sh
+
             echo "==> Rebuilding and restarting all services"
             docker compose -f docker-compose.yml -f docker-compose.prod.yml pull --quiet || true
             docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build --remove-orphans
@@ -170,6 +178,32 @@ jobs:
               fi
             done
             echo "API health check passed"
+
+            # osrm-routed has no real /health route, so "any HTTP response at
+            # all" (even a 400/404) is proof the daemon is up and serving that
+            # profile's dataset -- same check scripts/diagnose.sh uses locally.
+            # This is what catches a profile whose dataset failed to extract:
+            # driving/walking/cycling each run as a physically separate
+            # osrm-routed process, so one missing dataset only takes down its
+            # own profile while the others (and the api container above) stay
+            # healthy -- exactly the silent-partial-failure this check exists
+            # to surface as a loud deploy failure instead.
+            check_osrm() {
+              local name="$1" port="$2"
+              local deadline=$((SECONDS + 60))
+              until curl -s -o /dev/null --max-time 3 "http://localhost:$port/"; do
+                if [ "$SECONDS" -ge "$deadline" ]; then
+                  echo "OSRM ($name, port $port) health check failed: no response within 60s -- dataset likely missing or extraction failed, check the setup-osrm.sh output above" >&2
+                  exit 1
+                fi
+                echo "OSRM ($name, port $port) not ready yet, retrying in 5s..."
+                sleep 5
+              done
+              echo "OSRM ($name, port $port) health check passed"
+            }
+            check_osrm "driving" 5000
+            check_osrm "walking" 5001
+            check_osrm "cycling" 5002
           REMOTE
 
   # ───────────────────────────────────────────────────────────────────────────
