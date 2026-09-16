@@ -57,16 +57,15 @@ export function SettingsContainer() {
     setPendingReanalyze(false);
   };
 
-  const handleSave = (facilityIds: string[], newCategoryWeights: Record<string, number>) => {
+  const handleSave = (
+    facilityIds: string[],
+    newCategoryWeights: Record<string, number>,
+    weightsTouched: boolean,
+  ) => {
     const defaultIds = getDefaultFacilityIds(categories);
     const previousIds = selectedFacilities ?? defaultIds;
     const facilitiesChanged = !isSameFacilitySet(facilityIds, previousIds);
 
-    const activeForSaved = getActiveCompositeCategories(categories, facilityIds);
-    const defaultWeightsForSaved = computeDefaultWeightsForActiveCategories(
-      activeForSaved,
-      defaultCategoryWeights,
-    );
     const previousWeights =
       categoryWeights ??
       computeDefaultWeightsForActiveCategories(
@@ -77,9 +76,12 @@ export function SettingsContainer() {
     const changed = facilitiesChanged || weightsChanged;
 
     setSelectedFacilities(isSameFacilitySet(facilityIds, defaultIds) ? null : facilityIds);
-    setCategoryWeights(
-      weightsEqual(newCategoryWeights, defaultWeightsForSaved) ? null : newCategoryWeights,
-    );
+    // Only persist an explicit weight override when the user actually
+    // touched a slider/input -- not based on whether the values happen to
+    // match a computed default, since a deliberate entry (e.g. an even
+    // 50/50 split) can coincidentally equal that default and must still be
+    // sent to the API rather than silently discarded as null.
+    setCategoryWeights(weightsTouched ? newCategoryWeights : null);
 
     if (changed && selectedAddress && analysisResult) {
       setPendingReanalyze(true);
