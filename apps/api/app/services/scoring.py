@@ -257,12 +257,20 @@ class LocationScoringService:
         overall: float | None = None
         if scored_categories:
             weight_sum = sum(effective_category_weights[c.category] for c in scored_categories)
-            if weight_sum > 0:
-                weighted_total = sum(
-                    c.score * effective_category_weights[c.category]  # type: ignore[operator]
-                    for c in scored_categories
-                )
-                overall = round(weighted_total / weight_sum, 1)
+            weights_for_overall = effective_category_weights
+            if weight_sum <= 0:
+                # Every scored category carries zero composite weight (e.g. the
+                # user selected only categories that default to 0%, like
+                # Recreation/Food & Drink, without an explicit weight override).
+                # Split evenly so overall is still calculable instead of
+                # silently going None despite real per-category scores.
+                weights_for_overall = {c.category: 1.0 for c in scored_categories}
+                weight_sum = float(len(scored_categories))
+            weighted_total = sum(
+                c.score * weights_for_overall[c.category]  # type: ignore[operator]
+                for c in scored_categories
+            )
+            overall = round(weighted_total / weight_sum, 1)
 
         coverage = f"{len(scored_categories)}/{len(self._category_weights)}"
 
