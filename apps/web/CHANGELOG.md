@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.1](https://github.com/sprajeesh/location-intelligence/compare/web@v0.12.0...web@v0.12.1) (2026-09-16)
+
+
+### Bug Fixes
+
+* **web:** stop discarding explicit category weights that match a coincidental default ([#196](https://github.com/sprajeesh/location-intelligence/issues/196)) ([139c282](https://github.com/sprajeesh/location-intelligence/commit/139c28207f3c4b76f8b288b384a0d6d4e2c5adf3))
+
 ## [0.12.0](https://github.com/sprajeesh/location-intelligence/compare/web@v0.11.0...web@v0.12.0) (2026-09-15)
 
 
