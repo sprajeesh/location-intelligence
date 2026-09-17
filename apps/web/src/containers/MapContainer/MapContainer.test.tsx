@@ -28,7 +28,11 @@ jest.mock('@/components/FeatureInfoCard', () => ({
   ),
 }));
 jest.mock('@/components/FacilityRouteModePicker', () => ({
-  FacilityRouteModePicker: () => <div data-testid="facility-route-mode-picker-stub" />,
+  FacilityRouteModePicker: ({ onBackToResults }: { onBackToResults?: () => void }) => (
+    <div data-testid="facility-route-mode-picker-stub">
+      {onBackToResults && <button onClick={onBackToResults}>Back to results</button>}
+    </div>
+  ),
 }));
 jest.mock('@/containers/MapToolbarContainer', () => ({
   MapToolbarContainer: () => <div data-testid="map-toolbar-stub" />,
@@ -230,7 +234,7 @@ describe('MapContainer', () => {
     });
   });
 
-  describe('Mobile "View scores" button in facility popup', () => {
+  describe('Mobile "back to results" control in facility popup', () => {
     const analysisResult = {
       location: { lat: -36.85, lon: 174.76, displayName: '123 Main St' },
       features: [
@@ -258,7 +262,7 @@ describe('MapContainer', () => {
         makeStoreState({ analysisResult, visibleFacilityIds: new Set(['school-1']) }),
       );
       render(<MapContainer />);
-      expect(screen.queryByRole('button', { name: 'View scores' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Back to results' })).not.toBeInTheDocument();
     });
 
     it('switches back to the results panel on mobile', () => {
@@ -272,7 +276,7 @@ describe('MapContainer', () => {
         }),
       );
       render(<MapContainer />);
-      fireEvent.click(screen.getByRole('button', { name: 'View scores' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Back to results' }));
       expect(setIsMapViewOnMobile).toHaveBeenCalledWith(false);
     });
   });
