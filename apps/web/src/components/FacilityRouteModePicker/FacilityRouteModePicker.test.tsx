@@ -79,4 +79,20 @@ describe('FacilityRouteModePicker', () => {
     expect(screen.getByRole('button', { name: 'cycling' })).toHaveAttribute('aria-pressed', 'true');
     expect(screen.getByRole('button', { name: 'driving' })).toHaveAttribute('aria-pressed', 'false');
   });
+
+  it('does not render a "Back to results" button when onBackToResults is not provided', () => {
+    render(<FacilityRouteModePicker feature={FEATURE} />);
+
+    expect(screen.queryByRole('button', { name: 'Back to results' })).not.toBeInTheDocument();
+  });
+
+  it('invokes onBackToResults when the "Back to results" button is clicked', async () => {
+    const user = userEvent.setup();
+    const onBackToResults = jest.fn();
+    render(<FacilityRouteModePicker feature={FEATURE} onBackToResults={onBackToResults} />);
+
+    await user.click(screen.getByRole('button', { name: 'Back to results' }));
+
+    expect(onBackToResults).toHaveBeenCalledTimes(1);
+  });
 });
