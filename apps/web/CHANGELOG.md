@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.12.2](https://github.com/sprajeesh/location-intelligence/compare/web@v0.12.1...web@v0.12.2) (2026-09-17)
+
+
+### Bug Fixes
+
+* **web:** consolidate facility popup back-to-results icon into nav row ([#201](https://github.com/sprajeesh/location-intelligence/issues/201)) ([15006df](https://github.com/sprajeesh/location-intelligence/commit/15006df22d835c847fc027463758003477910ab4))
+* **web:** stop selected-facility marker from shadowing popup clicks ([#200](https://github.com/sprajeesh/location-intelligence/issues/200)) ([e858efd](https://github.com/sprajeesh/location-intelligence/commit/e858efd01c4740d0cc3632ade7b686c4d51dd4b1))
+
 ## [0.12.1](https://github.com/sprajeesh/location-intelligence/compare/web@v0.12.0...web@v0.12.1) (2026-09-16)
 
 
