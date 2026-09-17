@@ -530,6 +530,7 @@ function MapContent() {
               defaultMarkerIconMarkup,
           )}
           zIndexOffset={1000}
+          interactive={false}
         />
       )}
     </>
