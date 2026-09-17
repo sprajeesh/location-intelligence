@@ -21,7 +21,7 @@ import {
 } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { TriangleAlert, MapPin, BarChart3 } from "lucide-react";
+import { TriangleAlert, MapPin } from "lucide-react";
 import { useLocationStore } from "@/store/index";
 import { useCategories } from "@/hooks/useCategories";
 import { useParcelAtPoint } from "@/hooks/useParcelAtPoint";
@@ -482,18 +482,12 @@ function MapContent() {
                 <strong>{t("map.markerPopup.distance")}:</strong>{" "}
                 {feature.distanceKm.toFixed(2)} km
               </div>
-              {!isDesktop && (
-                <button
-                  type="button"
-                  onClick={() => setIsMapViewOnMobile(false)}
-                  className="flex items-center justify-center w-7 h-7 rounded-md border border-slate-300 bg-slate-50 text-slate-700 cursor-pointer p-0 mb-2 transition-colors duration-150 hover:bg-slate-100 active:bg-slate-200 active:scale-[0.97] focus-ring-flush"
-                  title="View scores"
-                  aria-label="View scores"
-                >
-                  <BarChart3 style={{ width: "14px", height: "14px" }} />
-                </button>
-              )}
-              <FacilityRouteModePicker feature={feature} />
+              <FacilityRouteModePicker
+                feature={feature}
+                onBackToResults={
+                  isDesktop ? undefined : () => setIsMapViewOnMobile(false)
+                }
+              />
             </Popup>
           </Marker>
         );
