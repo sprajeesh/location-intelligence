@@ -24,8 +24,14 @@ export function SearchContainer({
   isLoading,
   error,
 }: SearchContainerProps) {
-  const { selectedAddress, setSelectedAddress, setRadiusKm, distanceMode, setIsMapViewOnMobile } =
-    useLocationStore();
+  const {
+    selectedAddress,
+    setSelectedAddress,
+    setRadiusKm,
+    distanceMode,
+    setIsMapViewOnMobile,
+    clearMapOverlays,
+  } = useLocationStore();
 
   const seeded = useRef(false);
   useEffect(() => {
@@ -41,6 +47,7 @@ export function SearchContainer({
     setQuery(value);
     if (selectedAddress && value !== selectedAddress.displayName) {
       setSelectedAddress(null);
+      clearMapOverlays();
     }
   };
 
@@ -50,6 +57,9 @@ export function SearchContainer({
       setQuery(address.displayName);
       setRadiusKm(DEFAULT_RADIUS_KM);
       setIsMapViewOnMobile(false);
+      // A new address is a clean slate -- drop any markers/tooltip/route left
+      // over from the previous address before the new analysis result arrives.
+      clearMapOverlays();
       analyze({
         address: address.displayName,
         lat: address.lat,
@@ -65,6 +75,7 @@ export function SearchContainer({
       setQuery,
       setRadiusKm,
       setIsMapViewOnMobile,
+      clearMapOverlays,
       analyze,
       distanceMode,
       analyzeCategories,
@@ -75,6 +86,7 @@ export function SearchContainer({
   const handleClear = () => {
     setQuery("");
     setSelectedAddress(null);
+    clearMapOverlays();
   };
 
   return (

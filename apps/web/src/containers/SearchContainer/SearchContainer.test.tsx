@@ -119,6 +119,7 @@ describe('SearchContainer', () => {
       addToast: jest.fn(),
       removeToast: jest.fn(),
       clearToasts: jest.fn(),
+      clearMapOverlays: jest.fn(),
     });
   });
 
@@ -169,6 +170,7 @@ describe('SearchContainer', () => {
         addToast: jest.fn(),
         removeToast: jest.fn(),
         clearToasts: jest.fn(),
+        clearMapOverlays: jest.fn(),
       });
 
       render(
@@ -204,6 +206,7 @@ describe('SearchContainer', () => {
         addToast: jest.fn(),
         removeToast: jest.fn(),
         clearToasts: jest.fn(),
+        clearMapOverlays: jest.fn(),
       });
 
       render(
@@ -288,6 +291,7 @@ describe('SearchContainer', () => {
     it('calls setSelectedAddress and setQuery when address is selected', async () => {
       const setQuery = jest.fn();
       const setSelectedAddress = jest.fn();
+      const clearMapOverlays = jest.fn();
 
       mockUseLocationStore.mockReturnValue({
         selectedAddress: null,
@@ -307,6 +311,7 @@ describe('SearchContainer', () => {
         addToast: jest.fn(),
         removeToast: jest.fn(),
         clearToasts: jest.fn(),
+        clearMapOverlays,
       });
 
       render(
@@ -327,11 +332,13 @@ describe('SearchContainer', () => {
 
       expect(setSelectedAddress).toHaveBeenCalledWith(firstSuggestion);
       expect(setQuery).toHaveBeenCalledWith(firstSuggestion.displayName);
+      expect(clearMapOverlays).toHaveBeenCalled();
     });
 
-    it('calls both setQuery and setSelectedAddress on onClear', async () => {
+    it('calls setQuery, setSelectedAddress and clearMapOverlays on onClear', async () => {
       const setQuery = jest.fn();
       const setSelectedAddress = jest.fn();
+      const clearMapOverlays = jest.fn();
 
       mockUseLocationStore.mockReturnValue({
         selectedAddress: mockAddressResult,
@@ -351,6 +358,7 @@ describe('SearchContainer', () => {
         addToast: jest.fn(),
         removeToast: jest.fn(),
         clearToasts: jest.fn(),
+        clearMapOverlays,
       });
 
       render(
@@ -368,13 +376,15 @@ describe('SearchContainer', () => {
 
       expect(setQuery).toHaveBeenCalledWith('');
       expect(setSelectedAddress).toHaveBeenCalledWith(null);
+      expect(clearMapOverlays).toHaveBeenCalled();
     });
   });
 
   describe('Business Logic', () => {
-    it('displays current query and clears selectedAddress when user types different value', async () => {
+    it('displays current query and clears selectedAddress and map overlays when user types different value', async () => {
       const setQuery = jest.fn();
       const setSelectedAddress = jest.fn();
+      const clearMapOverlays = jest.fn();
 
       mockUseLocationStore.mockReturnValue({
         selectedAddress: mockAddressResult,
@@ -394,6 +404,7 @@ describe('SearchContainer', () => {
         addToast: jest.fn(),
         removeToast: jest.fn(),
         clearToasts: jest.fn(),
+        clearMapOverlays,
       });
 
       render(
@@ -415,6 +426,7 @@ describe('SearchContainer', () => {
 
       expect(setQuery).toHaveBeenCalledWith('Different');
       expect(setSelectedAddress).toHaveBeenCalledWith(null);
+      expect(clearMapOverlays).toHaveBeenCalled();
     });
 
     it('maintains selectedAddress through multiple operations', async () => {
@@ -439,6 +451,7 @@ describe('SearchContainer', () => {
         addToast: jest.fn(),
         removeToast: jest.fn(),
         clearToasts: jest.fn(),
+        clearMapOverlays: jest.fn(),
       });
 
       render(
@@ -495,6 +508,7 @@ describe('SearchContainer', () => {
         addToast: jest.fn(),
         removeToast: jest.fn(),
         clearToasts: jest.fn(),
+        clearMapOverlays: jest.fn(),
       });
 
       render(
