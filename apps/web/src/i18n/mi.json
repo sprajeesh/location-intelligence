@@ -18,6 +18,8 @@
     "noFacilities": "[MI] results.noFacilities",
     "schools": "[MI] results.schools",
     "busStops": "[MI] results.busStops",
+    "navigateTo": "[MI] results.navigateTo",
+    "showRoute": "[MI] results.showRoute",
     "adjustRadius": {
       "caption": "[MI] results.adjustRadius.caption",
       "label": "[MI] results.adjustRadius.label",
