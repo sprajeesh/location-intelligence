@@ -110,9 +110,6 @@
     "backHome": "Back to home"
   },
   "navigate": {
-    "from": "From",
-    "to": "To",
-    "back": "Back",
     "driving": "Driving",
     "walking": "Walking",
     "cycling": "Cycling",
