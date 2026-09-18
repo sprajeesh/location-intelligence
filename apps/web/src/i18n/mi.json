@@ -115,7 +115,8 @@
     "cycling": "[MI] navigate.cycling",
     "arrives": "[MI] navigate.arrives",
     "via": "[MI] navigate.via",
-    "fastest": "[MI] navigate.fastest"
+    "fastest": "[MI] navigate.fastest",
+    "exitNavigation": "[MI] navigate.exitNavigation"
   },
   "settings": {
     "tooltip": "[MI] settings.tooltip",

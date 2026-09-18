@@ -15,6 +15,7 @@ export function NavigateContainer() {
     isNavigating,
     setRouteMode,
     setActiveRoute,
+    exitNavigation,
   } = useLocationStore();
 
   const { data, isLoading, error } = useRoute(
@@ -45,6 +46,7 @@ export function NavigateContainer() {
       error={error ? error.message : null}
       destinationName={navigateTo?.displayName ?? ""}
       onModeChange={handleModeChange}
+      onExitNavigation={exitNavigation}
     />
   );
 }

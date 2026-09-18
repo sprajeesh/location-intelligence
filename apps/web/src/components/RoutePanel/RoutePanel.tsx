@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { CircleAlert } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { CircleAlert, NavigationOff } from "lucide-react";
 import type { RouteOption, RouteTransportMode } from "@/types/api";
 import RouteModeSelector from "@/components/RouteModeSelector";
 import RouteOptionCard from "@/components/RouteOptionCard";
 import { SurfacePanel } from "@/components/ui/SurfacePanel";
+import { IconButton } from "@/components/ui/IconButton";
 
 export interface RoutePanelProps {
   routes: RouteOption[] | null;
@@ -14,6 +16,7 @@ export interface RoutePanelProps {
   error: string | null;
   destinationName: string;
   onModeChange: (mode: RouteTransportMode) => void;
+  onExitNavigation: () => void;
 }
 
 export function RoutePanel({
@@ -23,7 +26,9 @@ export function RoutePanel({
   error,
   destinationName,
   onModeChange,
+  onExitNavigation,
 }: RoutePanelProps) {
+  const t = useTranslations("navigate");
   const [expandedIndex, setExpandedIndex] = useState(0);
 
   // Auto-expand the fastest route (index 0) when routes or mode changes
@@ -51,8 +56,14 @@ export function RoutePanel({
       </div>
 
       {/* Transport mode selector */}
-      <div className="px-4 sm:px-6 py-3 border-b border-slate-200 flex-shrink-0">
+      <div className="px-4 sm:px-6 py-3 border-b border-slate-200 flex-shrink-0 flex items-center justify-between gap-2">
         <RouteModeSelector activeMode={activeMode} onModeChange={onModeChange} />
+        <IconButton
+          icon={NavigationOff}
+          size="sm"
+          onClick={onExitNavigation}
+          label={t("exitNavigation")}
+        />
       </div>
 
       {/* Route content */}

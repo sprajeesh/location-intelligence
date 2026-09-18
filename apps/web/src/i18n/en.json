@@ -115,7 +115,8 @@
     "cycling": "Cycling",
     "arrives": "Arrives",
     "via": "via",
-    "fastest": "Fastest"
+    "fastest": "Fastest",
+    "exitNavigation": "Exit navigation"
   },
   "settings": {
     "tooltip": "Settings",
