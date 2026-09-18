@@ -14,6 +14,7 @@ jest.mock('@/components/RoutePanel', () => ({
     error,
     destinationName,
     onModeChange,
+    onExitNavigation,
   }: {
     routes: RouteOption[] | null;
     activeMode: RouteTransportMode;
@@ -21,6 +22,7 @@ jest.mock('@/components/RoutePanel', () => ({
     error: string | null;
     destinationName: string;
     onModeChange: (mode: RouteTransportMode) => void;
+    onExitNavigation: () => void;
   }) => (
     <div data-testid="route-panel-mock">
       <span data-testid="destination">{destinationName}</span>
@@ -29,6 +31,9 @@ jest.mock('@/components/RoutePanel', () => ({
       {error && <span data-testid="error">{error}</span>}
       <button data-testid="change-mode" onClick={() => onModeChange('walking')}>
         change
+      </button>
+      <button data-testid="exit-navigation" onClick={onExitNavigation}>
+        exit
       </button>
       {routes?.map((_, i) => <div key={i} data-testid={`route-${i}`} />)}
     </div>
@@ -247,6 +252,16 @@ describe('NavigateContainer', () => {
       render(<NavigateContainer />);
       await userEvent.click(screen.getByTestId('change-mode'));
       expect(setActiveRoute).toHaveBeenCalledWith(null);
+    });
+  });
+
+  describe('Exit navigation', () => {
+    it('calls exitNavigation when the exit button fires', async () => {
+      const exitNavigation = jest.fn();
+      mockUseLocationStore.mockReturnValue(makeStoreState({ exitNavigation }));
+      render(<NavigateContainer />);
+      await userEvent.click(screen.getByTestId('exit-navigation'));
+      expect(exitNavigation).toHaveBeenCalledTimes(1);
     });
   });
 

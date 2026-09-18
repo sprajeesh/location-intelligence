@@ -18,6 +18,8 @@
     "noFacilities": "[MI] results.noFacilities",
     "schools": "[MI] results.schools",
     "busStops": "[MI] results.busStops",
+    "navigateTo": "[MI] results.navigateTo",
+    "showRoute": "[MI] results.showRoute",
     "adjustRadius": {
       "caption": "[MI] results.adjustRadius.caption",
       "label": "[MI] results.adjustRadius.label",
@@ -110,15 +112,13 @@
     "backHome": "[MI] notFound.backHome"
   },
   "navigate": {
-    "from": "[MI] navigate.from",
-    "to": "[MI] navigate.to",
-    "back": "[MI] navigate.back",
     "driving": "[MI] navigate.driving",
     "walking": "[MI] navigate.walking",
     "cycling": "[MI] navigate.cycling",
     "arrives": "[MI] navigate.arrives",
     "via": "[MI] navigate.via",
-    "fastest": "[MI] navigate.fastest"
+    "fastest": "[MI] navigate.fastest",
+    "exitNavigation": "[MI] navigate.exitNavigation"
   },
   "settings": {
     "tooltip": "[MI] settings.tooltip",

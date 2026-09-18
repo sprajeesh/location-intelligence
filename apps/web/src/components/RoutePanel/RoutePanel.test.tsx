@@ -3,6 +3,10 @@ import userEvent from '@testing-library/user-event';
 import { RoutePanel, RoutePanelProps } from './RoutePanel';
 import type { RouteOption, RouteTransportMode } from '@/types/api';
 
+jest.mock('next-intl', () => ({
+  useTranslations: () => (key: string) => key,
+}));
+
 jest.mock('@/components/RouteModeSelector', () => ({
   __esModule: true,
   default: ({ activeMode, onModeChange }: { activeMode: RouteTransportMode; onModeChange: (m: RouteTransportMode) => void }) => (
@@ -50,6 +54,7 @@ const defaultProps: RoutePanelProps = {
   error: null,
   destinationName: 'Wellington Airport',
   onModeChange: jest.fn(),
+  onExitNavigation: jest.fn(),
 };
 
 describe('RoutePanel', () => {
@@ -186,6 +191,15 @@ describe('RoutePanel', () => {
       render(<RoutePanel {...defaultProps} onModeChange={onModeChange} />);
       await userEvent.click(screen.getByTestId('mode-selector'));
       expect(onModeChange).toHaveBeenCalledWith('walking');
+    });
+  });
+
+  describe('Exit navigation', () => {
+    it('calls onExitNavigation when the exit button is clicked', async () => {
+      const onExitNavigation = jest.fn();
+      render(<RoutePanel {...defaultProps} onExitNavigation={onExitNavigation} />);
+      await userEvent.click(screen.getByLabelText('exitNavigation'));
+      expect(onExitNavigation).toHaveBeenCalledTimes(1);
     });
   });
 

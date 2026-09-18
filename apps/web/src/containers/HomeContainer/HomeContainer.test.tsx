@@ -6,9 +6,6 @@ jest.mock('@/hooks/useAddressSearch');
 jest.mock('@/containers/SearchContainer', () => ({
   SearchContainer: () => <div data-testid="search-container-mock" />,
 }));
-jest.mock('@/containers/NavigateSearchContainer', () => ({
-  NavigateSearchContainer: () => <div data-testid="navigate-search-container-mock" />,
-}));
 jest.mock('@/containers/AnalysisContainer', () => ({
   AnalysisContainer: () => <div data-testid="analysis-container-mock" />,
 }));
@@ -100,10 +97,9 @@ describe('HomeContainer', () => {
       expect(panelWrapper.className).not.toContain('border-b');
     });
 
-    it('renders SearchContainer, not NavigateSearchContainer', () => {
+    it('renders SearchContainer', () => {
       render(<HomeContainer />);
       expect(screen.getByTestId('search-container-mock')).toBeInTheDocument();
-      expect(screen.queryByTestId('navigate-search-container-mock')).not.toBeInTheDocument();
     });
 
     it('renders the map inside a full-bleed wrapper', () => {
@@ -143,19 +139,17 @@ describe('HomeContainer', () => {
       expect(searchHeader.className).toContain('md:border-b-0');
     });
 
-    it('still renders SearchContainer at the top of the panel when not navigating', () => {
+    it('still renders SearchContainer at the top of the panel', () => {
       render(<HomeContainer />);
       expect(screen.getByTestId('search-container-mock')).toBeInTheDocument();
-      expect(screen.queryByTestId('navigate-search-container-mock')).not.toBeInTheDocument();
     });
 
-    it('swaps in NavigateSearchContainer once navigating, in the same slot', () => {
+    it('keeps rendering SearchContainer while navigating, in the same slot', () => {
       mockUseLocationStore.mockReturnValue(
         makeStoreState({ selectedAddress: MOCK_ADDRESS, isNavigating: true })
       );
       render(<HomeContainer />);
-      expect(screen.getByTestId('navigate-search-container-mock')).toBeInTheDocument();
-      expect(screen.queryByTestId('search-container-mock')).not.toBeInTheDocument();
+      expect(screen.getByTestId('search-container-mock')).toBeInTheDocument();
     });
 
     it('renders AnalysisContainer in the panel slot', () => {

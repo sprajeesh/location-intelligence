@@ -18,6 +18,8 @@
     "noFacilities": "No facilities found within {radius}km. Try increasing your search radius.",
     "schools": "Schools",
     "busStops": "Bus Stops",
+    "navigateTo": "Navigate to {name}",
+    "showRoute": "Show route to {name}",
     "adjustRadius": {
       "caption": "Not seeing expected results? Adjust the search radius",
       "label": "Search radius",
@@ -110,15 +112,13 @@
     "backHome": "Back to home"
   },
   "navigate": {
-    "from": "From",
-    "to": "To",
-    "back": "Back",
     "driving": "Driving",
     "walking": "Walking",
     "cycling": "Cycling",
     "arrives": "Arrives",
     "via": "via",
-    "fastest": "Fastest"
+    "fastest": "Fastest",
+    "exitNavigation": "Exit navigation"
   },
   "settings": {
     "tooltip": "Settings",
