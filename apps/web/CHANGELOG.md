@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.12.3](https://github.com/sprajeesh/location-intelligence/compare/web@v0.12.2...web@v0.12.3) (2026-09-19)
+
+
+### Bug Fixes
+
+* **web:** clear map overlays when address is cleared or changed ([#206](https://github.com/sprajeesh/location-intelligence/issues/206)) ([7e07c34](https://github.com/sprajeesh/location-intelligence/commit/7e07c340eb0d45064c844f0c6bd8121d92293961))
+* **web:** remove redundant nav search bar ([#205](https://github.com/sprajeesh/location-intelligence/issues/205)) ([b2da9f5](https://github.com/sprajeesh/location-intelligence/commit/b2da9f5d0566ec7de8669c943c91bc5c11a78d46))
+
 ## [0.12.2](https://github.com/sprajeesh/location-intelligence/compare/web@v0.12.1...web@v0.12.2) (2026-09-17)
 
 
