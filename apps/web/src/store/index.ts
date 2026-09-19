@@ -230,6 +230,7 @@ export const useLocationStore = create<LocationIntelligenceStore>()(
       routeMode: 'driving',
       navigateFrom: null,
       navigateTo: null,
+      parcelFeature: null,
     }),
 
   setParcelFeature: (feature) =>
