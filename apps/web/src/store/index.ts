@@ -84,6 +84,10 @@ export interface LocationIntelligenceStore {
   setNavigateFrom: (address: AddressResult | null) => void
   setNavigateTo: (address: AddressResult | null) => void
   exitNavigation: () => void
+  // Clears every facility marker, tooltip, and navigation route overlay from
+  // the map. Called whenever the searched address is cleared or changed, so
+  // a stale selection doesn't linger from a clean-slate address search.
+  clearMapOverlays: () => void
   setParcelFeature: (feature: ParcelFeature | null) => void
   setTheme: (theme: Theme) => void
   toggleTheme: () => void
@@ -214,6 +218,19 @@ export const useLocationStore = create<LocationIntelligenceStore>()(
       routeMode: 'driving',
       navigateFrom: null,
       navigateTo: null,
+    }),
+
+  clearMapOverlays: () =>
+    set({
+      analysisResult: null,
+      visibleFacilityIds: new Set(),
+      selectedFeature: null,
+      activeRoute: null,
+      isNavigating: false,
+      routeMode: 'driving',
+      navigateFrom: null,
+      navigateTo: null,
+      parcelFeature: null,
     }),
 
   setParcelFeature: (feature) =>

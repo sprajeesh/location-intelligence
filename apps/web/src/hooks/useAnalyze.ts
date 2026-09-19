@@ -35,6 +35,14 @@ import type { AnalyzeResponse } from '@/types/api';
  * ```
  */
 
+// Guards against a slow/out-of-order response repopulating the map: if the
+// address was cleared or a newer address selected while this request was
+// in flight, the response no longer corresponds to what's on screen.
+function isForCurrentAddress(request: AnalyzeRequest): boolean {
+  const current = useLocationStore.getState().selectedAddress;
+  return !!current && current.lat === request.lat && current.lon === request.lon;
+}
+
 export function useAnalyze() {
   const {
     setAnalysisResult,
@@ -50,13 +58,17 @@ export function useAnalyze() {
       setIsAnalyzing(true);
     },
 
-    onSuccess: (data) => {
+    onSuccess: (data, variables) => {
+      if (!isForCurrentAddress(variables)) return;
+
       // Update store with successful result
       setAnalysisResult(data);
       setIsAnalyzing(false);
     },
 
-    onError: (error) => {
+    onError: (error, variables) => {
+      if (!isForCurrentAddress(variables)) return;
+
       // Clear loading state
       setIsAnalyzing(false);
 
