@@ -41,6 +41,22 @@ import {
 } from "@/containers/MapToolbarContainer";
 import { FeatureInfoCard } from "@/components/FeatureInfoCard";
 import { FacilityRouteModePicker } from "@/components/FacilityRouteModePicker";
+import type { FeatureDetails } from "@/types/api";
+
+// Ordered, curated subset of FeatureDetails to show in the facility popup.
+// `wikidataId` is intentionally omitted here -- it's a linking key for future
+// enrichment (see the facility-marker-enrichment plan), not user-facing text.
+const FACILITY_DETAIL_FIELDS: Array<{ key: keyof FeatureDetails; i18nKey: string }> = [
+  { key: "openingHours", i18nKey: "map.markerPopup.details.openingHours" },
+  { key: "phone", i18nKey: "map.markerPopup.details.phone" },
+  { key: "email", i18nKey: "map.markerPopup.details.email" },
+  { key: "website", i18nKey: "map.markerPopup.details.website" },
+  { key: "operator", i18nKey: "map.markerPopup.details.operator" },
+  { key: "cuisine", i18nKey: "map.markerPopup.details.cuisine" },
+  { key: "emergency", i18nKey: "map.markerPopup.details.emergency" },
+  { key: "healthcareSpeciality", i18nKey: "map.markerPopup.details.healthcareSpeciality" },
+  { key: "wheelchair", i18nKey: "map.markerPopup.details.wheelchair" },
+];
 
 /**
  * Fix Leaflet icon issue in Next.js (dynamic imports break default icon URLs)
@@ -493,6 +509,33 @@ function MapContent() {
                 <strong>{t("map.markerPopup.distance")}:</strong>{" "}
                 {feature.distanceKm.toFixed(2)} km
               </div>
+              {feature.details && (
+                <div className="text-xs text-slate-600 mb-2 space-y-0.5">
+                  {FACILITY_DETAIL_FIELDS.map(({ key, i18nKey }) => {
+                    const value = feature.details?.[key];
+                    if (!value) return null;
+                    const isWebsiteLink =
+                      key === "website" && /^https?:\/\//i.test(value);
+                    return (
+                      <div key={key}>
+                        <strong>{t(i18nKey)}:</strong>{" "}
+                        {isWebsiteLink ? (
+                          <a
+                            href={value}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="underline"
+                          >
+                            {value}
+                          </a>
+                        ) : (
+                          value
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
               <FacilityRouteModePicker
                 feature={feature}
                 onBackToResults={

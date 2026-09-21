@@ -234,6 +234,37 @@ describe('MapContainer', () => {
       expect(screen.getByText('Auckland Primary')).toBeInTheDocument();
       expect(screen.getByText('Queen St Stop')).toBeInTheDocument();
     });
+
+    it('renders known detail fields when present, as a link for website, and omits absent fields', () => {
+      const withDetails = {
+        ...analysisResult,
+        features: [
+          {
+            ...analysisResult.features[0],
+            details: { phone: '09-123-4567', website: 'https://example.org' },
+          },
+        ],
+      };
+      mockUseLocationStore.mockReturnValue(
+        makeStoreState({ analysisResult: withDetails, visibleFacilityIds: new Set(['school-1']) }),
+      );
+      render(<MapContainer />);
+
+      expect(screen.getByText('09-123-4567')).toBeInTheDocument();
+      const websiteLink = screen.getByRole('link', { name: 'https://example.org' });
+      expect(websiteLink).toHaveAttribute('href', 'https://example.org');
+      expect(websiteLink).toHaveAttribute('target', '_blank');
+      // Only fields present in `details` render -- no row for e.g. cuisine/emergency.
+      expect(screen.queryByText('map.markerPopup.details.cuisine:')).not.toBeInTheDocument();
+    });
+
+    it('renders no detail rows when the feature has no details', () => {
+      mockUseLocationStore.mockReturnValue(
+        makeStoreState({ analysisResult, visibleFacilityIds: new Set(['school-1']) }),
+      );
+      render(<MapContainer />);
+      expect(screen.queryByText('map.markerPopup.details.phone:')).not.toBeInTheDocument();
+    });
   });
 
   describe('Mobile "back to results" control in facility popup', () => {

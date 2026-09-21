@@ -12,6 +12,23 @@ export interface AddressResult {
 }
 
 /**
+ * Allow-listed OSM tags for a facility (phone, website, opening hours, etc.).
+ * Only keys with a value on the source OSM element are present.
+ */
+export interface FeatureDetails {
+  phone?: string
+  email?: string
+  website?: string
+  openingHours?: string
+  operator?: string
+  wheelchair?: string
+  cuisine?: string
+  emergency?: string
+  healthcareSpeciality?: string
+  wikidataId?: string
+}
+
+/**
  * Represents a single facility/feature found within the search radius.
  */
 export interface Feature {
@@ -21,6 +38,7 @@ export interface Feature {
   lat: number
   lon: number
   distanceKm: number
+  details?: FeatureDetails | null
 }
 
 /**
