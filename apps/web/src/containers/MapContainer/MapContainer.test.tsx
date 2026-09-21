@@ -101,6 +101,7 @@ const makeStoreState = (overrides = {}) => ({
   activeRoute: null,
   selectedFeature: null,
   routeMode: 'driving' as const,
+  isNavigating: false,
   parcelFeature: null,
   theme: 'light' as const,
   isAnalyzing: false,
@@ -279,6 +280,34 @@ describe('MapContainer', () => {
       render(<MapContainer />);
       fireEvent.click(screen.getByRole('button', { name: 'Back to results' }));
       expect(setIsMapViewOnMobile).toHaveBeenCalledWith(false);
+    });
+  });
+
+  describe('Navigation popup cleanup', () => {
+    it('does not close the popup while navigation is active', () => {
+      mockUseLocationStore.mockReturnValue(makeStoreState({ isNavigating: true }));
+      render(<MapContainer />);
+      expect(mockMap.closePopup).not.toHaveBeenCalled();
+    });
+
+    it('closes the popup once navigation exits', () => {
+      mockUseLocationStore.mockReturnValue(makeStoreState({ isNavigating: true }));
+      const { rerender } = render(<MapContainer />);
+      expect(mockMap.closePopup).not.toHaveBeenCalled();
+
+      mockUseLocationStore.mockReturnValue(makeStoreState({ isNavigating: false }));
+      rerender(<MapContainer />);
+      expect(mockMap.closePopup).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not close the popup again on unrelated re-renders once navigation has already ended', () => {
+      mockUseLocationStore.mockReturnValue(makeStoreState({ isNavigating: false }));
+      const { rerender } = render(<MapContainer />);
+      expect(mockMap.closePopup).toHaveBeenCalledTimes(1);
+
+      mockUseLocationStore.mockReturnValue(makeStoreState({ isNavigating: false }));
+      rerender(<MapContainer />);
+      expect(mockMap.closePopup).toHaveBeenCalledTimes(1);
     });
   });
 });
