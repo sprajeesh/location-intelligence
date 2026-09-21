@@ -118,7 +118,9 @@
     "arrives": "[MI] navigate.arrives",
     "via": "[MI] navigate.via",
     "fastest": "[MI] navigate.fastest",
-    "exitNavigation": "[MI] navigate.exitNavigation"
+    "exitNavigation": "[MI] navigate.exitNavigation",
+    "exit": "[MI] navigate.exit",
+    "closeDirections": "[MI] navigate.closeDirections"
   },
   "settings": {
     "tooltip": "[MI] settings.tooltip",
