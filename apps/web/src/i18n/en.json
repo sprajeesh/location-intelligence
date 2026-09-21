@@ -118,7 +118,9 @@
     "arrives": "Arrives",
     "via": "via",
     "fastest": "Fastest",
-    "exitNavigation": "Exit navigation"
+    "exitNavigation": "Exit navigation",
+    "exit": "Exit",
+    "closeDirections": "Close directions"
   },
   "settings": {
     "tooltip": "Settings",
