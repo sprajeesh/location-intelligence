@@ -8,10 +8,10 @@ import { useLocationStore } from "@/store";
 import { useAddressSearch } from "@/hooks/useAddressSearch";
 import { useIsDesktop } from "@/hooks/useIsDesktop";
 import PanelCollapseButton from "@/components/PanelCollapseButton/PanelCollapseButton";
-import { Map, BarChart3 } from "lucide-react";
+import { Map, BarChart3, Route } from "lucide-react";
 
 export function HomeContainer() {
-  const { selectedAddress, isPanelCollapsed, togglePanelCollapsed, setPanelCollapsed, isMapViewOnMobile, setIsMapViewOnMobile } =
+  const { selectedAddress, isPanelCollapsed, togglePanelCollapsed, setPanelCollapsed, isMapViewOnMobile, setIsMapViewOnMobile, isNavigating, activeRoute } =
     useLocationStore();
   const isDesktop = useIsDesktop();
   const addressSearch = useAddressSearch();
@@ -43,6 +43,7 @@ export function HomeContainer() {
 
   const showMapOnMobile = isMapViewOnMobile && !isDesktop && hasActivePanel;
   const showResultsOnMobile = !isMapViewOnMobile && !isDesktop && hasActivePanel;
+  const isRouteDisplayed = isNavigating && !!activeRoute && activeRoute.length >= 2;
 
   return (
     <>
@@ -136,14 +137,18 @@ export function HomeContainer() {
               error={addressSearch.error}
             />
           </div>
-          {/* View Score button on mobile map view */}
+          {/* View Score / Show route button on mobile map view */}
           <button
             onClick={() => setIsMapViewOnMobile(false)}
             className="flex-shrink-0 p-2 hover:bg-slate-100 rounded-lg transition-colors"
-            title="View scores"
-            aria-label="View scores"
+            title={isRouteDisplayed ? "Show route details" : "View scores"}
+            aria-label={isRouteDisplayed ? "Show route details" : "View scores"}
           >
-            <BarChart3 className="w-5 h-5 text-slate-600" />
+            {isRouteDisplayed ? (
+              <Route className="w-5 h-5 text-slate-600" />
+            ) : (
+              <BarChart3 className="w-5 h-5 text-slate-600" />
+            )}
           </button>
         </div>
       </div>
