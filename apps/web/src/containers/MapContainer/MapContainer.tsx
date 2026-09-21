@@ -42,6 +42,7 @@ import {
 import { FeatureInfoCard } from "@/components/FeatureInfoCard";
 import { FacilityRouteModePicker } from "@/components/FacilityRouteModePicker";
 import type { FeatureDetails } from "@/types/api";
+import { isValidHttpUrl } from "@/utils/url";
 
 // Ordered, curated subset of FeatureDetails to show in the facility popup.
 // `wikidataId` is intentionally omitted here -- it's a linking key for future
@@ -515,7 +516,7 @@ function MapContent() {
                     const value = feature.details?.[key];
                     if (!value) return null;
                     const isWebsiteLink =
-                      key === "website" && /^https?:\/\//i.test(value);
+                      key === "website" && isValidHttpUrl(value);
                     return (
                       <div key={key}>
                         <strong>{t(i18nKey)}:</strong>{" "}

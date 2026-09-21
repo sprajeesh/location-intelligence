@@ -258,6 +258,25 @@ describe('MapContainer', () => {
       expect(screen.queryByText('map.markerPopup.details.cuisine:')).not.toBeInTheDocument();
     });
 
+    it('renders website as plain text, not a link, when it is malformed or protocol-only', () => {
+      const withDetails = {
+        ...analysisResult,
+        features: [
+          {
+            ...analysisResult.features[0],
+            details: { website: 'https://' },
+          },
+        ],
+      };
+      mockUseLocationStore.mockReturnValue(
+        makeStoreState({ analysisResult: withDetails, visibleFacilityIds: new Set(['school-1']) }),
+      );
+      render(<MapContainer />);
+
+      expect(screen.getByText('https://')).toBeInTheDocument();
+      expect(screen.queryByRole('link', { name: 'https://' })).not.toBeInTheDocument();
+    });
+
     it('renders no detail rows when the feature has no details', () => {
       mockUseLocationStore.mockReturnValue(
         makeStoreState({ analysisResult, visibleFacilityIds: new Set(['school-1']) }),
