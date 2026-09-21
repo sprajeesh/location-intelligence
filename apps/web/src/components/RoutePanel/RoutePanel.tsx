@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
-import { CircleAlert, NavigationOff } from "lucide-react";
+import { CircleAlert, X } from "lucide-react";
 import type { RouteOption, RouteTransportMode } from "@/types/api";
 import RouteModeSelector from "@/components/RouteModeSelector";
 import RouteOptionCard from "@/components/RouteOptionCard";
@@ -56,7 +56,10 @@ export function RoutePanel({
 
       {/* Transport mode selector */}
       <div className="px-4 sm:px-6 py-3 border-b border-slate-200 flex-shrink-0 flex items-center justify-between gap-2">
-        <RouteModeSelector activeMode={activeMode} onModeChange={onModeChange} />
+        <RouteModeSelector
+          activeMode={activeMode}
+          onModeChange={onModeChange}
+        />
         <button
           type="button"
           onClick={onExitNavigation}
@@ -70,7 +73,7 @@ export function RoutePanel({
           aria-label={t("exitNavigation")}
           title={t("closeDirections")}
         >
-          <NavigationOff className="w-4 h-4" aria-hidden="true" />
+          <X className="w-4 h-4" aria-hidden="true" />
           <span className="hidden sm:inline">{t("exit")}</span>
         </button>
       </div>
