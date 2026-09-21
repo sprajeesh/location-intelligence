@@ -21,6 +21,39 @@ USER_AGENT = f"LocationIntelligence/1.0 (+{APP_IDENTITY_URL})"
 
 CategorySpec = tuple[str, list[tuple[str, str]], int]  # (category, tags, radius_m)
 
+# OSM tags worth surfacing in the popup/UI, keyed by the camelCase field name
+# used in the API response. Overpass already returns these on every element
+# (via `out center;`) -- they were simply discarded until now. Listed in
+# fallback order per field (e.g. `phone` before `contact:phone`).
+_DETAIL_TAGS: dict[str, tuple[str, ...]] = {
+    "phone": ("phone", "contact:phone"),
+    "email": ("email", "contact:email"),
+    "website": ("website", "contact:website"),
+    "openingHours": ("opening_hours",),
+    "operator": ("operator",),
+    "wheelchair": ("wheelchair",),
+    "cuisine": ("cuisine",),
+    "emergency": ("emergency",),
+    "healthcareSpeciality": ("healthcare:speciality",),
+    "wikidataId": ("wikidata",),
+}
+
+
+def _extract_details(tags: dict[str, str]) -> dict[str, str] | None:
+    """Pull the allow-listed tags (see `_DETAIL_TAGS`) off one element's tags.
+
+    Returns None (not {}) when nothing matched, so callers/serializers can
+    treat "no extra detail" as a single falsy value rather than an empty dict.
+    """
+    details: dict[str, str] = {}
+    for field, tag_names in _DETAIL_TAGS.items():
+        for tag_name in tag_names:
+            value = tags.get(tag_name)
+            if value:
+                details[field] = value
+                break
+    return details or None
+
 
 def _build_merged_query(specs: list[CategorySpec], lat: float, lon: float) -> str:
     """Build a single OverpassQL query covering multiple categories.
@@ -116,6 +149,7 @@ def _parse_merged_elements(
             continue
 
         base_name = tags.get("name") or tags.get("name:en") or tags.get("ref")
+        details = _extract_details(tags)
 
         for category in categories:
             key = (category, osm_id)
@@ -131,6 +165,7 @@ def _parse_merged_elements(
                     "category": category,
                     "lat": lat,
                     "lon": lon,
+                    "details": details,
                 }
             )
 

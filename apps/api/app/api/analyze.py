@@ -128,6 +128,7 @@ async def analyze_location(
             lat=f.lat,
             lon=f.lon,
             distanceKm=_effective_distance_km(f),
+            details=f.details,
         )
         for f in facilities
     ]

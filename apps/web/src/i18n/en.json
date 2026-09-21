@@ -100,7 +100,18 @@
     "markerPopup": {
       "name": "Name",
       "distance": "Distance",
-      "category": "Category"
+      "category": "Category",
+      "details": {
+        "phone": "Phone",
+        "email": "Email",
+        "website": "Website",
+        "openingHours": "Opening hours",
+        "operator": "Operator",
+        "wheelchair": "Wheelchair access",
+        "cuisine": "Cuisine",
+        "emergency": "Emergency department",
+        "healthcareSpeciality": "Speciality"
+      }
     }
   },
   "nav": {

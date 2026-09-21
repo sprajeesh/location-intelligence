@@ -12,6 +12,7 @@ from app.clients.circuit_breaker import CircuitBreaker, CircuitOpenError
 from app.clients.overpass import (
     OverpassClient,
     _build_merged_query,
+    _extract_details,
     _parse_merged_elements,
     _parse_retry_after,
 )
@@ -127,6 +128,76 @@ class TestParseMergedElements:
         assert {f["id"] for f in result["pharmacies"]} == {"osm_node_1"}
         assert result["supermarkets"][0]["name"] == "Supermarket with Pharmacy"
         assert result["pharmacies"][0]["name"] == "Supermarket with Pharmacy"
+
+
+class TestExtractDetails:
+    def test_picks_known_tags_and_maps_to_camel_case(self) -> None:
+        details = _extract_details(
+            {
+                "amenity": "hospital",
+                "phone": "+64 9 123 4567",
+                "website": "https://example.org",
+                "opening_hours": "24/7",
+                "emergency": "yes",
+                "wikidata": "Q12345",
+            }
+        )
+        assert details == {
+            "phone": "+64 9 123 4567",
+            "website": "https://example.org",
+            "openingHours": "24/7",
+            "emergency": "yes",
+            "wikidataId": "Q12345",
+        }
+
+    def test_prefers_bare_tag_over_contact_prefixed_variant(self) -> None:
+        details = _extract_details({"phone": "111", "contact:phone": "222"})
+        assert details == {"phone": "111"}
+
+    def test_falls_back_to_contact_prefixed_variant(self) -> None:
+        details = _extract_details({"contact:phone": "222"})
+        assert details == {"phone": "222"}
+
+    def test_returns_none_when_no_known_tags_present(self) -> None:
+        assert _extract_details({"amenity": "school", "name": "Test School"}) is None
+
+
+class TestParseMergedElementsDetails:
+    def test_includes_details_dict_when_present(self) -> None:
+        tag_to_category = {("amenity", "restaurant"): ["restaurants"]}
+        elements = [
+            {
+                "type": "node",
+                "id": 1,
+                "lat": -36.8,
+                "lon": 174.7,
+                "tags": {
+                    "amenity": "restaurant",
+                    "name": "Test Cafe",
+                    "cuisine": "italian",
+                    "opening_hours": "Mo-Su 09:00-21:00",
+                },
+            }
+        ]
+        result = _parse_merged_elements(elements, tag_to_category)
+        assert result["restaurants"][0]["details"] == {
+            "cuisine": "italian",
+            "openingHours": "Mo-Su 09:00-21:00",
+        }
+
+    def test_details_is_none_when_no_known_tags(self) -> None:
+        tag_to_category = {("amenity", "school"): ["schools"]}
+        elements = [
+            {
+                "type": "node",
+                "id": 1,
+                "lat": -36.8,
+                "lon": 174.7,
+                "tags": {"amenity": "school", "name": "Test School"},
+            }
+        ]
+        result = _parse_merged_elements(elements, tag_to_category)
+        assert result["schools"][0]["details"] is None
 
 
 class TestParseRetryAfter:

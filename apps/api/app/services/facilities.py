@@ -127,6 +127,7 @@ class FacilitiesService:
                             "category": f.category,
                             "lat": f.lat,
                             "lon": f.lon,
+                            "details": f.details,
                         }
                         for f in facilities
                     ],

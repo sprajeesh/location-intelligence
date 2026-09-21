@@ -9,13 +9,14 @@ from app.services.facilities import FacilitiesService
 from tests.conftest import build_test_scoring_config
 
 
-def _facility_dict(category: str, suffix: str) -> dict:
+def _facility_dict(category: str, suffix: str, details: dict | None = None) -> dict:
     return {
         "id": f"osm_node_{category}_{suffix}",
         "name": f"{category} {suffix}",
         "category": category,
         "lat": -36.8,
         "lon": 174.7,
+        "details": details,
     }
 
 
@@ -119,6 +120,44 @@ class TestFetchAllBatching:
         assert any("schools" in w for w in warnings)
         assert facilities  # the other batch's results still came through
         assert all(f.category != "schools" for f in facilities)
+
+    async def test_details_survive_the_cache_round_trip(self) -> None:
+        scoring_config = build_test_scoring_config()
+
+        class FakeRedis:
+            def __init__(self) -> None:
+                self.store: dict[str, str] = {}
+
+            async def get(self, key: str) -> str | None:
+                return self.store.get(key)
+
+            async def set(self, key: str, value: str, ex: int) -> None:
+                self.store[key] = value
+
+        cache = CacheRepository(client=FakeRedis())
+
+        overpass = MagicMock(spec=OverpassClient)
+        overpass.fetch_categories = AsyncMock(
+            return_value={
+                "restaurants": [
+                    _facility_dict("restaurants", "cafe", details={"cuisine": "italian"})
+                ]
+            }
+        )
+        service = FacilitiesService(overpass, cache, scoring_config)
+
+        facilities, _warnings, _failed = await service.fetch_all(
+            ["restaurants"], -36.848, 174.763, 5.0
+        )
+        assert facilities[0].details == {"cuisine": "italian"}
+
+        # Second call should be served from cache (no second Overpass fetch)
+        # and still carry the details dict through the JSON round-trip.
+        facilities_again, _warnings, _failed = await service.fetch_all(
+            ["restaurants"], -36.848, 174.763, 5.0
+        )
+        overpass.fetch_categories.assert_awaited_once()
+        assert facilities_again[0].details == {"cuisine": "italian"}
 
     async def test_dedupes_facility_across_batches(self) -> None:
         scoring_config = build_test_scoring_config()

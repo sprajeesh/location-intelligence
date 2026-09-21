@@ -23,6 +23,10 @@ class Facility:
     distance_km: float | None = None
     walk_distance_km: float | None = None
     drive_distance_km: float | None = None
+    # Allow-listed OSM tags (phone, website, opening_hours, etc.) -- see
+    # app/clients/overpass.py's _DETAIL_TAGS. None when the element carried
+    # none of them.
+    details: dict[str, str] | None = None
 
 
 @dataclass

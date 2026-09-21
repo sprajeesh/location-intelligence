@@ -100,7 +100,18 @@
     "markerPopup": {
       "name": "[MI] map.markerPopup.name",
       "distance": "[MI] map.markerPopup.distance",
-      "category": "[MI] map.markerPopup.category"
+      "category": "[MI] map.markerPopup.category",
+      "details": {
+        "phone": "[MI] map.markerPopup.details.phone",
+        "email": "[MI] map.markerPopup.details.email",
+        "website": "[MI] map.markerPopup.details.website",
+        "openingHours": "[MI] map.markerPopup.details.openingHours",
+        "operator": "[MI] map.markerPopup.details.operator",
+        "wheelchair": "[MI] map.markerPopup.details.wheelchair",
+        "cuisine": "[MI] map.markerPopup.details.cuisine",
+        "emergency": "[MI] map.markerPopup.details.emergency",
+        "healthcareSpeciality": "[MI] map.markerPopup.details.healthcareSpeciality"
+      }
     }
   },
   "nav": {
