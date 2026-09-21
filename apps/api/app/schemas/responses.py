@@ -33,6 +33,7 @@ class FeatureResult(BaseModel):
     lat: float
     lon: float
     distanceKm: float | None = None
+    details: dict[str, str] | None = None
 
 
 class FacilityScoreResult(BaseModel):
