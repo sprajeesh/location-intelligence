@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.12.4](https://github.com/sprajeesh/location-intelligence/compare/web@v0.12.3...web@v0.12.4) (2026-09-21)
+
+
+### Bug Fixes
+
+* **ui:** show text on exit navigation button at larger screens ([#209](https://github.com/sprajeesh/location-intelligence/issues/209)) ([c5a20e7](https://github.com/sprajeesh/location-intelligence/commit/c5a20e75aa5050ef2389fe1dce5e2689fd675c9b))
+* **web:** close map popup when exiting navigation ([#210](https://github.com/sprajeesh/location-intelligence/issues/210)) ([7c3f4f3](https://github.com/sprajeesh/location-intelligence/commit/7c3f4f3a8c33bc368bb15820e0071004e359314c))
+* **web:** show Route icon instead of Undo2 when a travel mode is active ([#211](https://github.com/sprajeesh/location-intelligence/issues/211)) ([2b3c7e1](https://github.com/sprajeesh/location-intelligence/commit/2b3c7e16494e505a74ae9ed600824e13c3169572))
+* **web:** show Route icon on mobile map view button when a route is displayed ([#212](https://github.com/sprajeesh/location-intelligence/issues/212)) ([2c9d8c0](https://github.com/sprajeesh/location-intelligence/commit/2c9d8c0b8abb44ef94ece36f54be50f3a0cb70b7))
+
 ## [0.12.3](https://github.com/sprajeesh/location-intelligence/compare/web@v0.12.2...web@v0.12.3) (2026-09-19)
 
 
