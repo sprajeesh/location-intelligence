@@ -1,6 +1,6 @@
 "use client";
 
-import { Route, Undo2 } from "lucide-react";
+import { Route, BarChart3 } from "lucide-react";
 import { useLocationStore } from "@/store/index";
 import { useNavigate } from "@/hooks/useNavigate";
 import RouteModeSelector from "@/components/RouteModeSelector";
@@ -31,7 +31,7 @@ export function FacilityRouteModePicker({
       />
       {onBackToResults && (
         <IconButton
-          icon={activeMode ? Route : Undo2}
+          icon={activeMode ? Route : BarChart3}
           size="sm"
           onClick={onBackToResults}
           label={activeMode ? "Show route details" : "Back to results"}
