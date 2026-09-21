@@ -73,6 +73,7 @@ const mockMap = {
   panTo: jest.fn(),
   fitBounds: jest.fn(),
   invalidateSize: jest.fn(),
+  closePopup: jest.fn(),
 };
 
 // jsdom has no ResizeObserver -- stub one that captures its callback so

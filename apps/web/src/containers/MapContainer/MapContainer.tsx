@@ -81,6 +81,7 @@ function MapContent() {
     activeRoute,
     selectedFeature,
     routeMode,
+    isNavigating,
     parcelFeature,
     theme,
     isMapViewOnMobile,
@@ -108,6 +109,16 @@ function MapContent() {
     setShowParcelInfo(false);
     setCardPosition(null);
   }, [selectedAddress]);
+
+  // Facility marker popups stay open (Leaflet manages that internally, not
+  // React) even after navigation ends, since the underlying marker never
+  // unmounts. Close any open popup once navigation exits so the tooltip
+  // overlay doesn't linger after the route is cleared.
+  useEffect(() => {
+    if (!isNavigating) {
+      map.closePopup();
+    }
+  }, [isNavigating, map]);
 
   // Leaflet 1.9's trackResize only reacts to the browser window's own
   // 'resize' event -- it has no built-in ResizeObserver on the map
