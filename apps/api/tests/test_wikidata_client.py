@@ -27,6 +27,22 @@ class TestBuildSparqlQuery:
         assert "wdt:P18" in query  # image
         assert 'LANG(?description) = "en"' in query
 
+    def test_excludes_malformed_qids_from_the_values_clause(self) -> None:
+        """QIDs come from an untrusted OSM wikidata=* tag value, so a
+        malicious value crafted to break out of the VALUES clause (e.g. to
+        inject extra SPARQL) must never reach the query text."""
+        injected = "Q1 }} SELECT * WHERE {{ ?s ?p ?o"
+        query = _build_sparql_query(["Q1", injected, "not-a-qid", "Q2x"])
+
+        assert "wd:Q1" in query
+        assert injected not in query
+        assert "not-a-qid" not in query
+        assert "Q2x" not in query
+
+    def test_empty_after_filtering_produces_an_empty_values_clause(self) -> None:
+        query = _build_sparql_query(["not-a-qid"])
+        assert "VALUES ?item {  }" in query
+
 
 class TestParseBindings:
     def test_merges_multiple_rows_for_the_same_qid(self) -> None:

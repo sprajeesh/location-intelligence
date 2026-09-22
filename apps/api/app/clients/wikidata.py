@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import re
 
 import httpx
 
@@ -17,9 +18,16 @@ USER_AGENT = f"LocationIntelligence/1.0 (+{APP_IDENTITY_URL})"
 
 _ENTITY_URI_PREFIX = "http://www.wikidata.org/entity/"
 
+# QIDs originate from an OSM wikidata=* tag value -- untrusted, editable data --
+# so they're validated against Wikidata's own item-ID format before being
+# interpolated into the SPARQL query text, closing off injection via a
+# maliciously crafted tag value.
+_QID_PATTERN = re.compile(r"Q[0-9]+")
+
 
 def _build_sparql_query(qids: list[str]) -> str:
-    values = " ".join(f"wd:{qid}" for qid in qids)
+    valid_qids = [qid for qid in qids if _QID_PATTERN.fullmatch(qid)]
+    values = " ".join(f"wd:{qid}" for qid in valid_qids)
     return f"""
 SELECT ?item ?website ?image ?description WHERE {{
   VALUES ?item {{ {values} }}
