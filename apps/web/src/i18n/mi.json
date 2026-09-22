@@ -102,6 +102,7 @@
       "distance": "[MI] map.markerPopup.distance",
       "category": "[MI] map.markerPopup.category",
       "details": {
+        "description": "[MI] map.markerPopup.details.description",
         "phone": "[MI] map.markerPopup.details.phone",
         "email": "[MI] map.markerPopup.details.email",
         "website": "[MI] map.markerPopup.details.website",

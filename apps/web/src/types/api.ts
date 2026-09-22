@@ -12,8 +12,10 @@ export interface AddressResult {
 }
 
 /**
- * Allow-listed OSM tags for a facility (phone, website, opening hours, etc.).
- * Only keys with a value on the source OSM element are present.
+ * Allow-listed OSM tags for a facility (phone, website, opening hours, etc.),
+ * plus a few fields that may instead be filled in from Wikidata (description,
+ * image, and website as a fallback) when the OSM element carries a
+ * wikidataId. Only keys with a value are present.
  */
 export interface FeatureDetails {
   phone?: string
@@ -26,6 +28,8 @@ export interface FeatureDetails {
   emergency?: string
   healthcareSpeciality?: string
   wikidataId?: string
+  description?: string
+  image?: string
 }
 
 /**

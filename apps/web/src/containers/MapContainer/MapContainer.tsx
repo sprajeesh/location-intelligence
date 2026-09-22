@@ -44,10 +44,12 @@ import { FacilityRouteModePicker } from "@/components/FacilityRouteModePicker";
 import type { FeatureDetails } from "@/types/api";
 import { isValidHttpUrl } from "@/utils/url";
 
-// Ordered, curated subset of FeatureDetails to show in the facility popup.
-// `wikidataId` is intentionally omitted here -- it's a linking key for future
-// enrichment (see the facility-marker-enrichment plan), not user-facing text.
+// Ordered, curated subset of FeatureDetails to show as text rows in the
+// facility popup. `wikidataId` is omitted -- it's a linking key, not
+// user-facing text. `image` is also omitted here -- it renders as a
+// thumbnail below these rows instead of a label/value line.
 const FACILITY_DETAIL_FIELDS: Array<{ key: keyof FeatureDetails; i18nKey: string }> = [
+  { key: "description", i18nKey: "map.markerPopup.details.description" },
   { key: "openingHours", i18nKey: "map.markerPopup.details.openingHours" },
   { key: "phone", i18nKey: "map.markerPopup.details.phone" },
   { key: "email", i18nKey: "map.markerPopup.details.email" },
@@ -536,6 +538,14 @@ function MapContent() {
                     );
                   })}
                 </div>
+              )}
+              {feature.details?.image && isValidHttpUrl(feature.details.image) && (
+                <img
+                  src={feature.details.image}
+                  alt={feature.name}
+                  loading="lazy"
+                  className="mb-2 max-h-24 w-full rounded object-cover"
+                />
               )}
               <FacilityRouteModePicker
                 feature={feature}

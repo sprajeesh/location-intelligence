@@ -102,6 +102,7 @@
       "distance": "Distance",
       "category": "Category",
       "details": {
+        "description": "Description",
         "phone": "Phone",
         "email": "Email",
         "website": "Website",

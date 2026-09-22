@@ -277,6 +277,53 @@ describe('MapContainer', () => {
       expect(screen.queryByRole('link', { name: 'https://' })).not.toBeInTheDocument();
     });
 
+    it('renders a description row when present', () => {
+      const withDetails = {
+        ...analysisResult,
+        features: [
+          { ...analysisResult.features[0], details: { description: 'A local primary school' } },
+        ],
+      };
+      mockUseLocationStore.mockReturnValue(
+        makeStoreState({ analysisResult: withDetails, visibleFacilityIds: new Set(['school-1']) }),
+      );
+      render(<MapContainer />);
+      expect(screen.getByText('A local primary school')).toBeInTheDocument();
+    });
+
+    it('renders a thumbnail image when details.image is a valid http(s) URL', () => {
+      const withDetails = {
+        ...analysisResult,
+        features: [
+          {
+            ...analysisResult.features[0],
+            details: { image: 'https://commons.wikimedia.org/wiki/Special:FilePath/Foo.jpg' },
+          },
+        ],
+      };
+      mockUseLocationStore.mockReturnValue(
+        makeStoreState({ analysisResult: withDetails, visibleFacilityIds: new Set(['school-1']) }),
+      );
+      render(<MapContainer />);
+      const image = screen.getByRole('img', { name: 'Auckland Primary' });
+      expect(image).toHaveAttribute(
+        'src',
+        'https://commons.wikimedia.org/wiki/Special:FilePath/Foo.jpg',
+      );
+    });
+
+    it('does not render a thumbnail image when details.image is malformed', () => {
+      const withDetails = {
+        ...analysisResult,
+        features: [{ ...analysisResult.features[0], details: { image: 'not-a-url' } }],
+      };
+      mockUseLocationStore.mockReturnValue(
+        makeStoreState({ analysisResult: withDetails, visibleFacilityIds: new Set(['school-1']) }),
+      );
+      render(<MapContainer />);
+      expect(screen.queryByRole('img', { name: 'Auckland Primary' })).not.toBeInTheDocument();
+    });
+
     it('renders no detail rows when the feature has no details', () => {
       mockUseLocationStore.mockReturnValue(
         makeStoreState({ analysisResult, visibleFacilityIds: new Set(['school-1']) }),
