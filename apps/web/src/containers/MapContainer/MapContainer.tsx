@@ -545,6 +545,12 @@ function MapContent() {
                   alt={feature.name}
                   loading="lazy"
                   className="mb-2 max-h-24 w-full rounded object-cover"
+                  onError={(event) => {
+                    // A URL can pass the http(s) check above and still 404 or
+                    // fail to load (stale/renamed Commons file) -- hide the
+                    // element rather than showing the browser's broken-image icon.
+                    event.currentTarget.style.display = "none";
+                  }}
                 />
               )}
               <FacilityRouteModePicker

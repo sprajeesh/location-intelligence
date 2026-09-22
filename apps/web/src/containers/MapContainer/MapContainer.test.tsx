@@ -312,6 +312,28 @@ describe('MapContainer', () => {
       );
     });
 
+    it('hides the thumbnail image on a load error instead of showing a broken-image icon', () => {
+      const withDetails = {
+        ...analysisResult,
+        features: [
+          {
+            ...analysisResult.features[0],
+            details: { image: 'https://commons.wikimedia.org/wiki/Special:FilePath/Foo.jpg' },
+          },
+        ],
+      };
+      mockUseLocationStore.mockReturnValue(
+        makeStoreState({ analysisResult: withDetails, visibleFacilityIds: new Set(['school-1']) }),
+      );
+      render(<MapContainer />);
+      const image = screen.getByRole('img', { name: 'Auckland Primary' });
+      expect(image).not.toHaveStyle({ display: 'none' });
+
+      fireEvent.error(image);
+
+      expect(image).toHaveStyle({ display: 'none' });
+    });
+
     it('does not render a thumbnail image when details.image is malformed', () => {
       const withDetails = {
         ...analysisResult,
