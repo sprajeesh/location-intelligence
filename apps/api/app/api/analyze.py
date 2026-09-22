@@ -37,6 +37,7 @@ async def analyze_location(
     facilities_svc = request.app.state.facilities_svc
     distance_svc = request.app.state.distance_svc
     scoring_svc = request.app.state.scoring_svc
+    wikidata_enrichment_svc = request.app.state.wikidata_enrichment_svc
 
     warnings: list[str] = []
 
@@ -103,6 +104,12 @@ async def analyze_location(
     successful_categories = set(categories) - failed_categories
     if not facilities and successful_categories:
         warnings.append("No facilities found within the configured scoring bounds")
+
+    # --- Step 4.5: Best-effort Wikidata enrichment for wikidata-tagged facilities.
+    # Decorative detail, not scoring input -- failures are swallowed inside the
+    # service and never surfaced as a warning (see WikidataEnrichmentService).
+    if facilities:
+        await wikidata_enrichment_svc.enrich(facilities)
 
     # --- Step 5: Compute distances (per-facility-type mode, see FACILITY_CONFIGS) ---
     if facilities:

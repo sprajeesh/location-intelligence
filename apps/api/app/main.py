@@ -21,6 +21,7 @@ from app.clients.circuit_breaker import CircuitBreaker
 from app.clients.linz import LinzClient
 from app.clients.osrm import OSRMClient
 from app.clients.overpass import OverpassClient
+from app.clients.wikidata import WikidataClient
 from app.config.scoring_config_loader import load_scoring_config
 from app.config.settings import get_settings
 from app.config.version import get_version
@@ -33,6 +34,7 @@ from app.services.facilities import FacilitiesService
 from app.services.geocoding import GeocodingService
 from app.services.routing import RoutingService
 from app.services.scoring import LocationScoringService
+from app.services.wikidata_enrichment import WikidataEnrichmentService
 
 logger = logging.getLogger(__name__)
 
@@ -118,6 +120,11 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         failure_threshold=settings.linz_breaker_failure_threshold,
         cooldown_seconds=settings.linz_breaker_cooldown_seconds,
     )
+    wikidata_breaker = CircuitBreaker(
+        "wikidata",
+        failure_threshold=settings.wikidata_breaker_failure_threshold,
+        cooldown_seconds=settings.wikidata_breaker_cooldown_seconds,
+    )
 
     # Wire up clients
     overpass = OverpassClient(
@@ -152,6 +159,12 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         breaker=linz_breaker,
     )
     app.state.linz_client = linz_client
+    wikidata_client = WikidataClient(
+        settings.wikidata_url,
+        http_client,
+        max_concurrency=settings.wikidata_max_concurrency,
+        breaker=wikidata_breaker,
+    )
 
     # Wire up services
     app.state.geocoding_svc = GeocodingService(AddressRepository(db_pool), cache)
@@ -170,6 +183,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         scoring_config.category_facility_weights,
         scoring_config.category_weights,
     )
+    app.state.wikidata_enrichment_svc = WikidataEnrichmentService(wikidata_client, cache)
 
     yield
 

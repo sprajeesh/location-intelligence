@@ -41,6 +41,12 @@ class Settings(BaseSettings):
     # (unset) makes every /parcels call fail with a 502 until configured.
     linz_api_key: str | None = None
     linz_max_concurrency: int = 4
+    # Wikidata Query Service (query.wikidata.org/sparql) -- public, free, no API
+    # key. Used to enrich facilities whose OSM tags include wikidata=Qxxxx with
+    # a description/website/image (see app/clients/wikidata.py). Concurrency
+    # kept low and polite per https://www.wikidata.org/wiki/Wikidata:SPARQL_query_service/query_limits.
+    wikidata_url: str = "https://query.wikidata.org/sparql"
+    wikidata_max_concurrency: int = 2
     # Per-facility-type, per-leg cap on how many destinations get a real OSRM
     # table call; excess destinations are dropped with a warning rather than
     # sent to OSRM uncapped (see app/services/distance.py).
@@ -60,6 +66,8 @@ class Settings(BaseSettings):
     osrm_breaker_cooldown_seconds: float = 30.0
     linz_breaker_failure_threshold: int = 5
     linz_breaker_cooldown_seconds: float = 30.0
+    wikidata_breaker_failure_threshold: int = 5
+    wikidata_breaker_cooldown_seconds: float = 30.0
 
     # Process-wide cap on concurrent /location/analyze requests in flight --
     # protects the single uvicorn worker from being monopolized by a handful
