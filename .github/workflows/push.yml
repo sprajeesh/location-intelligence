@@ -19,10 +19,10 @@ jobs:
         uses: actions/setup-node@69b2dd252ee5a3ae9d2f38e3b402b037b4c4170c
         with:
           node-version: 24
-          cache: 'pnpm'
+          cache: "pnpm"
 
       - name: Set up Python
-        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065  # v5.6.0
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
         with:
           python-version: 3.13
 
@@ -46,17 +46,16 @@ jobs:
       - name: Build
         run: pnpm run build:web
 
+  e2e-tests:
+    name: E2E Tests
+    uses: ./.github/workflows/e2e-tests.yml
+
   security-scan:
     name: Security Scan
     needs: [test]
     uses: ./.github/workflows/security-scan.yml
     secrets:
       SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-
-  e2e-tests:
-    name: E2E Tests
-    needs: [test]
-    uses: ./.github/workflows/e2e-tests.yml
 
   # ───────────────────────────────────────────────────────────────────────────
   # Deploy the API + PostGIS + Redis + OSRM to the app VM via docker-compose.
