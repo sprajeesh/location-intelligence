@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.7.0](https://github.com/sprajeesh/location-intelligence/compare/api@v0.6.1...api@v0.7.0) (2026-09-22)
+
+
+### Features
+
+* display wikidata-linked facilities in facility marker popups ([#216](https://github.com/sprajeesh/location-intelligence/issues/216)) ([dd66c53](https://github.com/sprajeesh/location-intelligence/commit/dd66c53b1ef95434d0b6692f2d5aacc31b90f2ad))
+* surface OSM contact/hours tags on facility markers (Stage 1) ([#215](https://github.com/sprajeesh/location-intelligence/issues/215)) ([44a7ca2](https://github.com/sprajeesh/location-intelligence/commit/44a7ca284866981561c1d2f2bc592f074bbb37c8))
+
 ## [0.6.1](https://github.com/sprajeesh/location-intelligence/compare/api@v0.6.0...api@v0.6.1) (2026-09-16)
 
 
