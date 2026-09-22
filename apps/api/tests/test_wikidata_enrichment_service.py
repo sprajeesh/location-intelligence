@@ -96,10 +96,30 @@ class TestEnrich:
     async def test_client_failure_is_swallowed_not_raised(self) -> None:
         client = MagicMock(spec=WikidataClient)
         client.fetch_entities = AsyncMock(side_effect=RuntimeError("boom"))
-        cache = CacheRepository(client=None)
+        cache = MagicMock(spec=CacheRepository)
+        cache.get = AsyncMock(return_value=None)
+        cache.set = AsyncMock()
         service = WikidataEnrichmentService(client, cache)
 
         facility = _facility("f1", "Q1")
         await service.enrich([facility])  # must not raise
 
         assert facility.details == {"wikidataId": "Q1"}
+        # A transient failure must not poison the cache as a 30-day "empty"
+        # result for a QID that was never actually looked up successfully.
+        cache.set.assert_not_called()
+
+    async def test_genuine_empty_result_is_still_cached_on_success(self) -> None:
+        """A QID Wikidata has no data for at all is a real, cacheable result
+        -- distinct from a failed fetch, which must not be cached (see above)."""
+        client = MagicMock(spec=WikidataClient)
+        client.fetch_entities = AsyncMock(return_value={})
+        cache = MagicMock(spec=CacheRepository)
+        cache.get = AsyncMock(return_value=None)
+        cache.set = AsyncMock()
+        service = WikidataEnrichmentService(client, cache)
+
+        facility = _facility("f1", "Q1")
+        await service.enrich([facility])
+
+        cache.set.assert_awaited_once_with("wikidata:Q1", {}, 60 * 60 * 24 * 30)

@@ -50,16 +50,24 @@ class WikidataEnrichmentService:
                 missing_qids.append(qid)
 
         if missing_qids:
+            fetch_failed = False
             try:
                 fetched = await self._client.fetch_entities(missing_qids)
             except Exception as exc:
                 logger.warning("Wikidata enrichment failed for %d QIDs: %s", len(missing_qids), exc)
                 fetched = {}
+                fetch_failed = True
 
             for qid in missing_qids:
                 entity = fetched.get(qid, {})
                 entities[qid] = entity
-                await self._cache.set(_cache_key(qid), entity, WIKIDATA_TTL)
+                # Only cache on a successful batch -- an empty {} here is a
+                # genuine "Wikidata has nothing for this QID" result worth
+                # caching, but on failure it's just the fallback value above
+                # and caching it would poison the QID as empty for 30 days
+                # over what was really a transient outage.
+                if not fetch_failed:
+                    await self._cache.set(_cache_key(qid), entity, WIKIDATA_TTL)
 
         for qid, facility_list in facilities_by_qid.items():
             entity = entities.get(qid)
