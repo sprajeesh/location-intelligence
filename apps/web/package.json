@@ -1,6 +1,6 @@
 {
   "name": "@location-intelligence/web",
-  "version": "0.12.4",
+  "version": "0.13.0",
   "description": "Location Intelligence - Web Frontend",
   "private": true,
   "scripts": {
