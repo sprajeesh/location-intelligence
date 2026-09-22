@@ -52,7 +52,6 @@ jobs:
 
   security-scan:
     name: Security Scan
-    needs: [test]
     uses: ./.github/workflows/security-scan.yml
     secrets:
       SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
