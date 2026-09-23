@@ -6,6 +6,7 @@ import { Modal, ModalHeader, ModalContent, ModalFooter } from "@/components/ui/M
 import { Checkbox } from "@/components/ui/Checkbox";
 import { WeightSlider } from "@/components/ui/WeightSlider";
 import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
 import { groupCategoriesByComposite } from "@/utils/groupCategories";
 import {
   computeDefaultWeightsForActiveCategories,
@@ -264,7 +265,7 @@ export function SettingsModal({
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-medium text-slate-700">{label}</h3>
                   <div className="flex items-center gap-1">
-                    <input
+                    <Input
                       type="number"
                       inputMode="decimal"
                       min={0}
@@ -285,7 +286,7 @@ export function SettingsModal({
                         category: label,
                         defaultValue: `${label} weight percent`,
                       })}
-                      className={`w-14 bg-white border border-slate-200 rounded px-1.5 py-0.5 text-xs text-right tabular-nums font-medium disabled:opacity-40 disabled:cursor-not-allowed focus-ring-flush ${
+                      className={`w-14 border-slate-200 rounded px-1.5 py-0.5 text-xs text-right tabular-nums font-medium disabled:opacity-40 ${
                         isActive ? "text-slate-700" : "text-slate-300"
                       }`}
                     />
