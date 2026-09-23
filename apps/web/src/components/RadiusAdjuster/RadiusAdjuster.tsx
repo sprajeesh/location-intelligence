@@ -98,7 +98,9 @@ export function RadiusAdjuster({
           onChange={handleInputChange}
           onBlur={handleInputBlur}
           disabled={disabled}
-          className="w-14 border-slate-300 rounded px-2 py-1 text-sm text-center text-slate-900 disabled:opacity-50"
+          size="md"
+          align="center"
+          className="w-14 px-2"
         />
         <span className="text-xs text-slate-500">km</span>
         <IconButton

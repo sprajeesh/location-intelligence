@@ -153,7 +153,8 @@ export function SearchBar({
               ? `search-option-${highlightedIndex}`
               : undefined
           }
-          className="w-full border-slate-300 rounded-lg py-2.5 pl-10 pr-10 text-sm text-slate-900 placeholder-slate-400 transition-all duration-150 hover:border-slate-400"
+          size="lg"
+          className="w-full pl-10 pr-10"
         />
 
         {query && !isLoading && (

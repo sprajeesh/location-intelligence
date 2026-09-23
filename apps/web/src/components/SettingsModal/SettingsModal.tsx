@@ -286,8 +286,10 @@ export function SettingsModal({
                         category: label,
                         defaultValue: `${label} weight percent`,
                       })}
-                      className={`w-14 border-slate-200 rounded px-1.5 py-0.5 text-xs text-right tabular-nums font-medium disabled:opacity-40 ${
-                        isActive ? "text-slate-700" : "text-slate-300"
+                      size="sm"
+                      align="right"
+                      className={`w-14 px-1.5 tabular-nums font-medium ${
+                        isActive ? "!text-slate-700" : "!text-slate-300"
                       }`}
                     />
                     <span className={`text-xs font-medium ${isActive ? "text-slate-500" : "text-slate-300"}`}>
