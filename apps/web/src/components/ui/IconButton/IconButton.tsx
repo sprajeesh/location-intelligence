@@ -7,7 +7,12 @@ import type { ButtonActiveVariant, ButtonSize, ButtonVariant } from "@/component
 
 export type IconButtonSize = ButtonSize;
 
-export interface IconButtonProps {
+type NativeButtonProps = Omit<
+  React.ButtonHTMLAttributes<HTMLButtonElement>,
+  "onClick" | "disabled" | "title" | "className" | "type" | "children" | "aria-label" | "aria-pressed" | "tabIndex"
+>;
+
+export interface IconButtonProps extends NativeButtonProps {
   icon: LucideIcon;
   label: string;
   title?: string;
@@ -18,6 +23,8 @@ export interface IconButtonProps {
   disabled?: boolean;
   size?: IconButtonSize;
   variant?: ButtonVariant;
+  /** Skip all built-in shape/color/focus classes -- className fully controls appearance. */
+  unstyled?: boolean;
   className?: string;
   iconClassName?: string;
   tabIndex?: number;
