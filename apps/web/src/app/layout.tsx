@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
+import { primary } from '@/styles/tokens';
 import '../i18n/globals.css';
 
 const inter = Inter({
@@ -30,11 +31,13 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   // Browser-chrome metadata (address bar / task switcher tint) has to be a
-  // static hex — it can't reference the CSS vars in src/i18n/globals.css or
-  // import src/styles/tokens.ts. Must match `primary[500]` from tokens.ts by
-  // hand; `public/manifest.json`'s `theme_color`/`background_color` mirror
-  // this value and `white` respectively and need the same manual update.
-  themeColor: '#0B5CFF',
+  // static hex — it can't reference the CSS vars in src/i18n/globals.css,
+  // which only exist once Tailwind's output CSS loads in the browser. It CAN
+  // import the plain hex constant from src/styles/tokens.ts, so this stays in
+  // sync automatically. `public/manifest.json`'s `theme_color`/
+  // `background_color` (mirroring this value and `white` respectively) can't
+  // import TS and still need the same update by hand if this ever changes.
+  themeColor: primary[500],
 };
 
 // Reads the persisted theme choice and sets the `dark` class before React
