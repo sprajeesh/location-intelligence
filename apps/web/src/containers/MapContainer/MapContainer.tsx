@@ -181,7 +181,7 @@ function MapContent() {
   const defaultMarkerIconMarkup = useMemo(
     () =>
       renderToStaticMarkup(
-        <MapPin color="white" size={14} strokeWidth={2.5} />,
+        <MapPin color="rgb(var(--color-white))" size={14} strokeWidth={2.5} />,
       ),
     [],
   );
@@ -191,7 +191,7 @@ function MapContent() {
     for (const category of categories) {
       const Icon = getCategoryIcon(category.id);
       markup[category.id] = renderToStaticMarkup(
-        <Icon color="white" size={14} strokeWidth={2.5} />,
+        <Icon color="rgb(var(--color-white))" size={14} strokeWidth={2.5} />,
       );
     }
     return markup;
@@ -642,7 +642,7 @@ export function MapContainer() {
 
       {/* Loading overlay */}
       {isAnalyzing && (
-        <div className="absolute inset-0 bg-black/10 backdrop-blur-sm flex items-center justify-center pointer-events-none">
+        <div className="absolute inset-0 bg-ink/10 backdrop-blur-sm flex items-center justify-center pointer-events-none">
           <div className="bg-white shadow-card-lg rounded-lg px-4 py-2 flex items-center gap-2">
             <div className="w-4 h-4 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin" />
             <span className="text-sm font-medium text-slate-700">
@@ -656,7 +656,12 @@ export function MapContainer() {
 }
 
 /**
- * Create a red/accent colored icon for the main location marker
+ * Create a red/accent colored icon for the main location marker.
+ *
+ * All colors here go through `rgb(var(--color-x))` (see src/i18n/globals.css)
+ * rather than literal CSS colors, including `white`, so markers re-theme with
+ * the rest of the app in dark mode. Shadow color (16,24,40) intentionally
+ * matches tailwind.config.ts's `boxShadow` tokens rather than plain black.
  */
 function createMainLocationIcon(): L.DivIcon {
   const html = `
@@ -667,14 +672,14 @@ function createMainLocationIcon(): L.DivIcon {
       width: 32px;
       height: 32px;
       background: rgb(var(--color-error-500));
-      border: 3px solid white;
+      border: 3px solid rgb(var(--color-white));
       border-radius: 50%;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 2px 8px rgba(16, 24, 40, 0.3);
     ">
       <div style="
         width: 8px;
         height: 8px;
-        background: white;
+        background: rgb(var(--color-white));
         border-radius: 50%;
       "></div>
     </div>
@@ -701,9 +706,9 @@ function createCategoryIcon(color: string, iconMarkup: string): L.DivIcon {
       width: 28px;
       height: 28px;
       background: ${color};
-      border: 2px solid white;
+      border: 2px solid rgb(var(--color-white));
       border-radius: 50%;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 2px 6px rgba(16, 24, 40, 0.3);
     ">
       ${iconMarkup}
     </div>
@@ -753,9 +758,9 @@ function createSelectedFeatureIcon(
         width: 24px;
         height: 24px;
         background: ${color};
-        border: 3px solid white;
+        border: 3px solid rgb(var(--color-white));
         border-radius: 50%;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+        box-shadow: 0 2px 8px rgba(16, 24, 40, 0.4);
         z-index: 1;
       ">
         ${iconMarkup}

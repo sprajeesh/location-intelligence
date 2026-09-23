@@ -6,6 +6,16 @@ module exists as the single Python source for (1) the Alembic migration that see
 the `facility_types` / `category_weights` tables, and (2) tests that need known-good
 config values. Values are literal config, not code — kept here rather than inline in
 a migration script so there is exactly one place to hand-author them.
+
+`color` values are a deliberate qualitative/categorical palette for map-marker
+legibility (each facility type needs a color visually distinct from its
+siblings), not an extension of the frontend brand palette in
+apps/web/src/styles/tokens.ts — the two are intentionally separate systems.
+This module is the one place to hand-edit a facility's marker color; frozen
+copies of past values also live in the Alembic migrations that originally
+seeded them (0001, 0003, 0005) and are deliberately NOT re-synced when this
+file changes -- see 0001's own docstring for why migrations snapshot rather
+than import this module.
 """
 
 from typing import Literal
