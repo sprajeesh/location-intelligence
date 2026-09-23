@@ -5,7 +5,6 @@
  */
 
 import {
-  AddressResult,
   AnalyzeResponse,
   CategoryId,
   Category,
@@ -83,22 +82,6 @@ async function fetchJson<T>(
   }
 }
 
-/**
- * Search for addresses by query string.
- * Calls GET /api/search/address?q=...
- *
- * @param q - Search query (e.g., "123 Queen St, Auckland")
- * @returns Array of address suggestions
- * @throws ApiError on network or server error
- */
-export async function searchAddress(q: string): Promise<AddressResult[]> {
-  if (!q.trim()) {
-    return [];
-  }
-
-  const endpoint = `/search/address?q=${encodeURIComponent(q)}`;
-  return fetchJson<AddressResult[]>(endpoint, { method: "GET" });
-}
 
 /**
  * Request for location analysis.
