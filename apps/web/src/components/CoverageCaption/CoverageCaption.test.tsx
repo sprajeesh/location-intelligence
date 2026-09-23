@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import { CoverageBadge } from './CoverageBadge';
+import { CoverageCaption } from './CoverageCaption';
 
 jest.mock('next-intl', () => ({
   useTranslations: () => (key: string, opts?: { count?: number; total?: number; defaultValue?: string }) => {
@@ -10,19 +10,19 @@ jest.mock('next-intl', () => ({
   },
 }));
 
-describe('CoverageBadge', () => {
+describe('CoverageCaption', () => {
   it('renders the scored/total counts', () => {
-    render(<CoverageBadge scored={4} total={5} />);
+    render(<CoverageCaption scored={4} total={5} />);
     expect(screen.getByText('Based on 4 of 5 categories')).toBeInTheDocument();
   });
 
   it('renders full coverage', () => {
-    render(<CoverageBadge scored={5} total={5} />);
+    render(<CoverageCaption scored={5} total={5} />);
     expect(screen.getByText('Based on 5 of 5 categories')).toBeInTheDocument();
   });
 
   it('renders zero coverage', () => {
-    render(<CoverageBadge scored={0} total={5} />);
+    render(<CoverageCaption scored={0} total={5} />);
     expect(screen.getByText('Based on 0 of 5 categories')).toBeInTheDocument();
   });
 });

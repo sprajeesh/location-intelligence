@@ -3,17 +3,18 @@
 import { useTranslations } from "next-intl";
 
 /**
- * CoverageBadge — Shows how many of the five categories were assessed
- * (e.g. "Based on 4 of 5 categories").
+ * CoverageCaption — Shows how many of the five categories were assessed
+ * (e.g. "Based on 4 of 5 categories"). Plain caption text, not a Badge --
+ * it renders inline with no pill background wherever a score is shown.
  */
 
-export interface CoverageBadgeProps {
+export interface CoverageCaptionProps {
   scored: number;
   total: number;
   className?: string;
 }
 
-export function CoverageBadge({ scored, total, className = "text-slate-400" }: CoverageBadgeProps) {
+export function CoverageCaption({ scored, total, className = "text-slate-400" }: CoverageCaptionProps) {
   const t = useTranslations();
 
   return (
@@ -27,4 +28,4 @@ export function CoverageBadge({ scored, total, className = "text-slate-400" }: C
   );
 }
 
-export default CoverageBadge;
+export default CoverageCaption;

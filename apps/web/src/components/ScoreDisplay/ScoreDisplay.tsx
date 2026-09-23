@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { TriangleAlert } from "lucide-react";
 import type { CategoryId, Feature, ScoreResult } from "@/types/api";
 import { parseCoverage, sortCategoriesForDisplay } from "@/utils/scoreDisplay";
-import { CoverageBadge } from "@/components/CoverageBadge";
+import { CoverageCaption } from "@/components/CoverageCaption";
 import { CategoryScoreCard } from "@/components/CategoryScoreCard";
 import { ScoreRing } from "@/components/ScoreRing";
 
@@ -68,7 +68,7 @@ export function ScoreDisplay({
             {t("score.title", { defaultValue: "Location Score" })}
           </h3>
           <ScoreRing score={score.overall} />
-          <CoverageBadge scored={scored} total={total} className="text-white/70" />
+          <CoverageCaption scored={scored} total={total} className="text-white/70" />
         </div>
       </div>
 
