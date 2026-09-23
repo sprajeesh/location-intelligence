@@ -1,0 +1,30 @@
+version: 2
+
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: daily
+    cooldown:
+      default-days: 15
+
+  - package-ecosystem: "pip"
+    directory: "/apps/api"
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 15
+
+  - package-ecosystem: "npm"
+    directory: "/apps/web"
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 15
+
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 15
