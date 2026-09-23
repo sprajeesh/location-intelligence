@@ -8,7 +8,7 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Checkout code
-        uses: actions/checkout@2d1c1198e79c30cca5c3957b1e3b65ce95b5356e
+        uses: actions/checkout@f548e57e544e1ff5a4c46bf1e1b8685f8e4a348a
         with:
           persist-credentials: false
 
@@ -216,7 +216,7 @@ jobs:
       NEXT_PUBLIC_API_URL: ${{ secrets.PROD_API_URL }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@2d1c1198e79c30cca5c3957b1e3b65ce95b5356e
+        uses: actions/checkout@f548e57e544e1ff5a4c46bf1e1b8685f8e4a348a
         with:
           persist-credentials: false
 
