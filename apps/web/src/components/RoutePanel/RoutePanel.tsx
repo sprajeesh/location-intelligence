@@ -8,6 +8,7 @@ import RouteModeSelector from "@/components/RouteModeSelector";
 import RouteOptionCard from "@/components/RouteOptionCard";
 import { SurfacePanel } from "@/components/ui/SurfacePanel";
 import { Button } from "@/components/ui/Button";
+import { Spinner } from "@/components/ui/Spinner";
 
 export interface RoutePanelProps {
   routes: RouteOption[] | null;
@@ -75,7 +76,7 @@ export function RoutePanel({
       <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-3">
         {isLoading && (
           <div className="flex flex-col items-center justify-center gap-3 py-10">
-            <div className="w-6 h-6 border-2 border-slate-200 border-t-primary-500 rounded-full animate-spin" />
+            <Spinner size="md" />
             <p className="text-sm text-slate-500">Finding route…</p>
           </div>
         )}

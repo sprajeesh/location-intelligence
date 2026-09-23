@@ -7,6 +7,8 @@ import type { AddressResult } from "@/types/api";
 import { AddressSuggestionList } from "@/components/ui/AddressSuggestionList";
 import { IconButton } from "@/components/ui/IconButton";
 import { Input } from "@/components/ui/Input";
+import { Spinner } from "@/components/ui/Spinner";
+import { SURFACE_PANEL_CLASSES } from "@/components/ui/SurfacePanel";
 
 interface SearchBarProps {
   query: string;
@@ -171,7 +173,7 @@ export function SearchBar({
 
         {isLoading && (
           <div className="absolute right-3 flex items-center justify-center">
-            <div className="w-4 h-4 border-2 border-slate-200 border-t-primary-500 rounded-full animate-spin" />
+            <Spinner size="sm" />
           </div>
         )}
       </div>
@@ -179,7 +181,7 @@ export function SearchBar({
       {isDropdownOpen && (
         <AddressSuggestionList
           id={dropdownId}
-          className="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-200 rounded-lg shadow-popover z-50 overflow-hidden"
+          className={`absolute top-full left-0 right-0 mt-2 z-50 overflow-hidden ${SURFACE_PANEL_CLASSES.popover}`}
           items={suggestions.map((suggestion, index) => ({
             key: `${suggestion.lat}-${suggestion.lon}`,
             id: `search-option-${index}`,

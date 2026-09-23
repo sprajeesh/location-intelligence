@@ -10,6 +10,7 @@ import { FacilityScoreRow } from "@/components/FacilityScoreRow";
 import { StatusPill } from "@/components/StatusPill";
 import { CollapsibleCard } from "@/components/ui/CollapsibleCard";
 import { IconButton } from "@/components/ui/IconButton";
+import { getVisibilityToggleClasses } from "@/components/ui/Button";
 
 /**
  * CategoryScoreCard — Collapsible card for one of the five composite
@@ -138,11 +139,7 @@ export function CategoryScoreCard({
             title={t(isCategoryVisible ? "score.markers.hideTitle" : "score.markers.showTitle", {
               defaultValue: isCategoryVisible ? "Hide markers" : "Show markers",
             })}
-            className={
-              isCategoryVisible
-                ? "text-primary-600 hover:text-primary-700 hover:bg-primary-50"
-                : "text-slate-400 hover:text-slate-500 hover:bg-slate-100"
-            }
+            className={getVisibilityToggleClasses(isCategoryVisible)}
           />
         ) : undefined
       }
