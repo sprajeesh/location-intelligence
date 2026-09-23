@@ -4,6 +4,7 @@ import type { MouseEvent } from "react";
 import { useTranslations } from "next-intl";
 import { Navigation, Eye, EyeOff } from "lucide-react";
 import type { Feature } from "@/types/api";
+import { Button } from "@/components/ui/Button";
 import { IconButton } from "@/components/ui/IconButton";
 import { getCategoryIcon } from "@/utils/categoryIcons";
 
@@ -55,8 +56,8 @@ export default function FacilityItem({
   return (
     <div className="flex items-center gap-1 group">
       {onClick ? (
-        <button
-          type="button"
+        <Button
+          unstyled
           onClick={onClick}
           className={`
             flex-1 min-w-0 text-left px-3 py-2 rounded-lg
@@ -64,10 +65,10 @@ export default function FacilityItem({
             hover:bg-slate-100
             focus-ring-inset active:bg-slate-200 active:scale-[0.99]
           `}
-          aria-label={rowLabel}
+          ariaLabel={rowLabel}
         >
           {rowContent}
-        </button>
+        </Button>
       ) : (
         <div
           className="flex-1 min-w-0 text-left px-3 py-2 rounded-lg"

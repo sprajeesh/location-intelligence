@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { CircleX, TriangleAlert, CircleCheckBig, Info, X } from 'lucide-react';
 import { useLocationStore } from '@/store';
 import type { Toast as ToastType } from '@/store';
+import { IconButton } from '@/components/ui/IconButton';
 
 /**
  * Individual toast notification component.
@@ -65,17 +66,14 @@ function ToastItem({ toast }: { toast: ToastType }) {
 
       {/* Close button */}
       {toast.dismissible !== false && (
-        <button
-          type="button"
+        <IconButton
+          icon={X}
+          size="sm"
+          variant="plain"
           onClick={() => removeToast(toast.id)}
-          className={`
-            flex-shrink-0 ${textColor} hover:opacity-75 transition-smooth
-            active:scale-[0.97] active:opacity-100 rounded
-          `}
-          aria-label="Dismiss notification"
-        >
-          <X className="w-4 h-4" aria-hidden="true" />
-        </button>
+          className={`flex-shrink-0 ${textColor} hover:opacity-75 active:opacity-100`}
+          label="Dismiss notification"
+        />
       )}
     </div>
   );

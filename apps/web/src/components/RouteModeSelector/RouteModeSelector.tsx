@@ -2,6 +2,8 @@
 
 import { useTranslations } from "next-intl";
 import type { RouteTransportMode } from "@/types/api";
+import { Button } from "@/components/ui/Button";
+import { IconButton } from "@/components/ui/IconButton";
 import { ROUTE_MODES } from "./routeModes";
 
 export interface RouteModesSelectorProps {
@@ -23,28 +25,29 @@ export function RouteModeSelector({
       {ROUTE_MODES.map(({ mode, labelKey, icon }) => {
         const label = t(labelKey);
         const isActive = activeMode === mode;
-        return (
-          <button
+
+        return isIconOnly ? (
+          <IconButton
             key={mode}
-            type="button"
+            icon={icon}
+            label={label}
+            size="sm"
+            active={isActive}
+            activeVariant="solid"
+            pressed={isActive}
             onClick={() => onModeChange(mode)}
-            className={`
-              flex items-center gap-1.5 rounded-lg text-sm font-medium
-              transition-all duration-200
-              active:scale-[0.97]
-              ${isIconOnly ? "justify-center w-7 h-7 p-0" : "px-3 py-1.5"}
-              ${
-                isActive
-                  ? "bg-primary-600 text-white shadow-sm active:bg-primary-700"
-                  : "text-slate-500 hover:text-slate-900 hover:bg-slate-100 active:bg-slate-200"
-              }
-            `}
-            aria-pressed={isActive}
-            aria-label={label}
-          >
-            {icon}
-            {!isIconOnly && <span className="hidden sm:inline">{label}</span>}
-          </button>
+          />
+        ) : (
+          <Button
+            key={mode}
+            icon={icon}
+            label={label}
+            labelClassName="hidden sm:inline"
+            active={isActive}
+            activeVariant="solid"
+            pressed={isActive}
+            onClick={() => onModeChange(mode)}
+          />
         );
       })}
     </div>

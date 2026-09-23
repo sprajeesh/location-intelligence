@@ -3,6 +3,7 @@
 import React, { useEffect, useRef } from "react";
 import { Layers, Map, Satellite, Mountain } from "lucide-react";
 import { ToolbarButton } from "@/components/ToolbarButton";
+import { Button } from "@/components/ui/Button";
 
 export type MapLayerId = "default" | "satellite" | "topo";
 
@@ -84,10 +85,10 @@ export function LayerSelector({ activeLayer, onSelectLayer }: LayerSelectorProps
             const isActive = activeLayer === layer.id;
 
             return (
-              <button
+              <Button
                 key={layer.id}
+                unstyled
                 onClick={() => handleSelect(layer.id)}
-                type="button"
                 role="menuitem"
                 aria-current={isActive ? "true" : undefined}
                 className={`
@@ -105,7 +106,7 @@ export function LayerSelector({ activeLayer, onSelectLayer }: LayerSelectorProps
                 {isActive && (
                   <div className="ml-auto w-1.5 h-1.5 rounded-full bg-primary-500" />
                 )}
-              </button>
+              </Button>
             );
           })}
         </div>

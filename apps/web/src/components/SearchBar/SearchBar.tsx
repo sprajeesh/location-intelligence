@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { Search, X } from "lucide-react";
 import type { AddressResult } from "@/types/api";
 import { AddressSuggestionList } from "@/components/ui/AddressSuggestionList";
+import { IconButton } from "@/components/ui/IconButton";
 
 interface SearchBarProps {
   query: string;
@@ -155,15 +156,15 @@ export function SearchBar({
         />
 
         {query && !isLoading && (
-          <button
+          <IconButton
+            icon={X}
+            size="sm"
+            variant="plain"
             onClick={onClear}
-            className="absolute right-3 p-1 text-slate-400 hover:text-slate-600 transition-colors duration-150 active:scale-[0.97] active:text-slate-700"
-            aria-label="Clear search"
-            type="button"
+            className="absolute right-3 text-slate-400 hover:text-slate-600 active:text-slate-700"
+            label="Clear search"
             title="Close"
-          >
-            <X className="w-4 h-4" aria-hidden="true" />
-          </button>
+          />
         )}
 
         {isLoading && (

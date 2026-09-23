@@ -3,6 +3,7 @@
 import { useRef, useEffect, useId } from "react";
 import { X } from "lucide-react";
 import { SurfacePanel } from "@/components/ui/SurfacePanel";
+import { IconButton } from "@/components/ui/IconButton";
 
 export interface FeatureInfoRow {
   label: string;
@@ -76,15 +77,15 @@ export function FeatureInfoCard({ title, rows, onClose, position, triggerRef }: 
       <SurfacePanel variant="panel" className="p-3 text-xs max-w-xs">
         <div className="flex items-start justify-between gap-2 mb-2">
           <div id={titleId} className="font-semibold text-slate-900">{title}</div>
-          <button
+          <IconButton
             ref={closeButtonRef}
+            icon={X}
+            size="sm"
+            variant="plain"
             onClick={handleClose}
-            className="p-0.5 text-slate-400 hover:text-slate-600 transition-colors"
-            aria-label="Close feature details"
-            type="button"
-          >
-            <X className="w-4 h-4" />
-          </button>
+            className="text-slate-400 hover:text-slate-600"
+            label="Close feature details"
+          />
         </div>
 
         <div className="space-y-1">

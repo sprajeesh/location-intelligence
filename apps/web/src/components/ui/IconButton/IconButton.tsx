@@ -1,76 +1,41 @@
 "use client";
 
-import React from "react";
+import React, { forwardRef } from "react";
 import type { LucideIcon } from "lucide-react";
+import { Button } from "@/components/ui/Button";
+import type { ButtonActiveVariant, ButtonSize, ButtonVariant } from "@/components/ui/Button";
 
-export type IconButtonSize = "sm" | "md";
+export type IconButtonSize = ButtonSize;
 
-export interface IconButtonProps {
+type NativeButtonProps = Omit<
+  React.ButtonHTMLAttributes<HTMLButtonElement>,
+  "onClick" | "disabled" | "title" | "className" | "type" | "children" | "aria-label" | "aria-pressed" | "tabIndex"
+>;
+
+export interface IconButtonProps extends NativeButtonProps {
   icon: LucideIcon;
   label: string;
   title?: string;
   onClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
   active?: boolean;
+  activeVariant?: ButtonActiveVariant;
   pressed?: boolean;
   disabled?: boolean;
   size?: IconButtonSize;
+  variant?: ButtonVariant;
+  /** Skip all built-in shape/color/focus classes -- className fully controls appearance. */
+  unstyled?: boolean;
   className?: string;
   iconClassName?: string;
   tabIndex?: number;
 }
 
-const SIZE_CLASSES: Record<IconButtonSize, string> = {
-  md: "w-8 h-8 flex items-center justify-center rounded-lg",
-  sm: "p-1.5 rounded-lg",
-};
-
-const DEFAULT_ICON_SIZE: Record<IconButtonSize, number> = {
-  md: 16,
-  sm: 16,
-};
-
-export function IconButton({
-  icon: Icon,
-  label,
-  title,
-  onClick,
-  active = false,
-  pressed,
-  disabled = false,
-  size = "md",
-  className = "",
-  iconClassName,
-  tabIndex,
-}: IconButtonProps) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      aria-label={label}
-      title={title ?? label}
-      aria-pressed={pressed}
-      tabIndex={tabIndex}
-      className={`
-        ${SIZE_CLASSES[size]}
-        transition-all duration-150
-        focus-ring-inset active:scale-[0.97]
-        disabled:opacity-40 disabled:cursor-not-allowed
-        ${
-          active
-            ? "bg-primary-50 text-primary-600 hover:bg-primary-100 active:bg-primary-200"
-            : "text-slate-500 hover:text-slate-700 hover:bg-slate-100 active:bg-slate-200"
-        }
-        ${className}
-      `.trim()}
-    >
-      {iconClassName ? (
-        <Icon className={iconClassName} aria-hidden="true" />
-      ) : (
-        <Icon size={DEFAULT_ICON_SIZE[size]} strokeWidth={2} aria-hidden="true" />
-      )}
-    </button>
-  );
-}
+/** Icon-only presentation of Button -- see Button.tsx for the shared styling/behavior. */
+export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(function IconButton(
+  { size = "md", ...props },
+  ref,
+) {
+  return <Button ref={ref} {...props} size={size} iconOnly />;
+});
 
 export default IconButton;

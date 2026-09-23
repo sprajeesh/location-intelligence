@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { Modal, ModalHeader, ModalContent, ModalFooter } from "@/components/ui/Modal";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { WeightSlider } from "@/components/ui/WeightSlider";
+import { Button } from "@/components/ui/Button";
 import { groupCategoriesByComposite } from "@/utils/groupCategories";
 import {
   computeDefaultWeightsForActiveCategories,
@@ -189,20 +190,16 @@ export function SettingsModal({
           </p>
         </ModalContent>
         <ModalFooter>
-          <button
-            type="button"
+          <Button
+            variant="ghost"
+            label={t("settings.notNow", { defaultValue: "Not now" })}
             onClick={onDismissReanalyze}
-            className="px-3 py-1.5 rounded-lg font-medium text-sm text-slate-600 hover:text-slate-900 transition-colors active:bg-slate-100 active:scale-[0.98]"
-          >
-            {t("settings.notNow", { defaultValue: "Not now" })}
-          </button>
-          <button
-            type="button"
+          />
+          <Button
+            variant="primary"
+            label={t("settings.reanalyze", { defaultValue: "Re-analyze" })}
             onClick={onConfirmReanalyze}
-            className="px-3 py-1.5 rounded-lg font-medium text-sm bg-primary-600 hover:bg-primary-700 text-white transition-colors active:bg-primary-800 active:scale-[0.98]"
-          >
-            {t("settings.reanalyze", { defaultValue: "Re-analyze" })}
-          </button>
+          />
         </ModalFooter>
       </Modal>
     );
@@ -351,8 +348,9 @@ export function SettingsModal({
             )}
           </div>
         )}
-        <button
-          type="button"
+        <Button
+          variant="primary"
+          label={t("settings.save", { defaultValue: "Save" })}
           onClick={() => {
             if (draft === null || weightDraft === null || !weightsAreValid) return;
 
@@ -362,10 +360,7 @@ export function SettingsModal({
             onSave(draft, activeOnlyWeights, weightsTouched);
           }}
           disabled={draft === null || weightDraft === null || !weightsAreValid}
-          className="px-4 py-1.5 rounded-lg font-medium text-sm bg-primary-600 hover:bg-primary-700 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed active:bg-primary-800 active:scale-[0.98]"
-        >
-          {t("settings.save", { defaultValue: "Save" })}
-        </button>
+        />
       </ModalFooter>
     </Modal>
   );
