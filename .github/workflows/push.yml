@@ -52,6 +52,10 @@ jobs:
 
   security-scan:
     name: Security Scan
+    # Dependabot-triggered runs don't get repo secrets (GitHub withholds them
+    # to stop an attacker-controlled dependency bump from exfiltrating
+    # SNYK_TOKEN), so snyk auth would fail here regardless -- skip instead.
+    if: github.actor != 'dependabot[bot]'
     uses: ./.github/workflows/security-scan.yml
     secrets:
       SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
