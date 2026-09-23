@@ -7,6 +7,7 @@ import type { RouteOption, RouteTransportMode } from "@/types/api";
 import RouteModeSelector from "@/components/RouteModeSelector";
 import RouteOptionCard from "@/components/RouteOptionCard";
 import { SurfacePanel } from "@/components/ui/SurfacePanel";
+import { Button } from "@/components/ui/Button";
 
 export interface RoutePanelProps {
   routes: RouteOption[] | null;
@@ -60,22 +61,14 @@ export function RoutePanel({
           activeMode={activeMode}
           onModeChange={onModeChange}
         />
-        <button
-          type="button"
-          onClick={onExitNavigation}
-          className="
-            flex items-center gap-1.5 rounded-lg text-sm font-medium
-            px-3 py-1.5
-            transition-all duration-200
-            active:scale-[0.97]
-            text-slate-500 hover:text-slate-900 hover:bg-slate-100 active:bg-slate-200
-          "
-          aria-label={t("exitNavigation")}
+        <Button
+          icon={X}
+          label={t("exit")}
+          labelClassName="hidden sm:inline"
+          ariaLabel={t("exitNavigation")}
           title={t("closeDirections")}
-        >
-          <X className="w-4 h-4" aria-hidden="true" />
-          <span className="hidden sm:inline">{t("exit")}</span>
-        </button>
+          onClick={onExitNavigation}
+        />
       </div>
 
       {/* Route content */}
