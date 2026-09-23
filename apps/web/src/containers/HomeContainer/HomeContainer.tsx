@@ -8,10 +8,12 @@ import { useLocationStore } from "@/store";
 import { useAddressSearch } from "@/hooks/useAddressSearch";
 import { useIsDesktop } from "@/hooks/useIsDesktop";
 import PanelCollapseButton from "@/components/PanelCollapseButton/PanelCollapseButton";
-import { Map, BarChart3, Route } from "lucide-react";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { SettingsContainer } from "@/containers/SettingsContainer";
+import { MobileViewToggleContainer } from "@/containers/MobileViewToggleContainer";
 
 export function HomeContainer() {
-  const { selectedAddress, isPanelCollapsed, togglePanelCollapsed, setPanelCollapsed, isMapViewOnMobile, setIsMapViewOnMobile, isNavigating, activeRoute } =
+  const { selectedAddress, isPanelCollapsed, togglePanelCollapsed, setPanelCollapsed, isMapViewOnMobile } =
     useLocationStore();
   const isDesktop = useIsDesktop();
   const addressSearch = useAddressSearch();
@@ -43,37 +45,42 @@ export function HomeContainer() {
 
   const showMapOnMobile = isMapViewOnMobile && !isDesktop && hasActivePanel;
   const showResultsOnMobile = !isMapViewOnMobile && !isDesktop && hasActivePanel;
-  const isRouteDisplayed = isNavigating && !!activeRoute && activeRoute.length >= 2;
 
   return (
     <>
-    <div className="absolute inset-0 flex flex-col md:flex-row">
+    {/* bottom-14 reserves room for the fixed mobile controls bar below;
+        md:bottom-0 removes that reservation on desktop, where the bar
+        doesn't exist. */}
+    <div className="absolute inset-0 bottom-14 md:bottom-0 flex flex-col md:flex-row">
       {/* Panel container — shows only when expanded; hidden when collapsed */}
       <div
         className={
           hasActivePanel && !isPanelCollapsed && !showMapOnMobile
-            ? `relative z-10 flex-shrink-0 flex flex-col overflow-visible bg-white h-full w-full md:h-full md:overflow-hidden ${panelWidthClass} transition-all duration-300 ease-in-out border-r border-slate-200`
+            ? `relative z-10 flex-shrink-0 flex flex-col overflow-visible bg-white h-full w-full md:h-full ${panelWidthClass} transition-all duration-300 ease-in-out border-r border-slate-200`
             : hasActivePanel && !showMapOnMobile && isPanelCollapsed
             ? "hidden"
             : showMapOnMobile
             ? "hidden md:flex"
-            : "absolute inset-0 z-10 p-4 pointer-events-none overflow-hidden"
+            : "absolute inset-0 z-10 p-4 pointer-events-none"
         }
       >
 
         <div
           className={
             hasActivePanel
-              ? `flex flex-col h-full overflow-hidden ${isPanelCollapsed && isDesktop ? "opacity-0 invisible" : "opacity-100 visible"} transition-opacity duration-300`
+              ? `flex flex-col h-full ${isPanelCollapsed && isDesktop ? "opacity-0 invisible" : "opacity-100 visible"} transition-opacity duration-300`
               : "flex flex-col h-full pointer-events-none max-w-md md:h-[75vh] md:gap-2 lg:h-full"
           }
         >
-          {/* Search bar — always at the top */}
+          {/* Search bar — always at the top. `relative` makes it the
+              positioning anchor for the desktop Scoring/Theme buttons below,
+              which sit just past its right edge (left-full) so the search
+              input's own width is never squeezed to make room for them. */}
           <div
             className={
               hasActivePanel
-                ? "flex-shrink-0 p-4 pb-2 border-b border-slate-200 md:border-r md:border-b-0 flex items-center gap-2"
-                : "flex-shrink-0 relative z-20 pointer-events-auto"
+                ? "relative flex-shrink-0 p-4 pb-2 border-b border-slate-200 md:border-r md:border-b-0 flex items-center gap-2"
+                : "relative flex-shrink-0 z-20 pointer-events-auto"
             }
           >
             <div className="flex-1">
@@ -85,16 +92,18 @@ export function HomeContainer() {
                 error={addressSearch.error}
               />
             </div>
-            {/* Show Map button on mobile results view */}
-            {hasActivePanel && !isDesktop && !isMapViewOnMobile && (
-              <button
-                onClick={() => setIsMapViewOnMobile(true)}
-                className="flex-shrink-0 md:hidden p-2 hover:bg-slate-100 rounded-lg transition-colors"
-                title="Show map"
-                aria-label="Show map"
-              >
-                <Map className="w-5 h-5 text-slate-600" />
-              </button>
+            {/* Score Config + Theme buttons — desktop only; on mobile these
+                live in the fixed bottom controls bar instead. Gated on
+                isDesktop (not a CSS breakpoint) so SettingsContainer isn't
+                double-mounted alongside its mobile counterpart below.
+                Positioned outside the search row's own flow (left-full) so
+                the address input keeps its original width instead of
+                sharing the row with them. */}
+            {isDesktop && (
+              <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 flex items-center gap-2 pointer-events-auto whitespace-nowrap">
+                <SettingsContainer expanded className="bg-white border border-slate-200 shadow-card" />
+                <ThemeToggle className="bg-white border border-slate-200 shadow-card" />
+              </div>
             )}
           </div>
 
@@ -137,20 +146,22 @@ export function HomeContainer() {
               error={addressSearch.error}
             />
           </div>
-          {/* View Score / Show route button on mobile map view */}
-          <button
-            onClick={() => setIsMapViewOnMobile(false)}
-            className="flex-shrink-0 p-2 hover:bg-slate-100 rounded-lg transition-colors"
-            title={isRouteDisplayed ? "Show route details" : "View scores"}
-            aria-label={isRouteDisplayed ? "Show route details" : "View scores"}
-          >
-            {isRouteDisplayed ? (
-              <Route className="w-5 h-5 text-slate-600" />
-            ) : (
-              <BarChart3 className="w-5 h-5 text-slate-600" />
-            )}
-          </button>
         </div>
+      </div>
+    )}
+
+    {/* Mobile controls bar — fixed to the bottom of the screen across every
+        mobile state (initial view, results, map). Replaces the old inline
+        "Show map" / floating "View scores"/"Show route" buttons with a
+        single Map/Results toggle, alongside Scoring and Theme. No shared
+        panel background (matches the desktop treatment) — each button
+        carries its own white/bordered card so it still reads as tappable
+        over the map or results content behind it. */}
+    {!isDesktop && (
+      <div className="fixed inset-x-0 bottom-0 z-[1000] flex items-center justify-center gap-2 p-3">
+        <MobileViewToggleContainer className="bg-white border border-slate-200 shadow-card" />
+        <SettingsContainer className="bg-white border border-slate-200 shadow-card" />
+        <ThemeToggle compact className="bg-white border border-slate-200 shadow-card" />
       </div>
     )}
 

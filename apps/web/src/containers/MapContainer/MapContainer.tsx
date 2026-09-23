@@ -29,8 +29,6 @@ import { useIsDesktop } from "@/hooks/useIsDesktop";
 import { computeMapBounds } from "@/utils/mapBounds";
 import { getCategoryIcon } from "@/utils/categoryIcons";
 import { useCategoryColorMap } from "@/hooks/useCategoryColorMap";
-import { ThemeToggle } from "@/components/ThemeToggle";
-import { SettingsContainer } from "@/containers/SettingsContainer";
 import { useTranslations } from "next-intl";
 import {
   MapToolbarContainer,
@@ -455,12 +453,9 @@ function MapContent() {
           );
         })()}
 
-      {/* Settings, theme toggle, and map toolbar -- grouped in one positioning wrapper
-          so all three sit as separate cards stacked vertically on the right edge,
-          vertically centered on all screen sizes. */}
+      {/* Map toolbar (zoom/layers/locate) -- app-level controls (Scoring,
+          Theme) live in HomeContainer now, not here. */}
       <div className="absolute right-3 top-1/2 -translate-y-1/2 z-[1000] flex flex-col items-center gap-2">
-        <SettingsContainer />
-        <ThemeToggle />
         <MapToolbarContainer
           activeLayer={activeLayer}
           onLayerChange={setActiveLayer}

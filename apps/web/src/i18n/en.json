@@ -97,6 +97,12 @@
     "rateLimit": "Too many requests. Please wait a moment."
   },
   "map": {
+    "showMap": "Map",
+    "showMapTooltip": "Show map",
+    "viewScores": "Results",
+    "viewScoresTooltip": "View scores",
+    "showRoute": "Route",
+    "showRouteTooltip": "Show route details",
     "markerPopup": {
       "name": "Name",
       "distance": "Distance",
@@ -114,6 +120,14 @@
         "healthcareSpeciality": "Speciality"
       }
     }
+  },
+  "theme": {
+    "dark": "Dark mode",
+    "light": "Light mode",
+    "darkShort": "Dark",
+    "lightShort": "Light",
+    "switchToDark": "Switch to dark mode",
+    "switchToLight": "Switch to light mode"
   },
   "nav": {
     "title": "Location Intelligence",
@@ -136,6 +150,8 @@
   },
   "settings": {
     "tooltip": "Settings",
+    "buttonLabel": "Scoring",
+    "buttonLabelExpanded": "Scoring Config",
     "title": "Settings",
     "description": "Facilities included in your location score, grouped by category.",
     "helpMaxFacilities": "Choose up to {max} facilities. Unselect one to choose a different one.",

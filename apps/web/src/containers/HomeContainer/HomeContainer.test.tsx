@@ -15,6 +15,12 @@ jest.mock('@/containers/MapContainer', () => ({
 jest.mock('@/containers/SettingsContainer', () => ({
   SettingsContainer: () => <div data-testid="settings-container-mock" />,
 }));
+jest.mock('@/components/ThemeToggle', () => ({
+  ThemeToggle: () => <div data-testid="theme-toggle-mock" />,
+}));
+jest.mock('@/containers/MobileViewToggleContainer', () => ({
+  MobileViewToggleContainer: () => <div data-testid="mobile-view-toggle-mock" />,
+}));
 jest.mock('@/components/PanelCollapseButton/PanelCollapseButton', () => ({
   __esModule: true,
   default: ({ isCollapsed, onToggle }: { isCollapsed: boolean; onToggle: () => void }) => (

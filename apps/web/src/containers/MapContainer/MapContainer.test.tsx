@@ -14,12 +14,6 @@ jest.mock('next-intl', () => ({
   useTranslations: () => (key: string, opts?: { defaultValue?: string }) =>
     opts?.defaultValue ?? key,
 }));
-jest.mock('@/components/ThemeToggle', () => ({
-  ThemeToggle: () => <div data-testid="theme-toggle-stub" />,
-}));
-jest.mock('@/containers/SettingsContainer', () => ({
-  SettingsContainer: () => <div data-testid="settings-container-stub" />,
-}));
 jest.mock('@/components/FeatureInfoCard', () => ({
   FeatureInfoCard: ({ onClose }: { onClose: () => void }) => (
     <div data-testid="feature-info-card-stub" onClick={onClose}>
@@ -153,12 +147,10 @@ describe('MapContainer', () => {
   describe('Toolbar positioning', () => {
     it('is vertically centered on the right edge on all screen sizes', () => {
       render(<MapContainer />);
-      const wrapper = screen.getByTestId('theme-toggle-stub').parentElement as HTMLElement;
+      const wrapper = screen.getByTestId('map-toolbar-stub').parentElement as HTMLElement;
       expect(wrapper.className).toContain('right-3');
       expect(wrapper.className).toContain('top-1/2');
       expect(wrapper.className).toContain('-translate-y-1/2');
-      expect(wrapper).toContainElement(screen.getByTestId('settings-container-stub'));
-      expect(wrapper).toContainElement(screen.getByTestId('theme-toggle-stub'));
       expect(wrapper).toContainElement(screen.getByTestId('map-toolbar-stub'));
     });
   });
