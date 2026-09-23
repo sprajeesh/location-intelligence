@@ -66,7 +66,7 @@ export function AddressSuggestionList({
                   : "hover:bg-slate-100 text-slate-700"
               }`}
             >
-              <button type="button" tabIndex={-1} className="flex items-start gap-2 w-full text-left pointer-events-none">
+              <div className="flex items-start gap-2 w-full text-left">
                 <MapPin className={iconClassName} aria-hidden="true" />
                 {item.sublabel ? (
                   <div className="flex-1 min-w-0">
@@ -76,7 +76,7 @@ export function AddressSuggestionList({
                 ) : (
                   <span className="truncate">{item.displayName}</span>
                 )}
-              </button>
+              </div>
             </li>
           ))}
         </ul>
