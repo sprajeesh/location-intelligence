@@ -57,8 +57,8 @@ export function RadiusAdjuster({
 
   if (!expanded) {
     return (
-      <button
-        type="button"
+      <Button
+        unstyled
         onClick={() => setExpanded(true)}
         disabled={disabled}
         className="flex items-center gap-1 text-xs text-slate-500 hover:text-slate-700 transition-colors active:text-slate-800 rounded"
@@ -67,7 +67,7 @@ export function RadiusAdjuster({
         {t('results.adjustRadius.caption', {
           defaultValue: 'Not seeing expected results? Adjust the search radius',
         })}
-      </button>
+      </Button>
     );
   }
 
