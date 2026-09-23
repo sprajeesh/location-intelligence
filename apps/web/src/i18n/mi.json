@@ -97,6 +97,12 @@
     "rateLimit": "[MI] errors.rateLimit"
   },
   "map": {
+    "showMap": "[MI] map.showMap",
+    "showMapTooltip": "[MI] map.showMapTooltip",
+    "viewScores": "[MI] map.viewScores",
+    "viewScoresTooltip": "[MI] map.viewScoresTooltip",
+    "showRoute": "[MI] map.showRoute",
+    "showRouteTooltip": "[MI] map.showRouteTooltip",
     "markerPopup": {
       "name": "[MI] map.markerPopup.name",
       "distance": "[MI] map.markerPopup.distance",
@@ -114,6 +120,14 @@
         "healthcareSpeciality": "[MI] map.markerPopup.details.healthcareSpeciality"
       }
     }
+  },
+  "theme": {
+    "dark": "[MI] theme.dark",
+    "light": "[MI] theme.light",
+    "darkShort": "[MI] theme.darkShort",
+    "lightShort": "[MI] theme.lightShort",
+    "switchToDark": "[MI] theme.switchToDark",
+    "switchToLight": "[MI] theme.switchToLight"
   },
   "nav": {
     "title": "[MI] nav.title",
@@ -136,6 +150,8 @@
   },
   "settings": {
     "tooltip": "[MI] settings.tooltip",
+    "buttonLabel": "[MI] settings.buttonLabel",
+    "buttonLabelExpanded": "[MI] settings.buttonLabelExpanded",
     "title": "[MI] settings.title",
     "description": "[MI] settings.description",
     "helpMaxFacilities": "[MI] settings.helpMaxFacilities",

@@ -4,8 +4,7 @@ import { useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslations } from "next-intl";
 import { Settings } from "lucide-react";
-import { SurfacePanel } from "@/components/ui/SurfacePanel";
-import { ToolbarButton } from "@/components/ToolbarButton";
+import { Button } from "@/components/ui/Button";
 import { SettingsModal } from "@/components/SettingsModal";
 import { useCategories } from "@/hooks/useCategories";
 import { useCategoryWeights } from "@/hooks/useCategoryWeights";
@@ -28,13 +27,21 @@ function weightsEqual(a: Record<string, number>, b: Record<string, number>): boo
 }
 
 /**
- * SettingsContainer — the settings gear button at the top of the map toolbar stack,
- * plus the Settings modal it opens. Fetches all facility types up front so the
- * modal can render instantly once opened. Owns saving the user's facility
- * selection to the session store and, if an address is already analyzed,
- * confirming whether to re-run it with the updated selection.
+ * SettingsContainer — the "Scoring" control button (rendered wherever the
+ * app places its app-level controls, e.g. HomeContainer's desktop/mobile
+ * controls), plus the Settings modal it opens. Fetches all facility types up
+ * front so the modal can render instantly once opened. Owns saving the
+ * user's facility selection to the session store and, if an address is
+ * already analyzed, confirming whether to re-run it with the updated
+ * selection.
  */
-export function SettingsContainer() {
+export interface SettingsContainerProps {
+  className?: string;
+  /** Use the fuller "Scoring Config" label instead of "Scoring" — desktop only, where there's room next to the search bar. */
+  expanded?: boolean;
+}
+
+export function SettingsContainer({ className, expanded = false }: SettingsContainerProps = {}) {
   const [isOpen, setIsOpen] = useState(false);
   const [pendingReanalyze, setPendingReanalyze] = useState(false);
   const { categories, isLoading, isError } = useCategories();
@@ -113,13 +120,17 @@ export function SettingsContainer() {
 
   return (
     <>
-      <SurfacePanel variant="toolbar" className="p-1 flex-shrink-0">
-        <ToolbarButton
-          icon={Settings}
-          label={t("settings.tooltip", { defaultValue: "Settings" })}
-          onClick={() => setIsOpen(true)}
-        />
-      </SurfacePanel>
+      <Button
+        icon={Settings}
+        label={
+          expanded
+            ? t("settings.buttonLabelExpanded", { defaultValue: "Scoring Config" })
+            : t("settings.buttonLabel", { defaultValue: "Scoring" })
+        }
+        title={t("settings.tooltip", { defaultValue: "Settings" })}
+        onClick={() => setIsOpen(true)}
+        className={className}
+      />
 
       {isOpen &&
         createPortal(
