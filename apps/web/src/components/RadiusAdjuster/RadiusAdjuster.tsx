@@ -6,6 +6,7 @@ import { ChevronRight, Minus, Plus } from 'lucide-react';
 import { DEFAULT_RADIUS_KM, MIN_RADIUS_KM, MAX_RADIUS_KM, RADIUS_STEP_KM } from '@/constants/radius';
 import { Button } from '@/components/ui/Button';
 import { IconButton } from '@/components/ui/IconButton';
+import { Input } from '@/components/ui/Input';
 
 export interface RadiusAdjusterProps {
   // Radius currently in effect for the displayed results
@@ -87,7 +88,7 @@ export function RadiusAdjuster({
             defaultValue: 'Decrease radius',
           })}
         />
-        <input
+        <Input
           id={radiusInputId}
           type="number"
           min={min}
@@ -97,7 +98,9 @@ export function RadiusAdjuster({
           onChange={handleInputChange}
           onBlur={handleInputBlur}
           disabled={disabled}
-          className="w-14 bg-white border border-slate-300 rounded px-2 py-1 text-sm text-center text-slate-900 disabled:opacity-50 disabled:cursor-not-allowed focus-ring-flush"
+          size="md"
+          align="center"
+          className="w-14 px-2"
         />
         <span className="text-xs text-slate-500">km</span>
         <IconButton
