@@ -11,6 +11,7 @@ import PanelCollapseButton from "@/components/PanelCollapseButton/PanelCollapseB
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { SettingsContainer } from "@/containers/SettingsContainer";
 import { MobileViewToggleContainer } from "@/containers/MobileViewToggleContainer";
+import { SURFACE_PANEL_CLASSES } from "@/components/ui/SurfacePanel";
 
 export function HomeContainer() {
   const { selectedAddress, isPanelCollapsed, togglePanelCollapsed, setPanelCollapsed, isMapViewOnMobile } =
@@ -101,8 +102,8 @@ export function HomeContainer() {
                 sharing the row with them. */}
             {isDesktop && (
               <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 flex items-center gap-2 pointer-events-auto whitespace-nowrap">
-                <SettingsContainer expanded className="bg-white border border-slate-200 shadow-card" />
-                <ThemeToggle className="bg-white border border-slate-200 shadow-card" />
+                <SettingsContainer expanded className={SURFACE_PANEL_CLASSES.chip} />
+                <ThemeToggle className={SURFACE_PANEL_CLASSES.chip} />
               </div>
             )}
           </div>
@@ -159,9 +160,9 @@ export function HomeContainer() {
         over the map or results content behind it. */}
     {!isDesktop && (
       <div className="fixed inset-x-0 bottom-0 z-[1000] flex items-center justify-center gap-2 p-3">
-        <MobileViewToggleContainer className="bg-white border border-slate-200 shadow-card" />
-        <SettingsContainer className="bg-white border border-slate-200 shadow-card" />
-        <ThemeToggle compact className="bg-white border border-slate-200 shadow-card" />
+        <MobileViewToggleContainer className={SURFACE_PANEL_CLASSES.chip} />
+        <SettingsContainer className={SURFACE_PANEL_CLASSES.chip} />
+        <ThemeToggle compact className={SURFACE_PANEL_CLASSES.chip} />
       </div>
     )}
 

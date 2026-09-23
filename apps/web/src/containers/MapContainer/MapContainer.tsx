@@ -39,6 +39,8 @@ import {
 } from "@/containers/MapToolbarContainer";
 import { FeatureInfoCard } from "@/components/FeatureInfoCard";
 import { FacilityRouteModePicker } from "@/components/FacilityRouteModePicker";
+import { InlineBanner } from "@/components/ui/InlineBanner";
+import { Spinner } from "@/components/ui/Spinner";
 import type { FeatureDetails } from "@/types/api";
 import { isValidHttpUrl } from "@/utils/url";
 
@@ -362,18 +364,15 @@ function MapContent() {
           pan/zoom with the map. */}
       {parcelNotFound && (
         <div className="absolute top-2 left-1/2 -translate-x-1/2 z-[1000] pointer-events-none">
-          <div className="bg-white border border-warning-200 shadow-card rounded-lg px-3 py-1.5 flex items-center gap-2 text-xs text-warning-800">
-            <TriangleAlert
-              className="w-3 h-3 flex-shrink-0"
-              aria-hidden="true"
-            />
-            <span>
-              {t("parcels.notFoundBanner", {
-                defaultValue:
-                  "Couldn't find a matching parcel boundary for this address.",
-              })}
-            </span>
-          </div>
+          <InlineBanner
+            tone="warning"
+            icon={<TriangleAlert className="w-3 h-3 flex-shrink-0" aria-hidden="true" />}
+          >
+            {t("parcels.notFoundBanner", {
+              defaultValue:
+                "Couldn't find a matching parcel boundary for this address.",
+            })}
+          </InlineBanner>
         </div>
       )}
 
@@ -383,18 +382,15 @@ function MapContent() {
           missing parcel for a valid address. */}
       {parcelServiceError && (
         <div className="absolute top-2 left-1/2 -translate-x-1/2 z-[1000] pointer-events-none">
-          <div className="bg-white border border-error-200 shadow-card rounded-lg px-3 py-1.5 flex items-center gap-2 text-xs text-error-800">
-            <TriangleAlert
-              className="w-3 h-3 flex-shrink-0"
-              aria-hidden="true"
-            />
-            <span>
-              {t("parcels.serviceError", {
-                defaultValue:
-                  "Couldn't retrieve parcel information. Please check your connection and try again.",
-              })}
-            </span>
-          </div>
+          <InlineBanner
+            tone="error"
+            icon={<TriangleAlert className="w-3 h-3 flex-shrink-0" aria-hidden="true" />}
+          >
+            {t("parcels.serviceError", {
+              defaultValue:
+                "Couldn't retrieve parcel information. Please check your connection and try again.",
+            })}
+          </InlineBanner>
         </div>
       )}
 
@@ -405,12 +401,9 @@ function MapContent() {
           anywhere, so this keeps that wait from looking like a dead click. */}
       {!!selectedAddress && parcelQuery.isFetching && (
         <div className="absolute top-2 left-1/2 -translate-x-1/2 z-[1000] pointer-events-none">
-          <div className="bg-white border border-slate-200 shadow-card rounded-lg px-3 py-1.5 flex items-center gap-2 text-xs text-slate-700">
-            <div className="w-3 h-3 border-2 border-slate-200 border-t-primary-500 rounded-full animate-spin" />
-            <span>
-              {t("parcels.locating", { defaultValue: "Locating parcel…" })}
-            </span>
-          </div>
+          <InlineBanner tone="neutral" icon={<Spinner size="xs" decorative />}>
+            {t("parcels.locating", { defaultValue: "Locating parcel…" })}
+          </InlineBanner>
         </div>
       )}
 
@@ -644,7 +637,7 @@ export function MapContainer() {
       {isAnalyzing && (
         <div className="absolute inset-0 bg-ink/10 backdrop-blur-sm flex items-center justify-center pointer-events-none">
           <div className="bg-white shadow-card-lg rounded-lg px-4 py-2 flex items-center gap-2">
-            <div className="w-4 h-4 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin" />
+            <Spinner size="sm" tone="neutral" />
             <span className="text-sm font-medium text-slate-700">
               Analyzing...
             </span>

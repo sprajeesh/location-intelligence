@@ -7,6 +7,7 @@ import { DEFAULT_RADIUS_KM, MIN_RADIUS_KM, MAX_RADIUS_KM, RADIUS_STEP_KM } from 
 import { Button } from '@/components/ui/Button';
 import { IconButton } from '@/components/ui/IconButton';
 import { Input } from '@/components/ui/Input';
+import { SurfacePanel } from '@/components/ui/SurfacePanel';
 
 export interface RadiusAdjusterProps {
   // Radius currently in effect for the displayed results
@@ -73,7 +74,7 @@ export function RadiusAdjuster({
   }
 
   return (
-    <div className="bg-white border border-slate-200 shadow-card rounded-lg p-3 flex flex-col gap-2">
+    <SurfacePanel variant="chip" className="p-3 flex flex-col gap-2">
       <label htmlFor={radiusInputId} className="text-xs text-slate-500">
         {t('results.adjustRadius.label', { defaultValue: 'Search radius' })}
       </label>
@@ -121,7 +122,7 @@ export function RadiusAdjuster({
           label={t('results.adjustRadius.search', { defaultValue: 'Search' })}
         />
       </div>
-    </div>
+    </SurfacePanel>
   );
 }
 

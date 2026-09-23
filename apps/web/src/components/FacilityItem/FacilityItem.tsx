@@ -4,7 +4,7 @@ import type { MouseEvent } from "react";
 import { useTranslations } from "next-intl";
 import { Navigation, Eye, EyeOff } from "lucide-react";
 import type { Feature } from "@/types/api";
-import { Button } from "@/components/ui/Button";
+import { Button, getVisibilityToggleClasses } from "@/components/ui/Button";
 import { IconButton } from "@/components/ui/IconButton";
 import { getCategoryIcon } from "@/utils/categoryIcons";
 
@@ -84,11 +84,7 @@ export default function FacilityItem({
           size="sm"
           pressed={isVisible}
           onClick={onToggleVisibility}
-          className={
-            isVisible
-              ? "flex-shrink-0 text-primary-600 hover:text-primary-700 hover:bg-primary-50"
-              : "flex-shrink-0 text-slate-400 hover:text-slate-500 hover:bg-slate-100"
-          }
+          className={`flex-shrink-0 ${getVisibilityToggleClasses(isVisible)}`}
           label={t(isVisible ? "score.markers.hideOne" : "score.markers.showOne", {
             name: feature.name,
             defaultValue: `${isVisible ? "Hide" : "Show"} ${feature.name} marker on map`,

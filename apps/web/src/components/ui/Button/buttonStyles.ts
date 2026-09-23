@@ -37,6 +37,16 @@ export function getFocusRingClass(variant: ButtonVariant): string {
   return variant === "outline" ? "focus-ring-flush" : "focus-ring-inset";
 }
 
+// The "marker visibility" eye-icon toggle (on/off state for a map marker)
+// used identically by CategoryScoreCard, FacilityScoreRow, and FacilityItem --
+// centralized here so those three stop hand-copying the same two strings.
+const VISIBILITY_TOGGLE_ACTIVE = "text-primary-600 hover:text-primary-700 hover:bg-primary-50";
+const VISIBILITY_TOGGLE_INACTIVE = "text-slate-400 hover:text-slate-500 hover:bg-slate-100";
+
+export function getVisibilityToggleClasses(isVisible: boolean): string {
+  return isVisible ? VISIBILITY_TOGGLE_ACTIVE : VISIBILITY_TOGGLE_INACTIVE;
+}
+
 export function getVariantClasses(
   variant: ButtonVariant,
   active: boolean,
