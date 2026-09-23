@@ -2,6 +2,8 @@
 
 import type { ComponentPropsWithoutRef, ReactNode } from "react";
 import { ChevronDown } from "lucide-react";
+import { Button } from "@/components/ui/Button";
+import { IconButton } from "@/components/ui/IconButton";
 
 export interface CollapsibleCardProps {
   isExpanded: boolean;
@@ -50,8 +52,8 @@ export function CollapsibleCard({
   // edge) so `actions` -- when provided -- can render between headerEnd and
   // the chevron without ever nesting a <button> inside another <button>.
   const headerButton = (
-    <button
-      type="button"
+    <Button
+      unstyled
       onClick={onToggle}
       className={`w-full flex justify-between px-3 py-2 focus-ring-inset rounded-lg active:bg-slate-50 active:scale-[0.99] ${headerClassName}`.trim()}
       aria-expanded={isExpanded}
@@ -59,7 +61,7 @@ export function CollapsibleCard({
     >
       {header}
       {headerEnd}
-    </button>
+    </Button>
   );
 
   return (
@@ -69,17 +71,14 @@ export function CollapsibleCard({
         {actions && (
           <div className="flex items-center gap-1 flex-shrink-0 ml-1">{actions}</div>
         )}
-        <button
-          type="button"
+        <IconButton
+          unstyled
+          icon={ChevronDown}
+          iconClassName={`w-4 h-4 text-slate-400 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`}
           onClick={onToggle}
           className="flex items-center flex-shrink-0 ml-2 p-1 -m-1 focus-ring-inset rounded-lg"
-          aria-label={(isExpanded ? collapseLabel : expandLabel).replace(/\{label\}/g, cardLabel)}
-        >
-          <ChevronDown
-            className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`}
-            aria-hidden="true"
-          />
-        </button>
+          label={(isExpanded ? collapseLabel : expandLabel).replace(/\{label\}/g, cardLabel)}
+        />
       </div>
 
       {isExpanded && (
