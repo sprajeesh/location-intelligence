@@ -16,7 +16,12 @@ updates:
       default-days: 15
 
   - package-ecosystem: "npm"
-    directory: "/apps/web"
+    # Workspace root, not /apps/web: pnpm-lock.yaml lives at the repo root
+    # (pnpm-workspace.yaml), so Dependabot needs to see it from there to
+    # update it alongside apps/web/package.json -- pointed at /apps/web it
+    # only bumped package.json, leaving the lockfile stale and failing CI's
+    # `pnpm install --frozen-lockfile`.
+    directory: "/"
     schedule:
       interval: weekly
     cooldown:
