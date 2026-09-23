@@ -401,7 +401,7 @@ function MapContent() {
           anywhere, so this keeps that wait from looking like a dead click. */}
       {!!selectedAddress && parcelQuery.isFetching && (
         <div className="absolute top-2 left-1/2 -translate-x-1/2 z-[1000] pointer-events-none">
-          <InlineBanner tone="neutral" icon={<Spinner size="xs" />}>
+          <InlineBanner tone="neutral" icon={<Spinner size="xs" decorative />}>
             {t("parcels.locating", { defaultValue: "Locating parcel…" })}
           </InlineBanner>
         </div>

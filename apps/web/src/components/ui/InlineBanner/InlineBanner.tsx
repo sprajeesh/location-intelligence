@@ -25,6 +25,8 @@ const TONE_CLASSES: Record<InlineBannerTone, string> = {
 export function InlineBanner({ tone = "neutral", icon, children, className = "" }: InlineBannerProps) {
   return (
     <div
+      role="status"
+      aria-live="polite"
       className={`bg-white border shadow-card rounded-lg px-3 py-1.5 flex items-center gap-2 text-xs ${TONE_CLASSES[tone]} ${className}`.trim()}
     >
       {icon}

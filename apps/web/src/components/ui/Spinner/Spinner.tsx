@@ -11,6 +11,8 @@ export interface SpinnerProps {
   size?: SpinnerSize;
   tone?: SpinnerTone;
   className?: string;
+  /** Set when the spinner sits inside a caller-owned status/live region (e.g. InlineBanner) that already announces the loading state, so this doesn't also announce and double-narrate. */
+  decorative?: boolean;
 }
 
 const SIZE_CLASSES: Record<SpinnerSize, string> = {
@@ -24,11 +26,12 @@ const TONE_CLASSES: Record<SpinnerTone, string> = {
   neutral: "border-slate-300 border-t-slate-600",
 };
 
-export function Spinner({ size = "sm", tone = "primary", className = "" }: SpinnerProps) {
+export function Spinner({ size = "sm", tone = "primary", className = "", decorative = false }: SpinnerProps) {
   return (
     <div
-      role="status"
-      aria-label="Loading"
+      role={decorative ? undefined : "status"}
+      aria-hidden={decorative ? "true" : undefined}
+      aria-label={decorative ? undefined : "Loading"}
       className={`${SIZE_CLASSES[size]} ${TONE_CLASSES[tone]} border-2 rounded-full animate-spin ${className}`.trim()}
     />
   );
