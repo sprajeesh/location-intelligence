@@ -37,7 +37,7 @@ export default function FacilityItem({
           className="w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 mt-1"
           style={{ backgroundColor: markerColor }}
         >
-          <Icon size={10} color="white" aria-hidden="true" />
+          <Icon size={10} color="rgb(var(--color-white))" aria-hidden="true" />
         </div>
         <span className="text-sm text-slate-700 truncate group-hover:text-slate-900 transition-colors">
           {feature.name}

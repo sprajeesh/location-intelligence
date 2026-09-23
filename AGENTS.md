@@ -326,9 +326,28 @@ Results panel becomes a draggable bottom sheet. Map occupies most of the screen.
 
 ### Theme
 
-- **Dark mode** with glassmorphism: `rgba` backgrounds + `backdrop-filter: blur`
-- Background: `#0f1117` or similar dark
-- Panels: semi-transparent over the map
+Solid, light-first UI with an opt-in dark toggle (`ThemeToggle`, persisted via
+`useLocationStore`) — not the glassmorphism spec this section originally
+described. Only isolated surfaces (e.g. the score hero card's
+`.surface-glass-primary`) use a translucent/backdrop-blur treatment; panels in
+general are opaque.
+
+- **Brand colors**: single source of truth is `apps/web/src/styles/tokens.ts`
+  (hex scales for `primary`/`success`/`warning`/`error`, plus `info` aliased
+  to `primary` and `ink` for high-contrast text). `tailwind.config.ts` imports
+  it and wires each shade to a CSS variable, so Tailwind classes
+  (`bg-primary-500`, `text-error-600`, …) resolve through
+  `rgb(var(--color-x-500) / <alpha-value>)`.
+- **Dark mode**: the actual RGB values (light in `:root`, dark in `:root.dark`)
+  live in `src/i18n/globals.css`. Dark mode is a deliberate re-theme, not an
+  auto-invert — `primary` swaps to a distinct teal accent, while
+  `success`/`warning`/`error`/`slate` mirror shade-roles (50↔900, 100↔800, …).
+  Non-Tailwind consumers (Leaflet `divIcon` HTML strings and GeoJSON `style()`
+  callbacks in `MapContainer.tsx`) reference `rgb(var(--color-x-500))`
+  directly so they re-theme along with everything else — avoid literal CSS
+  colors (`white`, `black`, `rgba(0,0,0,...)`) in that file; use the
+  corresponding `--color-*` var instead, and match the `boxShadow` tokens'
+  `rgba(16,24,40,x)` convention for shadow color rather than plain black.
 - Font: Inter (via `next/font/google`)
 - Subtle micro-animations on interactions
 
@@ -339,6 +358,9 @@ Results panel becomes a draggable bottom sheet. Map occupies most of the screen.
 - Fix Leaflet default icon broken URLs in Next.js (delete `_getIconUrl`, set `iconUrl` manually)
 - Main location marker: red/accent colored pin
 - Category marker colors come from `/categories` API response (`color` field)
+  — a categorical palette hand-authored in `apps/api/app/config/scoring_config.py`
+  for marker-to-marker distinctiveness, intentionally separate from the
+  frontend brand tokens above
 - Cluster markers when count > 50 (use `leaflet.markercluster`)
 - Click marker → Leaflet popup: name, distance, category
 - Fit bounds on initial search result
