@@ -67,5 +67,10 @@ export const error = {
 // aliased rather than hand-duplicated, so there's only one blue to tune.
 export const info = primary;
 
-// Deep-navy heading/high-contrast text color (not pure black), Zoom-style.
+// Deep-navy body/high-contrast text color (not pure black), Zoom-style.
 export const ink = '#00053D';
+
+// Brand teal for all heading elements (h1-h6) -- see globals.css's :root
+// block for the dark-mode counterpart, which re-centers this hue brighter
+// (same treatment as primary) rather than reusing this exact value.
+export const heading = '#12837F';
