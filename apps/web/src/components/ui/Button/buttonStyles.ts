@@ -50,7 +50,7 @@ export const buttonColorVariants = cva("", {
       outline:
         "border border-primary-200 bg-white text-slate-700 hover:bg-primary-50 hover:border-primary-300 hover:text-primary-700 active:bg-primary-100 active:text-primary-700",
       ghost:
-        "text-slate-600 hover:text-primary-700 hover:bg-primary-50 active:bg-primary-100",
+        "text-slate-600 hover:text-primary-700 hover:bg-primary-50 active:bg-primary-100 active:text-primary-700",
       destructive:
         "bg-error-600 hover:bg-error-700 text-white active:bg-error-800",
       // No color classes at all -- for callers (e.g. Toast) that need the
