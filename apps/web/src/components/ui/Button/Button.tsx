@@ -4,8 +4,8 @@ import React, { forwardRef } from "react";
 import type { LucideIcon } from "lucide-react";
 import {
   BUTTON_BASE_CLASSES,
+  buttonColorVariants,
   getFocusRingClass,
-  getVariantClasses,
   type ButtonActiveVariant,
   type ButtonVariant,
 } from "./buttonStyles";
@@ -14,7 +14,15 @@ export type ButtonSize = "sm" | "md";
 
 type NativeButtonProps = Omit<
   React.ButtonHTMLAttributes<HTMLButtonElement>,
-  "onClick" | "disabled" | "title" | "className" | "type" | "children" | "aria-label" | "aria-pressed" | "tabIndex"
+  | "onClick"
+  | "disabled"
+  | "title"
+  | "className"
+  | "type"
+  | "children"
+  | "aria-label"
+  | "aria-pressed"
+  | "tabIndex"
 >;
 
 export interface ButtonProps extends NativeButtonProps {
@@ -55,72 +63,78 @@ const DEFAULT_ICON_SIZE: Record<ButtonSize, number> = {
   sm: 16,
 };
 
-export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
-  {
-    icon: Icon,
-    label,
-    children,
-    title,
-    ariaLabel,
-    onClick,
-    active = false,
-    activeVariant = "tint",
-    pressed,
-    disabled = false,
-    variant = "toolbar",
-    iconOnly = false,
-    size = "md",
-    unstyled = false,
-    className = "",
-    iconClassName,
-    labelClassName,
-    tabIndex,
-    ...rest
-  },
-  ref,
-) {
-  const shapeClasses = iconOnly
-    ? ICON_ONLY_SIZE_CLASSES[size]
-    : Icon
-      ? "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap"
-      : "inline-flex items-center justify-center px-4 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap";
+export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
+  function Button(
+    {
+      icon: Icon,
+      label,
+      children,
+      title,
+      ariaLabel,
+      onClick,
+      active = false,
+      activeVariant = "tint",
+      pressed,
+      disabled = false,
+      variant = "toolbar",
+      iconOnly = false,
+      size = "md",
+      unstyled = false,
+      className = "",
+      iconClassName,
+      labelClassName,
+      tabIndex,
+      ...rest
+    },
+    ref,
+  ) {
+    const shapeClasses = iconOnly
+      ? ICON_ONLY_SIZE_CLASSES[size]
+      : Icon
+        ? "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap"
+        : "inline-flex items-center justify-center px-4 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap";
 
-  const computedClassName = unstyled
-    ? className
-    : `
+    const computedClassName = unstyled
+      ? className
+      : `
         ${shapeClasses}
         ${BUTTON_BASE_CLASSES}
         ${getFocusRingClass(variant)}
-        ${getVariantClasses(variant, active, iconOnly, activeVariant)}
+        ${buttonColorVariants({ variant, active, iconOnly, activeVariant })}
         ${className}
       `.trim();
 
-  return (
-    <button
-      ref={ref}
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      aria-label={iconOnly ? (ariaLabel ?? label) : ariaLabel}
-      title={title ?? label}
-      aria-pressed={pressed}
-      tabIndex={tabIndex}
-      className={computedClassName}
-      {...rest}
-    >
-      {children ?? (
-        <>
-          {Icon &&
-            (iconClassName ? (
-              <Icon className={iconClassName} aria-hidden="true" />
-            ) : (
-              <Icon size={DEFAULT_ICON_SIZE[size]} strokeWidth={2} aria-hidden="true" />
-            ))}
-          {!iconOnly && <span className={labelClassName}>{label}</span>}
-        </>
-      )}
-    </button>
-  );
-});
+    return (
+      <button
+        ref={ref}
+        type="button"
+        onClick={onClick}
+        disabled={disabled}
+        aria-label={iconOnly ? (ariaLabel ?? label) : ariaLabel}
+        title={title ?? label}
+        aria-pressed={pressed}
+        tabIndex={tabIndex}
+        className={computedClassName}
+        {...rest}
+      >
+        {children ?? (
+          <>
+            {Icon &&
+              (iconClassName ? (
+                <Icon className={iconClassName} aria-hidden="true" />
+              ) : (
+                <Icon
+                  size={DEFAULT_ICON_SIZE[size]}
+                  strokeWidth={2}
+                  aria-hidden="true"
+                />
+              ))}
+            {!iconOnly && <span className={labelClassName}>{label}</span>}
+          </>
+        )}
+      </button>
+    );
+  },
+);
 
 export default Button;
