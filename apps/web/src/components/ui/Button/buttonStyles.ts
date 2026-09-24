@@ -48,7 +48,7 @@ export const buttonColorVariants = cva("", {
       secondary:
         "bg-primary-50 hover:bg-primary-100 text-primary-700 active:bg-primary-200",
       outline:
-        "border border-primary-200 bg-white text-slate-700 hover:bg-primary-50 hover:border-primary-300 active:bg-primary-100",
+        "border border-primary-200 bg-white text-slate-700 hover:bg-primary-50 hover:border-primary-300 hover:text-primary-700 active:bg-primary-100 active:text-primary-700",
       ghost:
         "text-slate-600 hover:text-primary-700 hover:bg-primary-50 active:bg-primary-100",
       destructive:
