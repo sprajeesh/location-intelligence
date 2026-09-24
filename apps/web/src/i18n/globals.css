@@ -13,22 +13,23 @@
    directly) without touching individual components.
 
    Light values mirror apps/web/src/styles/tokens.ts (source of truth for
-   brand hex). Dark values: primary/info swap to a teal accent per product
-   spec; success/warning/error/slate keep their hue but invert shade role
-   (50<->900, 100<->800, ...) so light-mode-light backgrounds/dark-text
-   pairs become dark backgrounds/light-text and stay legible. */
+   brand hex). Dark values: primary/info keep the same hue but are re-centered
+   brighter for contrast against a dark surface; success/warning/error/slate
+   keep their hue but invert shade role (50<->900, 100<->800, ...) so
+   light-mode-light backgrounds/dark-text pairs become dark
+   backgrounds/light-text and stay legible. */
 :root {
-  --color-primary-50: 239 245 255;
-  --color-primary-100: 219 233 255;
-  --color-primary-200: 184 210 255;
-  --color-primary-300: 138 180 255;
-  --color-primary-400: 83 137 255;
-  --color-primary-500: 11 92 255;
-  --color-primary-600: 0 68 219;
-  --color-primary-700: 0 54 173;
-  --color-primary-800: 0 44 135;
-  --color-primary-900: 1 37 107;
-  --color-primary-950: 1 22 66;
+  --color-primary-50: 232 249 255;
+  --color-primary-100: 202 241 255;
+  --color-primary-200: 151 228 255;
+  --color-primary-300: 83 211 255;
+  --color-primary-400: 3 190 255;
+  --color-primary-500: 0 113 152;
+  --color-primary-600: 0 93 125;
+  --color-primary-700: 0 73 99;
+  --color-primary-800: 0 57 77;
+  --color-primary-900: 0 46 62;
+  --color-primary-950: 0 28 38;
 
   --color-success-50: 236 253 243;
   --color-success-100: 209 250 223;
@@ -85,21 +86,22 @@
   --color-neutral-900: var(--color-slate-900);
 }
 
-/* Dark accent is a distinct teal (not a darkened blue) per product spec.
+/* Dark primary/info reuse the light-mode hue, re-centered brighter (not a
+   simple darkened blue) for contrast against a dark surface.
    success/warning/error/slate mirror shade roles: 50<->900, 100<->800,
    200<->700, 300<->600, 400<->500. */
 :root.dark {
-  --color-primary-50: 240 253 250;
-  --color-primary-100: 204 251 241;
-  --color-primary-200: 153 246 228;
-  --color-primary-300: 94 234 212;
-  --color-primary-400: 45 212 191;
-  --color-primary-500: 20 184 166;
-  --color-primary-600: 13 148 136;
-  --color-primary-700: 15 118 110;
-  --color-primary-800: 17 94 89;
-  --color-primary-900: 19 78 74;
-  --color-primary-950: 4 47 46;
+  --color-primary-50: 238 251 255;
+  --color-primary-100: 200 241 255;
+  --color-primary-200: 144 227 255;
+  --color-primary-300: 73 208 255;
+  --color-primary-400: 2 190 255;
+  --color-primary-500: 0 152 204;
+  --color-primary-600: 0 120 161;
+  --color-primary-700: 0 99 133;
+  --color-primary-800: 0 83 111;
+  --color-primary-900: 0 72 97;
+  --color-primary-950: 0 38 51;
 
   --color-success-50: 6 78 59;
   --color-success-100: 6 95 70;
