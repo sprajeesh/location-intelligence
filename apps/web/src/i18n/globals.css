@@ -76,6 +76,7 @@
   --color-slate-900: 15 23 42;
 
   --color-ink: 0 5 61;
+  --color-heading: 18 131 127;
   --color-white: 255 255 255;
 
   /* Legacy aliases for a few pre-Tailwind-scale consumers (Leaflet inline
@@ -148,6 +149,7 @@
   --color-slate-900: 248 250 252;
 
   --color-ink: 237 237 237;
+  --color-heading: 24 177 171;
   --color-white: 44 44 46;
 }
 
@@ -167,6 +169,15 @@ html {
 body {
   @apply bg-white text-ink;
   min-height: 100vh;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  @apply text-heading;
 }
 
 /* Single global keyboard-only focus indicator. Uses `outline` (not Tailwind's

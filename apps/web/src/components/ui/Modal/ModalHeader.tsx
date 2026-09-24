@@ -17,7 +17,7 @@ export function ModalHeader({ title, titleId, onClose, closeLabel, className = "
     <div
       className={`flex items-center justify-between px-4 py-3 border-b border-slate-200 flex-shrink-0 ${className}`.trim()}
     >
-      <h2 id={titleId} className="text-base font-semibold text-ink">
+      <h2 id={titleId} className="text-base font-semibold">
         {title}
       </h2>
       <IconButton icon={X} label={closeLabel} onClick={onClose} />
