@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.14.0](https://github.com/sprajeesh/location-intelligence/compare/web@v0.13.0...web@v0.14.0) (2026-09-24)
+
+
+### Features
+
+* **web:** move Scoring and Theme controls off the map into app-level placement ([#247](https://github.com/sprajeesh/location-intelligence/issues/247)) ([0ef78a8](https://github.com/sprajeesh/location-intelligence/commit/0ef78a8cedfcb7cc185f2236d4a38348a813e24f))
+* **web:** rebrand primary color scale to [#007198](https://github.com/sprajeesh/location-intelligence/issues/007198) ([#257](https://github.com/sprajeesh/location-intelligence/issues/257)) ([a0083ae](https://github.com/sprajeesh/location-intelligence/commit/a0083aee21d70b73e191f1a2fa1b728cc27098f5))
+
+
+### Bug Fixes
+
+* **web,api:** route remaining literal colors through brand tokens ([#249](https://github.com/sprajeesh/location-intelligence/issues/249)) ([06686f7](https://github.com/sprajeesh/location-intelligence/commit/06686f77e9324ab1336d0957ddfcb5f58a0c0cf6))
+* **web:** apply brand color to secondary/outline/ghost variants and headings ([#259](https://github.com/sprajeesh/location-intelligence/issues/259)) ([e3d4940](https://github.com/sprajeesh/location-intelligence/commit/e3d49408c80f5feb2a9834cb5bd5643f99b5e353))
+* **web:** neutralize outline variant text and dedupe 404 CTA styling ([#256](https://github.com/sprajeesh/location-intelligence/issues/256)) ([d5a3618](https://github.com/sprajeesh/location-intelligence/commit/d5a3618f9295cd8591b3cc9d18c77168eff87731))
+
 ## [0.13.0](https://github.com/sprajeesh/location-intelligence/compare/web@v0.12.4...web@v0.13.0) (2026-09-22)
 
 
