@@ -23,6 +23,7 @@ export function ThemeToggle({
   return (
     <Button
       icon={isDark ? Sun : Moon}
+      variant="ghost"
       label={
         isDark
           ? compact
