@@ -11,7 +11,10 @@ export interface ThemeToggleProps {
   compact?: boolean;
 }
 
-export function ThemeToggle({ className, compact = false }: ThemeToggleProps = {}) {
+export function ThemeToggle({
+  className,
+  compact = false,
+}: ThemeToggleProps = {}) {
   const theme = useLocationStore((s) => s.theme);
   const toggleTheme = useLocationStore((s) => s.toggleTheme);
   const isDark = theme === "dark";
