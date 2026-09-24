@@ -46,11 +46,11 @@ export const buttonColorVariants = cva("", {
       primary:
         "bg-primary-600 hover:bg-primary-700 text-white active:bg-primary-800",
       secondary:
-        "bg-slate-100 hover:bg-slate-200 text-slate-700 active:bg-slate-300",
+        "bg-primary-50 hover:bg-primary-100 text-primary-700 active:bg-primary-200",
       outline:
-        "border border-slate-200 bg-slate-50 text-slate-600 hover:text-slate-800 hover:bg-slate-100 active:bg-slate-200",
+        "border border-primary-200 bg-white text-slate-700 hover:bg-primary-50 hover:border-primary-300 active:bg-primary-100",
       ghost:
-        "text-slate-600 hover:text-slate-900 hover:bg-slate-100 active:bg-slate-200",
+        "text-slate-600 hover:text-primary-700 hover:bg-primary-50 active:bg-primary-100",
       destructive:
         "bg-error-600 hover:bg-error-700 text-white active:bg-error-800",
       // No color classes at all -- for callers (e.g. Toast) that need the
