@@ -250,8 +250,7 @@ def _facility_criteria(
                 label=f"Additional {_pluralize(label)} within {hard_cutoff:.1f} km",
                 satisfied=True,
                 detail=(
-                    f"{len(beyond_ref)} more {beyond_label} "
-                    f"up to {beyond_ref[-1]:.1f} km away."
+                    f"{len(beyond_ref)} more {beyond_label} up to {beyond_ref[-1]:.1f} km away."
                 ),
             )
         )
