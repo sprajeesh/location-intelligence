@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.0](https://github.com/sprajeesh/location-intelligence/compare/api@v0.7.1...api@v0.8.0) (2026-09-25)
+
+
+### Features
+
+* **api,web:** add score explainability with per-criterion breakdown and contribution weights ([#263](https://github.com/sprajeesh/location-intelligence/issues/263)) ([a7a0eb4](https://github.com/sprajeesh/location-intelligence/commit/a7a0eb46f130f5d15ccb0f854fb6b1feb7a80ae3))
+
 ## [0.7.1](https://github.com/sprajeesh/location-intelligence/compare/api@v0.7.0...api@v0.7.1) (2026-09-24)
 
 
