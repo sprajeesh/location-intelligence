@@ -580,9 +580,7 @@ class TestFacilityCriteria:
 
 
 class TestCategoryContributionRollup:
-    def test_weight_pct_sums_to_100_among_scored_members(
-        self, svc: LocationScoringService
-    ) -> None:
+    def test_weight_pct_sums_to_100_among_scored_members(self, svc: LocationScoringService) -> None:
         # Only hospitals + pharmacies requested; gps stays not_checked and must
         # not count toward the renormalized 100%.
         score = svc.score([], categories=["hospitals", "pharmacies"], unavailable=set())
