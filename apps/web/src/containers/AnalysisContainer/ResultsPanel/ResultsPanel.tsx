@@ -1,12 +1,14 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
+import { createPortal } from "react-dom";
 import { useTranslations } from "next-intl";
 import { Search, FileText } from "lucide-react";
 import { useLocationStore } from "@/store/index";
-import type { Feature } from "@/types/api";
+import type { CategoryScoreResult, Feature } from "@/types/api";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
 import ScoreDisplay from "@/components/ScoreDisplay";
+import { ScoreExplainModal } from "@/components/ScoreExplainModal";
 import { RadiusAdjuster } from "@/components/RadiusAdjuster";
 import { SurfacePanel } from "@/components/ui/SurfacePanel";
 import { useNavigate } from "@/hooks/useNavigate";
@@ -14,6 +16,16 @@ import { useAnalyze } from "@/hooks/useAnalyze";
 import { useAnalyzeCategories } from "@/hooks/useAnalyzeCategories";
 import { useAnalyzeCategoryWeights } from "@/hooks/useAnalyzeCategoryWeights";
 import { useCategoryColorMap } from "@/hooks/useCategoryColorMap";
+import { buildCategoryExplainItems, buildOverallExplainItems } from "@/utils/scoreDisplay";
+
+// What the "?" icon last opened -- owned here (not by ScoreDisplay/
+// CategoryScoreCard, which stay pure/prop-driven) so the modal can be
+// portaled to document.body, escaping the results panel's row-entrance
+// animation (see globals.css's .animate-row-in), which leaves a lingering
+// `transform` on its element and would otherwise turn it into a containing
+// block for the modal's `position: fixed` backdrop -- confining it to the
+// panel's width instead of the full viewport.
+type ExplainTarget = { kind: "overall" } | { kind: "category"; category: CategoryScoreResult };
 
 /**
  * ResultsPanel — Left side panel (desktop) or bottom sheet (mobile).
@@ -63,6 +75,14 @@ export default function ResultsPanel({
   const analyzeCategories = useAnalyzeCategories();
   const analyzeCategoryWeights = useAnalyzeCategoryWeights();
   const categoryColorMap = useCategoryColorMap();
+
+  const [explainTarget, setExplainTarget] = useState<ExplainTarget | null>(null);
+  const handleExplainOverall = useCallback(() => setExplainTarget({ kind: "overall" }), []);
+  const handleExplainCategory = useCallback(
+    (category: CategoryScoreResult) => setExplainTarget({ kind: "category", category }),
+    [],
+  );
+  const handleCloseExplain = useCallback(() => setExplainTarget(null), []);
 
   // On mobile, showing a marker switches from the results panel to the
   // full-screen map so the newly-shown pin is actually visible.
@@ -200,39 +220,70 @@ export default function ResultsPanel({
 
   // Render results
   return (
-    <SurfacePanel
-      key={addressKey}
-      as="section"
-      variant="sidebar"
-      aria-label={t("results.title")}
-      className={`w-full h-full overflow-hidden flex flex-col animate-panel-in ${className}`}
-    >
-      {/* Score -- the only part that scrolls */}
-      <div className="flex-1 min-h-0 overflow-y-auto px-4 sm:px-6 py-3 sm:py-4 space-y-3">
-        {analysisResult?.score && (
-          <ScoreDisplay
-            score={analysisResult.score}
-            warnings={analysisResult.warnings}
-            features={analysisResult.features}
-            categoryColorMap={categoryColorMap}
-            visibleFacilityIds={visibleFacilityIds}
-            onToggleFacilityVisibility={handleToggleFacilityVisibility}
-            onToggleCategoryVisibility={handleToggleCategoryVisibility}
-            onFacilityClick={handleFacilityClick}
-            onNavigate={navigate}
-          />
-        )}
-      </div>
+    <>
+      <SurfacePanel
+        key={addressKey}
+        as="section"
+        variant="sidebar"
+        aria-label={t("results.title")}
+        className={`w-full h-full overflow-hidden flex flex-col animate-panel-in ${className}`}
+      >
+        {/* Score -- the only part that scrolls */}
+        <div className="flex-1 min-h-0 overflow-y-auto px-4 sm:px-6 py-3 sm:py-4 space-y-3">
+          {analysisResult?.score && (
+            <ScoreDisplay
+              score={analysisResult.score}
+              warnings={analysisResult.warnings}
+              features={analysisResult.features}
+              categoryColorMap={categoryColorMap}
+              visibleFacilityIds={visibleFacilityIds}
+              onToggleFacilityVisibility={handleToggleFacilityVisibility}
+              onToggleCategoryVisibility={handleToggleCategoryVisibility}
+              onFacilityClick={handleFacilityClick}
+              onNavigate={navigate}
+              onExplainOverall={handleExplainOverall}
+              onExplainCategory={handleExplainCategory}
+            />
+          )}
+        </div>
 
-      {/* Radius adjuster — persistent, visible below the score */}
-      <div className="flex-shrink-0 border-t border-slate-200 px-4 sm:px-6 py-3 sm:py-4">
-        <RadiusAdjuster
-          key={addressKey}
-          initialValue={radiusKm}
-          disabled={isAnalyzing}
-          onSearch={handleRadiusSearch}
-        />
-      </div>
-    </SurfacePanel>
+        {/* Radius adjuster — persistent, visible below the score */}
+        <div className="flex-shrink-0 border-t border-slate-200 px-4 sm:px-6 py-3 sm:py-4">
+          <RadiusAdjuster
+            key={addressKey}
+            initialValue={radiusKm}
+            disabled={isAnalyzing}
+            onSearch={handleRadiusSearch}
+          />
+        </div>
+      </SurfacePanel>
+
+      {explainTarget &&
+        analysisResult?.score &&
+        createPortal(
+          <ScoreExplainModal
+            title={
+              explainTarget.kind === "overall"
+                ? t("score.title", { defaultValue: "Location Score" })
+                : t(`score.categories.${explainTarget.category.category}`, {
+                    defaultValue: explainTarget.category.category,
+                  })
+            }
+            score={
+              explainTarget.kind === "overall"
+                ? analysisResult.score.overall
+                : explainTarget.category.score
+            }
+            items={
+              explainTarget.kind === "overall"
+                ? buildOverallExplainItems(analysisResult.score)
+                : buildCategoryExplainItems(explainTarget.category)
+            }
+            itemNamespace={explainTarget.kind === "overall" ? "categories" : "facilityTypes"}
+            onClose={handleCloseExplain}
+          />,
+          document.body,
+        )}
+    </>
   );
 }

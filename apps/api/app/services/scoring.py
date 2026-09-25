@@ -4,7 +4,15 @@ from difflib import SequenceMatcher
 
 from app.clients.osrm import haversine_km
 from app.config.scoring_config import FacilityConfig
-from app.models.domain import CategoryScore, CompositeScore, Facility, FacilityScore
+from app.models.domain import (
+    CategoryContribution,
+    CategoryScore,
+    CompositeScore,
+    Facility,
+    FacilityContribution,
+    FacilityCriterion,
+    FacilityScore,
+)
 
 DEDUPE_DISTANCE_KM = 0.1  # ~100m
 NAME_SIMILARITY_THRESHOLD = 0.8
@@ -196,6 +204,116 @@ def _explain(
     )
 
 
+def _facility_criteria(
+    label: str,
+    poi_distances: list[float],
+    nearest_km: float,
+    reference_radius: float,
+    hard_cutoff: float,
+) -> list[FacilityCriterion]:
+    """Structured version of the same within_ref/beyond_ref split `_explain`
+    describes in prose -- reuses identical bucketing so the two never
+    diverge. Does not affect scoring; presentation only, same as `_explain`.
+    """
+    within_ref = sorted(d for d in poi_distances if d <= reference_radius)
+    beyond_ref = sorted(d for d in poi_distances if reference_radius < d <= hard_cutoff)
+
+    range_label = f"{_pluralize(label).capitalize()} within {reference_radius:.1f} km"
+    if not within_ref and not beyond_ref:
+        return [
+            FacilityCriterion(
+                label=range_label,
+                satisfied=False,
+                detail=f"No {_pluralize(label)} found within {hard_cutoff:.1f} km.",
+            )
+        ]
+
+    within_label = label if len(within_ref) == 1 else _pluralize(label)
+    criteria = [
+        FacilityCriterion(
+            label=range_label,
+            satisfied=bool(within_ref),
+            detail=(
+                f"{len(within_ref)} {within_label} within {reference_radius:.1f} km."
+                if within_ref
+                else (
+                    f"Nearest {label} is {nearest_km:.1f} km away, "
+                    f"beyond the {reference_radius:.1f} km range."
+                )
+            ),
+        )
+    ]
+    if beyond_ref:
+        beyond_label = label if len(beyond_ref) == 1 else _pluralize(label)
+        criteria.append(
+            FacilityCriterion(
+                label=f"Additional {_pluralize(label)} within {hard_cutoff:.1f} km",
+                satisfied=True,
+                detail=(
+                    f"{len(beyond_ref)} more {beyond_label} up to {beyond_ref[-1]:.1f} km away."
+                ),
+            )
+        )
+    return criteria
+
+
+def _facility_contributions(
+    members: dict[str, float], member_results: list[FacilityScore]
+) -> list[FacilityContribution]:
+    """Each member facility type's share of its category's weight, renormalized
+    over scored members exactly as `_score_category` renormalizes for the
+    score itself. Not-checked members and the zero-weight-sum edge case both
+    report weight_pct=0 -- consistent with `_score_category` giving that same
+    case a score of 0.0 rather than an artificial even split.
+    """
+    scored = [fs for fs in member_results if fs.status == "scored"]
+    weight_sum = sum(members[fs.facility_type] for fs in scored)
+
+    contributions = []
+    for fs in member_results:
+        can_weigh = fs.status == "scored" and weight_sum > 0
+        weight_pct = round(members[fs.facility_type] / weight_sum * 100, 1) if can_weigh else 0.0
+        contributions.append(
+            FacilityContribution(
+                facility_type=fs.facility_type,
+                weight_pct=weight_pct,
+                score=fs.score if fs.status == "scored" else None,
+            )
+        )
+    return contributions
+
+
+def _category_contributions(
+    effective_category_weights: dict[str, float], category_results: list[CategoryScore]
+) -> list[CategoryContribution]:
+    """Each category's share of the composite weight, mirroring the same
+    weight_sum/even-split-fallback logic `score()` uses to compute `overall`,
+    so the reported contribution always matches what actually happened for
+    this request (including category_weight_overrides).
+    """
+    scored = [c for c in category_results if c.status == "scored"]
+    weight_sum = sum(effective_category_weights[c.category] for c in scored)
+    weights_for_contribution = effective_category_weights
+    if weight_sum <= 0 and scored:
+        weights_for_contribution = {c.category: 1.0 for c in scored}
+        weight_sum = float(len(scored))
+
+    contributions = []
+    for c in category_results:
+        can_weigh = c.status == "scored" and weight_sum > 0
+        weight_pct = (
+            round(weights_for_contribution[c.category] / weight_sum * 100, 1) if can_weigh else 0.0
+        )
+        contributions.append(
+            CategoryContribution(
+                category=c.category,
+                weight_pct=weight_pct,
+                score=c.score if c.status == "scored" else None,
+            )
+        )
+    return contributions
+
+
 class LocationScoringService:
     """Three-layer scoring: facility -> category -> composite.
 
@@ -274,7 +392,14 @@ class LocationScoringService:
 
         coverage = f"{len(scored_categories)}/{len(self._category_weights)}"
 
-        return CompositeScore(overall=overall, coverage=coverage, categories=category_results)
+        contribution = _category_contributions(effective_category_weights, category_results)
+
+        return CompositeScore(
+            overall=overall,
+            coverage=coverage,
+            categories=category_results,
+            contribution=contribution,
+        )
 
     def _score_facility(
         self, facility_type: str, group: list[Facility], checked: bool
@@ -283,13 +408,20 @@ class LocationScoringService:
         label = cfg.singular_label
 
         if not checked:
+            capitalized = label[0].upper() + label[1:]
+            explanation = f"{capitalized} not checked for this address."
             return FacilityScore(
                 facility_type=facility_type,
                 status="not_checked",
                 score=None,
                 nearest_distance_km=None,
                 count=0,
-                explanation=f"{label[0].upper() + label[1:]} not checked for this address.",
+                explanation=explanation,
+                criteria=[
+                    FacilityCriterion(
+                        label=f"{capitalized} checked", satisfied=None, detail=explanation
+                    )
+                ],
             )
 
         group = dedupe_pois(group)
@@ -301,13 +433,21 @@ class LocationScoringService:
                 f.drive_distance_km for f in group if f.drive_distance_km is not None
             ]
             if not walk_distances and not drive_distances:
+                explanation = f"No {label} found nearby."
                 return FacilityScore(
                     facility_type=facility_type,
                     status="scored",
                     score=0.0,
                     nearest_distance_km=None,
                     count=count,
-                    explanation=f"No {label} found nearby.",
+                    explanation=explanation,
+                    criteria=[
+                        FacilityCriterion(
+                            label=f"{label[0].upper() + label[1:]} found nearby",
+                            satisfied=False,
+                            detail=explanation,
+                        )
+                    ],
                 )
             score, leg, nearest = _facility_score_best_of_both(cfg, walk_distances, drive_distances)
             if leg == "walk":
@@ -333,17 +473,28 @@ class LocationScoringService:
                 explanation=_explain(
                     label, leg_distances, nearest, leg, leg_reference_radius, leg_hard_cutoff
                 ),
+                criteria=_facility_criteria(
+                    label, leg_distances, nearest, leg_reference_radius, leg_hard_cutoff
+                ),
             )
 
         distances = [f.distance_km for f in group if f.distance_km is not None]
         if not distances:
+            explanation = f"No {label} found nearby."
             return FacilityScore(
                 facility_type=facility_type,
                 status="scored",
                 score=0.0,
                 nearest_distance_km=None,
                 count=count,
-                explanation=f"No {label} found nearby.",
+                explanation=explanation,
+                criteria=[
+                    FacilityCriterion(
+                        label=f"{label[0].upper() + label[1:]} found nearby",
+                        satisfied=False,
+                        detail=explanation,
+                    )
+                ],
             )
 
         nearest = min(distances)
@@ -357,6 +508,9 @@ class LocationScoringService:
             explanation=_explain(
                 label, distances, nearest, cfg.distance_mode, cfg.reference_radius, cfg.hard_cutoff
             ),
+            criteria=_facility_criteria(
+                label, distances, nearest, cfg.reference_radius, cfg.hard_cutoff
+            ),
         )
 
     def _score_category(
@@ -365,10 +519,15 @@ class LocationScoringService:
         members = self._category_facility_weights[category]
         member_results = [facility_scores[facility_type] for facility_type in members]
         scored = [fs for fs in member_results if fs.status == "scored"]
+        contribution = _facility_contributions(members, member_results)
 
         if not scored:
             return CategoryScore(
-                category=category, status="not_checked", score=None, facilities=member_results
+                category=category,
+                status="not_checked",
+                score=None,
+                facilities=member_results,
+                contribution=contribution,
             )
 
         weight_sum = sum(members[fs.facility_type] for fs in scored)
@@ -379,5 +538,9 @@ class LocationScoringService:
         score = weighted_total / weight_sum if weight_sum > 0 else 0.0
 
         return CategoryScore(
-            category=category, status="scored", score=round(score, 1), facilities=member_results
+            category=category,
+            status="scored",
+            score=round(score, 1),
+            facilities=member_results,
+            contribution=contribution,
         )

@@ -117,7 +117,7 @@ describe('MapToolbarContainer', () => {
         analysisResult: {
           location: { lat: 0, lon: 0, displayName: 'Test' },
           features: [],
-          score: { overall: null, coverage: '0/5', categories: [] },
+          score: { overall: null, coverage: '0/5', categories: [], contribution: [] },
           warnings: [],
         },
       });
@@ -132,7 +132,7 @@ describe('MapToolbarContainer', () => {
           features: [
             { id: '1', name: 'Feature 1', category: 'schools', lat: -36.85, lon: 174.76, distanceKm: 1.2 },
           ],
-          score: { overall: 72, coverage: '1/5', categories: [] },
+          score: { overall: 72, coverage: '1/5', categories: [], contribution: [] },
           warnings: [],
         },
       });
@@ -150,7 +150,7 @@ describe('MapToolbarContainer', () => {
             { id: '1', name: 'Feature 1', category: 'schools', lat: -36.85, lon: 174.76, distanceKm: 1.2 },
             { id: '2', name: 'Feature 2', category: 'bus_stops', lat: -36.86, lon: 174.77, distanceKm: 2.0 },
           ],
-          score: { overall: 77, coverage: '2/5', categories: [] },
+          score: { overall: 77, coverage: '2/5', categories: [], contribution: [] },
           warnings: [],
         },
       });
@@ -168,7 +168,7 @@ describe('MapToolbarContainer', () => {
         analysisResult: {
           location: { lat: 0, lon: 0, displayName: 'Test' },
           features: [],
-          score: { overall: null, coverage: '0/5', categories: [] },
+          score: { overall: null, coverage: '0/5', categories: [], contribution: [] },
           warnings: [],
         },
       });
