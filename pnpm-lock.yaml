@@ -61,8 +61,8 @@ importers:
         specifier: ^5.3.0
         version: 5.9.3
       zustand:
-        specifier: 5.0.0
-        version: 5.0.0(@types/react@19.2.17)(react@19.0.0)
+        specifier: 5.0.15
+        version: 5.0.15(@types/react@19.2.17)(react@19.0.0)
     devDependencies:
       '@opennextjs/cloudflare':
         specifier: ^1.20.1
@@ -5016,8 +5016,8 @@ packages:
   zod@4.4.3:
     resolution: {integrity: sha512-ytENFjIJFl2UwYglde2jchW2Hwm4GJFLDiSXWdTrJQBIN9Fcyp7n4DhxJEiWNAJMV1/BqWfW/kkg71UDcHJyTQ==}
 
-  zustand@5.0.0:
-    resolution: {integrity: sha512-LE+VcmbartOPM+auOjCCLQOsQ05zUTp8RkgwRzefUk+2jISdMMFnxvyTjA4YNWr5ZGXYbVsEMZosttuxUBkojQ==}
+  zustand@5.0.15:
+    resolution: {integrity: sha512-MpSEjRiBkA9crSYeOUH32rJC7SVqAbm0Fqcqge/bUi2PPoLcBWKOsG+C8mevmpr8TwXHBVkChbbJiyvkE+i/3A==}
     engines: {node: '>=12.20.0'}
     peerDependencies:
       '@types/react': '>=18.0.0'
@@ -10331,6 +10331,7 @@ snapshots:
       jest-worker: 27.5.1
       schema-utils: 4.5.0
       terser: 5.51.2
+      webpack: 5.107.2(@swc/core@1.15.43(@swc/helpers@0.5.23))(postcss@8.5.23)
       webpack: 5.107.2(@swc/core@1.16.2(@swc/helpers@0.5.23))(postcss@8.5.23)
     optionalDependencies:
       '@swc/core': 1.16.2(@swc/helpers@0.5.23)
@@ -10819,7 +10820,7 @@ snapshots:
 
   zod@4.4.3: {}
 
-  zustand@5.0.0(@types/react@19.2.17)(react@19.0.0):
+  zustand@5.0.15(@types/react@19.2.17)(react@19.0.0):
     optionalDependencies:
       '@types/react': 19.2.17
       react: 19.0.0
