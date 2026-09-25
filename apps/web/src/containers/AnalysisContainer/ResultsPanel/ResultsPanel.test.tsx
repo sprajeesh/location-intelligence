@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import ResultsPanel from './ResultsPanel';
-import type { AnalyzeResponse, Feature, ScoreResult } from '@/types/api';
+import type { AnalyzeResponse, CategoryScoreResult, Feature, ScoreResult } from '@/types/api';
 
 jest.mock('@/store');
 jest.mock('@/hooks/useAnalyze');
@@ -62,6 +62,8 @@ jest.mock('@/components/ScoreDisplay', () => ({
     onToggleCategoryVisibility,
     onFacilityClick,
     onNavigate,
+    onExplainOverall,
+    onExplainCategory,
   }: {
     score: ScoreResult;
     features?: Feature[];
@@ -71,6 +73,8 @@ jest.mock('@/components/ScoreDisplay', () => ({
     onToggleCategoryVisibility?: (featureIds: string[], makeVisible: boolean) => void;
     onFacilityClick?: (feature: Feature) => void;
     onNavigate?: (feature: Feature) => void;
+    onExplainOverall?: () => void;
+    onExplainCategory?: (category: CategoryScoreResult) => void;
   }) => {
     const firstFeature = features?.[0];
     return (
@@ -109,6 +113,18 @@ jest.mock('@/components/ScoreDisplay', () => ({
           </button>
         </>
       )}
+      <button data-testid="explain-overall" onClick={() => onExplainOverall?.()}>
+        explain overall
+      </button>
+      {score.categories.map((category) => (
+        <button
+          key={category.category}
+          data-testid={`explain-category-${category.category}`}
+          onClick={() => onExplainCategory?.(category)}
+        >
+          explain {category.category}
+        </button>
+      ))}
     </div>
     );
   },
@@ -131,11 +147,13 @@ const MOCK_ADDRESS = {
 const mockScore: ScoreResult = {
   overall: 77,
   coverage: '2/5',
+  contribution: [],
   categories: [
     {
       category: 'education',
       status: 'scored',
       score: 72,
+      contribution: [],
       facilities: [
         {
           facilityType: 'schools',
@@ -144,6 +162,7 @@ const mockScore: ScoreResult = {
           nearestDistanceKm: 0.5,
           count: 3,
           explanation: '3 schools within 1.0 km by walk.',
+          criteria: [],
         },
       ],
     },
@@ -151,6 +170,7 @@ const mockScore: ScoreResult = {
       category: 'transport',
       status: 'scored',
       score: 85,
+      contribution: [],
       facilities: [
         {
           facilityType: 'bus_stops',
@@ -159,6 +179,7 @@ const mockScore: ScoreResult = {
           nearestDistanceKm: 0.3,
           count: 2,
           explanation: '2 bus_stops within 1.0 km by walk.',
+          criteria: [],
         },
       ],
     },
@@ -529,6 +550,56 @@ describe('ResultsPanel', () => {
         radiusKm: 8,
         distanceMode: 'driving',
       });
+    });
+  });
+
+  // ResultsPanel owns the explain-modal open/close state (not ScoreDisplay/
+  // CategoryScoreCard, which stay pure/prop-driven -- see their own tests)
+  // and portals ScoreExplainModal to document.body so it isn't confined by
+  // the results panel's row-entrance animation. RTL's screen queries search
+  // document.body by default, so the portaled dialog is found the same way
+  // as anything rendered inside the test's own container.
+  describe('Score explanation modal', () => {
+    beforeEach(() => {
+      mockUseLocationStore.mockReturnValue(makeStoreState({ analysisResult: mockAnalysisResult }));
+    });
+
+    it('does not render a dialog until an explain button is clicked', () => {
+      render(<ResultsPanel />);
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+
+    it('opens the modal for the overall score', async () => {
+      render(<ResultsPanel />);
+      await userEvent.click(screen.getByTestId('explain-overall'));
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+      expect(screen.getByText('Location Score')).toBeInTheDocument();
+    });
+
+    it('opens the modal for a specific category', async () => {
+      render(<ResultsPanel />);
+      await userEvent.click(screen.getByTestId('explain-category-education'));
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+      expect(screen.getByText('education')).toBeInTheDocument();
+    });
+
+    it('closes the modal and can reopen it for a different target', async () => {
+      render(<ResultsPanel />);
+      await userEvent.click(screen.getByTestId('explain-category-education'));
+      await userEvent.click(screen.getByRole('button', { name: 'Close' }));
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+
+      await userEvent.click(screen.getByTestId('explain-category-transport'));
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+      expect(screen.getByText('transport')).toBeInTheDocument();
+    });
+
+    it('renders the dialog as a direct child of document.body, not nested inside the panel', async () => {
+      const { container } = render(<ResultsPanel />);
+      await userEvent.click(screen.getByTestId('explain-overall'));
+      const dialog = screen.getByRole('dialog');
+      expect(container.contains(dialog)).toBe(false);
+      expect(document.body.contains(dialog)).toBe(true);
     });
   });
 
