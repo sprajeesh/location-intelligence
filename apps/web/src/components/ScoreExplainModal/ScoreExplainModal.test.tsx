@@ -61,8 +61,10 @@ describe('ScoreExplainModal', () => {
     );
     const dialog = screen.getByRole('dialog');
     expect(dialog).toBeInTheDocument();
-    expect(screen.getByText('Education')).toBeInTheDocument();
-    expect(screen.getByText('61/100')).toBeInTheDocument();
+    expect(screen.getAllByText('Education').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('61').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText('/100')).toBeInTheDocument();
+    expect(screen.getByText('Average')).toBeInTheDocument();
   });
 
   it('renders "Not assessed" instead of a score when the score is null', () => {
@@ -130,7 +132,7 @@ describe('ScoreExplainModal', () => {
       />,
     );
     expect(screen.getAllByText('Education').length).toBeGreaterThanOrEqual(1);
-    expect(screen.getByText('61')).toBeInTheDocument();
+    expect(screen.getAllByText('61').length).toBeGreaterThanOrEqual(2);
   });
 
   it('renders the weight and score contribution line for a scored item', () => {

@@ -47,7 +47,12 @@
       "why": "Why this score",
       "howCalculated": "How it's calculated",
       "notChecked": "{label}: not checked for this address.",
-      "contribution": "{weightPct}% weight · scored {score}/100"
+      "contribution": "{weightPct}% weight · scored {score}/100",
+      "band": {
+        "good": "Good",
+        "moderate": "Average",
+        "poor": "Below average"
+      }
     },
     "categories": {
       "education": "Education",
