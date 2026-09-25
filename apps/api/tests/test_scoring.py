@@ -264,6 +264,9 @@ class TestBestOfBoth:
         assert rs.status == "scored"
         assert "walk" in rs.explanation
         assert rs.nearest_distance_km == pytest.approx(0.3)
+        # Criteria must use the winning (walk) leg's reference_radius (1.0km),
+        # not the losing (drive) leg's (5.0km).
+        assert "1.0 km" in rs.criteria[0].label
 
     def test_drive_leg_used_when_unreachable_on_foot(self, svc: LocationScoringService) -> None:
         station = make_facility(
@@ -276,6 +279,9 @@ class TestBestOfBoth:
         assert rs.status == "scored"
         assert "drive" in rs.explanation
         assert rs.nearest_distance_km == pytest.approx(4.0)
+        # Criteria must use the winning (drive) leg's reference_radius (5.0km),
+        # not the walk leg's (1.0km).
+        assert "5.0 km" in rs.criteria[0].label
 
 
 class TestOverallComposite:
@@ -511,3 +517,178 @@ class TestExplanationBucketing:
         # ...but no discontinuity in the actual score (hard_cutoff, not
         # reference_radius, gates the density sum — both POIs are well within it).
         assert abs(inside_fs.score - outside_fs.score) < 1.0
+
+
+class TestFacilityCriteria:
+    """Structured criteria must never diverge from the prose `_explain` already
+    produces from the same within_ref/beyond_ref bucketing."""
+
+    def test_matches_explanation_bucketing_for_mixed_near_and_far(
+        self, svc: LocationScoringService
+    ) -> None:
+        facilities = [
+            make_facility("schools", distance_km=0.2, fid="s1"),
+            make_facility("schools", distance_km=0.5, fid="s2"),
+            make_facility("schools", distance_km=0.9, fid="s3"),
+            make_facility("schools", distance_km=2.8, fid="s4"),  # beyond reference_radius (1.0km)
+        ]
+        score = svc.score(facilities, categories=["schools"], unavailable=set())
+        education = next(c for c in score.categories if c.category == "education")
+        schools_fs = next(f for f in education.facilities if f.facility_type == "schools")
+
+        assert len(schools_fs.criteria) == 2
+        within, beyond = schools_fs.criteria
+        assert within.satisfied is True
+        assert "3 school" in within.detail
+        assert beyond.satisfied is True
+        assert "1 more" in beyond.detail
+        assert "2.8 km" in beyond.detail
+
+    def test_no_facilities_within_hard_cutoff_is_unsatisfied(
+        self, svc: LocationScoringService
+    ) -> None:
+        score = svc.score([], categories=["schools"], unavailable=set())
+        education = next(c for c in score.categories if c.category == "education")
+        schools_fs = next(f for f in education.facilities if f.facility_type == "schools")
+
+        assert schools_fs.status == "scored"
+        assert schools_fs.score == 0.0
+        assert len(schools_fs.criteria) == 1
+        assert schools_fs.criteria[0].satisfied is False
+
+    def test_only_beyond_reference_radius_bucket(self, svc: LocationScoringService) -> None:
+        cfg = FACILITY_CONFIGS["schools"]
+        far = cfg.reference_radius + 0.1
+        assert far <= cfg.hard_cutoff
+        facilities = [make_facility("schools", distance_km=far, fid="s1")]
+        score = svc.score(facilities, categories=["schools"], unavailable=set())
+        education = next(c for c in score.categories if c.category == "education")
+        schools_fs = next(f for f in education.facilities if f.facility_type == "schools")
+
+        assert len(schools_fs.criteria) == 2
+        assert schools_fs.criteria[0].satisfied is False
+        assert schools_fs.criteria[1].satisfied is True
+
+    def test_not_checked_criterion_has_null_satisfied(self, svc: LocationScoringService) -> None:
+        score = svc.score([], categories=[], unavailable=set())
+        education = next(c for c in score.categories if c.category == "education")
+        schools_fs = next(f for f in education.facilities if f.facility_type == "schools")
+
+        assert schools_fs.status == "not_checked"
+        assert len(schools_fs.criteria) == 1
+        assert schools_fs.criteria[0].satisfied is None
+
+
+class TestCategoryContributionRollup:
+    def test_weight_pct_sums_to_100_among_scored_members(
+        self, svc: LocationScoringService
+    ) -> None:
+        # Only hospitals + pharmacies requested; gps stays not_checked and must
+        # not count toward the renormalized 100%.
+        score = svc.score([], categories=["hospitals", "pharmacies"], unavailable=set())
+        healthcare = next(c for c in score.categories if c.category == "healthcare")
+
+        scored = [c for c in healthcare.contribution if c.score is not None]
+        assert {c.facility_type for c in scored} == {"hospitals", "pharmacies"}
+        assert sum(c.weight_pct for c in scored) == pytest.approx(100.0)
+
+        members = CATEGORY_FACILITY_WEIGHTS["healthcare"]
+        expected_hospitals_pct = (
+            members["hospitals"] / (members["hospitals"] + members["pharmacies"]) * 100
+        )
+        hospitals_contribution = next(
+            c for c in healthcare.contribution if c.facility_type == "hospitals"
+        )
+        assert hospitals_contribution.weight_pct == pytest.approx(expected_hospitals_pct, rel=1e-2)
+
+    def test_not_checked_member_has_zero_weight_and_null_score(
+        self, svc: LocationScoringService
+    ) -> None:
+        score = svc.score([], categories=["hospitals", "pharmacies"], unavailable=set())
+        healthcare = next(c for c in score.categories if c.category == "healthcare")
+
+        gps_contribution = next(c for c in healthcare.contribution if c.facility_type == "gps")
+        assert gps_contribution.weight_pct == 0.0
+        assert gps_contribution.score is None
+
+    def test_not_checked_category_all_members_zero_weight_and_null_score(
+        self, svc: LocationScoringService
+    ) -> None:
+        score = svc.score([], categories=["schools"], unavailable=set())
+        shopping = next(c for c in score.categories if c.category == "shopping")
+
+        assert shopping.status == "not_checked"
+        assert all(c.weight_pct == 0.0 for c in shopping.contribution)
+        assert all(c.score is None for c in shopping.contribution)
+
+
+class TestCompositeContributionRollup:
+    def test_weight_pct_sums_to_100_among_scored_categories(
+        self, svc: LocationScoringService
+    ) -> None:
+        school = make_facility("schools", distance_km=0.0, fid="s1")
+        bus = make_facility("bus_stops", distance_km=0.0, fid="b1")
+        score = svc.score([school, bus], categories=["schools", "bus_stops"], unavailable=set())
+
+        scored = [c for c in score.contribution if c.score is not None]
+        assert {c.category for c in scored} == {"education", "transport"}
+        assert sum(c.weight_pct for c in scored) == pytest.approx(100.0)
+
+        expected_education_pct = (
+            CATEGORY_WEIGHTS["education"]
+            / (CATEGORY_WEIGHTS["education"] + CATEGORY_WEIGHTS["transport"])
+            * 100
+        )
+        education_contribution = next(c for c in score.contribution if c.category == "education")
+        assert education_contribution.weight_pct == pytest.approx(expected_education_pct, rel=1e-2)
+
+    def test_not_checked_category_has_zero_weight_and_null_score(
+        self, svc: LocationScoringService
+    ) -> None:
+        score = svc.score([], categories=["schools"], unavailable=set())
+        shopping_contribution = next(c for c in score.contribution if c.category == "shopping")
+        assert shopping_contribution.weight_pct == 0.0
+        assert shopping_contribution.score is None
+
+    def test_override_is_reflected_in_contribution_not_static_config(
+        self, svc: LocationScoringService
+    ) -> None:
+        school = make_facility("schools", distance_km=0.0, fid="s1")
+        bus = make_facility("bus_stops", distance_km=25.0, fid="b1")
+        score = svc.score(
+            [school, bus],
+            categories=["schools", "bus_stops"],
+            unavailable=set(),
+            category_weight_overrides={"education": 0.1, "transport": 0.9},
+        )
+
+        education_contribution = next(c for c in score.contribution if c.category == "education")
+        transport_contribution = next(c for c in score.contribution if c.category == "transport")
+        assert education_contribution.weight_pct == pytest.approx(10.0)
+        assert transport_contribution.weight_pct == pytest.approx(90.0)
+
+    def test_even_split_fallback_reflected_in_contribution(
+        self, svc: LocationScoringService
+    ) -> None:
+        # Recreation and Food & Drink both default to 0.0 composite weight, so
+        # `score()` falls back to an even split between them for `overall` --
+        # contribution must report that same fallback, not the raw 0.0 weights.
+        park = make_facility("parks", distance_km=0.0, fid="p1")
+        restaurant = make_facility("restaurants", distance_km=0.0, fid="r1")
+        score = svc.score(
+            [park, restaurant], categories=["parks", "restaurants"], unavailable=set()
+        )
+
+        recreation_contribution = next(c for c in score.contribution if c.category == "recreation")
+        food_contribution = next(c for c in score.contribution if c.category == "food_and_drink")
+        assert recreation_contribution.weight_pct == pytest.approx(50.0)
+        assert food_contribution.weight_pct == pytest.approx(50.0)
+
+    def test_no_categories_requested_all_zero_weight_and_null_score(
+        self, svc: LocationScoringService
+    ) -> None:
+        score = svc.score([], categories=[], unavailable=set())
+        assert score.overall is None
+        assert len(score.contribution) == len(CATEGORY_WEIGHTS)
+        assert all(c.weight_pct == 0.0 for c in score.contribution)
+        assert all(c.score is None for c in score.contribution)

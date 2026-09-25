@@ -7,7 +7,10 @@ from app.models.domain import Facility
 from app.schemas.requests import AnalyzeRequest
 from app.schemas.responses import (
     AnalyzeResponse,
+    CategoryContributionResult,
     CategoryScoreResult,
+    FacilityContributionResult,
+    FacilityCriterionResult,
     FacilityScoreResult,
     FeatureResult,
     LocationResult,
@@ -156,11 +159,35 @@ async def analyze_location(
                         nearest_distance_km=fac.nearest_distance_km,
                         count=fac.count,
                         explanation=fac.explanation,
+                        criteria=[
+                            FacilityCriterionResult(
+                                label=criterion.label,
+                                satisfied=criterion.satisfied,
+                                detail=criterion.detail,
+                            )
+                            for criterion in fac.criteria
+                        ],
                     )
                     for fac in cat.facilities
                 ],
+                contribution=[
+                    FacilityContributionResult(
+                        facility_type=contrib.facility_type,
+                        weight_pct=contrib.weight_pct,
+                        score=contrib.score,
+                    )
+                    for contrib in cat.contribution
+                ],
             )
             for cat in domain_score.categories
+        ],
+        contribution=[
+            CategoryContributionResult(
+                category=contrib.category,
+                weight_pct=contrib.weight_pct,
+                score=contrib.score,
+            )
+            for contrib in domain_score.contribution
         ],
     )
 
