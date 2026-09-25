@@ -218,7 +218,7 @@ def _facility_criteria(
     within_ref = sorted(d for d in poi_distances if d <= reference_radius)
     beyond_ref = sorted(d for d in poi_distances if reference_radius < d <= hard_cutoff)
 
-    range_label = f"{label} within {reference_radius:.1f} km"
+    range_label = f"{_pluralize(label).capitalize()} within {reference_radius:.1f} km"
     if not within_ref and not beyond_ref:
         return [
             FacilityCriterion(
@@ -228,12 +228,13 @@ def _facility_criteria(
             )
         ]
 
+    within_label = label if len(within_ref) == 1 else _pluralize(label)
     criteria = [
         FacilityCriterion(
             label=range_label,
             satisfied=bool(within_ref),
             detail=(
-                f"{len(within_ref)} {_pluralize(label)} within {reference_radius:.1f} km."
+                f"{len(within_ref)} {within_label} within {reference_radius:.1f} km."
                 if within_ref
                 else (
                     f"Nearest {label} is {nearest_km:.1f} km away, "
@@ -243,12 +244,13 @@ def _facility_criteria(
         )
     ]
     if beyond_ref:
+        beyond_label = label if len(beyond_ref) == 1 else _pluralize(label)
         criteria.append(
             FacilityCriterion(
                 label=f"Additional {_pluralize(label)} within {hard_cutoff:.1f} km",
                 satisfied=True,
                 detail=(
-                    f"{len(beyond_ref)} more {_pluralize(label)} "
+                    f"{len(beyond_ref)} more {beyond_label} "
                     f"up to {beyond_ref[-1]:.1f} km away."
                 ),
             )
