@@ -1,4 +1,10 @@
-import type { CategoryId, CategoryScoreResult, FacilityScoreResult } from "@/types/api";
+import type {
+  CategoryId,
+  CategoryScoreResult,
+  FacilityCriterion,
+  FacilityScoreResult,
+  ScoreResult,
+} from "@/types/api";
 
 /**
  * Canonical display order for the six categories, matching CATEGORY_WEIGHTS'
@@ -100,4 +106,51 @@ export function resolveFacilityDisplayStatus(
   if (facility.status === "not_checked") return "not_checked";
   if (facility.count === 0) return "no_data_found";
   return "scored";
+}
+
+/**
+ * One row of the score explanation panel -- a facility type (within a
+ * category's explanation) or a category (within the overall explanation).
+ * `kind` tells the panel which template to render; it's set explicitly by
+ * the two builders below rather than inferred from `criteria` being empty,
+ * so rendering never depends on an unenforced backend invariant (that
+ * facility-type criteria lists are never empty). `criteria` itself is only
+ * ever populated for facility-type rows -- category rows have no structured
+ * criteria of their own, only a score/status/weight.
+ */
+export interface ExplainItem {
+  /** facilityType (category modal) or CategoryId (overall modal) -- translate via
+   * score.facilityTypes.<key> / score.categories.<key> in the component. */
+  key: string;
+  kind: "facility" | "category";
+  status: "not_checked" | "scored";
+  score: number | null;
+  weightPct: number;
+  criteria: FacilityCriterion[];
+}
+
+/** Builds the explanation rows for one category's modal, one per member facility type. */
+export function buildCategoryExplainItems(category: CategoryScoreResult): ExplainItem[] {
+  const contributionByType = new Map(category.contribution.map((c) => [c.facilityType, c]));
+  return sortFacilitiesForDisplay(category.category, category.facilities).map((facility) => ({
+    key: facility.facilityType,
+    kind: "facility",
+    status: facility.status,
+    score: facility.score,
+    weightPct: contributionByType.get(facility.facilityType)?.weightPct ?? 0,
+    criteria: facility.criteria,
+  }));
+}
+
+/** Builds the explanation rows for the overall-score modal, one per category. */
+export function buildOverallExplainItems(score: ScoreResult): ExplainItem[] {
+  const contributionByCategory = new Map(score.contribution.map((c) => [c.category, c]));
+  return sortCategoriesForDisplay(score.categories).map((category) => ({
+    key: category.category,
+    kind: "category",
+    status: category.status,
+    score: category.score,
+    weightPct: contributionByCategory.get(category.category)?.weightPct ?? 0,
+    criteria: [],
+  }));
 }

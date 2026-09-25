@@ -40,6 +40,15 @@
       "expand": "Expand {label}",
       "collapse": "Collapse {label}"
     },
+    "explain": {
+      "openOverall": "Explain the overall score",
+      "openCategory": "Explain the {label} score",
+      "close": "Close",
+      "why": "Why this score",
+      "howCalculated": "How it's calculated",
+      "notChecked": "{label}: not checked for this address.",
+      "contribution": "{weightPct}% weight · scored {score}/100"
+    },
     "categories": {
       "education": "Education",
       "transport": "Transport",
