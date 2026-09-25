@@ -93,6 +93,57 @@ function ExplainRow({
   );
 }
 
+/**
+ * WeightDonut — compact multi-segment ring showing each scored item's share
+ * of the overall weight, colored by that item's own score tier (so it reads
+ * as "how much this counts, and how well it did" at a glance) exactly like
+ * ScoreRing's tier coloring. Renders nothing with fewer than 2 scored items,
+ * where a single-segment ring would carry no information.
+ */
+function WeightDonut({ items }: { items: ExplainItem[] }) {
+  const scored = items.filter((item) => item.status === "scored" && item.weightPct > 0);
+  if (scored.length < 2) return null;
+
+  const size = 72;
+  const strokeWidth = 12;
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const center = size / 2;
+
+  let offset = 0;
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox={`0 0 ${size} ${size}`}
+      className="-rotate-90 origin-center flex-shrink-0"
+      aria-hidden="true"
+      data-testid="weight-donut"
+    >
+      <circle cx={center} cy={center} r={radius} strokeWidth={strokeWidth} fill="none" className="stroke-slate-100" />
+      {scored.map((item) => {
+        const length = (item.weightPct / 100) * circumference;
+        const dashOffset = -offset;
+        offset += length;
+        return (
+          <circle
+            key={item.key}
+            cx={center}
+            cy={center}
+            r={radius}
+            strokeWidth={strokeWidth}
+            fill="none"
+            stroke="currentColor"
+            strokeDasharray={`${length} ${circumference - length}`}
+            strokeDashoffset={dashOffset}
+            className={getScoreColorClass(item.score)}
+          />
+        );
+      })}
+    </svg>
+  );
+}
+
 export function ScoreExplainModal({
   title,
   score,
@@ -183,36 +234,39 @@ export function ScoreExplainModal({
           <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
             {t("score.explain.howCalculated", { defaultValue: "How it's calculated" })}
           </h3>
-          <ul className="mt-2 space-y-2">
-            {items.map((item) => {
-              const label = t(`score.${itemNamespace}.${item.key}`, { defaultValue: item.key });
-              const isScored = item.status === "scored";
-              return (
-                <li key={item.key}>
-                  <div className="flex items-center justify-between text-xs text-slate-600">
-                    <span>{label}</span>
-                    <span>
-                      {isScored
-                        ? t("score.explain.contribution", {
-                            weightPct: Math.round(item.weightPct),
-                            score: formatScoreValue(item.score),
-                            defaultValue: `${Math.round(item.weightPct)}% weight · scored ${formatScoreValue(item.score)}/100`,
-                          })
-                        : notAssessedLabel}
-                    </span>
-                  </div>
-                  {isScored && (
-                    <div className="h-1 rounded-full bg-slate-100 overflow-hidden mt-1">
-                      <div
-                        className="h-full rounded-full bg-primary-400"
-                        style={{ width: `${Math.max(0, Math.min(100, item.weightPct))}%` }}
-                      />
+          <div className="mt-2 flex items-center gap-4">
+            <WeightDonut items={items} />
+            <ul className="flex-1 space-y-2">
+              {items.map((item) => {
+                const label = t(`score.${itemNamespace}.${item.key}`, { defaultValue: item.key });
+                const isScored = item.status === "scored";
+                return (
+                  <li key={item.key}>
+                    <div className="flex items-center justify-between text-xs text-slate-600">
+                      <span>{label}</span>
+                      <span>
+                        {isScored
+                          ? t("score.explain.contribution", {
+                              weightPct: Math.round(item.weightPct),
+                              score: formatScoreValue(item.score),
+                              defaultValue: `${Math.round(item.weightPct)}% weight · scored ${formatScoreValue(item.score)}/100`,
+                            })
+                          : notAssessedLabel}
+                      </span>
                     </div>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
+                    {isScored && (
+                      <div className="h-1 rounded-full bg-slate-100 overflow-hidden mt-1">
+                        <div
+                          className="h-full rounded-full bg-primary-400"
+                          style={{ width: `${Math.max(0, Math.min(100, item.weightPct))}%` }}
+                        />
+                      </div>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
         </section>
       </ModalContent>
     </Modal>
