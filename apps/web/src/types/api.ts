@@ -62,6 +62,34 @@ export type CategoryId =
   | 'food_and_drink'
 
 /**
+ * One criterion contributing to a facility type's explanation, e.g. "Schools
+ * within 1.0 km". `satisfied` is null when the facility type wasn't checked
+ * at all (unknown), distinct from `false` (checked, not met).
+ */
+export interface FacilityCriterion {
+  label: string
+  satisfied: boolean | null
+  detail: string
+}
+
+/**
+ * A facility type's (or category's) share of its parent's weight, and the
+ * score it contributed with that weight — renormalized over the members that
+ * were actually scored (not_checked members report weightPct 0, score null).
+ */
+export interface FacilityContribution {
+  facilityType: string
+  weightPct: number
+  score: number | null
+}
+
+export interface CategoryContribution {
+  category: CategoryId
+  weightPct: number
+  score: number | null
+}
+
+/**
  * Score breakdown for a single facility type (e.g. schools, bus_stops)
  * within a category.
  */
@@ -72,6 +100,7 @@ export interface FacilityScoreResult {
   nearestDistanceKm: number | null
   count: number
   explanation: string
+  criteria: FacilityCriterion[]
 }
 
 /**
@@ -83,6 +112,7 @@ export interface CategoryScoreResult {
   status: FacilityStatus
   score: number | null
   facilities: FacilityScoreResult[]
+  contribution: FacilityContribution[]
 }
 
 /**
@@ -92,6 +122,7 @@ export interface ScoreResult {
   overall: number | null
   coverage: string // e.g., "4/5" — count of scored categories / total categories
   categories: CategoryScoreResult[]
+  contribution: CategoryContribution[]
 }
 
 /**

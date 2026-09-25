@@ -110,6 +110,24 @@ export interface AnalyzeRequest {
  * (and normalizeAnalyzeResponse below) are the only place in the app that
  * ever touches the snake_case field names.
  */
+interface WireFacilityCriterion {
+  label: string;
+  satisfied: boolean | null;
+  detail: string;
+}
+
+interface WireFacilityContribution {
+  facility_type: string;
+  weight_pct: number;
+  score: number | null;
+}
+
+interface WireCategoryContribution {
+  category: CategoryId;
+  weight_pct: number;
+  score: number | null;
+}
+
 interface WireFacilityScoreResult {
   facility_type: string;
   status: FacilityStatus;
@@ -117,6 +135,7 @@ interface WireFacilityScoreResult {
   nearest_distance_km: number | null;
   count: number;
   explanation: string;
+  criteria: WireFacilityCriterion[];
 }
 
 interface WireCategoryScoreResult {
@@ -124,12 +143,14 @@ interface WireCategoryScoreResult {
   status: FacilityStatus;
   score: number | null;
   facilities: WireFacilityScoreResult[];
+  contribution: WireFacilityContribution[];
 }
 
 interface WireScoreResult {
   overall: number | null;
   coverage: string;
   categories: WireCategoryScoreResult[];
+  contribution: WireCategoryContribution[];
 }
 
 interface WireAnalyzeResponse extends Omit<AnalyzeResponse, "score"> {
@@ -195,7 +216,22 @@ export function normalizeAnalyzeResponse(
           nearestDistanceKm: f.nearest_distance_km,
           count: f.count,
           explanation: f.explanation,
+          criteria: f.criteria.map((c) => ({
+            label: c.label,
+            satisfied: c.satisfied,
+            detail: c.detail,
+          })),
         })),
+        contribution: cat.contribution.map((c) => ({
+          facilityType: c.facility_type,
+          weightPct: c.weight_pct,
+          score: c.score,
+        })),
+      })),
+      contribution: raw.score.contribution.map((c) => ({
+        category: c.category,
+        weightPct: c.weight_pct,
+        score: c.score,
       })),
     },
   };
