@@ -2,7 +2,7 @@
 
 import { useId } from "react";
 import { useTranslations } from "next-intl";
-import { Check, X as XIcon, HelpCircle as UnknownIcon } from "lucide-react";
+import { Check, ChevronRight, X as XIcon, HelpCircle as UnknownIcon } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Modal, ModalHeader, ModalContent } from "@/components/ui/Modal";
 import { ScoreRing } from "@/components/ScoreRing";
@@ -31,6 +31,13 @@ export interface ScoreExplainModalProps {
   /** Which score.<namespace>.<item.key> i18n bucket to translate each row's label from. */
   itemNamespace: "categories" | "facilityTypes";
   onClose: () => void;
+  /**
+   * Drill-down from a category rollup row (overall modal only -- there's no
+   * deeper level for a facility-type row in a category modal) into that
+   * category's own explanation. Rows render as plain (non-interactive) when
+   * this is omitted.
+   */
+  onSelectItem?: (key: string) => void;
 }
 
 function CriterionIcon({ satisfied }: { satisfied: boolean | null }) {
@@ -51,6 +58,8 @@ function ExplainRow({
   isNotAssessed,
   score,
   notAssessedLabel,
+  onSelect,
+  selectLabel,
   children,
 }: {
   icon: LucideIcon;
@@ -58,26 +67,45 @@ function ExplainRow({
   isNotAssessed: boolean;
   score: number | null;
   notAssessedLabel: string;
+  /** Present only for a tappable category rollup row -- see ScoreExplainModalProps.onSelectItem. */
+  onSelect?: () => void;
+  selectLabel?: string;
   children?: React.ReactNode;
 }) {
+  const rowContent = (
+    <>
+      <Icon
+        className={`w-4 h-4 flex-shrink-0 ${isNotAssessed ? "text-slate-300" : "text-slate-400"}`}
+        aria-hidden="true"
+      />
+      <span className={`flex-1 text-sm ${isNotAssessed ? "text-slate-400" : "font-medium text-slate-800"}`}>
+        {label}
+      </span>
+      {isNotAssessed ? (
+        <span className="text-xs text-slate-400">{notAssessedLabel}</span>
+      ) : (
+        <span className={`text-sm font-semibold tabular-nums ${getScoreColorClass(score)}`}>
+          {formatScoreValue(score)}
+        </span>
+      )}
+      {onSelect && <ChevronRight className="w-3.5 h-3.5 text-slate-300 flex-shrink-0" aria-hidden="true" />}
+    </>
+  );
+
   return (
     <li>
-      <div className="flex items-center gap-2">
-        <Icon
-          className={`w-4 h-4 flex-shrink-0 ${isNotAssessed ? "text-slate-300" : "text-slate-400"}`}
-          aria-hidden="true"
-        />
-        <span className={`flex-1 text-sm ${isNotAssessed ? "text-slate-400" : "font-medium text-slate-800"}`}>
-          {label}
-        </span>
-        {isNotAssessed ? (
-          <span className="text-xs text-slate-400">{notAssessedLabel}</span>
-        ) : (
-          <span className={`text-sm font-semibold tabular-nums ${getScoreColorClass(score)}`}>
-            {formatScoreValue(score)}
-          </span>
-        )}
-      </div>
+      {onSelect ? (
+        <button
+          type="button"
+          onClick={onSelect}
+          aria-label={selectLabel}
+          className="flex items-center gap-2 w-full text-left -mx-1.5 px-1.5 py-1 rounded-lg hover:bg-slate-50 active:bg-slate-100 transition-colors focus-ring-inset"
+        >
+          {rowContent}
+        </button>
+      ) : (
+        <div className="flex items-center gap-2">{rowContent}</div>
+      )}
       {isNotAssessed ? (
         <div className="h-1.5 rounded-full border border-dashed border-slate-200 mt-1.5 ml-6" />
       ) : (
@@ -150,6 +178,7 @@ export function ScoreExplainModal({
   items,
   itemNamespace,
   onClose,
+  onSelectItem,
 }: ScoreExplainModalProps) {
   const t = useTranslations();
   const titleId = useId();
@@ -196,6 +225,7 @@ export function ScoreExplainModal({
                 item.kind === "category"
                   ? getScoreCategoryIcon(item.key as CategoryId)
                   : getCategoryIcon(item.key);
+              const canSelect = item.kind === "category" && !isNotAssessed && onSelectItem;
 
               return (
                 <ExplainRow
@@ -205,6 +235,11 @@ export function ScoreExplainModal({
                   isNotAssessed={isNotAssessed}
                   score={item.score}
                   notAssessedLabel={notAssessedLabel}
+                  onSelect={canSelect ? () => onSelectItem(item.key) : undefined}
+                  selectLabel={t("score.explain.openCategory", {
+                    label,
+                    defaultValue: `Explain the ${label} score`,
+                  })}
                 >
                   {isNotAssessed && (
                     <p className="mt-1 ml-6 text-xs text-slate-400">

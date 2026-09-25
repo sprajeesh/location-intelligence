@@ -191,6 +191,66 @@ describe('ScoreExplainModal', () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
+  describe('Drill-down (category rows only)', () => {
+    it('renders a scored category row as a button and calls onSelectItem with its key when clicked', async () => {
+      const onSelectItem = jest.fn();
+      render(
+        <ScoreExplainModal
+          title="Location Score"
+          score={61}
+          items={[categoryRollupItem]}
+          itemNamespace="categories"
+          onClose={jest.fn()}
+          onSelectItem={onSelectItem}
+        />,
+      );
+      await userEvent.click(screen.getByRole('button', { name: 'Explain the Education score' }));
+      expect(onSelectItem).toHaveBeenCalledWith('education');
+    });
+
+    it('does not render a category row as a button when onSelectItem is omitted', () => {
+      render(
+        <ScoreExplainModal
+          title="Location Score"
+          score={61}
+          items={[categoryRollupItem]}
+          itemNamespace="categories"
+          onClose={jest.fn()}
+        />,
+      );
+      expect(screen.queryByRole('button', { name: 'Explain the Education score' })).not.toBeInTheDocument();
+    });
+
+    it('never renders a facility row as a button, even when onSelectItem is provided', () => {
+      render(
+        <ScoreExplainModal
+          title="Education"
+          score={61}
+          items={[scoredWithCriteria]}
+          itemNamespace="facilityTypes"
+          onClose={jest.fn()}
+          onSelectItem={jest.fn()}
+        />,
+      );
+      expect(screen.queryByRole('button', { name: /^Explain the .* score$/ })).not.toBeInTheDocument();
+    });
+
+    it('never renders a not-checked row as a button, even when onSelectItem is provided', () => {
+      const notCheckedCategory: ExplainItem = { ...categoryRollupItem, status: 'not_checked', score: null };
+      render(
+        <ScoreExplainModal
+          title="Location Score"
+          score={null}
+          items={[notCheckedCategory]}
+          itemNamespace="categories"
+          onClose={jest.fn()}
+          onSelectItem={jest.fn()}
+        />,
+      );
+      expect(screen.queryByRole('button', { name: /^Explain the .* score$/ })).not.toBeInTheDocument();
+    });
+  });
+
   describe('Weight donut', () => {
     it('renders a weight donut when 2 or more items are scored', () => {
       const secondCategory: ExplainItem = { ...categoryRollupItem, key: 'transport', score: 85, weightPct: 25 };

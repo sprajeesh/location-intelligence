@@ -594,6 +594,23 @@ describe('ResultsPanel', () => {
       expect(screen.getByText('transport')).toBeInTheDocument();
     });
 
+    it('drills down from a category row inside the overall modal into that category\'s own explanation', async () => {
+      render(<ResultsPanel />);
+      await userEvent.click(screen.getByTestId('explain-overall'));
+      expect(screen.getByText('Location Score')).toBeInTheDocument();
+
+      await userEvent.click(screen.getByRole('button', { name: 'Explain the education score' }));
+
+      expect(screen.getByText('education')).toBeInTheDocument();
+      expect(screen.queryByText('Location Score')).not.toBeInTheDocument();
+    });
+
+    it('does not offer drill-down rows inside a category modal (no deeper level to explain)', async () => {
+      render(<ResultsPanel />);
+      await userEvent.click(screen.getByTestId('explain-category-education'));
+      expect(screen.queryByRole('button', { name: /^Explain the .* score$/ })).not.toBeInTheDocument();
+    });
+
     it('renders the dialog as a direct child of document.body, not nested inside the panel', async () => {
       const { container } = render(<ResultsPanel />);
       await userEvent.click(screen.getByTestId('explain-overall'));
