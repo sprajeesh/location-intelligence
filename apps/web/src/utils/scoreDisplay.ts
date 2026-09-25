@@ -92,6 +92,20 @@ export function getScoreColorClass(score: number | null): string {
   }
 }
 
+/** Same tier mapping as getScoreColorClass, as a progress-bar fill instead of text color. */
+export function getScoreBarColorClass(score: number | null): string {
+  switch (getScoreColorTier(score)) {
+    case "good":
+      return "bg-success-500";
+    case "moderate":
+      return "bg-warning-500";
+    case "poor":
+      return "bg-error-500";
+    case "unscored":
+      return "bg-slate-300";
+  }
+}
+
 /**
  * Three-state display status for a facility. The raw API `status` field only
  * distinguishes checked/not_checked — "found nothing" and "found something

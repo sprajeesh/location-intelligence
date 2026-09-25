@@ -10,7 +10,7 @@ import {
   type ButtonVariant,
 } from "./buttonStyles";
 
-export type ButtonSize = "sm" | "md";
+export type ButtonSize = "sm" | "md" | "close";
 
 type NativeButtonProps = Omit<
   React.ButtonHTMLAttributes<HTMLButtonElement>,
@@ -56,11 +56,15 @@ export interface ButtonProps extends NativeButtonProps {
 const ICON_ONLY_SIZE_CLASSES: Record<ButtonSize, string> = {
   md: "w-8 h-8 flex items-center justify-center rounded-lg",
   sm: "p-1.5 rounded-lg",
+  // Same footprint as "md", but circular -- for a modal's close button, the
+  // one icon-only affordance conventionally expected to be a round target.
+  close: "w-8 h-8 flex items-center justify-center rounded-full",
 };
 
 const DEFAULT_ICON_SIZE: Record<ButtonSize, number> = {
   md: 16,
   sm: 16,
+  close: 16,
 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
