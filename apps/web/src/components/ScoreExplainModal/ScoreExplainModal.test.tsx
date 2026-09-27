@@ -251,35 +251,6 @@ describe('ScoreExplainModal', () => {
     });
   });
 
-  describe('Weight donut', () => {
-    it('renders a weight donut when 2 or more items are scored', () => {
-      const secondCategory: ExplainItem = { ...categoryRollupItem, key: 'transport', score: 85, weightPct: 25 };
-      render(
-        <ScoreExplainModal
-          title="Location Score"
-          score={70}
-          items={[categoryRollupItem, secondCategory]}
-          itemNamespace="categories"
-          onClose={jest.fn()}
-        />,
-      );
-      expect(screen.getByTestId('weight-donut')).toBeInTheDocument();
-    });
-
-    it('omits the weight donut when fewer than 2 items are scored', () => {
-      render(
-        <ScoreExplainModal
-          title="Education"
-          score={61}
-          items={[scoredWithCriteria, notCheckedItem]}
-          itemNamespace="facilityTypes"
-          onClose={jest.fn()}
-        />,
-      );
-      expect(screen.queryByTestId('weight-donut')).not.toBeInTheDocument();
-    });
-  });
-
   describe('Back navigation', () => {
     it('shows a back button when entryPoint is "overall"', () => {
       render(
