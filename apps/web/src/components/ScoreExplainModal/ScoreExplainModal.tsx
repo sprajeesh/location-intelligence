@@ -253,25 +253,31 @@ export function ScoreExplainModal({
               {items.map((item) => {
                 const label = t(`score.${itemNamespace}.${item.key}`, { defaultValue: item.key });
                 const isScored = item.status === "scored";
+                const contributionText = isScored
+                  ? t("score.explain.contribution", {
+                      weightPct: Math.round(item.weightPct),
+                      score: formatScoreValue(item.score),
+                      defaultValue: `${Math.round(item.weightPct)}% weight · scored ${formatScoreValue(item.score)}/100`,
+                    })
+                  : notAssessedLabel;
                 return (
                   <li key={item.key}>
                     <div className="flex items-center justify-between text-xs text-slate-600">
                       <span>{label}</span>
-                      <span>
-                        {isScored
-                          ? t("score.explain.contribution", {
-                              weightPct: Math.round(item.weightPct),
-                              score: formatScoreValue(item.score),
-                              defaultValue: `${Math.round(item.weightPct)}% weight · scored ${formatScoreValue(item.score)}/100`,
-                            })
-                          : notAssessedLabel}
-                      </span>
+                      <span>{contributionText}</span>
                     </div>
                     {isScored && (
-                      <div className="h-1 rounded-full bg-slate-100 overflow-hidden mt-1">
+                      <div
+                        className="relative h-1.5 rounded-full bg-slate-100 overflow-visible mt-1"
+                        title={contributionText}
+                      >
                         <div
-                          className="h-full rounded-full bg-primary-400"
-                          style={{ width: `${Math.max(0, Math.min(100, item.weightPct))}%` }}
+                          className={`absolute inset-y-0 left-0 rounded-full ${getScoreBarColorClass(item.score)}`}
+                          style={{ width: `${Math.max(0, Math.min(100, item.score ?? 0))}%` }}
+                        />
+                        <div
+                          className="absolute -top-0.5 -bottom-0.5 w-0.5 rounded-full bg-slate-700"
+                          style={{ left: `${Math.max(0, Math.min(100, item.weightPct))}%` }}
                         />
                       </div>
                     )}
