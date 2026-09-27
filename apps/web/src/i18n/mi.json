@@ -43,6 +43,7 @@
     "explain": {
       "openOverall": "[MI] score.explain.openOverall",
       "openCategory": "[MI] score.explain.openCategory",
+      "backToOverall": "[MI] score.explain.backToOverall",
       "close": "[MI] score.explain.close",
       "why": "[MI] score.explain.why",
       "howCalculated": "[MI] score.explain.howCalculated",

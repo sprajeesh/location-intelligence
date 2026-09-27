@@ -25,7 +25,9 @@ import { buildCategoryExplainItems, buildOverallExplainItems } from "@/utils/sco
 // `transform` on its element and would otherwise turn it into a containing
 // block for the modal's `position: fixed` backdrop -- confining it to the
 // panel's width instead of the full viewport.
-type ExplainTarget = { kind: "overall" } | { kind: "category"; category: CategoryScoreResult };
+type ExplainTarget =
+  | { kind: "overall" }
+  | { kind: "category"; category: CategoryScoreResult; entryPoint: "overall" | "facility" };
 
 /**
  * ResultsPanel — Left side panel (desktop) or bottom sheet (mobile).
@@ -79,17 +81,18 @@ export default function ResultsPanel({
   const [explainTarget, setExplainTarget] = useState<ExplainTarget | null>(null);
   const handleExplainOverall = useCallback(() => setExplainTarget({ kind: "overall" }), []);
   const handleExplainCategory = useCallback(
-    (category: CategoryScoreResult) => setExplainTarget({ kind: "category", category }),
+    (category: CategoryScoreResult) => setExplainTarget({ kind: "category", category, entryPoint: "facility" }),
     [],
   );
   const handleCloseExplain = useCallback(() => setExplainTarget(null), []);
+  const handleGoBackToOverall = useCallback(() => setExplainTarget({ kind: "overall" }), []);
   // Drill-down from a category row inside the overall-score modal into that
   // category's own explanation -- only ever wired up while the overall modal
   // is open (see the ScoreExplainModal render below).
   const handleSelectCategoryFromOverall = useCallback(
     (categoryId: string) => {
       const category = analysisResult?.score?.categories.find((c) => c.category === categoryId);
-      if (category) setExplainTarget({ kind: "category", category });
+      if (category) setExplainTarget({ kind: "category", category, entryPoint: "overall" });
     },
     [analysisResult],
   );
@@ -292,6 +295,8 @@ export default function ResultsPanel({
             itemNamespace={explainTarget.kind === "overall" ? "categories" : "facilityTypes"}
             onClose={handleCloseExplain}
             onSelectItem={explainTarget.kind === "overall" ? handleSelectCategoryFromOverall : undefined}
+            entryPoint={explainTarget.kind === "category" ? explainTarget.entryPoint : undefined}
+            onBack={explainTarget.kind === "category" ? handleGoBackToOverall : undefined}
           />,
           document.body,
         )}

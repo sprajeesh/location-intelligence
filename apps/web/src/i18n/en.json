@@ -43,6 +43,7 @@
     "explain": {
       "openOverall": "Explain the overall score",
       "openCategory": "Explain the {label} score",
+      "backToOverall": "Back to overall score",
       "close": "Close",
       "why": "Why this score",
       "howCalculated": "How it's calculated",
