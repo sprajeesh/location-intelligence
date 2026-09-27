@@ -6,7 +6,6 @@ import { Check, ChevronRight, ChevronLeft, X as XIcon, HelpCircle as UnknownIcon
 import type { LucideIcon } from "lucide-react";
 import { Modal, ModalHeader, ModalContent } from "@/components/ui/Modal";
 import { ScoreRing } from "@/components/ScoreRing";
-import { WeightDonut } from "@/components/WeightDonut";
 import {
   formatScoreValue,
   getScoreBarColorClass,
@@ -239,17 +238,8 @@ export function ScoreExplainModal({
           <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
             {t("score.explain.howCalculated", { defaultValue: "How it's calculated" })}
           </h3>
-          <div className="mt-2 flex items-center gap-4">
-            <WeightDonut
-              segments={items
-                .filter((item) => item.status === "scored" && item.weightPct > 0)
-                .map((item) => ({
-                  key: item.key,
-                  weightPct: item.weightPct,
-                  colorClass: getScoreColorClass(item.score),
-                }))}
-            />
-            <ul className="flex-1 space-y-2">
+          <div className="mt-2">
+            <ul className="space-y-2">
               {items.map((item) => {
                 const label = t(`score.${itemNamespace}.${item.key}`, { defaultValue: item.key });
                 const isScored = item.status === "scored";
