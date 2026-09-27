@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.17.0](https://github.com/sprajeesh/location-intelligence/compare/web@v0.16.0...web@v0.17.0) (2026-09-27)
+
+
+### Features
+
+* **web:** add back navigation to score explain modal ([#272](https://github.com/sprajeesh/location-intelligence/issues/272)) ([988c74d](https://github.com/sprajeesh/location-intelligence/commit/988c74d689b232ed07f8123994a91c946d305529))
+* **web:** show score alongside weight in explain modal bars ([#273](https://github.com/sprajeesh/location-intelligence/issues/273)) ([579ca98](https://github.com/sprajeesh/location-intelligence/commit/579ca985a640963744ce7cfca5d653db3dd7970b))
+
 ## [0.16.0](https://github.com/sprajeesh/location-intelligence/compare/web@v0.15.0...web@v0.16.0) (2026-09-27)
 
 
