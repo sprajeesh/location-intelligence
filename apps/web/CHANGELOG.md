@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.16.0](https://github.com/sprajeesh/location-intelligence/compare/web@v0.15.0...web@v0.16.0) (2026-09-27)
+
+
+### Features
+
+* **web:** redesign score explanation modal ([#267](https://github.com/sprajeesh/location-intelligence/issues/267)) ([746a379](https://github.com/sprajeesh/location-intelligence/commit/746a379918085b849f12b384b1316f74e2e0a617))
+
 ## [0.15.0](https://github.com/sprajeesh/location-intelligence/compare/web@v0.14.0...web@v0.15.0) (2026-09-25)
 
 
