@@ -279,4 +279,80 @@ describe('ScoreExplainModal', () => {
       expect(screen.queryByTestId('weight-donut')).not.toBeInTheDocument();
     });
   });
+
+  describe('Back navigation', () => {
+    it('shows a back button when entryPoint is "overall"', () => {
+      render(
+        <ScoreExplainModal
+          title="Education"
+          score={61}
+          items={[scoredWithCriteria]}
+          itemNamespace="facilityTypes"
+          onClose={jest.fn()}
+          entryPoint="overall"
+          onBack={jest.fn()}
+        />,
+      );
+      expect(screen.getByRole('button', { name: 'Back to overall score' })).toBeInTheDocument();
+    });
+
+    it('does not show a back button when entryPoint is "facility"', () => {
+      render(
+        <ScoreExplainModal
+          title="Education"
+          score={61}
+          items={[scoredWithCriteria]}
+          itemNamespace="facilityTypes"
+          onClose={jest.fn()}
+          entryPoint="facility"
+          onBack={jest.fn()}
+        />,
+      );
+      expect(screen.queryByRole('button', { name: 'Back to overall score' })).not.toBeInTheDocument();
+    });
+
+    it('does not show a back button when entryPoint is omitted', () => {
+      render(
+        <ScoreExplainModal
+          title="Education"
+          score={61}
+          items={[scoredWithCriteria]}
+          itemNamespace="facilityTypes"
+          onClose={jest.fn()}
+        />,
+      );
+      expect(screen.queryByRole('button', { name: 'Back to overall score' })).not.toBeInTheDocument();
+    });
+
+    it('calls onBack when the back button is clicked', async () => {
+      const onBack = jest.fn();
+      render(
+        <ScoreExplainModal
+          title="Education"
+          score={61}
+          items={[scoredWithCriteria]}
+          itemNamespace="facilityTypes"
+          onClose={jest.fn()}
+          entryPoint="overall"
+          onBack={onBack}
+        />,
+      );
+      await userEvent.click(screen.getByRole('button', { name: 'Back to overall score' }));
+      expect(onBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not show a back button when onBack is omitted even if entryPoint is "overall"', () => {
+      render(
+        <ScoreExplainModal
+          title="Education"
+          score={61}
+          items={[scoredWithCriteria]}
+          itemNamespace="facilityTypes"
+          onClose={jest.fn()}
+          entryPoint="overall"
+        />,
+      );
+      expect(screen.queryByRole('button', { name: 'Back to overall score' })).not.toBeInTheDocument();
+    });
+  });
 });

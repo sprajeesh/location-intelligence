@@ -2,7 +2,7 @@
 
 import { useId } from "react";
 import { useTranslations } from "next-intl";
-import { Check, ChevronRight, X as XIcon, HelpCircle as UnknownIcon } from "lucide-react";
+import { Check, ChevronRight, ChevronLeft, X as XIcon, HelpCircle as UnknownIcon } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Modal, ModalHeader, ModalContent } from "@/components/ui/Modal";
 import { ScoreRing } from "@/components/ScoreRing";
@@ -39,6 +39,10 @@ export interface ScoreExplainModalProps {
    * this is omitted.
    */
   onSelectItem?: (key: string) => void;
+  /** Whether this modal was opened directly from a facility (no back) or drilled from overall score. */
+  entryPoint?: "overall" | "facility";
+  /** Called when user clicks the back button to return to overall score (only shown when entryPoint === 'overall'). */
+  onBack?: () => void;
 }
 
 function CriterionIcon({ satisfied }: { satisfied: boolean | null }) {
@@ -129,6 +133,8 @@ export function ScoreExplainModal({
   itemNamespace,
   onClose,
   onSelectItem,
+  entryPoint,
+  onBack,
 }: ScoreExplainModalProps) {
   const t = useTranslations();
   const titleId = useId();
@@ -140,9 +146,23 @@ export function ScoreExplainModal({
           defaultValue: scoreTier === "good" ? "Good" : scoreTier === "moderate" ? "Average" : "Below average",
         })
       : notAssessedLabel;
+  const showBackButton = entryPoint === "overall" && onBack;
 
   return (
     <Modal onClose={onClose} aria-labelledby={titleId} data-testid="score-explain-modal">
+      {showBackButton && (
+        <div className="border-b border-slate-200 px-4 sm:px-6 py-2 flex items-center">
+          <button
+            type="button"
+            onClick={onBack}
+            className="flex items-center gap-1.5 text-sm text-slate-600 hover:text-slate-800 font-medium -ml-1 px-1 py-1 rounded hover:bg-slate-50 transition-colors focus-ring-inset"
+            aria-label={t("score.explain.backToOverall", { defaultValue: "Back to overall score" })}
+          >
+            <ChevronLeft className="w-4 h-4" aria-hidden="true" />
+            {t("score.explain.backToOverall", { defaultValue: "Back to overall score" })}
+          </button>
+        </div>
+      )}
       <ModalHeader
         titleId={titleId}
         title={title}
