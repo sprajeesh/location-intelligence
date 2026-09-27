@@ -1,20 +1,21 @@
-import { getScoreColorClass } from "@/utils/scoreDisplay";
-import type { ExplainItem } from "@/utils/scoreDisplay";
+export interface WeightDonutSegment {
+  key: string;
+  weightPct: number;
+  colorClass: string;
+}
 
 export interface WeightDonutProps {
-  items: ExplainItem[];
+  segments: WeightDonutSegment[];
 }
 
 /**
- * WeightDonut — compact multi-segment ring showing each scored item's share
- * of the overall weight, colored by that item's own score tier (so it reads
- * as "how much this counts, and how well it did" at a glance) exactly like
- * ScoreRing's tier coloring. Renders nothing with fewer than 2 scored items,
- * where a single-segment ring would carry no information.
+ * WeightDonut — compact multi-segment ring visualization showing relative weight
+ * distribution. Each segment's arc represents its weight percentage, colored by
+ * the passed colorClass. Renders nothing with fewer than 2 segments, where a
+ * single-segment ring would carry no information.
  */
-export function WeightDonut({ items }: WeightDonutProps) {
-  const scored = items.filter((item) => item.status === "scored" && item.weightPct > 0);
-  if (scored.length < 2) return null;
+export function WeightDonut({ segments }: WeightDonutProps) {
+  if (segments.length < 2) return null;
 
   const size = 72;
   const strokeWidth = 12;
@@ -33,13 +34,13 @@ export function WeightDonut({ items }: WeightDonutProps) {
       data-testid="weight-donut"
     >
       <circle cx={center} cy={center} r={radius} strokeWidth={strokeWidth} fill="none" className="stroke-slate-100" />
-      {scored.map((item) => {
-        const length = (item.weightPct / 100) * circumference;
+      {segments.map((segment) => {
+        const length = (segment.weightPct / 100) * circumference;
         const dashOffset = -offset;
         offset += length;
         return (
           <circle
-            key={item.key}
+            key={segment.key}
             cx={center}
             cy={center}
             r={radius}
@@ -48,7 +49,7 @@ export function WeightDonut({ items }: WeightDonutProps) {
             stroke="currentColor"
             strokeDasharray={`${length} ${circumference - length}`}
             strokeDashoffset={dashOffset}
-            className={getScoreColorClass(item.score)}
+            className={segment.colorClass}
           />
         );
       })}

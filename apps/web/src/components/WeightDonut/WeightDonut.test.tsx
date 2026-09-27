@@ -1,214 +1,106 @@
 import { render, screen } from '@testing-library/react';
 import { WeightDonut } from './WeightDonut';
-import type { ExplainItem } from '@/utils/scoreDisplay';
+import type { WeightDonutSegment } from './WeightDonut';
 
 describe('WeightDonut', () => {
-  it('renders nothing when fewer than 2 scored items', () => {
-    const items: ExplainItem[] = [
+  it('renders nothing when fewer than 2 segments', () => {
+    const segments: WeightDonutSegment[] = [
       {
         key: 'schools',
-        kind: 'facility',
-        status: 'scored',
-        score: 61,
         weightPct: 100,
-        criteria: [],
+        colorClass: 'text-good-600',
       },
     ];
-    const { container } = render(<WeightDonut items={items} />);
+    render(<WeightDonut segments={segments} />);
+    expect(screen.queryByTestId('weight-donut')).not.toBeInTheDocument();
+  });
+
+  it('renders nothing when no segments provided', () => {
+    const { container } = render(<WeightDonut segments={[]} />);
     expect(screen.queryByTestId('weight-donut')).not.toBeInTheDocument();
     expect(container.firstChild).toBeNull();
   });
 
-  it('renders nothing when no items are scored', () => {
-    const items: ExplainItem[] = [
+  it('renders SVG when 2 or more segments', () => {
+    const segments: WeightDonutSegment[] = [
       {
         key: 'schools',
-        kind: 'facility',
-        status: 'not_checked',
-        score: null,
-        weightPct: 0,
-        criteria: [],
-      },
-      {
-        key: 'universities',
-        kind: 'facility',
-        status: 'not_checked',
-        score: null,
-        weightPct: 0,
-        criteria: [],
-      },
-    ];
-    const { container } = render(<WeightDonut items={items} />);
-    expect(screen.queryByTestId('weight-donut')).not.toBeInTheDocument();
-    expect(container.firstChild).toBeNull();
-  });
-
-  it('renders nothing when scored items have zero weight', () => {
-    const items: ExplainItem[] = [
-      {
-        key: 'schools',
-        kind: 'facility',
-        status: 'scored',
-        score: 61,
-        weightPct: 0,
-        criteria: [],
-      },
-      {
-        key: 'universities',
-        kind: 'facility',
-        status: 'scored',
-        score: 85,
-        weightPct: 0,
-        criteria: [],
-      },
-    ];
-    const { container } = render(<WeightDonut items={items} />);
-    expect(screen.queryByTestId('weight-donut')).not.toBeInTheDocument();
-    expect(container.firstChild).toBeNull();
-  });
-
-  it('renders SVG when 2 or more scored items with positive weight', () => {
-    const items: ExplainItem[] = [
-      {
-        key: 'schools',
-        kind: 'facility',
-        status: 'scored',
-        score: 61,
         weightPct: 60,
-        criteria: [],
+        colorClass: 'text-good-600',
       },
       {
         key: 'universities',
-        kind: 'facility',
-        status: 'scored',
-        score: 85,
         weightPct: 40,
-        criteria: [],
+        colorClass: 'text-moderate-600',
       },
     ];
-    render(<WeightDonut items={items} />);
+    render(<WeightDonut segments={segments} />);
     expect(screen.getByTestId('weight-donut')).toBeInTheDocument();
   });
 
-  it('renders correct number of circle segments for scored items', () => {
-    const items: ExplainItem[] = [
+  it('renders correct number of circle segments', () => {
+    const segments: WeightDonutSegment[] = [
       {
         key: 'schools',
-        kind: 'facility',
-        status: 'scored',
-        score: 61,
         weightPct: 50,
-        criteria: [],
+        colorClass: 'text-good-600',
       },
       {
         key: 'universities',
-        kind: 'facility',
-        status: 'scored',
-        score: 85,
         weightPct: 30,
-        criteria: [],
+        colorClass: 'text-moderate-600',
       },
       {
         key: 'libraries',
-        kind: 'facility',
-        status: 'scored',
-        score: 75,
         weightPct: 20,
-        criteria: [],
+        colorClass: 'text-poor-600',
       },
     ];
-    const { container } = render(<WeightDonut items={items} />);
+    render(<WeightDonut segments={segments} />);
     const svg = screen.getByTestId('weight-donut');
     // One background circle + three segment circles
     const circles = svg.querySelectorAll('circle');
     expect(circles).toHaveLength(4);
   });
 
-  it('filters out non-scored items when rendering segments', () => {
-    const items: ExplainItem[] = [
+  it('applies passed color classes to segments', () => {
+    const segments: WeightDonutSegment[] = [
       {
         key: 'schools',
-        kind: 'facility',
-        status: 'scored',
-        score: 61,
-        weightPct: 60,
-        criteria: [],
+        weightPct: 50,
+        colorClass: 'text-good-600',
       },
       {
         key: 'universities',
-        kind: 'facility',
-        status: 'not_checked',
-        score: null,
-        weightPct: 0,
-        criteria: [],
-      },
-      {
-        key: 'libraries',
-        kind: 'facility',
-        status: 'scored',
-        score: 85,
-        weightPct: 40,
-        criteria: [],
+        weightPct: 50,
+        colorClass: 'text-moderate-600',
       },
     ];
-    const { container } = render(<WeightDonut items={items} />);
+    render(<WeightDonut segments={segments} />);
     const svg = screen.getByTestId('weight-donut');
-    // One background circle + two segment circles (only scored items with weight > 0)
-    const circles = svg.querySelectorAll('circle');
-    expect(circles).toHaveLength(3);
-  });
-
-  it('applies score color class to each segment', () => {
-    const items: ExplainItem[] = [
-      {
-        key: 'schools',
-        kind: 'facility',
-        status: 'scored',
-        score: 85,
-        weightPct: 50,
-        criteria: [],
-      },
-      {
-        key: 'universities',
-        kind: 'facility',
-        status: 'scored',
-        score: 45,
-        weightPct: 50,
-        criteria: [],
-      },
-    ];
-    render(<WeightDonut items={items} />);
-    const svg = screen.getByTestId('weight-donut');
-    const segments = svg.querySelectorAll('circle[stroke="currentColor"]');
-    expect(segments).toHaveLength(2);
-    // Segments should have color classes applied (text-good-600, text-moderate-600, etc.)
-    // These classes use currentColor, so we verify they exist and have the class attribute
-    Array.from(segments).forEach((segment) => {
+    const segmentCircles = svg.querySelectorAll('circle[stroke="currentColor"]');
+    expect(segmentCircles).toHaveLength(2);
+    // Each segment should have its passed color class
+    Array.from(segmentCircles).forEach((segment) => {
       expect(segment.getAttribute('class')).toMatch(/text-\w+-600/);
     });
   });
 
   it('has correct SVG dimensions and properties', () => {
-    const items: ExplainItem[] = [
+    const segments: WeightDonutSegment[] = [
       {
         key: 'schools',
-        kind: 'facility',
-        status: 'scored',
-        score: 61,
         weightPct: 50,
-        criteria: [],
+        colorClass: 'text-good-600',
       },
       {
         key: 'universities',
-        kind: 'facility',
-        status: 'scored',
-        score: 85,
         weightPct: 50,
-        criteria: [],
+        colorClass: 'text-moderate-600',
       },
     ];
-    render(<WeightDonut items={items} />);
-    const svg = screen.getByTestId('weight-donut') as SVGSVGElement;
+    render(<WeightDonut segments={segments} />);
+    const svg = screen.getByTestId('weight-donut');
     expect(svg.getAttribute('width')).toBe('72');
     expect(svg.getAttribute('height')).toBe('72');
     expect(svg.getAttribute('viewBox')).toBe('0 0 72 72');
@@ -216,25 +108,19 @@ describe('WeightDonut', () => {
   });
 
   it('applies rotation and flex-shrink classes', () => {
-    const items: ExplainItem[] = [
+    const segments: WeightDonutSegment[] = [
       {
         key: 'schools',
-        kind: 'facility',
-        status: 'scored',
-        score: 61,
         weightPct: 50,
-        criteria: [],
+        colorClass: 'text-good-600',
       },
       {
         key: 'universities',
-        kind: 'facility',
-        status: 'scored',
-        score: 85,
         weightPct: 50,
-        criteria: [],
+        colorClass: 'text-moderate-600',
       },
     ];
-    render(<WeightDonut items={items} />);
+    render(<WeightDonut segments={segments} />);
     const svg = screen.getByTestId('weight-donut');
     expect(svg).toHaveClass('-rotate-90');
     expect(svg).toHaveClass('origin-center');
@@ -242,57 +128,45 @@ describe('WeightDonut', () => {
   });
 
   it('renders background circle with correct styling', () => {
-    const items: ExplainItem[] = [
+    const segments: WeightDonutSegment[] = [
       {
         key: 'schools',
-        kind: 'facility',
-        status: 'scored',
-        score: 61,
         weightPct: 50,
-        criteria: [],
+        colorClass: 'text-good-600',
       },
       {
         key: 'universities',
-        kind: 'facility',
-        status: 'scored',
-        score: 85,
         weightPct: 50,
-        criteria: [],
+        colorClass: 'text-moderate-600',
       },
     ];
-    render(<WeightDonut items={items} />);
+    render(<WeightDonut segments={segments} />);
     const svg = screen.getByTestId('weight-donut');
     const backgroundCircle = svg.querySelector('circle:not([stroke="currentColor"])');
     expect(backgroundCircle).toHaveClass('stroke-slate-100');
     expect(backgroundCircle).toHaveAttribute('fill', 'none');
   });
 
-  it('correctly calculates circumference and weight percentages', () => {
-    const items: ExplainItem[] = [
+  it('renders segments with correct dimensions', () => {
+    const segments: WeightDonutSegment[] = [
       {
         key: 'schools',
-        kind: 'facility',
-        status: 'scored',
-        score: 61,
         weightPct: 60,
-        criteria: [],
+        colorClass: 'text-good-600',
       },
       {
         key: 'universities',
-        kind: 'facility',
-        status: 'scored',
-        score: 85,
         weightPct: 40,
-        criteria: [],
+        colorClass: 'text-moderate-600',
       },
     ];
-    render(<WeightDonut items={items} />);
+    render(<WeightDonut segments={segments} />);
     const svg = screen.getByTestId('weight-donut');
-    const segments = svg.querySelectorAll('circle[stroke="currentColor"]');
+    const segmentCircles = svg.querySelectorAll('circle[stroke="currentColor"]');
 
-    // Verify that each segment renders with the correct dimensions
-    expect(segments).toHaveLength(2);
-    Array.from(segments).forEach((segment) => {
+    // Verify dimensions are consistent
+    expect(segmentCircles).toHaveLength(2);
+    Array.from(segmentCircles).forEach((segment) => {
       // Each segment should have center point
       expect(segment.getAttribute('cx')).toBe('36');
       expect(segment.getAttribute('cy')).toBe('36');
@@ -303,71 +177,68 @@ describe('WeightDonut', () => {
     });
   });
 
-  it('correctly offsets segments by accumulated weight', () => {
-    const items: ExplainItem[] = [
+  it('positions segments correctly with offsets', () => {
+    const segments: WeightDonutSegment[] = [
       {
         key: 'schools',
-        kind: 'facility',
-        status: 'scored',
-        score: 61,
         weightPct: 30,
-        criteria: [],
+        colorClass: 'text-good-600',
       },
       {
         key: 'universities',
-        kind: 'facility',
-        status: 'scored',
-        score: 85,
         weightPct: 70,
-        criteria: [],
+        colorClass: 'text-moderate-600',
       },
     ];
-    render(<WeightDonut items={items} />);
+    render(<WeightDonut segments={segments} />);
     const svg = screen.getByTestId('weight-donut');
-    const segments = svg.querySelectorAll('circle[stroke="currentColor"]');
+    const segmentCircles = svg.querySelectorAll('circle[stroke="currentColor"]');
 
-    // Verify we have both segments
-    expect(segments).toHaveLength(2);
-
-    // Verify that both segments are positioned and styled correctly
-    // The offset creates the ring pattern where each segment starts after the previous one
-    const firstSegment = segments[0];
-    const secondSegment = segments[1];
+    expect(segmentCircles).toHaveLength(2);
+    const firstSegment = segmentCircles[0] as Element;
+    const secondSegment = segmentCircles[1] as Element;
 
     // Both should have the same center and radius
     expect(firstSegment.getAttribute('cx')).toBe(secondSegment.getAttribute('cx'));
     expect(firstSegment.getAttribute('cy')).toBe(secondSegment.getAttribute('cy'));
     expect(firstSegment.getAttribute('r')).toBe(secondSegment.getAttribute('r'));
 
-    // The component's render is verified by its presence in the DOM
-    // The integration tests verify the visual appearance
     expect(firstSegment).toBeInTheDocument();
     expect(secondSegment).toBeInTheDocument();
   });
 
-  it('uses item key as the circle key prop', () => {
-    const items: ExplainItem[] = [
+  it('uses segment key as the circle key prop', () => {
+    const segments: WeightDonutSegment[] = [
       {
         key: 'schools',
-        kind: 'facility',
-        status: 'scored',
-        score: 61,
         weightPct: 50,
-        criteria: [],
+        colorClass: 'text-good-600',
       },
       {
         key: 'universities',
-        kind: 'facility',
-        status: 'scored',
-        score: 85,
         weightPct: 50,
-        criteria: [],
+        colorClass: 'text-moderate-600',
       },
     ];
-    const { container } = render(<WeightDonut items={items} />);
-    // Verify that items are rendered in order (verifies keys are being used for mapping)
+    const { container } = render(<WeightDonut segments={segments} />);
+    // Verify that segments are rendered (verifies keys are being used for mapping)
     const svg = container.querySelector('svg');
     expect(svg).toBeInTheDocument();
     // The test passes if no React warnings about duplicate keys occur
+  });
+
+  it('handles various weight distributions', () => {
+    const segments: WeightDonutSegment[] = [
+      { key: 'a', weightPct: 10, colorClass: 'text-good-600' },
+      { key: 'b', weightPct: 20, colorClass: 'text-moderate-600' },
+      { key: 'c', weightPct: 30, colorClass: 'text-poor-600' },
+      { key: 'd', weightPct: 40, colorClass: 'text-good-600' },
+    ];
+    render(<WeightDonut segments={segments} />);
+    const svg = screen.getByTestId('weight-donut');
+    const segmentCircles = svg.querySelectorAll('circle[stroke="currentColor"]');
+    // Background + 4 segments
+    expect(svg.querySelectorAll('circle')).toHaveLength(5);
+    expect(segmentCircles).toHaveLength(4);
   });
 });

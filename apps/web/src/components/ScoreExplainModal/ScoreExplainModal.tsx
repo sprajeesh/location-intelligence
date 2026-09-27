@@ -220,7 +220,15 @@ export function ScoreExplainModal({
             {t("score.explain.howCalculated", { defaultValue: "How it's calculated" })}
           </h3>
           <div className="mt-2 flex items-center gap-4">
-            <WeightDonut items={items} />
+            <WeightDonut
+              segments={items
+                .filter((item) => item.status === "scored" && item.weightPct > 0)
+                .map((item) => ({
+                  key: item.key,
+                  weightPct: item.weightPct,
+                  colorClass: getScoreColorClass(item.score),
+                }))}
+            />
             <ul className="flex-1 space-y-2">
               {items.map((item) => {
                 const label = t(`score.${itemNamespace}.${item.key}`, { defaultValue: item.key });
