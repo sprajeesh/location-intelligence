@@ -83,6 +83,16 @@ export default function ResultsPanel({
     [],
   );
   const handleCloseExplain = useCallback(() => setExplainTarget(null), []);
+  // Drill-down from a category row inside the overall-score modal into that
+  // category's own explanation -- only ever wired up while the overall modal
+  // is open (see the ScoreExplainModal render below).
+  const handleSelectCategoryFromOverall = useCallback(
+    (categoryId: string) => {
+      const category = analysisResult?.score?.categories.find((c) => c.category === categoryId);
+      if (category) setExplainTarget({ kind: "category", category });
+    },
+    [analysisResult],
+  );
 
   // On mobile, showing a marker switches from the results panel to the
   // full-screen map so the newly-shown pin is actually visible.
@@ -281,6 +291,7 @@ export default function ResultsPanel({
             }
             itemNamespace={explainTarget.kind === "overall" ? "categories" : "facilityTypes"}
             onClose={handleCloseExplain}
+            onSelectItem={explainTarget.kind === "overall" ? handleSelectCategoryFromOverall : undefined}
           />,
           document.body,
         )}

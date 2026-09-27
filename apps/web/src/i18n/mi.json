@@ -47,7 +47,12 @@
       "why": "[MI] score.explain.why",
       "howCalculated": "[MI] score.explain.howCalculated",
       "notChecked": "[MI] score.explain.notChecked",
-      "contribution": "[MI] score.explain.contribution"
+      "contribution": "[MI] score.explain.contribution",
+      "band": {
+        "good": "[MI] score.explain.band.good",
+        "moderate": "[MI] score.explain.band.moderate",
+        "poor": "[MI] score.explain.band.poor"
+      }
     },
     "categories": {
       "education": "[MI] score.categories.education",

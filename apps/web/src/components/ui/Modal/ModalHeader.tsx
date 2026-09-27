@@ -20,7 +20,7 @@ export function ModalHeader({ title, titleId, onClose, closeLabel, className = "
       <h2 id={titleId} className="text-base font-semibold">
         {title}
       </h2>
-      <IconButton icon={X} label={closeLabel} onClick={onClose} />
+      <IconButton icon={X} label={closeLabel} onClick={onClose} size="close" />
     </div>
   );
 }
