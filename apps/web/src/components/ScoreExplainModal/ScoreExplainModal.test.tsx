@@ -80,7 +80,7 @@ describe('ScoreExplainModal', () => {
     expect(screen.getAllByText('Not assessed').length).toBeGreaterThan(0);
   });
 
-  it('renders both the "why" and "how calculated" sections', () => {
+  it('renders the "how calculated" section with contribution breakdown', () => {
     render(
       <ScoreExplainModal
         title="Education"
@@ -90,11 +90,12 @@ describe('ScoreExplainModal', () => {
         onClose={jest.fn()}
       />,
     );
-    expect(screen.getByText('Why this score')).toBeInTheDocument();
     expect(screen.getByText("How it's calculated")).toBeInTheDocument();
+    expect(screen.getByTestId('explain-contribution-section')).toBeInTheDocument();
   });
 
-  it('renders each criterion detail for a scored item with criteria', () => {
+  it('renders criteria in an expandable section for a scored item', async () => {
+    const userEvent = await import('@testing-library/user-event').then(m => m.default.setup());
     render(
       <ScoreExplainModal
         title="Education"
@@ -104,11 +105,17 @@ describe('ScoreExplainModal', () => {
         onClose={jest.fn()}
       />,
     );
+    // Criteria should be hidden initially
+    expect(screen.queryByText('2 schools within 1.0 km.')).not.toBeInTheDocument();
+    // Click to expand
+    const expandButton = screen.getByRole('button', { name: 'Show criteria' });
+    await userEvent.click(expandButton);
+    // Now criteria should be visible
     expect(screen.getByText('2 schools within 1.0 km.')).toBeInTheDocument();
     expect(screen.getByText('1 more up to 2.3 km away.')).toBeInTheDocument();
   });
 
-  it('renders a not_checked item as an explanatory line, not a score', () => {
+  it('renders a not_checked item with an explanatory message', () => {
     render(
       <ScoreExplainModal
         title="Education"
@@ -135,7 +142,7 @@ describe('ScoreExplainModal', () => {
     expect(screen.getAllByText('61').length).toBeGreaterThanOrEqual(2);
   });
 
-  it('renders the weight and score contribution line for a scored item', () => {
+  it('renders the weight, score, and calculated contribution for a scored item', () => {
     render(
       <ScoreExplainModal
         title="Education"
@@ -145,7 +152,13 @@ describe('ScoreExplainModal', () => {
         onClose={jest.fn()}
       />,
     );
-    expect(screen.getByText('55% weight · scored 61/100')).toBeInTheDocument();
+    // Should show the calculation formula
+    expect(screen.getByText(/55% weight × 61\/100 score/)).toBeInTheDocument();
+    // Should show contribution bar with amount
+    expect(screen.getByText('Contribution')).toBeInTheDocument();
+    expect(screen.getAllByText(/33\.[0-9]+ \/ 55\.0/)).toHaveLength(2);
+    // Should show calculation summary section
+    expect(screen.getByText(/Calculation Summary/)).toBeInTheDocument();
   });
 
   it('renders "Not assessed" in the contribution row for a not_checked item', () => {
