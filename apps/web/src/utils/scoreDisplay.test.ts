@@ -84,6 +84,11 @@ describe('sortFacilitiesForDisplay', () => {
     count: 1,
     explanation: '',
     criteria: [],
+    proximityScore: null,
+    densityScore: null,
+    proximityWeight: null,
+    densityWeight: null,
+    leg: null,
   });
 
   it('sorts facilities within a category into the canonical order', () => {
@@ -103,6 +108,11 @@ describe('resolveFacilityDisplayStatus', () => {
       count: 0,
       explanation: 'Park not checked for this address.',
       criteria: [],
+      proximityScore: null,
+      densityScore: null,
+      proximityWeight: null,
+      densityWeight: null,
+      leg: null,
     };
     expect(resolveFacilityDisplayStatus(facility)).toBe('not_checked');
   });
@@ -116,6 +126,11 @@ describe('resolveFacilityDisplayStatus', () => {
       count: 0,
       explanation: 'No hospital found nearby.',
       criteria: [],
+      proximityScore: null,
+      densityScore: null,
+      proximityWeight: null,
+      densityWeight: null,
+      leg: null,
     };
     expect(resolveFacilityDisplayStatus(facility)).toBe('no_data_found');
   });
@@ -129,6 +144,11 @@ describe('resolveFacilityDisplayStatus', () => {
       count: 1,
       explanation: 'Nearest bus stop is 1.6 km away by walk.',
       criteria: [],
+      proximityScore: null,
+      densityScore: null,
+      proximityWeight: null,
+      densityWeight: null,
+      leg: null,
     };
     expect(resolveFacilityDisplayStatus(facility)).toBe('scored');
   });
@@ -152,6 +172,11 @@ describe('buildCategoryExplainItems', () => {
         count: 0,
         explanation: 'University not checked for this address.',
         criteria: [{ label: 'University checked', satisfied: null, detail: 'University not checked for this address.' }],
+        proximityScore: null,
+        densityScore: null,
+        proximityWeight: null,
+        densityWeight: null,
+        leg: null,
       },
       {
         facilityType: 'schools',
@@ -161,6 +186,11 @@ describe('buildCategoryExplainItems', () => {
         count: 2,
         explanation: '2 schools within 1.0 km by walk.',
         criteria: [{ label: 'Schools within 1.0 km', satisfied: true, detail: '2 schools within 1.0 km.' }],
+        proximityScore: 42.5,
+        densityScore: 95.8,
+        proximityWeight: 0.4,
+        densityWeight: 0.6,
+        leg: null,
       },
     ],
   };

@@ -14,7 +14,7 @@ import {
 } from "@/utils/scoreDisplay";
 import { getCategoryIcon, getScoreCategoryIcon } from "@/utils/categoryIcons";
 import type { CategoryId } from "@/types/api";
-import type { ExplainItem } from "@/utils/scoreDisplay";
+import type { ExplainItem, FacilityScoreBreakdown } from "@/utils/scoreDisplay";
 import { useState } from "react";
 
 /**
@@ -72,7 +72,9 @@ function ContributionRow({
   onSelect,
   selectLabel,
   hasCriteria,
+  facilityBreakdown,
   children,
+  t,
 }: {
   icon: LucideIcon;
   label: string;
@@ -84,7 +86,9 @@ function ContributionRow({
   onSelect?: () => void;
   selectLabel?: string;
   hasCriteria?: boolean;
+  facilityBreakdown?: FacilityScoreBreakdown;
   children?: React.ReactNode;
+  t: ReturnType<typeof useTranslations>;
 }) {
   const [expandedCriteria, setExpandedCriteria] = useState(false);
   const contribution = calculateContribution(score, weightPct);
@@ -162,7 +166,7 @@ function ContributionRow({
         </div>
       )}
 
-      {hasCriteria && children && (
+      {(hasCriteria || facilityBreakdown) && children && (
         <button
           type="button"
           onClick={() => setExpandedCriteria(!expandedCriteria)}
@@ -177,7 +181,42 @@ function ContributionRow({
         </button>
       )}
 
-      {expandedCriteria && children && <div className="mt-1.5 ml-6">{children}</div>}
+      {expandedCriteria && children && (
+        <div className="mt-1.5 ml-6">
+          {facilityBreakdown && (
+            <div className="space-y-1 mb-2">
+              {facilityBreakdown.leg && (
+                <div className="text-xs text-slate-500">
+                  {t(
+                    facilityBreakdown.leg === "walk"
+                      ? "score.explain.legWalk"
+                      : "score.explain.legDrive"
+                  )}
+                </div>
+              )}
+              <div className="flex items-center justify-between text-xs text-slate-600 bg-slate-50 px-2 py-1 rounded">
+                <span>
+                  Proximity: {Math.round(facilityBreakdown.proximityWeight * 100)}% ×{" "}
+                  {Math.round(facilityBreakdown.proximityScore)}/100
+                </span>
+                <span className="font-medium text-slate-700">
+                  {(facilityBreakdown.proximityWeight * facilityBreakdown.proximityScore).toFixed(1)} pt
+                </span>
+              </div>
+              <div className="flex items-center justify-between text-xs text-slate-600 bg-slate-50 px-2 py-1 rounded">
+                <span>
+                  Density: {Math.round(facilityBreakdown.densityWeight * 100)}% ×{" "}
+                  {Math.round(facilityBreakdown.densityScore)}/100
+                </span>
+                <span className="font-medium text-slate-700">
+                  {(facilityBreakdown.densityWeight * facilityBreakdown.densityScore).toFixed(1)} pt
+                </span>
+              </div>
+            </div>
+          )}
+          {children}
+        </div>
+      )}
       {isNotAssessed && children && <div className="mt-1.5 ml-6">{children}</div>}
     </li>
   );
@@ -295,6 +334,8 @@ export function ScoreExplainModal({
                     defaultValue: `Explain the ${label} score`,
                   })}
                   hasCriteria={item.kind === "facility" && !isNotAssessed && item.criteria.length > 0}
+                  facilityBreakdown={item.facilityBreakdown}
+                  t={t}
                 >
                   {item.kind === "facility" && !isNotAssessed && item.criteria.length > 0 && (
                     <ul className="space-y-1">

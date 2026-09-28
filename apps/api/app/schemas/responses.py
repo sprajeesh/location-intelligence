@@ -66,6 +66,11 @@ class FacilityScoreResult(BaseModel):
     count: int
     explanation: str
     criteria: list[FacilityCriterionResult] = []
+    proximityScore: float | None = Field(default=None, alias="proximity_score")
+    densityScore: float | None = Field(default=None, alias="density_score")
+    proximityWeight: float | None = Field(default=None, alias="proximity_weight")
+    densityWeight: float | None = Field(default=None, alias="density_weight")
+    leg: Literal["walk", "drive"] | None = None
 
     model_config = {"populate_by_name": True}
 

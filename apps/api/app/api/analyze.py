@@ -167,6 +167,11 @@ async def analyze_location(
                             )
                             for criterion in fac.criteria
                         ],
+                        proximity_score=fac.proximity_score,
+                        density_score=fac.density_score,
+                        proximity_weight=fac.proximity_weight,
+                        density_weight=fac.density_weight,
+                        leg=fac.leg,
                     )
                     for fac in cat.facilities
                 ],

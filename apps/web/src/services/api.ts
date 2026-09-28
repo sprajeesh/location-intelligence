@@ -136,6 +136,11 @@ interface WireFacilityScoreResult {
   count: number;
   explanation: string;
   criteria: WireFacilityCriterion[];
+  proximity_score: number | null;
+  density_score: number | null;
+  proximity_weight: number | null;
+  density_weight: number | null;
+  leg: 'walk' | 'drive' | null;
 }
 
 interface WireCategoryScoreResult {
@@ -221,6 +226,11 @@ export function normalizeAnalyzeResponse(
             satisfied: c.satisfied,
             detail: c.detail,
           })),
+          proximityScore: f.proximity_score,
+          densityScore: f.density_score,
+          proximityWeight: f.proximity_weight,
+          densityWeight: f.density_weight,
+          leg: f.leg,
         })),
         contribution: cat.contribution.map((c) => ({
           facilityType: c.facility_type,

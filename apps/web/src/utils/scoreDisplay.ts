@@ -123,6 +123,18 @@ export function resolveFacilityDisplayStatus(
 }
 
 /**
+ * Proximity/density sub-score breakdown for a facility-type row.
+ * Only present for kind === "facility" rows that are scored.
+ */
+export interface FacilityScoreBreakdown {
+  proximityScore: number;
+  densityScore: number;
+  proximityWeight: number;
+  densityWeight: number;
+  leg: 'walk' | 'drive' | null;
+}
+
+/**
  * One row of the score explanation panel -- a facility type (within a
  * category's explanation) or a category (within the overall explanation).
  * `kind` tells the panel which template to render; it's set explicitly by
@@ -141,6 +153,8 @@ export interface ExplainItem {
   score: number | null;
   weightPct: number;
   criteria: FacilityCriterion[];
+  /** Only present when kind === "facility" and status === "scored". */
+  facilityBreakdown?: FacilityScoreBreakdown;
 }
 
 /** Builds the explanation rows for one category's modal, one per member facility type. */
@@ -153,6 +167,20 @@ export function buildCategoryExplainItems(category: CategoryScoreResult): Explai
     score: facility.score,
     weightPct: contributionByType.get(facility.facilityType)?.weightPct ?? 0,
     criteria: facility.criteria,
+    facilityBreakdown:
+      facility.status === "scored" &&
+      facility.proximityScore !== null &&
+      facility.densityScore !== null &&
+      facility.proximityWeight !== null &&
+      facility.densityWeight !== null
+        ? {
+            proximityScore: facility.proximityScore,
+            densityScore: facility.densityScore,
+            proximityWeight: facility.proximityWeight,
+            densityWeight: facility.densityWeight,
+            leg: facility.leg,
+          }
+        : undefined,
   }));
 }
 
