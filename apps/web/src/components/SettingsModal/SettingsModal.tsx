@@ -6,7 +6,6 @@ import { Modal, ModalHeader, ModalContent, ModalFooter } from "@/components/ui/M
 import { Checkbox } from "@/components/ui/Checkbox";
 import { WeightSlider } from "@/components/ui/WeightSlider";
 import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
 import { groupCategoriesByComposite } from "@/utils/groupCategories";
 import {
   computeDefaultWeightsForActiveCategories,
@@ -78,11 +77,6 @@ export function SettingsModal({
   // equal that default -- see onSave in SettingsContainer.
   const [weightsTouched, setWeightsTouched] = useState(categoryWeights !== null);
   const [showLimitWarning, setShowLimitWarning] = useState(false);
-  // Set by handleToggle when a facility toggle changes the active-category
-  // set while defaultCategoryWeights is still loading -- recomputing right
-  // then would bake in the still-empty `{}`. Holds the active set to
-  // recompute against once loading settles.
-  const [pendingWeightsReset, setPendingWeightsReset] = useState<string[] | null>(null);
 
   // Categories load asynchronously; seed the draft from the committed
   // selection (or the DB defaults) as soon as they're available.
@@ -92,24 +86,10 @@ export function SettingsModal({
     }
   }, [draft, categories, selectedFacilities]);
 
-  // Weight seeding needs defaultCategoryWeights, which is a separate query
-  // (GET /category-weights) from `categories` -- wait for it to settle so a
-  // still-loading `{}` doesn't get baked into the weights (and then never
-  // corrected, since this only runs while weightDraft is null). A pending
-  // toggle-driven reset (see handleToggle) takes priority over the initial
-  // categoryWeights-or-computed-defaults seed, since it reflects the user's
-  // latest facility selection rather than what was true when the modal
-  // opened. On failure defaultCategoryWeights stays `{}`, which
-  // computeDefaultWeightsForActiveCategories already handles by splitting
-  // evenly across the active categories.
+  // Weight seeding: on mount, seed from committed weights (or computed defaults)
+  // once categories and defaultCategoryWeights are available.
   useEffect(() => {
     if (weightDraft !== null || draft === null || isWeightsLoading) return;
-
-    if (pendingWeightsReset !== null) {
-      setWeightDraft(computeDefaultWeightsForActiveCategories(pendingWeightsReset, defaultCategoryWeights));
-      setPendingWeightsReset(null);
-      return;
-    }
 
     const active = getActiveCompositeCategories(categories, draft);
     setWeightDraft(
@@ -122,7 +102,6 @@ export function SettingsModal({
     categoryWeights,
     defaultCategoryWeights,
     isWeightsLoading,
-    pendingWeightsReset,
   ]);
 
   const activeCategories =
@@ -153,20 +132,24 @@ export function SettingsModal({
       const prevActive = getActiveCompositeCategories(categories, prev);
       const nextActive = getActiveCompositeCategories(categories, next);
       if (nextActive.length !== prevActive.length || !nextActive.every((c) => prevActive.includes(c))) {
-        // The active category set changed, so weightDraft is about to be
-        // reseeded to a fresh computed default -- not a user edit, so any
-        // prior customization no longer applies.
-        setWeightsTouched(false);
-        if (isWeightsLoading) {
-          // defaultCategoryWeights isn't ready yet -- clear weightDraft and
-          // defer the recompute to the seeding effect once loading settles,
-          // rather than baking in the still-empty `{}`.
-          setWeightDraft(null);
-          setPendingWeightsReset(nextActive);
-        } else {
-          setPendingWeightsReset(null);
-          setWeightDraft(computeDefaultWeightsForActiveCategories(nextActive, defaultCategoryWeights));
-        }
+        // The active category set changed. Update weights by removing deselected
+        // categories and initializing newly-selected ones to 0 (preserving
+        // existing weights of unchanged categories).
+        setWeightDraft((prev) => {
+          if (prev === null) return null;
+          const next: Record<string, number> = {};
+          for (const category of prevActive) {
+            if (nextActive.includes(category)) {
+              next[category] = prev[category] ?? 0;
+            }
+          }
+          for (const category of nextActive) {
+            if (!prevActive.includes(category)) {
+              next[category] = 0;
+            }
+          }
+          return next;
+        });
       }
 
       return next;
@@ -265,33 +248,17 @@ export function SettingsModal({
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-medium">{label}</h3>
                   <div className="flex items-center gap-1">
-                    <Input
-                      type="number"
-                      inputMode="decimal"
-                      min={0}
-                      max={100}
-                      step={0.01}
-                      value={percent}
-                      disabled={!isActive || weightDraft === null}
-                      onChange={(e) => {
-                        const parsed = parseFloat(e.target.value);
-                        const clamped = Number.isNaN(parsed) ? 0 : Math.min(100, Math.max(0, parsed));
-                        setWeightsTouched(true);
-                        setWeightDraft((prev) => ({
-                          ...(prev ?? {}),
-                          [group.compositeCategory]: clamped / 100,
-                        }));
-                      }}
+                    <span
+                      className={`text-sm font-medium tabular-nums min-w-12 text-right ${
+                        isActive ? "text-slate-700" : "text-slate-300"
+                      }`}
                       aria-label={t("settings.weights.percentInputLabel", {
                         category: label,
                         defaultValue: `${label} weight percent`,
                       })}
-                      size="sm"
-                      align="right"
-                      className={`w-14 px-1.5 tabular-nums font-medium ${
-                        isActive ? "!text-slate-700" : "!text-slate-300"
-                      }`}
-                    />
+                    >
+                      {percent}
+                    </span>
                     <span className={`text-xs font-medium ${isActive ? "text-slate-500" : "text-slate-300"}`}>
                       %
                     </span>
