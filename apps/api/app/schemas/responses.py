@@ -36,6 +36,28 @@ class FeatureResult(BaseModel):
     details: dict[str, str] | None = None
 
 
+class FacilityCriterionResult(BaseModel):
+    label: str
+    satisfied: bool | None
+    detail: str
+
+
+class FacilityContributionResult(BaseModel):
+    facilityType: str = Field(alias="facility_type")
+    weightPct: float = Field(alias="weight_pct")
+    score: float | None = None
+
+    model_config = {"populate_by_name": True}
+
+
+class CategoryContributionResult(BaseModel):
+    category: str
+    weightPct: float = Field(alias="weight_pct")
+    score: float | None = None
+
+    model_config = {"populate_by_name": True}
+
+
 class FacilityScoreResult(BaseModel):
     facilityType: str = Field(alias="facility_type")
     status: Literal["not_checked", "scored"]
@@ -43,6 +65,7 @@ class FacilityScoreResult(BaseModel):
     nearestDistanceKm: float | None = Field(default=None, alias="nearest_distance_km")
     count: int
     explanation: str
+    criteria: list[FacilityCriterionResult] = []
 
     model_config = {"populate_by_name": True}
 
@@ -52,12 +75,14 @@ class CategoryScoreResult(BaseModel):
     status: Literal["not_checked", "scored"]
     score: float | None = None
     facilities: list[FacilityScoreResult]
+    contribution: list[FacilityContributionResult] = []
 
 
 class ScoreResult(BaseModel):
     overall: float | None = None
     coverage: str
     categories: list[CategoryScoreResult]
+    contribution: list[CategoryContributionResult] = []
 
 
 class AnalyzeResponse(BaseModel):

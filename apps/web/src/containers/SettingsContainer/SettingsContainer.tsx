@@ -19,7 +19,10 @@ import {
   resolveCategoryWeightsForRequest,
 } from "@/utils/facilitySelection";
 
-function weightsEqual(a: Record<string, number>, b: Record<string, number>): boolean {
+function weightsEqual(
+  a: Record<string, number>,
+  b: Record<string, number>,
+): boolean {
   const aKeys = Object.keys(a);
   const bKeys = Object.keys(b);
   if (aKeys.length !== bKeys.length) return false;
@@ -41,11 +44,17 @@ export interface SettingsContainerProps {
   expanded?: boolean;
 }
 
-export function SettingsContainer({ className, expanded = false }: SettingsContainerProps = {}) {
+export function SettingsContainer({
+  className,
+  expanded = false,
+}: SettingsContainerProps = {}) {
   const [isOpen, setIsOpen] = useState(false);
   const [pendingReanalyze, setPendingReanalyze] = useState(false);
   const { categories, isLoading, isError } = useCategories();
-  const { categoryWeights: defaultCategoryWeights, isLoading: isWeightsLoading } = useCategoryWeights();
+  const {
+    categoryWeights: defaultCategoryWeights,
+    isLoading: isWeightsLoading,
+  } = useCategoryWeights();
   const { mutate: analyze } = useAnalyze();
   const {
     selectedFacilities,
@@ -82,7 +91,9 @@ export function SettingsContainer({ className, expanded = false }: SettingsConta
     const weightsChanged = !weightsEqual(newCategoryWeights, previousWeights);
     const changed = facilitiesChanged || weightsChanged;
 
-    setSelectedFacilities(isSameFacilitySet(facilityIds, defaultIds) ? null : facilityIds);
+    setSelectedFacilities(
+      isSameFacilitySet(facilityIds, defaultIds) ? null : facilityIds,
+    );
     // Only persist an explicit weight override when the user actually
     // touched a slider/input -- not based on whether the values happen to
     // match a computed default, since a deliberate entry (e.g. an even
@@ -122,9 +133,12 @@ export function SettingsContainer({ className, expanded = false }: SettingsConta
     <>
       <Button
         icon={Settings}
+        variant="outline"
         label={
           expanded
-            ? t("settings.buttonLabelExpanded", { defaultValue: "Scoring Config" })
+            ? t("settings.buttonLabelExpanded", {
+                defaultValue: "Scoring Config",
+              })
             : t("settings.buttonLabel", { defaultValue: "Scoring" })
         }
         title={t("settings.tooltip", { defaultValue: "Settings" })}

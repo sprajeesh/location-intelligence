@@ -155,6 +155,26 @@ describing what it found, for example:
 These are generated from the same distance and count data used to compute
 the score — they're a description of the number, not a separate opinion.
 
+## Structured explanation data
+
+Beyond the plain-language sentence, the API also returns the same underlying
+facts in a structured, machine-readable form, so a UI can build a richer
+"why this score?" view without re-deriving anything:
+
+- Each facility type carries a list of **criteria** — short, human-readable
+  statements (e.g. "Schools within 1.0 km") each marked satisfied, not
+  satisfied, or "not checked" (unknown, when the facility type wasn't looked
+  up at all). These come from exactly the same distance data as the plain
+  sentence above, just split into discrete line items instead of prose.
+- Each category and the overall score carry a **contribution** breakdown —
+  which facility types (or categories) fed into that score, and what share
+  of the weight each one carried, after any not-checked members were
+  excluded and the rest rebalanced. This surfaces the weighting from Step 2
+  and Step 3 above directly, rather than requiring the client to know it.
+
+Neither of these change the score in any way — they're a different view of
+data the engine already produces.
+
 ## In plain terms
 
 An address scores well when it has amenities that are **both close by and

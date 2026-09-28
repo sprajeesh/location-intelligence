@@ -40,6 +40,21 @@
       "expand": "[MI] score.actions.expand",
       "collapse": "[MI] score.actions.collapse"
     },
+    "explain": {
+      "openOverall": "[MI] score.explain.openOverall",
+      "openCategory": "[MI] score.explain.openCategory",
+      "backToOverall": "[MI] score.explain.backToOverall",
+      "close": "[MI] score.explain.close",
+      "why": "[MI] score.explain.why",
+      "howCalculated": "[MI] score.explain.howCalculated",
+      "notChecked": "[MI] score.explain.notChecked",
+      "contribution": "[MI] score.explain.contribution",
+      "band": {
+        "good": "[MI] score.explain.band.good",
+        "moderate": "[MI] score.explain.band.moderate",
+        "poor": "[MI] score.explain.band.poor"
+      }
+    },
     "categories": {
       "education": "[MI] score.categories.education",
       "transport": "[MI] score.categories.transport",

@@ -2,12 +2,13 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { TriangleAlert } from "lucide-react";
-import type { CategoryId, Feature, ScoreResult } from "@/types/api";
+import { TriangleAlert, HelpCircle } from "lucide-react";
+import type { CategoryId, CategoryScoreResult, Feature, ScoreResult } from "@/types/api";
 import { parseCoverage, sortCategoriesForDisplay } from "@/utils/scoreDisplay";
 import { CoverageCaption } from "@/components/CoverageCaption";
 import { CategoryScoreCard } from "@/components/CategoryScoreCard";
 import { ScoreRing } from "@/components/ScoreRing";
+import { IconButton } from "@/components/ui/IconButton";
 
 /**
  * ScoreDisplay — Shows the composite location score, coverage indicator,
@@ -28,6 +29,11 @@ export interface ScoreDisplayProps {
   onToggleCategoryVisibility?: (featureIds: string[], makeVisible: boolean) => void;
   onFacilityClick?: (feature: Feature) => void;
   onNavigate?: (feature: Feature) => void;
+  // Score explanation is presented by a container (see ResultsPanel), which
+  // owns the open/close state and portals ScoreExplainModal to document.body
+  // -- this component only reports the click, it never renders the modal.
+  onExplainOverall?: () => void;
+  onExplainCategory?: (category: CategoryScoreResult) => void;
 }
 
 export function ScoreDisplay({
@@ -40,6 +46,8 @@ export function ScoreDisplay({
   onToggleCategoryVisibility,
   onFacilityClick,
   onNavigate,
+  onExplainOverall,
+  onExplainCategory,
 }: ScoreDisplayProps) {
   const t = useTranslations();
   const [expandedCategories, setExpandedCategories] = useState<Set<CategoryId>>(new Set());
@@ -63,7 +71,14 @@ export function ScoreDisplay({
     <div className="space-y-3">
       {/* Overall Score — the panel's focal point */}
       <div className="text-center">
-        <div className="flex flex-col items-center gap-3 rounded-2xl surface-glass-primary py-8 transition-smooth">
+        <div className="relative flex flex-col items-center gap-3 rounded-2xl surface-glass-primary py-8 transition-smooth">
+          <IconButton
+            icon={HelpCircle}
+            size="sm"
+            onClick={() => onExplainOverall?.()}
+            label={t("score.explain.openOverall", { defaultValue: "Explain the overall score" })}
+            className="absolute top-2 right-2 text-white/70 hover:text-white"
+          />
           <h3 className="text-xs font-semibold text-white/70 uppercase tracking-wider">
             {t("score.title", { defaultValue: "Location Score" })}
           </h3>
@@ -92,6 +107,7 @@ export function ScoreDisplay({
               onToggleCategoryVisibility={onToggleCategoryVisibility}
               onFacilityClick={onFacilityClick}
               onNavigate={onNavigate}
+              onExplainCategory={onExplainCategory}
             />
           </li>
         ))}

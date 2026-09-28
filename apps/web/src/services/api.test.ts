@@ -16,11 +16,18 @@ describe('normalizeAnalyzeResponse', () => {
     score: {
       overall: 16.0,
       coverage: '2/5',
+      contribution: [
+        { category: 'education' as const, weight_pct: 100, score: 28.0 },
+      ],
       categories: [
         {
           category: 'education' as const,
           status: 'scored' as const,
           score: 28.0,
+          contribution: [
+            { facility_type: 'schools', weight_pct: 100, score: 28.0 },
+            { facility_type: 'universities', weight_pct: 0, score: null },
+          ],
           facilities: [
             {
               facility_type: 'schools',
@@ -29,6 +36,9 @@ describe('normalizeAnalyzeResponse', () => {
               nearest_distance_km: 0.52,
               count: 4,
               explanation: '1 schools within 1.0 km by walk, plus 2 more up to 1.9 km away.',
+              criteria: [
+                { label: 'Schools within 1.0 km', satisfied: true, detail: '1 school within 1.0 km.' },
+              ],
             },
             {
               facility_type: 'universities',
@@ -37,6 +47,9 @@ describe('normalizeAnalyzeResponse', () => {
               nearest_distance_km: null,
               count: 0,
               explanation: 'University not checked for this address.',
+              criteria: [
+                { label: 'University checked', satisfied: null, detail: 'University not checked for this address.' },
+              ],
             },
           ],
         },
@@ -79,6 +92,39 @@ describe('normalizeAnalyzeResponse', () => {
     expect(notChecked.explanation).toBe('University not checked for this address.');
   });
 
+  it('passes through facility criteria unchanged', () => {
+    const result = normalizeAnalyzeResponse(wireResponse);
+    const facility = result.score.categories[0]!.facilities[0]!;
+
+    expect(facility.criteria).toEqual([
+      { label: 'Schools within 1.0 km', satisfied: true, detail: '1 school within 1.0 km.' },
+    ]);
+  });
+
+  it('preserves a null satisfied value for not_checked criteria', () => {
+    const result = normalizeAnalyzeResponse(wireResponse);
+    const notChecked = result.score.categories[0]!.facilities[1]!;
+
+    expect(notChecked.criteria[0]!.satisfied).toBeNull();
+  });
+
+  it('remaps facility_type and weight_pct to camelCase in category contribution', () => {
+    const result = normalizeAnalyzeResponse(wireResponse);
+    const contribution = result.score.categories[0]!.contribution;
+
+    expect(contribution).toEqual([
+      { facilityType: 'schools', weightPct: 100, score: 28.0 },
+      { facilityType: 'universities', weightPct: 0, score: null },
+    ]);
+  });
+
+  it('remaps weight_pct to camelCase in composite contribution', () => {
+    const result = normalizeAnalyzeResponse(wireResponse);
+
+    expect(result.score.contribution).toEqual([
+      { category: 'education', weightPct: 100, score: 28.0 },
+    ]);
+  });
 });
 
 describe('normalizeRouteResult', () => {

@@ -263,7 +263,7 @@ export function SettingsModal({
             return (
               <section key={group.compositeCategory}>
                 <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-medium text-slate-700">{label}</h3>
+                  <h3 className="text-sm font-medium">{label}</h3>
                   <div className="flex items-center gap-1">
                     <Input
                       type="number"

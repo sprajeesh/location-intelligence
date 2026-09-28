@@ -30,6 +30,28 @@ class Facility:
 
 
 @dataclass
+class FacilityCriterion:
+    label: str
+    # None means "not checked" (unknown), distinct from False (checked, not met).
+    satisfied: bool | None
+    detail: str
+
+
+@dataclass
+class FacilityContribution:
+    facility_type: str
+    weight_pct: float
+    score: float | None
+
+
+@dataclass
+class CategoryContribution:
+    category: str
+    weight_pct: float
+    score: float | None
+
+
+@dataclass
 class FacilityScore:
     facility_type: str
     status: FacilityStatus
@@ -37,6 +59,7 @@ class FacilityScore:
     nearest_distance_km: float | None
     count: int
     explanation: str
+    criteria: list[FacilityCriterion] = field(default_factory=list)
 
 
 @dataclass
@@ -45,6 +68,7 @@ class CategoryScore:
     status: FacilityStatus
     score: float | None
     facilities: list[FacilityScore] = field(default_factory=list)
+    contribution: list[FacilityContribution] = field(default_factory=list)
 
 
 @dataclass
@@ -52,3 +76,4 @@ class CompositeScore:
     overall: float | None
     coverage: str
     categories: list[CategoryScore] = field(default_factory=list)
+    contribution: list[CategoryContribution] = field(default_factory=list)
