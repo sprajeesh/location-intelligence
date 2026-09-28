@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.0](https://github.com/sprajeesh/location-intelligence/compare/api@v0.8.0...api@v0.9.0) (2026-09-28)
+
+
+### Features
+
+* **web,api:** expose facility-level score sub-components in UI ([#278](https://github.com/sprajeesh/location-intelligence/issues/278)) ([48b3989](https://github.com/sprajeesh/location-intelligence/commit/48b3989248083a180078fbad3f9bc6aaa23c7ea2))
+
 ## [0.8.0](https://github.com/sprajeesh/location-intelligence/compare/api@v0.7.1...api@v0.8.0) (2026-09-25)
 
 
