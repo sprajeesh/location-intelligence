@@ -184,15 +184,15 @@ tank the score — but a genuine lack of nearby amenities will, and rightly so.
 
 ---
 
-# Worked Example: Schools at 33 Ruahine St, Trentham
+# Worked Example: School Accessibility
 
-This example walks through the exact calculation for a real address to show
+This example walks through the exact calculation for a sample address to show
 how the two-curve system works in practice.
 
 ## The Data
 
-**Address:** 33 Ruahine Street, Trentham  
-**Facility type:** Schools  
+**Facility type:** Schools (walking distance)  
+**Sample address:** A random residential location  
 **Search result:** 7 schools found within 3.0 km (hard cutoff)
 
 - Nearest school: **0.64 km**
