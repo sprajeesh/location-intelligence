@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.18.0](https://github.com/sprajeesh/location-intelligence/compare/web@v0.17.0...web@v0.18.0) (2026-09-28)
+
+
+### Features
+
+* **web,api:** expose facility-level score sub-components in UI ([#278](https://github.com/sprajeesh/location-intelligence/issues/278)) ([48b3989](https://github.com/sprajeesh/location-intelligence/commit/48b3989248083a180078fbad3f9bc6aaa23c7ea2))
+* **web:** improve scoring config modal UI/UX ([#277](https://github.com/sprajeesh/location-intelligence/issues/277)) ([4618ab3](https://github.com/sprajeesh/location-intelligence/commit/4618ab3c6d8e75727c944d9d1df37374aea13086))
+
 ## [0.17.0](https://github.com/sprajeesh/location-intelligence/compare/web@v0.16.0...web@v0.17.0) (2026-09-27)
 
 
