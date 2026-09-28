@@ -1,6 +1,7 @@
 import math
 from dataclasses import replace
 from difflib import SequenceMatcher
+from typing import NamedTuple
 
 from app.clients.osrm import haversine_km
 from app.config.scoring_config import FacilityConfig
@@ -89,6 +90,10 @@ def _proximity_and_density(
     return proximity_score, density_score
 
 
+def _blend_score(proximity_score: float, density_score: float, cfg: FacilityConfig) -> float:
+    return (proximity_score * cfg.proximity_weight) + (density_score * cfg.density_weight)
+
+
 def facility_score(
     nearest_distance: float, poi_distances: list[float], cfg: FacilityConfig
 ) -> float:
@@ -106,14 +111,22 @@ def facility_score(
         cfg.saturation_point,
         cfg.count_ceiling,
     )
-    return (proximity_score * cfg.proximity_weight) + (density_score * cfg.density_weight)
+    return _blend_score(proximity_score, density_score, cfg)
+
+
+class BestOfBothResult(NamedTuple):
+    score: float
+    leg: str
+    nearest_distance_km: float
+    proximity_score: float
+    density_score: float
 
 
 def _facility_score_best_of_both(
     cfg: FacilityConfig,
     walk_distances: list[float],
     drive_distances: list[float],
-) -> tuple[float, str, float]:
+) -> BestOfBothResult:
     """Compute both the walk and drive legs, take whichever produces the
     higher proximity sub-score. Returns (score, winning_leg, nearest_distance_km).
     Assumes at least one of walk_distances/drive_distances is non-empty.
@@ -146,11 +159,13 @@ def _facility_score_best_of_both(
         )
 
     if walk_nearest is not None and (drive_nearest is None or walk_prox >= drive_prox):
-        score = walk_prox * cfg.proximity_weight + walk_dens * cfg.density_weight
-        return score, "walk", walk_nearest
+        score = _blend_score(walk_prox, walk_dens, cfg)
+        return BestOfBothResult(score, "walk", walk_nearest, walk_prox, walk_dens)
 
-    score = drive_prox * cfg.proximity_weight + drive_dens * cfg.density_weight
-    return score, "drive", drive_nearest  # drive_nearest is not None on this branch
+    score = _blend_score(drive_prox, drive_dens, cfg)
+    return BestOfBothResult(
+        score, "drive", drive_nearest, drive_prox, drive_dens
+    )  # drive_nearest is not None on this branch
 
 
 def _pluralize(label: str) -> str:
@@ -448,8 +463,14 @@ class LocationScoringService:
                             detail=explanation,
                         )
                     ],
+                    proximity_score=0.0,
+                    density_score=0.0,
+                    proximity_weight=cfg.proximity_weight,
+                    density_weight=cfg.density_weight,
+                    leg=None,
                 )
-            score, leg, nearest = _facility_score_best_of_both(cfg, walk_distances, drive_distances)
+            result = _facility_score_best_of_both(cfg, walk_distances, drive_distances)
+            score, leg, nearest, proximity_score, density_score = result
             if leg == "walk":
                 leg_distances, leg_reference_radius, leg_hard_cutoff = (
                     walk_distances,
@@ -476,6 +497,11 @@ class LocationScoringService:
                 criteria=_facility_criteria(
                     label, leg_distances, nearest, leg_reference_radius, leg_hard_cutoff
                 ),
+                proximity_score=round(proximity_score, 1),
+                density_score=round(density_score, 1),
+                proximity_weight=cfg.proximity_weight,
+                density_weight=cfg.density_weight,
+                leg=leg,
             )
 
         distances = [f.distance_km for f in group if f.distance_km is not None]
@@ -495,10 +521,23 @@ class LocationScoringService:
                         detail=explanation,
                     )
                 ],
+                proximity_score=0.0,
+                density_score=0.0,
+                proximity_weight=cfg.proximity_weight,
+                density_weight=cfg.density_weight,
+                leg=None,
             )
 
         nearest = min(distances)
-        score = facility_score(nearest, distances, cfg)
+        proximity_score, density_score = _proximity_and_density(
+            nearest,
+            distances,
+            cfg.decay_constant,
+            cfg.hard_cutoff,
+            cfg.saturation_point,
+            cfg.count_ceiling,
+        )
+        score = _blend_score(proximity_score, density_score, cfg)
         return FacilityScore(
             facility_type=facility_type,
             status="scored",
@@ -511,6 +550,11 @@ class LocationScoringService:
             criteria=_facility_criteria(
                 label, distances, nearest, cfg.reference_radius, cfg.hard_cutoff
             ),
+            proximity_score=round(proximity_score, 1),
+            density_score=round(density_score, 1),
+            proximity_weight=cfg.proximity_weight,
+            density_weight=cfg.density_weight,
+            leg=None,
         )
 
     def _score_category(

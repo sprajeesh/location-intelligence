@@ -37,6 +37,11 @@ const notCheckedCategory: CategoryScoreResult = {
       count: 0,
       explanation: 'Park not checked for this address.',
       criteria: [],
+      proximityScore: null,
+      densityScore: null,
+      proximityWeight: null,
+      densityWeight: null,
+      leg: null,
     },
   ],
 };
@@ -57,6 +62,11 @@ const checkedZeroCategory: CategoryScoreResult = {
       count: 1,
       explanation: 'Nearest bus stop is 1.6 km away by walk.',
       criteria: [],
+      proximityScore: null,
+      densityScore: null,
+      proximityWeight: null,
+      densityWeight: null,
+      leg: null,
     },
   ],
 };

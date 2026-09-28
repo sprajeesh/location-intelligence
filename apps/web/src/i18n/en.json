@@ -49,6 +49,8 @@
       "howCalculated": "How it's calculated",
       "notChecked": "{label}: not checked for this address.",
       "contribution": "{weightPct}% weight · scored {score}/100",
+      "legWalk": "Nearest reached on foot",
+      "legDrive": "Nearest reached by car",
       "band": {
         "good": "Good",
         "moderate": "Average",

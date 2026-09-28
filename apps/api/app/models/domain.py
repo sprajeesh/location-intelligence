@@ -60,6 +60,11 @@ class FacilityScore:
     count: int
     explanation: str
     criteria: list[FacilityCriterion] = field(default_factory=list)
+    proximity_score: float | None = None
+    density_score: float | None = None
+    proximity_weight: float | None = None
+    density_weight: float | None = None
+    leg: Literal["walk", "drive"] | None = None
 
 
 @dataclass

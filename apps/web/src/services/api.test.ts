@@ -39,6 +39,11 @@ describe('normalizeAnalyzeResponse', () => {
               criteria: [
                 { label: 'Schools within 1.0 km', satisfied: true, detail: '1 school within 1.0 km.' },
               ],
+              proximity_score: 45.2,
+              density_score: 89.3,
+              proximity_weight: 0.4,
+              density_weight: 0.6,
+              leg: null,
             },
             {
               facility_type: 'universities',
@@ -50,6 +55,11 @@ describe('normalizeAnalyzeResponse', () => {
               criteria: [
                 { label: 'University checked', satisfied: null, detail: 'University not checked for this address.' },
               ],
+              proximity_score: null,
+              density_score: null,
+              proximity_weight: null,
+              density_weight: null,
+              leg: null,
             },
           ],
         },

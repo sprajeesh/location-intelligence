@@ -101,6 +101,11 @@ export interface FacilityScoreResult {
   count: number
   explanation: string
   criteria: FacilityCriterion[]
+  proximityScore: number | null
+  densityScore: number | null
+  proximityWeight: number | null
+  densityWeight: number | null
+  leg: 'walk' | 'drive' | null
 }
 
 /**
