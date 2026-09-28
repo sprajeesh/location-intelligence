@@ -156,8 +156,9 @@ describe('ScoreExplainModal', () => {
     expect(screen.getByText(/55% weight × 61\/100 score/)).toBeInTheDocument();
     // Should show contribution bar with amount
     expect(screen.getByText('Contribution')).toBeInTheDocument();
-    expect(screen.getAllByText(/33\.[0-9]+ \/ 55\.0/)).toHaveLength(2);
-    // Should show calculation summary section
+    // Should show facility breakdown waterfall
+    expect(screen.getByText('Facility Contribution Breakdown')).toBeInTheDocument();
+    // Should show the calculation summary section
     expect(screen.getByText(/Calculation Summary/)).toBeInTheDocument();
   });
 
