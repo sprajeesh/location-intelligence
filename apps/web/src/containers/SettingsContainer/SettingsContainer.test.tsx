@@ -120,20 +120,26 @@ describe("SettingsContainer", () => {
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     });
 
-    it("saves null when the draft matches the DB defaults, so the API keeps using its own default set", async () => {
+    it("saves null when the user reverts to default facilities", async () => {
       const setSelectedFacilities = jest.fn();
+      const setCategoryWeights = jest.fn();
       mockUseLocationStore.mockReturnValue(
-        makeStoreState({ setSelectedFacilities, selectedFacilities: ["kindergartens"] }),
+        makeStoreState({ setSelectedFacilities, setCategoryWeights, selectedFacilities: ["kindergartens"] }),
       );
 
       render(<SettingsContainer />);
       await userEvent.click(screen.getByRole("button", { name: "Scoring" }));
-      // Draft seeds from the saved selection (kindergartens); toggle back to the defaults.
+      // Draft seeds from saved selection (kindergartens); toggle back to default (schools).
       await userEvent.click(screen.getByLabelText("Kindergartens"));
       await userEvent.click(screen.getByLabelText("Schools"));
+      // Adjust weights to valid (education: 100%, since we only have education active)
+      fireEvent.change(screen.getByLabelText("education"), { target: { value: "100" } });
       await userEvent.click(screen.getByRole("button", { name: "Save" }));
 
+      // Saving default facilities sends null to the API
       expect(setSelectedFacilities).toHaveBeenCalledWith(null);
+      // Default weights should be saved explicitly if touched
+      expect(setCategoryWeights).toHaveBeenCalledWith({ education: 1 });
     });
 
     it("saves the user's explicit weights even when they coincidentally equal the computed default", async () => {
@@ -164,12 +170,10 @@ describe("SettingsContainer", () => {
       await userEvent.click(screen.getByRole("button", { name: "Scoring" }));
       await userEvent.click(screen.getByLabelText("Parks"));
       await userEvent.click(screen.getByLabelText("Restaurants"));
-      const recreationInput = screen.getByLabelText("recreation weight percent");
-      await userEvent.clear(recreationInput);
-      await userEvent.type(recreationInput, "50");
-      const foodInput = screen.getByLabelText("food_and_drink weight percent");
-      await userEvent.clear(foodInput);
-      await userEvent.type(foodInput, "50");
+      // Adjust recreation slider to 50%
+      fireEvent.change(screen.getByLabelText("recreation"), { target: { value: "50" } });
+      // Adjust food_and_drink slider to 50%
+      fireEvent.change(screen.getByLabelText("food_and_drink"), { target: { value: "50" } });
       await userEvent.click(screen.getByRole("button", { name: "Save" }));
 
       expect(setCategoryWeights).toHaveBeenCalledWith({ recreation: 0.5, food_and_drink: 0.5 });
