@@ -198,19 +198,13 @@ describe("SettingsModal", () => {
       await userEvent.click(screen.getByLabelText("Parks"));
       await userEvent.click(screen.getByLabelText("Restaurants"));
 
-      expect(screen.getByLabelText("recreation")).toHaveValue("50");
-      expect(screen.getByLabelText("food_and_drink")).toHaveValue("50");
+      // New categories start at 0% weight; weights are now invalid (sum to 0%)
+      expect(screen.getByLabelText("recreation")).toHaveValue("0");
+      expect(screen.getByLabelText("food_and_drink")).toHaveValue("0");
 
-      // Simulate the user actually typing "50" into each percent field
-      // (already showing 50 from the coincidental default) -- real typing
-      // fires onChange with intermediate values, unlike a single
-      // fireEvent.change to an already-identical string.
-      const recreationInput = screen.getByLabelText("recreation weight percent");
-      await userEvent.clear(recreationInput);
-      await userEvent.type(recreationInput, "50");
-      const foodInput = screen.getByLabelText("food_and_drink weight percent");
-      await userEvent.clear(foodInput);
-      await userEvent.type(foodInput, "50");
+      // User must manually adjust sliders to make weights valid
+      fireEvent.change(screen.getByLabelText("recreation"), { target: { value: "50" } });
+      fireEvent.change(screen.getByLabelText("food_and_drink"), { target: { value: "50" } });
       await userEvent.click(screen.getByRole("button", { name: "Save" }));
 
       expect(onSave).toHaveBeenCalledWith(
@@ -336,7 +330,7 @@ describe("SettingsModal", () => {
       expect(screen.getByLabelText("transport")).toHaveValue("40");
     });
 
-    it("defers a toggle-triggered reseed until the defaults query settles, then applies the fetched ratios", async () => {
+    it("disables facility selection while weights are loading, then applies the fetched ratios", async () => {
       const { rerender } = render(
         <SettingsModal
           {...defaultProps}
@@ -346,10 +340,11 @@ describe("SettingsModal", () => {
         />,
       );
 
-      await userEvent.click(screen.getByLabelText("Clinics"));
+      // Checkboxes have no onChange while loading
+      const clinicsCheckbox = screen.getByLabelText("Clinics") as HTMLInputElement;
+      expect(clinicsCheckbox.onchange).toBeNull();
 
-      // Still loading -- must not seed from the still-empty defaults, and
-      // must not get stuck there once the query does resolve.
+      // Still loading -- facility toggles have no effect, weights not shown
       expect(screen.getByLabelText("healthcare")).toBeDisabled();
       expect(screen.queryByText(/Total Weightage:/)).not.toBeInTheDocument();
 
@@ -362,39 +357,38 @@ describe("SettingsModal", () => {
         />,
       );
 
-      // Applies the fetched ratios renormalized over the active set as of
-      // the toggle made during loading (education, transport, healthcare),
-      // not what was active when the modal first opened.
-      expect(screen.getByLabelText("education")).toHaveValue("50");
-      expect(screen.getByLabelText("transport")).toHaveValue("33.33");
-      expect(screen.getByLabelText("healthcare")).toHaveValue("16.67");
+      // Once loading completes, weights are seeded for the original active set
+      // (education, transport) as no toggles occurred during loading
+      expect(screen.getByLabelText("education")).toHaveValue("60");
+      expect(screen.getByLabelText("transport")).toHaveValue("40");
+      expect(screen.getByLabelText("healthcare")).toBeDisabled();
       expect(screen.getByText(/Total Weightage: 100%/)).toBeInTheDocument();
     });
 
-    it("resets weights to computed defaults when a facility toggle activates a new category", async () => {
+    it("preserves existing weights and initializes new categories to 0 when toggling on", async () => {
       render(<SettingsModal {...defaultProps} categories={withHealthcare} />);
 
       fireEvent.change(screen.getByLabelText("education"), { target: { value: "80" } });
 
       await userEvent.click(screen.getByLabelText("Clinics"));
 
-      // DB ratios education:0.6, transport:0.4, healthcare:0.2 renormalized
-      // over the new active set (sum 1.2) -- a reset, not a redistribute of
-      // the manual 80% edit.
-      expect(screen.getByLabelText("education")).toHaveValue("50");
-      expect(screen.getByLabelText("transport")).toHaveValue("33.33");
-      expect(screen.getByLabelText("healthcare")).toHaveValue("16.67");
-      expect(screen.getByText(/Total Weightage: 100%/)).toBeInTheDocument();
+      // Existing weights are preserved; newly activated category starts at 0%
+      // (total is now invalid at 120%)
+      expect(screen.getByLabelText("education")).toHaveValue("80");
+      expect(screen.getByLabelText("transport")).toHaveValue("40");
+      expect(screen.getByLabelText("healthcare")).toHaveValue("0");
+      expect(screen.queryByText(/Total Weightage: 120%/)).toBeInTheDocument();
     });
 
-    it("resets weights to computed defaults when a facility toggle deactivates a category", async () => {
+    it("preserves weights and removes deselected category when toggling off", async () => {
       render(<SettingsModal {...defaultProps} selectedFacilities={["schools", "bus_stops"]} />);
 
       await userEvent.click(screen.getByLabelText("Bus Stops"));
 
-      expect(screen.getByLabelText("education")).toHaveValue("100");
+      // Transport is removed, education weight preserved at 60% (now invalid total)
+      expect(screen.getByLabelText("education")).toHaveValue("60");
       expect(screen.getByLabelText("transport")).toBeDisabled();
-      expect(screen.getByText(/Total Weightage: 100%/)).toBeInTheDocument();
+      expect(screen.queryByText(/Total Weightage: 60%/)).toBeInTheDocument();
     });
   });
 

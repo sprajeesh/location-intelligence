@@ -2,11 +2,15 @@
 
 import { useEffect, useId, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Modal, ModalHeader, ModalContent, ModalFooter } from "@/components/ui/Modal";
+import {
+  Modal,
+  ModalHeader,
+  ModalContent,
+  ModalFooter,
+} from "@/components/ui/Modal";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { WeightSlider } from "@/components/ui/WeightSlider";
 import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
 import { groupCategoriesByComposite } from "@/utils/groupCategories";
 import {
   computeDefaultWeightsForActiveCategories,
@@ -70,19 +74,18 @@ export function SettingsModal({
   const groups = groupCategoriesByComposite(categories);
 
   const [draft, setDraft] = useState<string[] | null>(null);
-  const [weightDraft, setWeightDraft] = useState<Record<string, number> | null>(null);
+  const [weightDraft, setWeightDraft] = useState<Record<string, number> | null>(
+    null,
+  );
   // True once the user has directly edited a weight slider/input this
   // session, or the modal opened with already-customized weights. Used
   // instead of diffing weightDraft against a freshly computed default,
   // since a deliberate value (e.g. an even 50/50 split) can coincidentally
   // equal that default -- see onSave in SettingsContainer.
-  const [weightsTouched, setWeightsTouched] = useState(categoryWeights !== null);
+  const [weightsTouched, setWeightsTouched] = useState(
+    categoryWeights !== null,
+  );
   const [showLimitWarning, setShowLimitWarning] = useState(false);
-  // Set by handleToggle when a facility toggle changes the active-category
-  // set while defaultCategoryWeights is still loading -- recomputing right
-  // then would bake in the still-empty `{}`. Holds the active set to
-  // recompute against once loading settles.
-  const [pendingWeightsReset, setPendingWeightsReset] = useState<string[] | null>(null);
 
   // Categories load asynchronously; seed the draft from the committed
   // selection (or the DB defaults) as soon as they're available.
@@ -92,28 +95,18 @@ export function SettingsModal({
     }
   }, [draft, categories, selectedFacilities]);
 
-  // Weight seeding needs defaultCategoryWeights, which is a separate query
-  // (GET /category-weights) from `categories` -- wait for it to settle so a
-  // still-loading `{}` doesn't get baked into the weights (and then never
-  // corrected, since this only runs while weightDraft is null). A pending
-  // toggle-driven reset (see handleToggle) takes priority over the initial
-  // categoryWeights-or-computed-defaults seed, since it reflects the user's
-  // latest facility selection rather than what was true when the modal
-  // opened. On failure defaultCategoryWeights stays `{}`, which
-  // computeDefaultWeightsForActiveCategories already handles by splitting
-  // evenly across the active categories.
+  // Weight seeding: on mount, seed from committed weights (or computed defaults)
+  // once categories and defaultCategoryWeights are available.
   useEffect(() => {
     if (weightDraft !== null || draft === null || isWeightsLoading) return;
 
-    if (pendingWeightsReset !== null) {
-      setWeightDraft(computeDefaultWeightsForActiveCategories(pendingWeightsReset, defaultCategoryWeights));
-      setPendingWeightsReset(null);
-      return;
-    }
-
     const active = getActiveCompositeCategories(categories, draft);
     setWeightDraft(
-      categoryWeights ?? computeDefaultWeightsForActiveCategories(active, defaultCategoryWeights),
+      categoryWeights ??
+        computeDefaultWeightsForActiveCategories(
+          active,
+          defaultCategoryWeights,
+        ),
     );
   }, [
     weightDraft,
@@ -122,18 +115,21 @@ export function SettingsModal({
     categoryWeights,
     defaultCategoryWeights,
     isWeightsLoading,
-    pendingWeightsReset,
   ]);
 
   const activeCategories =
     draft === null ? [] : getActiveCompositeCategories(categories, draft);
-  const total = activeCategories.reduce((sum, category) => sum + (weightDraft?.[category] ?? 0), 0);
+  const total = activeCategories.reduce(
+    (sum, category) => sum + (weightDraft?.[category] ?? 0),
+    0,
+  );
   const totalPercent = weightToPercent(total);
   const totalIsValid = Math.abs(total - 1) < WEIGHT_SUM_TOLERANCE;
   const hasZeroWeightCategory = activeCategories.some(
     (category) => (weightDraft?.[category] ?? 0) <= 0,
   );
-  const weightsAreValid = activeCategories.length === 0 || (totalIsValid && !hasZeroWeightCategory);
+  const weightsAreValid =
+    activeCategories.length === 0 || (totalIsValid && !hasZeroWeightCategory);
 
   const handleToggle = (facilityId: string, checked: boolean) => {
     setDraft((prev) => {
@@ -152,21 +148,28 @@ export function SettingsModal({
 
       const prevActive = getActiveCompositeCategories(categories, prev);
       const nextActive = getActiveCompositeCategories(categories, next);
-      if (nextActive.length !== prevActive.length || !nextActive.every((c) => prevActive.includes(c))) {
-        // The active category set changed, so weightDraft is about to be
-        // reseeded to a fresh computed default -- not a user edit, so any
-        // prior customization no longer applies.
-        setWeightsTouched(false);
-        if (isWeightsLoading) {
-          // defaultCategoryWeights isn't ready yet -- clear weightDraft and
-          // defer the recompute to the seeding effect once loading settles,
-          // rather than baking in the still-empty `{}`.
-          setWeightDraft(null);
-          setPendingWeightsReset(nextActive);
-        } else {
-          setPendingWeightsReset(null);
-          setWeightDraft(computeDefaultWeightsForActiveCategories(nextActive, defaultCategoryWeights));
-        }
+      if (
+        nextActive.length !== prevActive.length ||
+        !nextActive.every((c) => prevActive.includes(c))
+      ) {
+        // The active category set changed. Update weights by removing deselected
+        // categories and initializing newly-selected ones to 0 (preserving
+        // existing weights of unchanged categories).
+        setWeightDraft((prev) => {
+          if (prev === null) return null;
+          const next: Record<string, number> = {};
+          for (const category of prevActive) {
+            if (nextActive.includes(category)) {
+              next[category] = prev[category] ?? 0;
+            }
+          }
+          for (const category of nextActive) {
+            if (!prevActive.includes(category)) {
+              next[category] = 0;
+            }
+          }
+          return next;
+        });
       }
 
       return next;
@@ -217,7 +220,8 @@ export function SettingsModal({
 
       <p className="px-4 pt-2 text-xs text-slate-500 flex-shrink-0">
         {t("settings.description", {
-          defaultValue: "Facilities included in your location score, grouped by category.",
+          defaultValue:
+            "Facilities included in your location score, grouped by category.",
         })}
       </p>
       <p className="px-4 pt-0.5 text-xs text-slate-500 flex-shrink-0">
@@ -236,7 +240,9 @@ export function SettingsModal({
 
         {isError && (
           <p className="text-sm text-error-600">
-            {t("settings.error", { defaultValue: "Couldn't load facility settings." })}
+            {t("settings.error", {
+              defaultValue: "Couldn't load facility settings.",
+            })}
           </p>
         )}
 
@@ -257,7 +263,9 @@ export function SettingsModal({
             const label = t(`score.categories.${group.compositeCategory}`, {
               defaultValue: group.compositeCategory,
             });
-            const weight = isActive ? (weightDraft?.[group.compositeCategory] ?? 0) : 0;
+            const weight = isActive
+              ? (weightDraft?.[group.compositeCategory] ?? 0)
+              : 0;
             const percent = weightToPercent(weight);
 
             return (
@@ -265,34 +273,20 @@ export function SettingsModal({
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-medium">{label}</h3>
                   <div className="flex items-center gap-1">
-                    <Input
-                      type="number"
-                      inputMode="decimal"
-                      min={0}
-                      max={100}
-                      step={0.01}
-                      value={percent}
-                      disabled={!isActive || weightDraft === null}
-                      onChange={(e) => {
-                        const parsed = parseFloat(e.target.value);
-                        const clamped = Number.isNaN(parsed) ? 0 : Math.min(100, Math.max(0, parsed));
-                        setWeightsTouched(true);
-                        setWeightDraft((prev) => ({
-                          ...(prev ?? {}),
-                          [group.compositeCategory]: clamped / 100,
-                        }));
-                      }}
+                    <span
+                      className={`text-sm font-medium tabular-nums min-w-12 text-right ${
+                        isActive ? "text-slate-700" : "text-slate-300"
+                      }`}
                       aria-label={t("settings.weights.percentInputLabel", {
                         category: label,
                         defaultValue: `${label} weight percent`,
                       })}
-                      size="sm"
-                      align="right"
-                      className={`w-14 px-1.5 tabular-nums font-medium ${
-                        isActive ? "!text-slate-700" : "!text-slate-300"
-                      }`}
-                    />
-                    <span className={`text-xs font-medium ${isActive ? "text-slate-500" : "text-slate-300"}`}>
+                    >
+                      {percent}
+                    </span>
+                    <span
+                      className={`text-xs font-medium ${isActive ? "text-slate-500" : "text-slate-300"}`}
+                    >
                       %
                     </span>
                   </div>
@@ -303,7 +297,10 @@ export function SettingsModal({
                   disabled={!isActive || weightDraft === null}
                   onChange={(next) => {
                     setWeightsTouched(true);
-                    setWeightDraft((prev) => ({ ...(prev ?? {}), [group.compositeCategory]: next }));
+                    setWeightDraft((prev) => ({
+                      ...(prev ?? {}),
+                      [group.compositeCategory]: next,
+                    }));
                   }}
                 />
                 <ul className="mt-1">
@@ -314,7 +311,11 @@ export function SettingsModal({
                         checked={draft.includes(facility.id)}
                         label={facility.label}
                         color={facility.color}
-                        onChange={(checked) => handleToggle(facility.id, checked)}
+                        onChange={
+                          isWeightsLoading
+                            ? undefined
+                            : (checked) => handleToggle(facility.id, checked)
+                        }
                       />
                     </li>
                   ))}
@@ -329,7 +330,11 @@ export function SettingsModal({
           <div className="mr-auto">
             <p
               className={`text-xs font-medium ${
-                weightsAreValid ? "text-success-600" : totalIsValid ? "text-warning-600" : "text-error-600"
+                weightsAreValid
+                  ? "text-success-600"
+                  : totalIsValid
+                    ? "text-warning-600"
+                    : "text-error-600"
               }`}
             >
               {t("settings.weights.footerTotal", {
@@ -342,10 +347,12 @@ export function SettingsModal({
               <p className="text-xs text-slate-500">
                 {!totalIsValid
                   ? t("settings.weights.helpNotHundred", {
-                      defaultValue: "Adjust weights so they total 100% to save.",
+                      defaultValue:
+                        "Adjust weights so they total 100% to save.",
                     })
                   : t("settings.weights.helpZeroWeight", {
-                      defaultValue: "Every selected category needs a weight greater than 0% to save.",
+                      defaultValue:
+                        "Every selected category needs a weight greater than 0% to save.",
                     })}
               </p>
             )}
@@ -355,10 +362,14 @@ export function SettingsModal({
           variant="primary"
           label={t("settings.save", { defaultValue: "Save" })}
           onClick={() => {
-            if (draft === null || weightDraft === null || !weightsAreValid) return;
+            if (draft === null || weightDraft === null || !weightsAreValid)
+              return;
 
             const activeOnlyWeights = Object.fromEntries(
-              activeCategories.map((category) => [category, weightDraft[category] ?? 0]),
+              activeCategories.map((category) => [
+                category,
+                weightDraft[category] ?? 0,
+              ]),
             );
             onSave(draft, activeOnlyWeights, weightsTouched);
           }}
