@@ -320,6 +320,59 @@ export function ScoreExplainModal({
           </ul>
         </section>
 
+        {/* Waterfall breakdown for overall modal */}
+        {isOverallModal && (
+          <section className="pt-4 pb-3 border-b border-slate-200">
+            <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">
+              Category Contribution Breakdown
+            </h3>
+
+            <div className="space-y-2">
+              {items.map((item) => {
+                const label = t(`score.${itemNamespace}.${item.key}`, { defaultValue: item.key });
+                const isNotAssessed = item.status === "not_checked";
+                const contribution = calculateContribution(item.score, item.weightPct);
+
+                return (
+                  <div key={item.key} className="space-y-1">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-slate-700 font-medium">{label}</span>
+                      {!isNotAssessed ? (
+                        <span className="text-slate-600 font-mono text-xs">
+                          {item.weightPct}% × {Math.round(item.score ?? 0)} = <span className="font-semibold text-slate-900">{contribution?.toFixed(1)}</span>
+                        </span>
+                      ) : (
+                        <span className="text-slate-400 text-xs">Not assessed</span>
+                      )}
+                    </div>
+                    {!isNotAssessed && (
+                      <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
+                        <div
+                          className={`h-full rounded-full ${getScoreBarColorClass(item.score)}`}
+                          style={{
+                            width: `${
+                              contribution !== null && maxPossibleContribution > 0
+                                ? Math.max(0, Math.min(100, (contribution / maxPossibleContribution) * 100))
+                                : 0
+                            }%`,
+                          }}
+                        />
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="mt-4 pt-3 border-t-2 border-slate-300 flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-900">Total Contribution</span>
+              <span className={`text-sm font-bold tabular-nums ${getScoreColorClass(score)}`}>
+                {actualContribution.toFixed(1)} out of {maxPossibleContribution.toFixed(1)}
+              </span>
+            </div>
+          </section>
+        )}
+
         {/* Aggregation summary */}
         <section className="pt-4 pb-2">
           <div className="bg-slate-50 rounded-lg p-3 space-y-2">
@@ -327,15 +380,12 @@ export function ScoreExplainModal({
             <div className="space-y-1.5 text-xs">
               {isOverallModal ? (
                 <>
-                  <div className="flex items-center justify-between">
-                    <span className="text-slate-700">Weighted sum of categories:</span>
-                    <span className="font-semibold text-slate-900">
-                      {actualContribution.toFixed(1)} / {maxPossibleContribution.toFixed(1)} points
-                    </span>
-                  </div>
                   <p className="text-slate-600 italic">
-                    Each category's score is multiplied by its weight percentage, then summed to create the overall location score.
+                    <strong>Formula:</strong> Each category's score is multiplied by its weight percentage, then summed to create the overall location score.
                   </p>
+                  <div className="mt-2 pt-2 border-t border-slate-200 font-mono text-xs text-slate-700 bg-white rounded p-2">
+                    Overall Score = Σ(Category Weight % × Category Score) / 100
+                  </div>
                 </>
               ) : (
                 <>
