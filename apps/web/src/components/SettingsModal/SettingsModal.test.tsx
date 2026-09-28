@@ -330,7 +330,7 @@ describe("SettingsModal", () => {
       expect(screen.getByLabelText("transport")).toHaveValue("40");
     });
 
-    it("defers a toggle-triggered reseed until the defaults query settles, then applies the fetched ratios", async () => {
+    it("disables facility selection while weights are loading, then applies the fetched ratios", async () => {
       const { rerender } = render(
         <SettingsModal
           {...defaultProps}
@@ -340,10 +340,11 @@ describe("SettingsModal", () => {
         />,
       );
 
-      await userEvent.click(screen.getByLabelText("Clinics"));
+      // Checkboxes have no onChange while loading
+      const clinicsCheckbox = screen.getByLabelText("Clinics") as HTMLInputElement;
+      expect(clinicsCheckbox.onchange).toBeNull();
 
-      // Still loading -- must not seed from the still-empty defaults, and
-      // must not get stuck there once the query does resolve.
+      // Still loading -- facility toggles have no effect, weights not shown
       expect(screen.getByLabelText("healthcare")).toBeDisabled();
       expect(screen.queryByText(/Total Weightage:/)).not.toBeInTheDocument();
 
@@ -356,12 +357,11 @@ describe("SettingsModal", () => {
         />,
       );
 
-      // Applies the fetched ratios renormalized over the active set as of
-      // the toggle made during loading (education, transport, healthcare),
-      // not what was active when the modal first opened.
-      expect(screen.getByLabelText("education")).toHaveValue("50");
-      expect(screen.getByLabelText("transport")).toHaveValue("33.33");
-      expect(screen.getByLabelText("healthcare")).toHaveValue("16.67");
+      // Once loading completes, weights are seeded for the original active set
+      // (education, transport) as no toggles occurred during loading
+      expect(screen.getByLabelText("education")).toHaveValue("60");
+      expect(screen.getByLabelText("transport")).toHaveValue("40");
+      expect(screen.getByLabelText("healthcare")).toBeDisabled();
       expect(screen.getByText(/Total Weightage: 100%/)).toBeInTheDocument();
     });
 
