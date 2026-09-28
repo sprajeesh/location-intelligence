@@ -163,7 +163,9 @@ def _facility_score_best_of_both(
         return BestOfBothResult(score, "walk", walk_nearest, walk_prox, walk_dens)
 
     score = _blend_score(drive_prox, drive_dens, cfg)
-    return BestOfBothResult(score, "drive", drive_nearest, drive_prox, drive_dens)  # drive_nearest is not None on this branch
+    return BestOfBothResult(
+        score, "drive", drive_nearest, drive_prox, drive_dens
+    )  # drive_nearest is not None on this branch
 
 
 def _pluralize(label: str) -> str:
