@@ -11,8 +11,8 @@ describe('sitemap metadata route', () => {
     delete process.env.NEXT_PUBLIC_SITE_URL;
     const entries = sitemap();
     expect(entries).toHaveLength(2);
-    expect(entries[0].url).toBe('https://locationintelligence.nz/');
-    expect(entries[1].url).toBe('https://locationintelligence.nz/mi');
+    expect(entries[0].url).toBe('https://location-intelligence-web.sprajeesh.workers.dev/');
+    expect(entries[1].url).toBe('https://location-intelligence-web.sprajeesh.workers.dev/mi');
     expect(entries[0].priority).toBe(1.0);
   });
 
