@@ -26,4 +26,11 @@ describe('sitemap metadata route', () => {
     expect(entries[0]?.url).toBe('https://custom-domain.nz/');
     expect(entries[1]?.url).toBe('https://custom-domain.nz/mi');
   });
+
+  it('strips trailing slashes from custom NEXT_PUBLIC_SITE_URL', () => {
+    process.env.NEXT_PUBLIC_SITE_URL = 'https://custom-domain.nz///';
+    const entries = sitemap();
+    expect(entries[0]?.url).toBe('https://custom-domain.nz/');
+    expect(entries[1]?.url).toBe('https://custom-domain.nz/mi');
+  });
 });

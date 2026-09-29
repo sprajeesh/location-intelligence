@@ -29,4 +29,10 @@ describe('robots metadata route', () => {
     const config = robots();
     expect(config.sitemap).toBe('https://custom-domain.nz/sitemap.xml');
   });
+
+  it('strips trailing slashes from custom NEXT_PUBLIC_SITE_URL', () => {
+    process.env.NEXT_PUBLIC_SITE_URL = 'https://custom-domain.nz/';
+    const config = robots();
+    expect(config.sitemap).toBe('https://custom-domain.nz/sitemap.xml');
+  });
 });
