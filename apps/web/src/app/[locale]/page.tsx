@@ -24,8 +24,21 @@ export async function generateMetadata({ params }: HomePageProps): Promise<Metad
   return {
     title,
     description,
+    keywords: [
+      "NZ location score",
+      "New Zealand address lookup",
+      "school zones NZ",
+      "nearby bus stops Auckland",
+      "property neighborhood rating",
+      "walkability score NZ",
+    ],
     alternates: {
       canonical: path,
+      languages: {
+        en: "/",
+        mi: "/mi",
+        "x-default": "/",
+      },
     },
     openGraph: {
       title,
@@ -48,15 +61,34 @@ export async function generateMetadata({ params }: HomePageProps): Promise<Metad
 export default async function HomePage({ params }: HomePageProps) {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "meta" });
+  const canonicalUrl = canonicalPathForLocale(locale);
 
   const jsonLd = {
     "@context": "https://schema.org",
-    "@type": "WebApplication",
-    name: t("title"),
-    description: t("description"),
-    applicationCategory: "UtilityApplication",
-    operatingSystem: "Any",
-    url: canonicalPathForLocale(locale),
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": `${canonicalUrl}#website`,
+        url: canonicalUrl,
+        name: t("siteName"),
+        description: t("description"),
+        inLanguage: locale,
+      },
+      {
+        "@type": "WebApplication",
+        "@id": `${canonicalUrl}#webapp`,
+        name: t("title"),
+        description: t("description"),
+        applicationCategory: "UtilityApplication",
+        operatingSystem: "Any",
+        url: canonicalUrl,
+        offers: {
+          "@type": "Offer",
+          price: "0",
+          priceCurrency: "NZD",
+        },
+      },
+    ],
   };
 
   return (
