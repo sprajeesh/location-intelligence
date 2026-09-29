@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   // Resolves relative canonical/OpenGraph URLs set by route metadata (e.g.
   // src/app/[locale]/page.tsx). Set NEXT_PUBLIC_SITE_URL in production to the
   // real deployed hostname.
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'https://location-intelligence-web.sprajeesh.workers.dev'),
   title: 'Location Intelligence',
   description:
     'Discover nearby facilities and neighborhood scores for any NZ address',
