@@ -11,15 +11,15 @@ describe('sitemap metadata route', () => {
     delete process.env.NEXT_PUBLIC_SITE_URL;
     const entries = sitemap();
     expect(entries).toHaveLength(2);
-    expect(entries[0].url).toBe('https://location-intelligence-web.sprajeesh.workers.dev/');
-    expect(entries[1].url).toBe('https://location-intelligence-web.sprajeesh.workers.dev/mi');
-    expect(entries[0].priority).toBe(1.0);
+    expect(entries[0]?.url).toBe('https://location-intelligence-web.sprajeesh.workers.dev/');
+    expect(entries[1]?.url).toBe('https://location-intelligence-web.sprajeesh.workers.dev/mi');
+    expect(entries[0]?.priority).toBe(1.0);
   });
 
   it('respects NEXT_PUBLIC_SITE_URL environment variable', () => {
     process.env.NEXT_PUBLIC_SITE_URL = 'https://custom-domain.nz';
     const entries = sitemap();
-    expect(entries[0].url).toBe('https://custom-domain.nz/');
-    expect(entries[1].url).toBe('https://custom-domain.nz/mi');
+    expect(entries[0]?.url).toBe('https://custom-domain.nz/');
+    expect(entries[1]?.url).toBe('https://custom-domain.nz/mi');
   });
 });
