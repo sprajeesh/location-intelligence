@@ -4,7 +4,11 @@ describe('robots metadata route', () => {
   const originalEnv = process.env.NEXT_PUBLIC_SITE_URL;
 
   afterEach(() => {
-    process.env.NEXT_PUBLIC_SITE_URL = originalEnv;
+    if (originalEnv === undefined) {
+      delete process.env.NEXT_PUBLIC_SITE_URL;
+    } else {
+      process.env.NEXT_PUBLIC_SITE_URL = originalEnv;
+    }
   });
 
   it('generates correct robots.txt configuration with default site URL', () => {
