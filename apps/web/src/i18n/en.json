@@ -1,8 +1,8 @@
 {
   "meta": {
-    "title": "Location Intelligence",
-    "description": "Discover nearby facilities and neighbourhood scores for any New Zealand address",
-    "siteName": "Location Intelligence"
+    "title": "NZ Location Score & Nearby Facilities Search | Location Intelligence",
+    "description": "Calculate live location scores, nearby schools, bus stops, healthcare, and amenities for any New Zealand property address.",
+    "siteName": "Location Intelligence NZ"
   },
   "search": {
     "placeholder": "Search a New Zealand address...",
