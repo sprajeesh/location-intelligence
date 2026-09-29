@@ -337,7 +337,7 @@ describe('CategoryScoreCard', () => {
         <CategoryScoreCard category={checkedZeroCategory} isExpanded={false} onToggleExpand={jest.fn()} />
       );
       expect(
-        screen.getByRole('button', { name: '[MI] score.actions.expand' })
+        screen.getByRole('button', { name: /Whakawhānui/i })
       ).toBeInTheDocument();
     });
   });
