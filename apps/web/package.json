@@ -56,6 +56,6 @@
     "style-loader": "^4.0.0",
     "ts-node": "^10.0.0",
     "typescript-eslint": "^8.70.0",
-    "wrangler": "^4.107.0"
+    "wrangler": "^4.131.2"
   }
 }
