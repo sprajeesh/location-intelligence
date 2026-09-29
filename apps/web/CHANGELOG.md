@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.19.0](https://github.com/sprajeesh/location-intelligence/compare/web@v0.18.0...web@v0.19.0) (2026-09-29)
+
+
+### Features
+
+* **seo:** add robots.ts and dynamic sitemap metadata routes ([#282](https://github.com/sprajeesh/location-intelligence/issues/282)) ([12852bd](https://github.com/sprajeesh/location-intelligence/commit/12852bde8d5a60e05a73bdd2b0a6cfe3586fbc74))
+* **seo:** enhance page metadata, hreflang alternates, keywords,   and JSON-LD schema ([#283](https://github.com/sprajeesh/location-intelligence/issues/283)) ([41e653a](https://github.com/sprajeesh/location-intelligence/commit/41e653a75c853ab49e7b2b80077a1fba602ffadb))
+
+
+### Bug Fixes
+
+* **i18n:** replace placeholder strings in mi.json with authentic te reo Maori translations ([#284](https://github.com/sprajeesh/location-intelligence/issues/284)) ([d1ac0cb](https://github.com/sprajeesh/location-intelligence/commit/d1ac0cb4d16a17fd6a2bcb52a75c8d9e19a896c1))
+
 ## [0.18.0](https://github.com/sprajeesh/location-intelligence/compare/web@v0.17.0...web@v0.18.0) (2026-09-28)
 
 
