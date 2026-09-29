@@ -1,188 +1,190 @@
 {
   "meta": {
-    "title": "[MI] meta.title",
-    "description": "[MI] meta.description",
-    "siteName": "[MI] meta.siteName"
+    "title": "Mōhiotanga Wāhi NZ | Location Intelligence",
+    "description": "Tukua mai he kāinga i Aotearoa kia kitea ai ngā whare ako, waka whenua, ratonga hauora me ngā whare hokohoko e tata ana.",
+    "siteName": "Mōhiotanga Wāhi NZ"
   },
   "search": {
-    "placeholder": "[MI] search.placeholder",
-    "loading": "[MI] search.loading",
-    "noResults": "[MI] search.noResults"
+    "placeholder": "Rapua he wāhi noho i Aotearoa...",
+    "loading": "E rapu ana...",
+    "noResults": "Kāore i kitea he hua"
   },
   "analyze": {
-    "button": "[MI] analyze.button",
-    "loading": "[MI] analyze.loading"
+    "button": "Tātari",
+    "loading": "E tātari ana..."
   },
   "results": {
-    "title": "[MI] results.title",
-    "noFacilities": "[MI] results.noFacilities",
-    "schools": "[MI] results.schools",
-    "busStops": "[MI] results.busStops",
-    "navigateTo": "[MI] results.navigateTo",
-    "showRoute": "[MI] results.showRoute",
+    "title": "Ngā Hua",
+    "noFacilities": "Kāore i kitea he whare i roto i te {radius}km. Whakawhānuitia te awhe rapu.",
+    "schools": "Ngā Kura",
+    "busStops": "Ngā Tūnga Pahi",
+    "navigateTo": "Haere ki {name}",
+    "showRoute": "Whakaaturia te ara ki {name}",
     "adjustRadius": {
-      "caption": "[MI] results.adjustRadius.caption",
-      "label": "[MI] results.adjustRadius.label",
-      "increase": "[MI] results.adjustRadius.increase",
-      "decrease": "[MI] results.adjustRadius.decrease",
-      "search": "[MI] results.adjustRadius.search"
+      "caption": "E hiahia ana ki ētahi atu hua? Whakarerekētia te awhe rapu",
+      "label": "Awhe rapu",
+      "increase": "Whakawhānui i te awhe",
+      "decrease": "Whakawhiti i te awhe",
+      "search": "Rapu"
     }
   },
   "score": {
-    "title": "[MI] score.title",
-    "overall": "[MI] score.overall",
-    "coverage": "[MI] score.coverage",
+    "title": "Pae Mōhiotanga Wāhi",
+    "overall": "Hātepe Whānui",
+    "coverage": "I runga i te {count} o te {total} kāhui",
     "status": {
-      "notAssessed": "[MI] score.status.notAssessed",
-      "noDataFound": "[MI] score.status.noDataFound"
+      "notAssessed": "Kāore i aromatawaitia",
+      "noDataFound": "Kāore i kitea i te tata"
     },
     "actions": {
-      "expand": "[MI] score.actions.expand",
-      "collapse": "[MI] score.actions.collapse"
+      "expand": "Whakawhānui i a {label}",
+      "collapse": "Whakamāhāngai i a {label}"
     },
     "explain": {
-      "openOverall": "[MI] score.explain.openOverall",
-      "openCategory": "[MI] score.explain.openCategory",
-      "backToOverall": "[MI] score.explain.backToOverall",
-      "close": "[MI] score.explain.close",
-      "why": "[MI] score.explain.why",
-      "howCalculated": "[MI] score.explain.howCalculated",
-      "notChecked": "[MI] score.explain.notChecked",
-      "contribution": "[MI] score.explain.contribution",
+      "openOverall": "Whakamāramahia te hātepe whānui",
+      "openCategory": "Whakamāramahia te hātepe {label}",
+      "backToOverall": "Hoki ki te hātepe whānui",
+      "close": "Pākatia",
+      "why": "He aha i pēnei ai te hātepe",
+      "howCalculated": "Me pēhea te tātai",
+      "notChecked": "{label}: kāore i aromatawaitia mō tenei kāinga.",
+      "contribution": "{weightPct}% taumaha · {score}/100 te tau",
+      "legWalk": "Whakahaere ma runga tapuwae",
+      "legDrive": "Whakahaere ma runga waka",
       "band": {
-        "good": "[MI] score.explain.band.good",
-        "moderate": "[MI] score.explain.band.moderate",
-        "poor": "[MI] score.explain.band.poor"
+        "good": "Tino pai",
+        "moderate": "Kei waenganui",
+        "poor": "Kei raro i te waenga"
       }
     },
     "categories": {
-      "education": "[MI] score.categories.education",
-      "transport": "[MI] score.categories.transport",
-      "healthcare": "[MI] score.categories.healthcare",
-      "shopping": "[MI] score.categories.shopping",
-      "recreation": "[MI] score.categories.recreation",
-      "food_and_drink": "[MI] score.categories.food_and_drink"
+      "education": "Mātauranga",
+      "transport": "Waka me te Haere",
+      "healthcare": "Hauora",
+      "shopping": "Hokohoko",
+      "recreation": "Māhorahora",
+      "food_and_drink": "Kai me te Inu"
     },
     "facilityTypes": {
-      "schools": "[MI] score.facilityTypes.schools",
-      "kindergartens": "[MI] score.facilityTypes.kindergartens",
-      "universities": "[MI] score.facilityTypes.universities",
-      "parks": "[MI] score.facilityTypes.parks",
-      "playgrounds": "[MI] score.facilityTypes.playgrounds",
-      "libraries": "[MI] score.facilityTypes.libraries",
-      "bus_stops": "[MI] score.facilityTypes.bus_stops",
-      "railway_stations": "[MI] score.facilityTypes.railway_stations",
-      "hospitals": "[MI] score.facilityTypes.hospitals",
-      "gps": "[MI] score.facilityTypes.gps",
-      "pharmacies": "[MI] score.facilityTypes.pharmacies",
-      "supermarkets": "[MI] score.facilityTypes.supermarkets",
-      "restaurants": "[MI] score.facilityTypes.restaurants",
-      "pubs_bars": "[MI] score.facilityTypes.pubs_bars"
+      "schools": "Ngā Kura",
+      "kindergartens": "Ngā Kōhanga",
+      "universities": "Ngā Whare Wānanga",
+      "parks": "Ngā Pāka",
+      "playgrounds": "Ngā Marae Hātakitaki",
+      "libraries": "Ngā Whare Pukapuka",
+      "bus_stops": "Ngā Tūnga Pahi",
+      "railway_stations": "Ngā Tūnga Rerewe",
+      "hospitals": "Ngā Whare Hauora",
+      "gps": "Ngā Tākuta",
+      "pharmacies": "Ngā Whare Rongoā",
+      "supermarkets": "Ngā Pātaka Kai",
+      "restaurants": "Ngā Whare Kai",
+      "pubs_bars": "Ngā Whare Inu"
     },
     "markers": {
-      "show": "[MI] score.markers.show",
-      "hide": "[MI] score.markers.hide",
-      "showTitle": "[MI] score.markers.showTitle",
-      "hideTitle": "[MI] score.markers.hideTitle",
-      "showOne": "[MI] score.markers.showOne",
-      "hideOne": "[MI] score.markers.hideOne",
-      "showTitleOne": "[MI] score.markers.showTitleOne",
-      "hideTitleOne": "[MI] score.markers.hideTitleOne"
+      "show": "Whakaaturia nga tohu {label} i runga mahere",
+      "hide": "Hunaia nga tohu {label} i runga mahere",
+      "showTitle": "Whakaaturia ngā tohu",
+      "hideTitle": "Hunaia ngā tohu",
+      "showOne": "Whakaaturia te tohu {name}",
+      "hideOne": "Hunaia te tohu {name}",
+      "showTitleOne": "Whakaaturia te tohu",
+      "hideTitleOne": "Hunaia te tohu"
     }
   },
   "parcels": {
-    "notFoundBanner": "[MI] parcels.notFoundBanner",
-    "locating": "[MI] parcels.locating",
-    "serviceError": "[MI] parcels.serviceError",
+    "notFoundBanner": "Kāore i kitea te raina rohe mō tēnei kāinga.",
+    "locating": "E rapu ana i te kōpuku...",
+    "serviceError": "Kāore i āhei te tango i te rōpū whenua. Tāruatia tō hononga.",
     "info": {
-      "title": "[MI] parcels.info.title",
-      "appellation": "[MI] parcels.info.appellation",
-      "parcelIntent": "[MI] parcels.info.parcelIntent",
-      "titles": "[MI] parcels.info.titles"
+      "title": "Whakaaturanga Whenua",
+      "appellation": "Ingoa Whenua",
+      "parcelIntent": "Whāinga Whenua",
+      "titles": "Taitara"
     }
   },
   "distance": {
-    "driving": "[MI] distance.driving",
-    "walking": "[MI] distance.walking",
-    "km": "[MI] distance.km"
+    "driving": "Waka",
+    "walking": "Tapuwae",
+    "km": "{distance} km"
   },
   "errors": {
-    "generic": "[MI] errors.generic",
-    "apiDown": "[MI] errors.apiDown",
-    "rateLimit": "[MI] errors.rateLimit"
+    "generic": "Kua puta he raru. Tēnā whakamātauhia ano.",
+    "apiDown": "Kei te kore te ratonga i te wā nei.",
+    "rateLimit": "He maha rawa ngā tono. Tēnā tatari."
   },
   "map": {
-    "showMap": "[MI] map.showMap",
-    "showMapTooltip": "[MI] map.showMapTooltip",
-    "viewScores": "[MI] map.viewScores",
-    "viewScoresTooltip": "[MI] map.viewScoresTooltip",
-    "showRoute": "[MI] map.showRoute",
-    "showRouteTooltip": "[MI] map.showRouteTooltip",
+    "showMap": "Mahere",
+    "showMapTooltip": "Whakaaturia te mahere",
+    "viewScores": "Ngā Hua",
+    "viewScoresTooltip": "Tirohia ngā hātepe",
+    "showRoute": "Ara",
+    "showRouteTooltip": "Whakaaturia ngā taipitopito ara",
     "markerPopup": {
-      "name": "[MI] map.markerPopup.name",
-      "distance": "[MI] map.markerPopup.distance",
-      "category": "[MI] map.markerPopup.category",
+      "name": "Ingoa",
+      "distance": "Tawhiti",
+      "category": "Kāhui",
       "details": {
-        "description": "[MI] map.markerPopup.details.description",
-        "phone": "[MI] map.markerPopup.details.phone",
-        "email": "[MI] map.markerPopup.details.email",
-        "website": "[MI] map.markerPopup.details.website",
-        "openingHours": "[MI] map.markerPopup.details.openingHours",
-        "operator": "[MI] map.markerPopup.details.operator",
-        "wheelchair": "[MI] map.markerPopup.details.wheelchair",
-        "cuisine": "[MI] map.markerPopup.details.cuisine",
-        "emergency": "[MI] map.markerPopup.details.emergency",
-        "healthcareSpeciality": "[MI] map.markerPopup.details.healthcareSpeciality"
+        "description": "Whakaaturanga",
+        "phone": "Waea",
+        "email": "I-mēra",
+        "website": "Pae ipurangi",
+        "openingHours": "Hāora tuwhera",
+        "operator": "Kaiwhakahaere",
+        "wheelchair": "Waka whaiāio",
+        "cuisine": "Tūmomo kai",
+        "emergency": "Rūma ohotata",
+        "healthcareSpeciality": "Mōhiotanga hauora"
       }
     }
   },
   "theme": {
-    "dark": "[MI] theme.dark",
-    "light": "[MI] theme.light",
-    "darkShort": "[MI] theme.darkShort",
-    "lightShort": "[MI] theme.lightShort",
-    "switchToDark": "[MI] theme.switchToDark",
-    "switchToLight": "[MI] theme.switchToLight"
+    "dark": "Hūmā pō",
+    "light": "Hūmā ao",
+    "darkShort": "Pō",
+    "lightShort": "Ao",
+    "switchToDark": "Whakawhiti ki te pō",
+    "switchToLight": "Whakawhiti ki te ao"
   },
   "nav": {
-    "title": "[MI] nav.title",
-    "language": "[MI] nav.language"
+    "title": "Mōhiotanga Wāhi",
+    "language": "Reo"
   },
   "notFound": {
-    "message": "[MI] notFound.message",
-    "backHome": "[MI] notFound.backHome"
+    "message": "Kāore tēnei whārangi i kitea.",
+    "backHome": "Hoki ki te kāinga"
   },
   "navigate": {
-    "driving": "[MI] navigate.driving",
-    "walking": "[MI] navigate.walking",
-    "cycling": "[MI] navigate.cycling",
-    "arrives": "[MI] navigate.arrives",
-    "via": "[MI] navigate.via",
-    "fastest": "[MI] navigate.fastest",
-    "exitNavigation": "[MI] navigate.exitNavigation",
-    "exit": "[MI] navigate.exit",
-    "closeDirections": "[MI] navigate.closeDirections"
+    "driving": "Ma runga waka",
+    "walking": "Ma runga tapuwae",
+    "cycling": "Ma runga paitikara",
+    "arrives": "Tae atu",
+    "via": "mā te",
+    "fastest": "Hohoro rawa",
+    "exitNavigation": "Puta i te whakahaere",
+    "exit": "Puta",
+    "closeDirections": "Pākatia nga aratohu"
   },
   "settings": {
-    "tooltip": "[MI] settings.tooltip",
-    "buttonLabel": "[MI] settings.buttonLabel",
-    "buttonLabelExpanded": "[MI] settings.buttonLabelExpanded",
-    "title": "[MI] settings.title",
-    "description": "[MI] settings.description",
-    "helpMaxFacilities": "[MI] settings.helpMaxFacilities",
-    "limitReached": "[MI] settings.limitReached",
-    "loading": "[MI] settings.loading",
-    "error": "[MI] settings.error",
-    "close": "[MI] settings.close",
-    "save": "[MI] settings.save",
-    "confirmReanalyzeMessage": "[MI] settings.confirmReanalyzeMessage",
-    "reanalyze": "[MI] settings.reanalyze",
-    "notNow": "[MI] settings.notNow",
+    "tooltip": "Tautuhinga",
+    "buttonLabel": "Hātepe",
+    "buttonLabelExpanded": "Tautuhinga Hātepe",
+    "title": "Tautuhinga",
+    "description": "Ngā whare kua tohua mō tō hātepe wāhi noho, i ropu mā kāhui.",
+    "helpMaxFacilities": "Kōwhiritia kia {max} ngā whare.",
+    "limitReached": "Kua tae koe ki te mutunga mutunga o te {max} whare.",
+    "loading": "E meinga ana ngā whare...",
+    "error": "Kāore i āhei te hapai i ngā tautuhinga.",
+    "close": "Pākatia",
+    "save": "Tiakina",
+    "confirmReanalyzeMessage": "Kua huri ngā tautuhinga. Whakatātari anō mō \"{address}\"?",
+    "reanalyze": "Whakatātari anō",
+    "notNow": "Kāore i te wā nei",
     "weights": {
-      "footerTotal": "[MI] settings.weights.footerTotal",
-      "percentInputLabel": "[MI] settings.weights.percentInputLabel",
-      "helpNotHundred": "[MI] settings.weights.helpNotHundred",
-      "helpZeroWeight": "[MI] settings.weights.helpZeroWeight"
+      "footerTotal": "Huitahi Taumaha: {total}%",
+      "percentInputLabel": "Taumaha {category}",
+      "helpNotHundred": "Whakaritea nga taumaha kia 100% te katoa.",
+      "helpZeroWeight": "Me rahi ake i te 0% te taumaha."
     }
   }
 }
