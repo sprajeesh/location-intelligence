@@ -1,7 +1,9 @@
 import { ReactNode } from 'react';
 import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
+import { getLocale } from 'next-intl/server';
 import { primary } from '@/styles/tokens';
+import { getSiteUrl } from '@/lib/siteUrl';
 import '../i18n/globals.css';
 
 const inter = Inter({
@@ -13,10 +15,10 @@ export const metadata: Metadata = {
   // Resolves relative canonical/OpenGraph URLs set by route metadata (e.g.
   // src/app/[locale]/page.tsx). Set NEXT_PUBLIC_SITE_URL in production to the
   // real deployed hostname.
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'https://location-intelligence-web.sprajeesh.workers.dev'),
+  metadataBase: new URL(getSiteUrl()),
   title: 'Location Intelligence',
   description:
-    'Discover nearby facilities and neighborhood scores for any NZ address',
+    'Discover nearby facilities and neighbourhood scores for any NZ address',
   manifest: '/manifest.json',
   icons: {
     icon: [
@@ -46,9 +48,10 @@ export const viewport: Viewport = {
 // src/store/index.ts.
 const THEME_INIT_SCRIPT = `(function(){try{var s=localStorage.getItem('li-theme');if(s){var t=JSON.parse(s).state.theme;if(t==='dark')document.documentElement.classList.add('dark');}}catch(e){}})();`;
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default async function RootLayout({ children }: { children: ReactNode }) {
+  const locale = await getLocale();
   return (
-    <html className={inter.variable} suppressHydrationWarning>
+    <html lang={locale} className={inter.variable} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>

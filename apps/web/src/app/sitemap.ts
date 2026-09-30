@@ -1,9 +1,12 @@
 import type { MetadataRoute } from 'next';
 import { routing } from '@/i18n/routing';
+import { getSiteUrl } from '@/lib/siteUrl';
+
+// Fixed at build time so crawlers see a lastmod that only moves on deploys.
+const BUILD_DATE = new Date();
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const rawBaseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://location-intelligence-web.sprajeesh.workers.dev';
-  const baseUrl = rawBaseUrl.replace(/\/+$/, '');
+  const baseUrl = getSiteUrl();
 
   const routes = [''];
   const sitemapEntries: MetadataRoute.Sitemap = [];
@@ -13,8 +16,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       const localePath = locale === routing.defaultLocale ? route : `/${locale}${route}`;
       sitemapEntries.push({
         url: `${baseUrl}${localePath || '/'}`,
-        lastModified: new Date(),
-        changeFrequency: 'weekly',
+        lastModified: BUILD_DATE,
         priority: route === '' ? 1.0 : 0.8,
       });
     }
