@@ -1,8 +1,8 @@
 import type { MetadataRoute } from 'next';
+import { getSiteUrl } from '@/lib/siteUrl';
 
 export default function robots(): MetadataRoute.Robots {
-  const rawBaseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://location-intelligence-web.sprajeesh.workers.dev';
-  const baseUrl = rawBaseUrl.replace(/\/+$/, '');
+  const baseUrl = getSiteUrl();
 
   return {
     rules: [

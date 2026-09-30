@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { routing } from "@/i18n/routing";
+import { getSiteUrl } from "@/lib/siteUrl";
 import { HomeContainer } from "@/containers/HomeContainer";
 
 interface HomePageProps {
@@ -24,14 +25,6 @@ export async function generateMetadata({ params }: HomePageProps): Promise<Metad
   return {
     title,
     description,
-    keywords: [
-      "NZ location score",
-      "New Zealand address lookup",
-      "school zones NZ",
-      "nearby bus stops Auckland",
-      "property neighborhood rating",
-      "walkability score NZ",
-    ],
     alternates: {
       canonical: path,
       languages: {
@@ -61,7 +54,8 @@ export async function generateMetadata({ params }: HomePageProps): Promise<Metad
 export default async function HomePage({ params }: HomePageProps) {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "meta" });
-  const canonicalUrl = canonicalPathForLocale(locale);
+  // JSON-LD needs absolute URLs (metadataBase only resolves <head> metadata).
+  const canonicalUrl = `${getSiteUrl()}${canonicalPathForLocale(locale) === "/" ? "" : canonicalPathForLocale(locale)}`;
 
   const jsonLd = {
     "@context": "https://schema.org",
