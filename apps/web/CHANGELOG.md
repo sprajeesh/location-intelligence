@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.20.0](https://github.com/sprajeesh/location-intelligence/compare/web@v0.19.0...web@v0.20.0) (2026-09-30)
+
+
+### Features
+
+* **seo:** fix JSON-LD URLs, server-render html lang, stabilise sitemap ([#288](https://github.com/sprajeesh/location-intelligence/issues/288)) ([82de6c4](https://github.com/sprajeesh/location-intelligence/commit/82de6c424e4c68c8c1f1ec71eebc4c1b7df43331))
+
 ## [0.19.0](https://github.com/sprajeesh/location-intelligence/compare/web@v0.18.0...web@v0.19.0) (2026-09-29)
 
 
