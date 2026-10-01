@@ -186,5 +186,71 @@
       "helpNotHundred": "Adjust weights so they total 100% to save.",
       "helpZeroWeight": "Every selected category needs a weight greater than 0% to save."
     }
+  },
+  "footer": {
+    "navLabel": "Site",
+    "copyright": "© {year} Location Intelligence",
+    "dataSources": "Data sources",
+    "dataSourcesShort": "Data",
+    "dataCredit": "Data: LINZ · OpenStreetMap · Wikidata"
+  },
+  "dataSources": {
+    "metaTitle": "Data Sources | Location Intelligence NZ",
+    "metaDescription": "Where Location Intelligence NZ gets its address, property boundary, facility, routing and map data, with licences and attribution.",
+    "title": "Data sources",
+    "intro": "Location Intelligence combines open data to describe the area around a New Zealand address. This page lists each source, what we use it for and the licence it is published under.",
+    "backHome": "Back to the map",
+    "columns": {
+      "source": "Source",
+      "usedFor": "Used for",
+      "licence": "Licence"
+    },
+    "sources": {
+      "linzAddresses": {
+        "name": "LINZ NZ Addresses",
+        "usedFor": "Address search and geocoding",
+        "licence": "CC BY 4.0",
+        "url": "https://data.linz.govt.nz/layer/53353-nz-addresses/"
+      },
+      "linzParcels": {
+        "name": "LINZ NZ Primary Parcels",
+        "usedFor": "Property boundary outlines",
+        "licence": "CC BY 4.0",
+        "url": "https://data.linz.govt.nz/layer/50772-nz-primary-parcels/"
+      },
+      "osm": {
+        "name": "OpenStreetMap contributors",
+        "usedFor": "Nearby facilities such as schools and bus stops, and the base map",
+        "licence": "ODbL 1.0",
+        "url": "https://www.openstreetmap.org/copyright"
+      },
+      "osrm": {
+        "name": "OSRM routing on OpenStreetMap data",
+        "usedFor": "Walking, cycling and driving routes and distances",
+        "licence": "ODbL 1.0",
+        "url": "https://project-osrm.org/"
+      },
+      "wikidata": {
+        "name": "Wikidata",
+        "usedFor": "Extra detail on some facilities",
+        "licence": "CC0 1.0",
+        "url": "https://www.wikidata.org/"
+      },
+      "esri": {
+        "name": "Esri World Imagery",
+        "usedFor": "Optional satellite map layer",
+        "licence": "Esri terms of use",
+        "url": "https://www.esri.com/en-us/legal/terms/full-master-agreement"
+      },
+      "opentopomap": {
+        "name": "OpenTopoMap",
+        "usedFor": "Optional topographic map layer",
+        "licence": "CC BY-SA 3.0",
+        "url": "https://opentopomap.org/about"
+      }
+    },
+    "sourceLink": "{name} (opens in a new tab)",
+    "attributionTitle": "Attribution",
+    "attributionBody": "Contains data sourced from Land Information New Zealand (LINZ) under CC BY 4.0. © OpenStreetMap contributors. Location Intelligence is an independent service and is not endorsed by LINZ, OpenStreetMap, Wikidata, Esri or OpenTopoMap."
   }
 }
