@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { routing } from "@/i18n/routing";
 import { getSiteUrl } from "@/lib/siteUrl";
 import { HomeContainer } from "@/containers/HomeContainer";
+import { SiteFooter } from "@/components/SiteFooter";
 
 interface HomePageProps {
   params: Promise<{ locale: string }>;
@@ -86,13 +87,19 @@ export default async function HomePage({ params }: HomePageProps) {
   };
 
   return (
-    <main className="relative w-full h-screen overflow-hidden">
+    <main className="flex flex-col w-full h-dvh overflow-hidden">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <h1 className="sr-only">{t("title")}</h1>
-      <HomeContainer />
+      {/* HomeContainer positions itself absolutely, so it needs this relative
+          slot (which takes whatever height the footer leaves). */}
+      <div className="relative flex-1 min-h-0">
+        <HomeContainer />
+      </div>
+      {/* mb-14 lifts the footer above the fixed mobile controls bar. */}
+      <SiteFooter className="mb-14 md:mb-0" />
     </main>
   );
 }

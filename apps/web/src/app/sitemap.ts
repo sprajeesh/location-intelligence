@@ -8,11 +8,16 @@ const BUILD_DATE = new Date();
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = getSiteUrl();
 
-  const routes = [''];
+  // Info pages are English-only for now; add a route's other locales here once
+  // real translations exist (untranslated copies are noindex, so keep them out).
+  const routes: { path: string; locales: readonly string[] }[] = [
+    { path: '', locales: routing.locales },
+    { path: '/data-sources', locales: [routing.defaultLocale] },
+  ];
   const sitemapEntries: MetadataRoute.Sitemap = [];
 
-  for (const route of routes) {
-    for (const locale of routing.locales) {
+  for (const { path: route, locales } of routes) {
+    for (const locale of locales) {
       const localePath = locale === routing.defaultLocale ? route : `/${locale}${route}`;
       sitemapEntries.push({
         url: `${baseUrl}${localePath || '/'}`,

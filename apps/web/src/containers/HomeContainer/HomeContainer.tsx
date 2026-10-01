@@ -49,10 +49,9 @@ export function HomeContainer() {
 
   return (
     <>
-    {/* bottom-14 reserves room for the fixed mobile controls bar below;
-        md:bottom-0 removes that reservation on desktop, where the bar
-        doesn't exist. */}
-    <div className="absolute inset-0 bottom-14 md:bottom-0 flex flex-col md:flex-row">
+    {/* Fills the relative slot in page.tsx, which already stops above the
+        footer and the fixed mobile controls bar below it. */}
+    <div className="absolute inset-0 flex flex-col md:flex-row">
       {/* Panel container — shows only when expanded; hidden when collapsed */}
       <div
         className={
