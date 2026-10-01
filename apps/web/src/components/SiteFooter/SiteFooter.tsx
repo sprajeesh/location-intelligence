@@ -25,8 +25,11 @@ export async function SiteFooter({ className = "" }: SiteFooterProps) {
     <footer
       className={`flex-shrink-0 bg-primary-600 text-white text-xs ${className}`.trim()}
     >
-      <div className="flex h-8 md:h-9 items-center justify-between gap-x-4 px-4">
-        <nav aria-label={t("navLabel")} className="flex items-center gap-x-3 whitespace-nowrap">
+      <div className="flex h-8 md:h-9 items-center justify-between gap-x-4 px-3 sm:px-4">
+        <nav
+          aria-label={t("navLabel")}
+          className="flex min-w-0 items-center gap-x-2 sm:gap-x-3 whitespace-nowrap"
+        >
           <span>
             <span className="sm:hidden">{t("copyrightShort", { year })}</span>
             <span className="hidden sm:inline">{t("copyright", { year })}</span>
