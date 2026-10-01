@@ -50,8 +50,10 @@ export function HomeContainer() {
   return (
     <>
     {/* Fills the relative slot in page.tsx, which already stops above the
-        footer and the fixed mobile controls bar below it. */}
-    <div className="absolute inset-0 flex flex-col md:flex-row">
+        footer. bottom-14 reserves room for the fixed mobile controls bar
+        below; md:bottom-0 removes that reservation on desktop, where the bar
+        doesn't exist. */}
+    <div className="absolute inset-0 bottom-14 md:bottom-0 flex flex-col md:flex-row">
       {/* Panel container — shows only when expanded; hidden when collapsed */}
       <div
         className={
@@ -158,7 +160,9 @@ export function HomeContainer() {
         carries its own white/bordered card so it still reads as tappable
         over the map or results content behind it. */}
     {!isDesktop && (
-      <div className="fixed inset-x-0 bottom-0 z-[1000] flex items-center justify-center gap-2 p-3">
+      /* bottom-8 stacks the bar directly above the site footer (h-8 on
+         mobile, see SiteFooter) — keep the two in sync. */
+      <div className="fixed inset-x-0 bottom-8 z-[1000] flex items-center justify-center gap-2 p-3">
         <MobileViewToggleContainer className={SURFACE_PANEL_CLASSES.chip} />
         <SettingsContainer className={SURFACE_PANEL_CLASSES.chip} />
         <ThemeToggle compact className={SURFACE_PANEL_CLASSES.chip} />

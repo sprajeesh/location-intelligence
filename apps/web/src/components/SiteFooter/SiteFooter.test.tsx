@@ -37,9 +37,9 @@ describe("SiteFooter", () => {
   });
 
   it("is a contentinfo landmark and applies extra classes", async () => {
-    await renderFooter("mb-14");
+    await renderFooter("custom-class");
     const footer = screen.getByRole("contentinfo");
-    expect(footer.className).toContain("mb-14");
+    expect(footer.className).toContain("custom-class");
     expect(footer.className).toContain("bg-primary-600");
   });
 });

@@ -5,12 +5,14 @@ import { localizedPath } from "@/lib/localizedPath";
 // Server-rendered so the links are in the initial HTML for crawlers. Links
 // are never hidden with display:none; only the plain-text credit on the right
 // collapses on small screens. bg-primary-600 + white text stays >= 4.5:1 in
-// both light and dark token sets (src/i18n/globals.css).
+// both light and dark token sets (src/i18n/globals.css). The row has a fixed
+// height (h-8 on mobile) because HomeContainer offsets its fixed mobile
+// controls bar by exactly that much (bottom-8) — keep the two in sync.
 const LINK_CLASSES =
   "underline-offset-2 hover:underline focus-visible:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white";
 
 interface SiteFooterProps {
-  /** Extra classes, e.g. "mb-14 md:mb-0" to clear the fixed mobile controls bar. */
+  /** Extra classes for the footer element. */
   className?: string;
 }
 
@@ -22,8 +24,8 @@ export async function SiteFooter({ className = "" }: SiteFooterProps) {
     <footer
       className={`flex-shrink-0 bg-primary-600 text-white text-xs ${className}`.trim()}
     >
-      <div className="flex min-h-8 md:min-h-9 items-center justify-between gap-x-4 gap-y-1 px-4 py-1.5">
-        <nav aria-label={t("navLabel")} className="flex flex-wrap items-center gap-x-3 gap-y-1">
+      <div className="flex h-8 md:h-9 items-center justify-between gap-x-4 px-4">
+        <nav aria-label={t("navLabel")} className="flex items-center gap-x-3 whitespace-nowrap">
           <span>{t("copyright", { year: new Date().getFullYear() })}</span>
           <Link href={localizedPath(locale, "/data-sources")} className={LINK_CLASSES}>
             <span className="md:hidden">{t("dataSourcesShort")}</span>

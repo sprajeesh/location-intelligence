@@ -99,8 +99,9 @@ export default async function HomePage({ params }: HomePageProps) {
         <HomeContainer />
       </main>
       {/* Sibling of main (not inside it) so it stays a page-level contentinfo
-          landmark. mb-14 lifts it above the fixed mobile controls bar. */}
-      <SiteFooter className="mb-14 md:mb-0" />
+          landmark. On mobile the fixed controls bar sits directly above it
+          (see HomeContainer). */}
+      <SiteFooter />
     </div>
   );
 }
