@@ -18,22 +18,24 @@ describe("SiteFooter", () => {
     mockLocale = "en";
   });
 
-  it("links to the data sources page without a locale prefix for the default locale", async () => {
+  const hrefs = () => screen.getAllByRole("link").map((l) => l.getAttribute("href"));
+
+  it("links to About, FAQ and Data sources without a locale prefix for the default locale", async () => {
     await renderFooter();
-    const link = screen.getByRole("link");
-    expect(link).toHaveAttribute("href", "/data-sources");
+    expect(hrefs()).toEqual(["/about", "/faq", "/data-sources"]);
   });
 
-  it("prefixes the link for non-default locales", async () => {
+  it("prefixes the links for non-default locales", async () => {
     mockLocale = "mi";
     await renderFooter();
-    expect(screen.getByRole("link")).toHaveAttribute("href", "/mi/data-sources");
+    expect(hrefs()).toEqual(["/mi/about", "/mi/faq", "/mi/data-sources"]);
   });
 
-  it("renders the link text in the markup (not display:none) so crawlers see it", async () => {
+  it("renders both short and long labels in the markup (not display:none) so crawlers see them", async () => {
     await renderFooter();
-    expect(screen.getByRole("link")).toHaveTextContent("dataSourcesShort");
-    expect(screen.getByRole("link")).toHaveTextContent("dataSources");
+    const dataLink = screen.getByRole("link", { name: /dataSources/ });
+    expect(dataLink).toHaveTextContent("dataSourcesShort");
+    expect(dataLink).toHaveTextContent("dataSources");
   });
 
   it("is a contentinfo landmark and applies extra classes", async () => {

@@ -19,6 +19,7 @@ interface SiteFooterProps {
 export async function SiteFooter({ className = "" }: SiteFooterProps) {
   const locale = await getLocale();
   const t = await getTranslations("footer");
+  const year = new Date().getFullYear();
 
   return (
     <footer
@@ -26,7 +27,16 @@ export async function SiteFooter({ className = "" }: SiteFooterProps) {
     >
       <div className="flex h-8 md:h-9 items-center justify-between gap-x-4 px-4">
         <nav aria-label={t("navLabel")} className="flex items-center gap-x-3 whitespace-nowrap">
-          <span>{t("copyright", { year: new Date().getFullYear() })}</span>
+          <span>
+            <span className="sm:hidden">{t("copyrightShort", { year })}</span>
+            <span className="hidden sm:inline">{t("copyright", { year })}</span>
+          </span>
+          <Link href={localizedPath(locale, "/about")} className={LINK_CLASSES}>
+            {t("about")}
+          </Link>
+          <Link href={localizedPath(locale, "/faq")} className={LINK_CLASSES}>
+            {t("faq")}
+          </Link>
           <Link href={localizedPath(locale, "/data-sources")} className={LINK_CLASSES}>
             <span className="md:hidden">{t("dataSourcesShort")}</span>
             <span className="hidden md:inline">{t("dataSources")}</span>

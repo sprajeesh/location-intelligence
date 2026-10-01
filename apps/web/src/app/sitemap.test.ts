@@ -14,17 +14,20 @@ describe('sitemap metadata route', () => {
   it('generates sitemap entries for default and localized routes', () => {
     delete process.env.NEXT_PUBLIC_SITE_URL;
     const entries = sitemap();
-    expect(entries).toHaveLength(3);
+    expect(entries).toHaveLength(5);
     expect(entries[0]?.url).toBe('https://location-intelligence-web.sprajeesh.workers.dev/');
     expect(entries[1]?.url).toBe('https://location-intelligence-web.sprajeesh.workers.dev/mi');
     expect(entries[0]?.priority).toBe(1.0);
   });
 
-  it('lists the English data sources page but not its untranslated localized copy', () => {
+  it('lists the English info pages but not their untranslated localized copies', () => {
     delete process.env.NEXT_PUBLIC_SITE_URL;
+    const base = 'https://location-intelligence-web.sprajeesh.workers.dev';
     const urls = sitemap().map((e) => e.url);
-    expect(urls).toContain('https://location-intelligence-web.sprajeesh.workers.dev/data-sources');
-    expect(urls).not.toContain('https://location-intelligence-web.sprajeesh.workers.dev/mi/data-sources');
+    for (const path of ['/about', '/faq', '/data-sources']) {
+      expect(urls).toContain(`${base}${path}`);
+      expect(urls).not.toContain(`${base}/mi${path}`);
+    }
   });
 
   it('respects NEXT_PUBLIC_SITE_URL environment variable', () => {
