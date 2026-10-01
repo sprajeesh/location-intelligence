@@ -5,6 +5,7 @@ import { infoPageMetadata } from "@/lib/infoPageMetadata";
 import { localizedPath } from "@/lib/localizedPath";
 import { getSiteUrl } from "@/lib/siteUrl";
 import { InfoPageShell } from "@/components/InfoPageShell";
+import { serializeJsonLd } from "@/lib/jsonLd";
 
 interface AboutPageProps {
   params: Promise<{ locale: string }>;
@@ -44,7 +45,7 @@ export default async function AboutPage({ params }: AboutPageProps) {
     <InfoPageShell locale={locale} backHomeLabel={t("backHome")}>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
       />
       <h1 className="mt-4 text-3xl font-bold">{t("title")}</h1>
       <div className="mt-6 space-y-6">
