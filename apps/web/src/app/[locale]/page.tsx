@@ -87,19 +87,20 @@ export default async function HomePage({ params }: HomePageProps) {
   };
 
   return (
-    <main className="flex flex-col w-full h-dvh overflow-hidden">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
-      <h1 className="sr-only">{t("title")}</h1>
-      {/* HomeContainer positions itself absolutely, so it needs this relative
-          slot (which takes whatever height the footer leaves). */}
-      <div className="relative flex-1 min-h-0">
+    <div className="flex flex-col w-full h-dvh overflow-hidden">
+      {/* HomeContainer positions itself absolutely, so main is its relative
+          slot and takes whatever height the footer leaves. */}
+      <main className="relative flex-1 min-h-0">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+        <h1 className="sr-only">{t("title")}</h1>
         <HomeContainer />
-      </div>
-      {/* mb-14 lifts the footer above the fixed mobile controls bar. */}
+      </main>
+      {/* Sibling of main (not inside it) so it stays a page-level contentinfo
+          landmark. mb-14 lifts it above the fixed mobile controls bar. */}
       <SiteFooter className="mb-14 md:mb-0" />
-    </main>
+    </div>
   );
 }
