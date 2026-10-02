@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { infoPageMetadata } from "@/lib/infoPageMetadata";
 import { FAQ_ITEM_KEYS } from "@/lib/faqItems";
 import { InfoPageShell } from "@/components/InfoPageShell";
+import { serializeJsonLd } from "@/lib/jsonLd";
 
 interface FaqPageProps {
   params: Promise<{ locale: string }>;
@@ -46,7 +47,7 @@ export default async function FaqPage({ params }: FaqPageProps) {
     <InfoPageShell locale={locale} backHomeLabel={t("backHome")}>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
       />
       <h1 className="mt-4 text-3xl font-bold">{t("title")}</h1>
       <div className="mt-6 space-y-6">

@@ -4,6 +4,7 @@ import { routing } from "@/i18n/routing";
 import { getSiteUrl } from "@/lib/siteUrl";
 import { HomeContainer } from "@/containers/HomeContainer";
 import { SiteFooter } from "@/components/SiteFooter";
+import { serializeJsonLd } from "@/lib/jsonLd";
 
 interface HomePageProps {
   params: Promise<{ locale: string }>;
@@ -93,7 +94,7 @@ export default async function HomePage({ params }: HomePageProps) {
       <main className="relative flex-1 min-h-0">
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
         />
         <h1 className="sr-only">{t("title")}</h1>
         <HomeContainer />
