@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.21.0](https://github.com/sprajeesh/location-intelligence/compare/web@v0.20.0...web@v0.21.0) (2026-10-02)
+
+
+### Features
+
+* **web:** add /faq and /about pages ([#292](https://github.com/sprajeesh/location-intelligence/issues/292)) ([9850361](https://github.com/sprajeesh/location-intelligence/commit/9850361f22c73eff36e7c18946c0b0c9451ba5be))
+* **web:** add site footer and /data-sources page ([#291](https://github.com/sprajeesh/location-intelligence/issues/291)) ([c0987d1](https://github.com/sprajeesh/location-intelligence/commit/c0987d12ad03f58ef471e53b6ad0acc051957767))
+* **web:** show app version in footer ([#294](https://github.com/sprajeesh/location-intelligence/issues/294)) ([ab436d6](https://github.com/sprajeesh/location-intelligence/commit/ab436d64417c111d16662e81bec67ddc07cd840a))
+
+
+### Bug Fixes
+
+* **web:** validate locale param and escape JSON-LD ([#293](https://github.com/sprajeesh/location-intelligence/issues/293)) ([cfa0f55](https://github.com/sprajeesh/location-intelligence/commit/cfa0f5512ae0f0053b416e7b3b76831b44d617bb))
+
 ## [0.20.0](https://github.com/sprajeesh/location-intelligence/compare/web@v0.19.0...web@v0.20.0) (2026-09-30)
 
 
