@@ -1,0 +1,1 @@
+export { InfoPageShell } from "./InfoPageShell";
