@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import { version } from "../../../package.json";
 import { SiteFooter } from "./SiteFooter";
 
 let mockLocale = "en";
@@ -36,6 +37,21 @@ describe("SiteFooter", () => {
     const dataLink = screen.getByRole("link", { name: /dataSources/ });
     expect(dataLink).toHaveTextContent("dataSourcesShort");
     expect(dataLink).toHaveTextContent("dataSources");
+  });
+
+  it("shows the app version from package.json", async () => {
+    await renderFooter();
+    expect(screen.getByText(`v${version}`)).toBeInTheDocument();
+  });
+
+  it("suffixes the commit hash when one is provided (dev)", async () => {
+    process.env.APP_DEV_COMMIT = "abc1234";
+    try {
+      await renderFooter();
+      expect(screen.getByText(`v${version}+abc1234`)).toBeInTheDocument();
+    } finally {
+      delete process.env.APP_DEV_COMMIT;
+    }
   });
 
   it("is a contentinfo landmark and applies extra classes", async () => {
