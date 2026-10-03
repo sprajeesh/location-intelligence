@@ -66,7 +66,7 @@ export function ReportButton({ request, className = "" }: ReportButtonProps) {
       variant="primary"
       onClick={ready ? handleDownload : () => void start()}
       disabled={!request || generating}
-      className={`w-full justify-center py-2.5 ${className}`}
+      className={`w-full justify-center gap-2 py-2.5 ${className}`}
       aria-busy={generating}
     >
       {generating ? (
