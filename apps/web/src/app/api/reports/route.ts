@@ -5,7 +5,15 @@ import { clientIpHeaders } from "@/utils/clientIp";
 /** Starts a background PDF report job (forwards to FastAPI POST /reports). */
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    let body;
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+    }
+    if (!body || typeof body !== "object") {
+      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+    }
 
     if (!body.address || body.lat === undefined || body.lon === undefined) {
       return NextResponse.json(

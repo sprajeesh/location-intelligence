@@ -291,6 +291,19 @@ describe('report job client', () => {
     });
   });
 
+  it('downloadReport falls back to a default filename without Content-Disposition', async () => {
+    const blob = new Blob(['%PDF']);
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      blob: async () => blob,
+      headers: new Headers(),
+    });
+    await expect(downloadReport('j1')).resolves.toEqual({
+      blob,
+      filename: 'intelligence-report.pdf',
+    });
+  });
+
   it('downloadReport throws ApiError when the report is not ready', async () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: false,

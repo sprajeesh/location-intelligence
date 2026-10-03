@@ -1,7 +1,7 @@
 import { act, renderHook } from '@testing-library/react';
 import { useReportGeneration } from './useReportGeneration';
 import { createReport, downloadReport, getReportStatus } from '@/services/api';
-import type { ReportRequest } from '@/services/api';
+import { ApiError, type ReportRequest } from '@/services/api';
 
 jest.mock('@/services/api', () => ({
   ...jest.requireActual('@/services/api'),
@@ -76,6 +76,46 @@ describe('useReportGeneration', () => {
     await tick(1000);
     expect(result.current.state).toBe('failed');
     expect(result.current.error).toBe('Address not found');
+  });
+
+  it('survives transient poll errors and still finishes', async () => {
+    mockStatus
+      .mockRejectedValueOnce(new ApiError(503, 'API error: 503'))
+      .mockRejectedValueOnce(new ApiError(0, 'Failed to fetch'))
+      .mockResolvedValueOnce(status('ready'));
+    const { result } = renderHook(() => useReportGeneration(request));
+    await act(async () => {
+      void result.current.start();
+    });
+    await tick(1000);
+    await tick(1500);
+    await tick(2250);
+    expect(result.current.state).toBe('ready');
+  });
+
+  it('gives up after 3 consecutive poll errors', async () => {
+    mockStatus.mockRejectedValue(new ApiError(503, 'API error: 503'));
+    const { result } = renderHook(() => useReportGeneration(request));
+    await act(async () => {
+      void result.current.start();
+    });
+    await tick(1000);
+    await tick(1500);
+    expect(result.current.state).toBe('generating');
+    await tick(2250);
+    expect(result.current.state).toBe('failed');
+    expect(mockStatus).toHaveBeenCalledTimes(3);
+  });
+
+  it('fails immediately when the job is unknown or expired (404)', async () => {
+    mockStatus.mockRejectedValue(new ApiError(404, 'Report not found or expired'));
+    const { result } = renderHook(() => useReportGeneration(request));
+    await act(async () => {
+      void result.current.start();
+    });
+    await tick(1000);
+    expect(result.current.state).toBe('failed');
+    expect(mockStatus).toHaveBeenCalledTimes(1);
   });
 
   it('fails when creating the job fails', async () => {
