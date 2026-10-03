@@ -14,6 +14,8 @@ export interface Toast {
   message: string
   type: 'error' | 'warning' | 'success' | 'info'
   dismissible?: boolean
+  // Optional call-to-action rendered inside the toast (e.g. "Download").
+  action?: { label: string; onClick: () => void }
 }
 
 export type Theme = 'light' | 'dark'

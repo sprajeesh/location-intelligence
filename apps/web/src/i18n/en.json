@@ -20,6 +20,16 @@
     "busStops": "Bus Stops",
     "navigateTo": "Navigate to {name}",
     "showRoute": "Show route to {name}",
+    "report": {
+      "generate": "Generate report",
+      "generating": "Generating report…",
+      "download": "Download report",
+      "readyToast": "Your report is ready.",
+      "downloadAction": "Download",
+      "failedToast": "Couldn't generate the report.",
+      "retryAction": "Retry",
+      "downloadFailedToast": "Couldn't download the report. Please try again."
+    },
     "adjustRadius": {
       "caption": "Not seeing expected results? Adjust the search radius",
       "label": "Search radius",
