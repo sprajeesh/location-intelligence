@@ -1,4 +1,12 @@
-import { normalizeAnalyzeResponse, normalizeRouteResult } from './api';
+import {
+  ApiError,
+  createReport,
+  downloadReport,
+  filenameFromContentDisposition,
+  getReportStatus,
+  normalizeAnalyzeResponse,
+  normalizeRouteResult,
+} from './api';
 
 describe('normalizeAnalyzeResponse', () => {
   const wireResponse = {
@@ -225,5 +233,77 @@ describe('normalizeRouteResult', () => {
 
     const result = normalizeRouteResult(wireWithoutSteps);
     expect(result.routes[0]!.steps).toEqual([]);
+  });
+});
+
+describe('report job client', () => {
+  const originalFetch = global.fetch;
+  afterEach(() => {
+    global.fetch = originalFetch;
+  });
+
+  const request = {
+    address: '1 Queen St',
+    lat: -36.85,
+    lon: 174.76,
+    radiusKm: 5,
+    distanceMode: 'driving' as const,
+  };
+
+  it('createReport POSTs the analyze body to /api/reports', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ jobId: 'j1', status: 'queued' }),
+    });
+    await expect(createReport(request)).resolves.toEqual({ jobId: 'j1', status: 'queued' });
+    const [url, init] = (global.fetch as jest.Mock).mock.calls[0];
+    expect(url).toBe('/api/reports');
+    expect(init.method).toBe('POST');
+    expect(JSON.parse(init.body)).toEqual(request);
+  });
+
+  it('getReportStatus encodes the id and maps errors to ApiError', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: false,
+      status: 404,
+      statusText: 'Not Found',
+      json: async () => ({ error: 'Report not found or expired' }),
+    });
+    await expect(getReportStatus('a/b')).rejects.toMatchObject({
+      statusCode: 404,
+      message: 'Report not found or expired',
+    });
+    expect((global.fetch as jest.Mock).mock.calls[0][0]).toBe('/api/reports/a%2Fb');
+  });
+
+  it('downloadReport returns the blob and the server filename', async () => {
+    const blob = new Blob(['%PDF']);
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      blob: async () => blob,
+      headers: new Headers({
+        'content-disposition': 'attachment; filename="intelligence-report-x.pdf"',
+      }),
+    });
+    await expect(downloadReport('j1')).resolves.toEqual({
+      blob,
+      filename: 'intelligence-report-x.pdf',
+    });
+  });
+
+  it('downloadReport throws ApiError when the report is not ready', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: false,
+      status: 409,
+      statusText: 'Conflict',
+      json: async () => ({ error: 'Report is running' }),
+    });
+    await expect(downloadReport('j1')).rejects.toBeInstanceOf(ApiError);
+  });
+
+  it('parses Content-Disposition filenames', () => {
+    expect(filenameFromContentDisposition('attachment; filename="a b.pdf"')).toBe('a b.pdf');
+    expect(filenameFromContentDisposition('attachment; filename=r.pdf')).toBe('r.pdf');
+    expect(filenameFromContentDisposition(null)).toBeNull();
   });
 });
