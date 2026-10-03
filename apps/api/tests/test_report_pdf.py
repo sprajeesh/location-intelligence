@@ -81,3 +81,78 @@ def test_very_long_address_does_not_break_rendering():
         address="Unit " + "very long street name " * 40,
     )
     assert pdf.startswith(b"%PDF")
+
+
+# --- Map, appendix and methodology (story: appendix pages) -----------------
+
+
+def _many(n):
+    return [make_facility("bus_stops", 0.2 + i * 0.01, name=f"Stop {i}") for i in range(n)]
+
+
+def test_methodology_sources_attribution_version_and_timestamp():
+    data, pdf = _pdf([make_facility("schools", 0.4)], ["schools"])
+    text = _text(pdf)
+    assert "Methodology & data sources" in text
+    for needle in ("LINZ NZ Addresses", "OpenStreetMap contributors", "CC BY 4.0", "ODbL 1.0"):
+        assert needle in text
+    assert "UTC" in text and "v" + data.app_version in text
+
+
+def test_methodology_lists_analysis_warnings():
+    data = _report([make_facility("schools", 0.4)], ["schools"])
+    data.warnings = ["OSRM unavailable, used straight-line distances"]
+    text = _text(render_report_pdf(data))
+    assert "OSRM unavailable" in text
+
+
+def test_appendix_lists_every_facility_grouped():
+    _, pdf = _pdf(
+        [
+            make_facility("schools", 0.4, name="Ponsonby Primary"),
+            make_facility("gps", 1.0, name="City GP"),
+        ],
+        ["schools", "gps"],
+    )
+    text = _text(pdf)
+    assert "Facility appendix" in text
+    assert "Ponsonby Primary" in text and "City GP" in text
+
+
+def test_appendix_paginates_hundreds_of_facilities():
+    _, small = _pdf(_many(5), ["bus_stops"])
+    _, big = _pdf(_many(600), ["bus_stops"])
+    pages = len(PdfReader(BytesIO(big)).pages)
+    assert pages > len(PdfReader(BytesIO(small)).pages) + 5
+    text = _text(big)
+    assert "Stop 0" in text and "Stop 599" in text
+
+
+def test_zero_facilities_renders_map_and_appendix_placeholders():
+    _, pdf = _pdf([], ["schools"])
+    text = _text(pdf)
+    assert "No facilities were found" in text
+    assert "No facilities to list" in text
+
+
+def test_map_failure_falls_back_without_failing_report(monkeypatch):
+    from app.services import report_sections
+
+    def boom(_data):
+        raise RuntimeError("plot failed")
+
+    monkeypatch.setattr(report_sections, "build_map_drawing", boom)
+    _, pdf = _pdf([make_facility("schools", 0.4)], ["schools"])
+    text = _text(pdf).replace("\n", " ")
+    assert "map could not be drawn" in text
+    assert "Facility appendix" in text
+
+
+def test_map_plots_only_facilities_inside_radius():
+    from app.services.report_sections import build_map_drawing
+
+    data = _report([make_facility("schools", 0.4), make_facility("schools", 0.5)], ["schools"])
+    data.features[0].lat, data.features[0].lon = data.lat + 0.001, data.lon  # ~110 m, inside
+    data.features[1].lat, data.features[1].lon = data.lat + 5.0, data.lon  # ~550 km, outside
+    _, plotted = build_map_drawing(data)
+    assert plotted == 1

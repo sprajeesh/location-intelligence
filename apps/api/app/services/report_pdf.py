@@ -438,7 +438,11 @@ def render_report_pdf(
         if i:
             story.append(CondPageBreak(70 * mm))
         story += _category_section(cat, st)
-    for builder in extra_sections or []:
+    if extra_sections is None:
+        from app.services.report_sections import DEFAULT_SECTIONS  # avoids an import cycle
+
+        extra_sections = DEFAULT_SECTIONS
+    for builder in extra_sections:
         story.append(PageBreak())
         story += builder(data, st)
 
