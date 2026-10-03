@@ -26,7 +26,13 @@ def report_filename(address: str) -> str:
     return f"intelligence-report-{slug}.pdf" if slug else "intelligence-report.pdf"
 
 
-async def run_report_job(job_id: str, body: AnalyzeRequest, state, store: ReportJobStore) -> None:
+async def run_report_job(
+    job_id: str,
+    body: AnalyzeRequest,
+    state,
+    store: ReportJobStore,
+    render_timeout_seconds: float = 60.0,
+) -> None:
     """Never raises: every outcome is recorded on the job (or logged if Redis is gone)."""
     try:
         await store.set_status(job_id, "running")
@@ -38,11 +44,18 @@ async def run_report_job(job_id: str, body: AnalyzeRequest, state, store: Report
             distance_mode=body.distance_mode,
             app_version=get_version(),
         )
-        pdf = await asyncio.to_thread(render_report_pdf, data)
+        # A timeout abandons the wait (job -> failed, slot freed); the worker
+        # thread itself can't be killed and finishes on its own.
+        pdf = await asyncio.wait_for(
+            asyncio.to_thread(render_report_pdf, data), timeout=render_timeout_seconds
+        )
         await store.save_pdf(job_id, pdf)
         await store.set_status(job_id, "ready", filename=report_filename(data.address))
     except ReportStoreUnavailable:
         logger.error("Report job %s lost its Redis store", job_id)
+    except TimeoutError:
+        logger.error("Report job %s timed out while rendering", job_id)
+        await _fail(store, job_id, "Report took too long to generate. Please try again.")
     except HTTPException as exc:
         await _fail(store, job_id, str(exc.detail))
     except Exception:

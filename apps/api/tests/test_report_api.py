@@ -196,3 +196,37 @@ def test_api_key_enforced_when_configured(analysis):
 )
 def test_report_filename_is_ascii_safe(address, expected):
     assert report_filename(address) == expected
+
+
+def test_render_timeout_marks_job_failed_and_frees_slot(client, analysis):
+    import time
+
+    def slow_render(_data):
+        time.sleep(0.3)
+        return b"%PDF"
+
+    from app.config.settings import Settings
+
+    client.app.dependency_overrides[get_settings] = override_settings
+    with (
+        _patch_analysis(analysis),
+        patch("app.services.report_jobs.render_report_pdf", side_effect=slow_render),
+        patch(
+            "app.api.reports.get_settings",
+            return_value=Settings(report_render_timeout_seconds=0.05),
+        ),
+    ):
+        job_id = client.post("/reports", json=BODY).json()["jobId"]
+    status = client.get(f"/reports/{job_id}").json()
+    assert status["status"] == "failed"
+    assert "too long" in status["error"]
+    assert client.app.state.report_in_flight_limiter.try_acquire()  # slot was released
+
+
+def test_slot_released_when_scheduling_fails(client):
+    limiter = client.app.state.report_in_flight_limiter
+    with patch("fastapi.BackgroundTasks.add_task", side_effect=RuntimeError("boom")):
+        with pytest.raises(RuntimeError):
+            client.post("/reports", json=BODY)
+    # both slots (cap=2) must still be free
+    assert limiter.try_acquire() and limiter.try_acquire()
