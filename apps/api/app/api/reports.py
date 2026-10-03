@@ -14,11 +14,14 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/reports", tags=["reports"])
 
-UNAVAILABLE = HTTPException(
-    status_code=503,
-    detail="Report generation is temporarily unavailable",
-    headers={"Retry-After": "5"},
-)
+
+def _unavailable() -> HTTPException:
+    # Built per raise: a shared exception instance would accumulate tracebacks.
+    return HTTPException(
+        status_code=503,
+        detail="Report generation is temporarily unavailable",
+        headers={"Retry-After": "5"},
+    )
 
 
 def _store(request: Request) -> ReportJobStore:
@@ -61,24 +64,35 @@ async def create_report(
 ) -> ReportJobCreated:
     store = _store(request)
     if not store.available:
-        raise UNAVAILABLE
+        raise _unavailable()
 
     await report_capacity_guard(request)
     limiter = request.app.state.report_in_flight_limiter
     job_id = str(uuid.uuid4())
-    try:
-        await store.set_status(job_id, "queued")
-    except ReportStoreUnavailable:
-        limiter.release()
-        raise UNAVAILABLE from None
 
     async def job() -> None:
         try:
-            await run_report_job(job_id, body, request.app.state, store)
+            await run_report_job(
+                job_id,
+                body,
+                request.app.state,
+                store,
+                render_timeout_seconds=get_settings().report_render_timeout_seconds,
+            )
         finally:
             limiter.release()
 
-    background.add_task(job)
+    # The slot is only handed to the background task once it is scheduled; any
+    # failure before that point must give it back here.
+    try:
+        await store.set_status(job_id, "queued")
+        background.add_task(job)
+    except ReportStoreUnavailable:
+        limiter.release()
+        raise _unavailable() from None
+    except BaseException:
+        limiter.release()
+        raise
     return ReportJobCreated(jobId=job_id, status="queued")
 
 
@@ -88,7 +102,7 @@ async def get_report_status(job_id: str, request: Request) -> ReportJobStatus:
     try:
         status = await _store(request).get_status(job_id)
     except ReportStoreUnavailable:
-        raise UNAVAILABLE from None
+        raise _unavailable() from None
     if status is None:
         raise HTTPException(status_code=404, detail="Report not found or expired")
     return status
@@ -106,7 +120,7 @@ async def download_report(job_id: str, request: Request) -> Response:
             raise HTTPException(status_code=409, detail=f"Report is {status.status}")
         pdf = await store.get_pdf(job_id)
     except ReportStoreUnavailable:
-        raise UNAVAILABLE from None
+        raise _unavailable() from None
     if pdf is None:
         raise HTTPException(status_code=404, detail="Report not found or expired")
     filename = status.filename or "intelligence-report.pdf"
