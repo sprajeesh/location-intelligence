@@ -1,4 +1,5 @@
 import logging
+from typing import Any
 
 import httpx
 from fastapi import APIRouter, HTTPException, Request
@@ -36,11 +37,20 @@ async def analyze_location(
     body: AnalyzeRequest,
     request: Request,
 ) -> AnalyzeResponse:
-    geocoding_svc = request.app.state.geocoding_svc
-    facilities_svc = request.app.state.facilities_svc
-    distance_svc = request.app.state.distance_svc
-    scoring_svc = request.app.state.scoring_svc
-    wikidata_enrichment_svc = request.app.state.wikidata_enrichment_svc
+    return await run_analysis(request.app.state, body)
+
+
+async def run_analysis(state: Any, body: AnalyzeRequest) -> AnalyzeResponse:
+    """The full analyze pipeline, callable outside a request (e.g. report jobs).
+
+    `state` is the FastAPI `app.state`. Raises HTTPException on client errors,
+    exactly as the route does.
+    """
+    geocoding_svc = state.geocoding_svc
+    facilities_svc = state.facilities_svc
+    distance_svc = state.distance_svc
+    scoring_svc = state.scoring_svc
+    wikidata_enrichment_svc = state.wikidata_enrichment_svc
 
     warnings: list[str] = []
 
@@ -71,15 +81,13 @@ async def analyze_location(
 
     # --- Step 2: Resolve requested categories (None = use DB-configured defaults) ---
     categories = (
-        body.categories
-        if body.categories is not None
-        else request.app.state.scoring_config.default_categories
+        body.categories if body.categories is not None else state.scoring_config.default_categories
     )
 
     # The schema only bounds shape (length/dedup) -- the real category set is
     # DB-loaded and only available here, so this is the authoritative check
     # against the confirmed "categories: [garbage]*N" abuse vector.
-    known_categories = {c.id for c in request.app.state.scoring_config.categories}
+    known_categories = {c.id for c in state.scoring_config.categories}
     unknown_categories = set(categories) - known_categories
     if unknown_categories:
         raise HTTPException(
@@ -90,7 +98,7 @@ async def analyze_location(
     # Same rationale as the categories check above: the schema only bounds
     # shape, the real composite-category set is DB-loaded and only known here.
     if body.category_weights is not None:
-        known_composite_categories = set(request.app.state.scoring_config.category_weights)
+        known_composite_categories = set(state.scoring_config.category_weights)
         unknown_weight_categories = set(body.category_weights) - known_composite_categories
         if unknown_weight_categories:
             raise HTTPException(
