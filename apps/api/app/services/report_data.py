@@ -84,7 +84,10 @@ class ReportData:
     @property
     def strengths(self) -> list[FacilityBreakup]:
         scored = [f for f in self.facilities if f.score is not None]
-        return sorted(scored, key=lambda f: -(f.score or 0))[:3]
+        return sorted(
+            (f for f in scored if (f.score or 0) >= self.low_score_threshold),
+            key=lambda f: -(f.score or 0),
+        )[:3]
 
     @property
     def gaps(self) -> list[FacilityBreakup]:
