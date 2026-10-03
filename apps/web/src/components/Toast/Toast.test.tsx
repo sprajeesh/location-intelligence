@@ -325,3 +325,54 @@ describe('useToast hook', () => {
     expect(state.toasts[0]?.id).not.toBe(state.toasts[1]?.id);
   });
 });
+
+
+describe('Toast action', () => {
+  it('renders the action, runs it on click, and dismisses the toast', async () => {
+    const onClick = jest.fn();
+    render(<ToastContainer />);
+    act(() => {
+      useLocationStore.setState({
+        toasts: [
+          {
+            id: 'a1',
+            message: 'Report ready',
+            type: 'success',
+            dismissible: true,
+            action: { label: 'Download', onClick },
+          },
+        ],
+      });
+    });
+
+    await userEvent.click(screen.getByRole('button', { name: 'Download' }));
+    expect(onClick).toHaveBeenCalledTimes(1);
+    expect(useLocationStore.getState().toasts).toHaveLength(0);
+  });
+
+  it('keeps an action toast beyond the default 3s auto-dismiss', () => {
+    jest.useFakeTimers();
+    render(<ToastContainer />);
+    act(() => {
+      useLocationStore.setState({
+        toasts: [
+          {
+            id: 'a2',
+            message: 'Report ready',
+            type: 'success',
+            action: { label: 'Download', onClick: jest.fn() },
+          },
+        ],
+      });
+    });
+    act(() => {
+      jest.advanceTimersByTime(5000);
+    });
+    expect(screen.getByText('Report ready')).toBeInTheDocument();
+    act(() => {
+      jest.advanceTimersByTime(11000);
+    });
+    expect(useLocationStore.getState().toasts).toHaveLength(0);
+    jest.useRealTimers();
+  });
+});
