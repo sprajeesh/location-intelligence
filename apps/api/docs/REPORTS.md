@@ -70,6 +70,7 @@ sync when a source changes.
 | -------------------------------- | ------- | ----------------------------------------------- |
 | `REPORT_TTL_SECONDS`             | `3600`  | How long a job and its PDF stay downloadable    |
 | `REPORT_MAX_IN_FLIGHT`           | `2`     | Concurrent renders per process (fast `503` above) |
+| `REPORT_RENDER_TIMEOUT_SECONDS`  | `60`    | A render longer than this marks the job `failed` and frees its slot |
 | `RATE_LIMIT_REPORT_TIMES`        | `5`     | `POST /reports` calls allowed per window per client |
 | `RATE_LIMIT_REPORT_SECONDS`      | `60`    | Rate-limit window                               |
 
