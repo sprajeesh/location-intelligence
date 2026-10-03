@@ -335,3 +335,68 @@ export async function fetchParcelAtPoint(
     throw error;
   }
 }
+
+/**
+ * Report jobs (async PDF). POST /api/reports starts a background job,
+ * GET /api/reports/{id} reports its status, and
+ * GET /api/reports/{id}/download returns the PDF once `ready`.
+ */
+export type ReportJobState = "queued" | "running" | "ready" | "failed";
+
+export interface ReportJobStatus {
+  jobId: string;
+  status: ReportJobState;
+  error?: string | null;
+  expiresAt?: string | null;
+  filename?: string | null;
+}
+
+/** Same body as analyzeLocation: the report covers the same analysis. */
+export type ReportRequest = AnalyzeRequest;
+
+export async function createReport(
+  request: ReportRequest,
+): Promise<Pick<ReportJobStatus, "jobId" | "status">> {
+  return fetchJson("/reports", {
+    method: "POST",
+    body: JSON.stringify(request),
+  });
+}
+
+export async function getReportStatus(jobId: string): Promise<ReportJobStatus> {
+  return fetchJson<ReportJobStatus>(`/reports/${encodeURIComponent(jobId)}`, {
+    method: "GET",
+  });
+}
+
+/** Parses the filename out of a Content-Disposition header, if present. */
+export function filenameFromContentDisposition(header: string | null): string | null {
+  const match = header?.match(/filename="?([^";]+)"?/i);
+  return match?.[1] ?? null;
+}
+
+export async function downloadReport(
+  jobId: string,
+): Promise<{ blob: Blob; filename: string }> {
+  const url = `${getBaseUrl()}/api/reports/${encodeURIComponent(jobId)}/download`;
+  let response: Response;
+  try {
+    response = await fetch(url);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error occurred";
+    throw new ApiError(0, `Failed to fetch report download: ${message}`, error);
+  }
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new ApiError(
+      response.status,
+      errorData.error || `API error: ${response.status} ${response.statusText}`,
+    );
+  }
+  return {
+    blob: await response.blob(),
+    filename:
+      filenameFromContentDisposition(response.headers.get("content-disposition")) ??
+      "intelligence-report.pdf",
+  };
+}
