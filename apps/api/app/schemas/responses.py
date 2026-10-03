@@ -124,3 +124,16 @@ class RouteResponse(BaseModel):
 class HealthResponse(BaseModel):
     status: str
     version: str
+
+
+class ReportJobCreated(BaseModel):
+    jobId: str
+    status: Literal["queued", "running", "ready", "failed"]
+
+
+class ReportJobStatus(BaseModel):
+    jobId: str
+    status: Literal["queued", "running", "ready", "failed"]
+    error: str | None = None
+    expiresAt: str | None = None
+    filename: str | None = None
