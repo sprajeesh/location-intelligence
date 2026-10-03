@@ -47,6 +47,9 @@ FastAPI + Python 3.13 + uv. All 45 tests pass, ruff clean.
 | GET    | `/search/address?q=&country=nz` | LINZ PostGIS address search, top 5, NZ addresses        |
 | GET    | `/categories`                   | All categories with `implemented` flag + marker `color` |
 | POST   | `/location/analyze`             | Full analysis — geocode + Overpass + OSRM + score       |
+| POST   | `/reports`                      | Start a background PDF report job → `202 {jobId}` (see `apps/api/docs/REPORTS.md`) |
+| GET    | `/reports/{jobId}`              | Job status: `queued\|running\|ready\|failed`            |
+| GET    | `/reports/{jobId}/download`     | The finished PDF (`409` until ready, `404` once expired) |
 
 ### Key backend files
 
@@ -391,6 +394,7 @@ Shows `"Analyzing..."` label while in-flight.
 - Each group header has a toggle to show/hide its markers on the map
 - Clicking a facility item → map centers on that marker and opens its popup
 - Skeleton loaders shown while `isAnalyzing` is true
+- Persistent primary-colour **Generate report** button (below the scrolling score, above the radius adjuster): starts a background PDF job, shows "Generating report…", then a toast with **Download** (failures offer **Retry**). Any change to address/radius/categories resets it
 - Empty state: illustration + "No facilities found within {radius}km. Try increasing your search radius." + button to auto-increase radius
 
 ### i18n keys (en.json — must be complete; mi.json same keys)
@@ -501,6 +505,10 @@ OSRM_URL=http://localhost:5000
 OSRM_FOOT_URL=http://localhost:5001
 OSRM_BIKE_URL=http://localhost:5002
 REDIS_URL=redis://localhost:6379
+REPORT_TTL_SECONDS=3600
+REPORT_MAX_IN_FLIGHT=2
+RATE_LIMIT_REPORT_TIMES=5
+RATE_LIMIT_REPORT_SECONDS=60
 SCORING_ALPHA=0.6
 SCORING_BETA=0.4
 SCORING_DENSITY_FACTOR=10
