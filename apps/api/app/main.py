@@ -12,7 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi_limiter import FastAPILimiter
 
-from app.api import analyze, categories, health, parcels, route, search
+from app.api import analyze, categories, health, parcels, reports, route, search
 from app.api.concurrency import InFlightLimiter, analyze_capacity_guard
 from app.api.deps import verify_api_key
 from app.api.rate_limit import bff_client_identifier, rate_limit_exceeded, rate_limiter
@@ -29,6 +29,7 @@ from app.repositories.cache import CacheRepository
 from app.repositories.db.address_repository import AddressRepository
 from app.repositories.db.connection import close_pool, create_pool
 from app.repositories.db.facility_config_repository import FacilityConfigRepository
+from app.repositories.report_jobs import ReportJobStore
 from app.services.distance import DistanceService
 from app.services.facilities import FacilitiesService
 from app.services.geocoding import GeocodingService
@@ -86,6 +87,11 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     # the single uvicorn worker from being monopolized by a handful of large
     # concurrent requests (see app/api/concurrency.py).
     app.state.analyze_in_flight_limiter = InFlightLimiter(settings.analyze_max_in_flight)
+
+    # Report jobs (app/api/reports.py): status + PDF live in Redis; rendering is
+    # CPU-bound so concurrency is capped tighter than analyze.
+    app.state.report_store = ReportJobStore(redis_client, settings.report_ttl_seconds)
+    app.state.report_in_flight_limiter = InFlightLimiter(settings.report_max_in_flight)
 
     # Shared HTTP client for Overpass and OSRM
     http_client = httpx.AsyncClient()
@@ -260,6 +266,7 @@ def create_app() -> FastAPI:
             Depends(analyze_capacity_guard),
         ],
     )
+    app.include_router(reports.router, dependencies=[Depends(verify_api_key)])
     app.include_router(
         parcels.router,
         dependencies=[

@@ -75,6 +75,15 @@ class Settings(BaseSettings):
     # rather than queuing (see app/api/concurrency.py).
     analyze_max_in_flight: int = 8
 
+    # Address intelligence report jobs (app/api/reports.py): job status and the
+    # PDF both live in Redis and expire after report_ttl_seconds; at most
+    # report_max_in_flight render at once (rendering is CPU-bound, so this is
+    # deliberately small); a render exceeding report_render_timeout_seconds
+    # marks the job failed and frees its slot.
+    report_ttl_seconds: int = 3600
+    report_max_in_flight: int = 2
+    report_render_timeout_seconds: float = 60.0
+
     # Rate limits (app/api/rate_limit.py), keyed per caller identity via the
     # BFF-forwarded X-Forwarded-Client-Ip header. /location/analyze is the
     # expensive endpoint (Overpass + OSRM fan-out) so it gets the strictest
@@ -87,6 +96,8 @@ class Settings(BaseSettings):
     rate_limit_categories_seconds: int = 60
     rate_limit_route_times: int = 10
     rate_limit_route_seconds: int = 60
+    rate_limit_report_times: int = 5
+    rate_limit_report_seconds: int = 60
     rate_limit_parcels_times: int = 30
     rate_limit_parcels_seconds: int = 60
 
