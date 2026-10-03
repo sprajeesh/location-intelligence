@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
+  ApiError,
   createReport,
   downloadReport,
   getReportStatus,
@@ -17,6 +18,9 @@ export interface ReportGenerationOptions {
   initialDelayMs?: number;
   maxDelayMs?: number;
 }
+
+/** Consecutive transient poll failures tolerated before giving up. */
+const MAX_CONSECUTIVE_POLL_ERRORS = 3;
 
 const DEFAULTS = { maxWaitMs: 120_000, initialDelayMs: 1_000, maxDelayMs: 3_000 };
 
@@ -88,10 +92,24 @@ export function useReportGeneration(
 
       const deadline = Date.now() + maxWaitMs;
       let delay = initialDelayMs;
+      let pollErrors = 0;
       while (!cancelled()) {
         await new Promise((resolve) => setTimeout(resolve, delay));
         if (cancelled()) return;
-        const status = await getReportStatus(created.jobId);
+
+        let status;
+        try {
+          status = await getReportStatus(created.jobId);
+        } catch (pollError) {
+          // A network blip or 5xx shouldn't throw away a job that is still
+          // running server-side; a 404 (unknown/expired job) is final.
+          const permanent = pollError instanceof ApiError && pollError.statusCode === 404;
+          if (permanent || ++pollErrors >= MAX_CONSECUTIVE_POLL_ERRORS) throw pollError;
+          if (Date.now() >= deadline) throw pollError;
+          delay = Math.min(Math.round(delay * 1.5), maxDelayMs);
+          continue;
+        }
+        pollErrors = 0;
         if (cancelled()) return;
 
         if (status.status === "ready") {
