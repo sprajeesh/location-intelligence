@@ -10,6 +10,8 @@ import { IconButton } from '@/components/ui/IconButton';
  * Individual toast notification component.
  * Auto-dismisses after 3 seconds unless dismissible is false.
  */
+const ACTION_TOAST_DISMISS_MS = 15000;
+
 function ToastItem({ toast }: { toast: ToastType }) {
   const removeToast = useLocationStore((state) => state.removeToast);
 
@@ -18,13 +20,14 @@ function ToastItem({ toast }: { toast: ToastType }) {
       return;
     }
 
-    // Auto-dismiss after 3 seconds
+    // Auto-dismiss after 3 seconds; toasts carrying an action stay longer so
+    // there's time to use it.
     const timer = setTimeout(() => {
       removeToast(toast.id);
-    }, 3000);
+    }, toast.action ? ACTION_TOAST_DISMISS_MS : 3000);
 
     return () => clearTimeout(timer);
-  }, [toast.id, toast.dismissible, removeToast]);
+  }, [toast.id, toast.dismissible, toast.action, removeToast]);
 
   const TONE_CLASSES: Record<ToastType['type'], { bg: string; border: string; text: string; icon: string }> = {
     error: { bg: 'bg-error-50', border: 'border-error-200', text: 'text-error-800', icon: 'text-error-500' },
@@ -63,6 +66,20 @@ function ToastItem({ toast }: { toast: ToastType }) {
 
       {/* Message */}
       <p className={`${textColor} flex-1 text-sm font-medium`}>{toast.message}</p>
+
+      {/* Optional call-to-action */}
+      {toast.action && (
+        <button
+          type="button"
+          onClick={() => {
+            toast.action?.onClick();
+            removeToast(toast.id);
+          }}
+          className={`flex-shrink-0 ${textColor} text-sm font-semibold underline underline-offset-2 hover:opacity-75 focus-ring-inset rounded`}
+        >
+          {toast.action.label}
+        </button>
+      )}
 
       {/* Close button */}
       {toast.dismissible !== false && (
