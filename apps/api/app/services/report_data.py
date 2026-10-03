@@ -83,8 +83,14 @@ class ReportData:
 
     @property
     def strengths(self) -> list[FacilityBreakup]:
+        """Top scored facilities, restricted to those at/above `low_score_threshold`
+        so a "strength" is never a facility the report also flags as low (the
+        summary page lists strengths and gaps side by side)."""
         scored = [f for f in self.facilities if f.score is not None]
-        return sorted(scored, key=lambda f: -(f.score or 0))[:3]
+        return sorted(
+            (f for f in scored if (f.score or 0) >= self.low_score_threshold),
+            key=lambda f: -(f.score or 0),
+        )[:3]
 
     @property
     def gaps(self) -> list[FacilityBreakup]:

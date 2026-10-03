@@ -13,6 +13,7 @@ dependencies = [
     "fastapi-limiter==0.1.6",
     "alembic>=1.18.5",
     "psycopg[binary]>=3.3.4",
+    "reportlab>=5.0.1",
 ]
 
 [tool.uv]
@@ -22,6 +23,7 @@ dev-dependencies = [
     "httpx>=0.27.0",
     "ruff>=0.8.0",
     "fakeredis[lua]>=2.37.0",
+    "pypdf>=6.19.0",
 ]
 
 [tool.ruff]
