@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.0](https://github.com/sprajeesh/location-intelligence/compare/api@v0.9.0...api@v0.10.0) (2026-10-03)
+
+
+### Features
+
+* **api:** report data model with per-facility score breakup and low-score hints ([#306](https://github.com/sprajeesh/location-intelligence/issues/306)) ([7a02e59](https://github.com/sprajeesh/location-intelligence/commit/7a02e5925bb65f148b3b9d40f0a7cdae678be80b))
+
 ## [0.9.0](https://github.com/sprajeesh/location-intelligence/compare/api@v0.8.0...api@v0.9.0) (2026-09-28)
 
 
