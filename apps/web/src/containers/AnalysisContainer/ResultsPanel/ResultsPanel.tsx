@@ -17,6 +17,7 @@ import { useAnalyze } from "@/hooks/useAnalyze";
 import { useAnalyzeCategories } from "@/hooks/useAnalyzeCategories";
 import { useAnalyzeCategoryWeights } from "@/hooks/useAnalyzeCategoryWeights";
 import { useCategoryColorMap } from "@/hooks/useCategoryColorMap";
+import { useIsDesktop } from "@/hooks/useIsDesktop";
 import { useReportAction } from "@/hooks/useReportAction";
 import { buildCategoryExplainItems, buildOverallExplainItems } from "@/utils/scoreDisplay";
 
@@ -56,6 +57,7 @@ export default function ResultsPanel({
   className = "",
 }: ResultsPanelProps) {
   const t = useTranslations();
+  const isDesktop = useIsDesktop();
 
   // Store state
   const {
@@ -283,16 +285,18 @@ export default function ResultsPanel({
           )}
         </div>
 
-        {/* Full PDF report -- persistent, so it's always one tap away */}
-        <div className="flex-shrink-0 border-t border-slate-200 px-4 sm:px-6 pt-3 sm:pt-4">
-          <ReportButton
-            generating={reportAction.generating}
-            ready={reportAction.ready}
-            disabled={reportAction.disabled}
-            onClick={reportAction.onClick}
-            fullLabel
-          />
-        </div>
+        {/* Full PDF report -- desktop only; on mobile it lives in the fixed bottom controls bar */}
+        {isDesktop && (
+          <div className="flex-shrink-0 border-t border-slate-200 px-4 sm:px-6 pt-3 sm:pt-4">
+            <ReportButton
+              generating={reportAction.generating}
+              ready={reportAction.ready}
+              disabled={reportAction.disabled}
+              onClick={reportAction.onClick}
+              fullLabel
+            />
+          </div>
+        )}
 
         {/* Radius adjuster — persistent, visible below the score */}
         <div className="flex-shrink-0 px-4 sm:px-6 py-3 sm:py-4">

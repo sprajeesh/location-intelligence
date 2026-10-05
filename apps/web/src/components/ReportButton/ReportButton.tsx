@@ -17,6 +17,8 @@ export interface ReportButtonProps {
   className?: string;
   /** Use the full labels ("Generate report" / "Download report") instead of the short "Report" / "Download" -- for surfaces with room, like the results panel. */
   fullLabel?: boolean;
+  /** Make the button full-width (default: true). Set to false for compact layouts like mobile controls bar. */
+  fullWidth?: boolean;
 }
 
 /**
@@ -32,6 +34,7 @@ export function ReportButton({
   onClick,
   className = "",
   fullLabel = false,
+  fullWidth = true,
 }: ReportButtonProps) {
   const t = useTranslations();
 
@@ -40,7 +43,7 @@ export function ReportButton({
       variant="primary"
       onClick={onClick}
       disabled={disabled}
-      className={`w-full justify-center gap-2 py-2.5 ${className}`}
+      className={`${fullWidth ? "w-full" : ""} justify-center gap-2 py-2.5 ${className}`}
       aria-busy={generating}
       ariaLabel={t(
         generating

@@ -211,6 +211,7 @@ export function HomeContainer() {
             ready={reportAction.ready}
             disabled={reportAction.disabled}
             onClick={reportAction.onClick}
+            fullWidth={false}
             className={SURFACE_PANEL_CLASSES.chip}
           />
         )}
