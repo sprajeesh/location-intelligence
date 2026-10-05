@@ -43,7 +43,7 @@ export function ReportButton({
       variant="primary"
       onClick={onClick}
       disabled={disabled}
-      className={`${fullWidth ? "w-full" : ""} justify-center gap-2 py-2.5 ${className}`}
+      className={`${fullWidth ? "w-full" : ""} justify-center gap-2 px-3 py-1.5 ${className}`}
       aria-busy={generating}
       ariaLabel={t(
         generating
