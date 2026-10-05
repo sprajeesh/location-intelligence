@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslations } from "next-intl";
 import { Search, FileText } from "lucide-react";
@@ -10,7 +10,8 @@ import LoadingSkeleton from "@/components/LoadingSkeleton";
 import ScoreDisplay from "@/components/ScoreDisplay";
 import { ScoreExplainModal } from "@/components/ScoreExplainModal";
 import { RadiusAdjuster } from "@/components/RadiusAdjuster";
-import { ReportButton } from "@/components/ReportButton";
+import { ReportContainer } from "@/containers/ReportContainer";
+import { useIsDesktop } from "@/hooks/useIsDesktop";
 import { SurfacePanel } from "@/components/ui/SurfacePanel";
 import { useNavigate } from "@/hooks/useNavigate";
 import { useAnalyze } from "@/hooks/useAnalyze";
@@ -74,6 +75,7 @@ export default function ResultsPanel({
     setIsMapViewOnMobile,
   } = useLocationStore();
 
+  const isDesktop = useIsDesktop();
   const { mutate: analyze } = useAnalyze();
   const analyzeCategories = useAnalyzeCategories();
   const analyzeCategoryWeights = useAnalyzeCategoryWeights();
@@ -166,24 +168,6 @@ export default function ResultsPanel({
       analyzeCategories,
       analyzeCategoryWeights,
     ],
-  );
-
-  // The report covers exactly the analysis on screen (same address, radius,
-  // categories, weights and distance mode); any change resets the button.
-  const reportRequest = useMemo(
-    () =>
-      selectedAddress
-        ? {
-            address: selectedAddress.displayName,
-            lat: selectedAddress.lat,
-            lon: selectedAddress.lon,
-            radiusKm,
-            distanceMode,
-            categories: analyzeCategories,
-            categoryWeights: analyzeCategoryWeights,
-          }
-        : null,
-    [selectedAddress, radiusKm, distanceMode, analyzeCategories, analyzeCategoryWeights],
   );
 
   // Remount the adjuster (collapsing it and resetting its draft value) whenever the address changes
@@ -279,10 +263,13 @@ export default function ResultsPanel({
           )}
         </div>
 
-        {/* Full PDF report -- persistent, so it's always one tap away */}
-        <div className="flex-shrink-0 border-t border-slate-200 px-4 sm:px-6 pt-3 sm:pt-4">
-          <ReportButton request={reportRequest} />
-        </div>
+        {/* Full PDF report -- persistent, so it's always one tap away. Desktop
+            only: on mobile it lives in HomeContainer's bottom controls bar. */}
+        {isDesktop && (
+          <div className="flex-shrink-0 border-t border-slate-200 px-4 sm:px-6 pt-3 sm:pt-4">
+            <ReportContainer fullLabel className="w-full justify-center py-2.5" />
+          </div>
+        )}
 
         {/* Radius adjuster — persistent, visible below the score */}
         <div className="flex-shrink-0 px-4 sm:px-6 py-3 sm:py-4">
