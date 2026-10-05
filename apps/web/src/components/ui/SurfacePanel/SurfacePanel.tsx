@@ -22,6 +22,9 @@ export const SURFACE_PANEL_CLASSES: Record<SurfacePanelVariant, string> = {
   popover: "bg-white border border-slate-200 rounded-lg shadow-popover",
 };
 
+// Chip styling without background, for buttons that provide their own background color
+export const CHIP_BORDER_SHADOW = "border border-slate-200 rounded-lg shadow-card";
+
 export function SurfacePanel({ variant = "panel", as: Tag = "div", className = "", ref, ...rest }: SurfacePanelProps) {
   return <Tag ref={ref} {...rest} className={`${SURFACE_PANEL_CLASSES[variant]} ${className}`.trim()} />;
 }
