@@ -9,10 +9,9 @@ import { version } from "../../../package.json";
 // both light and dark token sets (src/i18n/globals.css). The row has a fixed
 // height (h-8 on mobile) because HomeContainer offsets its fixed mobile
 // controls bar by exactly that much (bottom-8) — keep the two in sync. The
-// version is centred absolutely and only shown at lg+, where it cannot
-// collide with the links or the credit; between sm and lg it follows the
-// copyright inline instead. Below lg it follows the copyright inline, in
-// a smaller font on mobile.
+// version is centred absolutely and shown at lg+, where it cannot collide
+// with the links or credit. Below lg, it follows the copyright inline
+// (smaller font on mobile); it is hidden at lg+ to avoid duplication.
 const LINK_CLASSES =
   "underline-offset-2 hover:underline focus-visible:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white";
 
@@ -37,8 +36,8 @@ export async function SiteFooter({ className = "" }: SiteFooterProps) {
           aria-label={t("navLabel")}
           className="flex min-w-0 flex-1 sm:flex-none items-center gap-x-2 sm:gap-x-3 whitespace-nowrap"
         >
-          <span className="mr-auto sm:mr-0">
-            {t("copyright", { year })}
+          <span className="mr-auto sm:mr-0 truncate">
+            {t("copyright", { year, appName: t("appName") })}
             <span className="ml-1 text-[10px] opacity-90 sm:text-xs lg:hidden">
               {versionLabel}
             </span>
