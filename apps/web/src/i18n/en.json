@@ -199,8 +199,8 @@
   },
   "footer": {
     "navLabel": "Site",
-    "copyright": "© {year} Location Intelligence",
-    "copyrightShort": "© {year}",
+    "copyright": "© {year} {appName}",
+    "appName": "Location Intelligence",
     "about": "About",
     "faq": "FAQ",
     "dataSources": "Data sources",

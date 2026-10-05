@@ -6,8 +6,9 @@ let mockLocale = "en";
 
 jest.mock("next-intl/server", () => ({
   getLocale: async () => mockLocale,
-  getTranslations: async () => (key: string, values?: Record<string, unknown>) =>
-    values ? `${key}:${JSON.stringify(values)}` : key,
+  getTranslations:
+    async () => (key: string, values?: Record<string, unknown>) =>
+      values ? `${key}:${JSON.stringify(values)}` : key,
 }));
 
 async function renderFooter(className?: string) {
@@ -19,7 +20,8 @@ describe("SiteFooter", () => {
     mockLocale = "en";
   });
 
-  const hrefs = () => screen.getAllByRole("link").map((l) => l.getAttribute("href"));
+  const hrefs = () =>
+    screen.getAllByRole("link").map((l) => l.getAttribute("href"));
 
   it("links to About, FAQ and Data sources without a locale prefix for the default locale", async () => {
     await renderFooter();
@@ -41,14 +43,14 @@ describe("SiteFooter", () => {
 
   it("shows the app version from package.json", async () => {
     await renderFooter();
-    expect(screen.getByText(`v${version}`)).toBeInTheDocument();
+    expect(screen.getAllByText(`v${version}`)).toHaveLength(2);
   });
 
   it("suffixes the commit hash when one is provided (dev)", async () => {
     process.env.APP_DEV_COMMIT = "abc1234";
     try {
       await renderFooter();
-      expect(screen.getByText(`v${version}+abc1234`)).toBeInTheDocument();
+      expect(screen.getAllByText(`v${version}+abc1234`)).toHaveLength(2);
     } finally {
       delete process.env.APP_DEV_COMMIT;
     }
