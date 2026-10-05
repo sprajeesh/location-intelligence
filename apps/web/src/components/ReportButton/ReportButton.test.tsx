@@ -26,7 +26,7 @@ describe('ReportButton', () => {
       />
     );
 
-    const button = screen.getByRole('button', { name: 'Generate report' });
+    const button = screen.getByRole('button', { name: 'Report' });
     expect(button).toBeEnabled();
     expect(button.className).toMatch(/bg-primary-600/);
   });
@@ -42,7 +42,7 @@ describe('ReportButton', () => {
       />
     );
 
-    expect(screen.getByRole('button', { name: 'Download report' })).toBeEnabled();
+    expect(screen.getByRole('button', { name: 'Download' })).toBeEnabled();
   });
 
   it('shows full label "Generate report" when not ready (fullLabel=true)', () => {
@@ -102,7 +102,7 @@ describe('ReportButton', () => {
       />
     );
 
-    expect(screen.getByRole('button', { name: 'Generate report' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Report' })).toBeDisabled();
   });
 
   it('calls onClick when clicked', async () => {
