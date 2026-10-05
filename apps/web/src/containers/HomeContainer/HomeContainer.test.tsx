@@ -3,6 +3,16 @@ import { HomeContainer } from './HomeContainer';
 
 jest.mock('@/store');
 jest.mock('@/hooks/useAddressSearch');
+jest.mock('@/hooks/useAnalyzeCategories', () => ({ useAnalyzeCategories: () => ['schools'] }));
+jest.mock('@/hooks/useAnalyzeCategoryWeights', () => ({ useAnalyzeCategoryWeights: () => ({ schools: 1 }) }));
+jest.mock('@/hooks/useReportAction', () => ({
+  useReportAction: () => ({
+    generating: false,
+    ready: false,
+    disabled: true,
+    onClick: jest.fn(),
+  }),
+}));
 jest.mock('@/containers/SearchContainer', () => ({
   SearchContainer: () => <div data-testid="search-container-mock" />,
 }));
@@ -15,8 +25,8 @@ jest.mock('@/containers/MapContainer', () => ({
 jest.mock('@/containers/SettingsContainer', () => ({
   SettingsContainer: () => <div data-testid="settings-container-mock" />,
 }));
-jest.mock('@/containers/ReportContainer', () => ({
-  ReportContainer: () => <div data-testid="report-container-mock" />,
+jest.mock('@/components/ReportButton', () => ({
+  ReportButton: () => <button data-testid="report-button-mock">Report</button>,
 }));
 jest.mock('@/components/ThemeToggle', () => ({
   ThemeToggle: () => <div data-testid="theme-toggle-mock" />,
@@ -174,7 +184,7 @@ describe('HomeContainer', () => {
       const theme = screen.getByTestId('theme-toggle-mock');
       const settings = screen.getByTestId('settings-container-mock');
       expect(theme.compareDocumentPosition(settings) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-      expect(screen.queryByTestId('report-container-mock')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('report-button-mock')).not.toBeInTheDocument();
     });
   });
 
