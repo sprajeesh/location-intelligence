@@ -11,6 +11,7 @@ import PanelCollapseButton from "@/components/PanelCollapseButton/PanelCollapseB
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { SettingsContainer } from "@/containers/SettingsContainer";
 import { MobileViewToggleContainer } from "@/containers/MobileViewToggleContainer";
+import { ReportContainer } from "@/containers/ReportContainer";
 import { SURFACE_PANEL_CLASSES } from "@/components/ui/SurfacePanel";
 
 export function HomeContainer() {
@@ -94,7 +95,7 @@ export function HomeContainer() {
                 error={addressSearch.error}
               />
             </div>
-            {/* Score Config + Theme buttons — desktop only; on mobile these
+            {/* Theme / Score Config buttons — desktop only; on mobile these
                 live in the fixed bottom controls bar instead. Gated on
                 isDesktop (not a CSS breakpoint) so SettingsContainer isn't
                 double-mounted alongside its mobile counterpart below.
@@ -103,8 +104,8 @@ export function HomeContainer() {
                 sharing the row with them. */}
             {isDesktop && (
               <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 flex items-center gap-2 pointer-events-auto whitespace-nowrap">
-                <SettingsContainer expanded className={SURFACE_PANEL_CLASSES.chip} />
                 <ThemeToggle className={SURFACE_PANEL_CLASSES.chip} />
+                <SettingsContainer expanded className={SURFACE_PANEL_CLASSES.chip} />
               </div>
             )}
           </div>
@@ -155,17 +156,23 @@ export function HomeContainer() {
     {/* Mobile controls bar — fixed to the bottom of the screen across every
         mobile state (initial view, results, map). Replaces the old inline
         "Show map" / floating "View scores"/"Show route" buttons with a
-        single Map/Results toggle, alongside Scoring and Theme. No shared
+        single Map/Results toggle, alongside Scoring, Theme and the primary
+        Report action. Utilities are left-aligned (Theme, Scoring, Map) and
+        Report is right-aligned so it reads as the one primary action. (On
+        desktop, Report lives in the results panel instead.) No shared
         panel background (matches the desktop treatment) — each button
         carries its own white/bordered card so it still reads as tappable
         over the map or results content behind it. */}
     {!isDesktop && (
       /* bottom-8 stacks the bar directly above the site footer (h-8 on
          mobile, see SiteFooter) — keep the two in sync. */
-      <div className="fixed inset-x-0 bottom-8 z-[1000] flex items-center justify-center gap-2 p-3">
-        <MobileViewToggleContainer className={SURFACE_PANEL_CLASSES.chip} />
-        <SettingsContainer className={SURFACE_PANEL_CLASSES.chip} />
-        <ThemeToggle compact className={SURFACE_PANEL_CLASSES.chip} />
+      <div className="fixed inset-x-0 bottom-8 z-[1000] flex items-center justify-between gap-2 px-3 py-3">
+        <div className="flex items-center gap-1.5 min-w-0">
+          <ThemeToggle compact iconOnlyOnNarrow className={SURFACE_PANEL_CLASSES.chip} />
+          <SettingsContainer className={SURFACE_PANEL_CLASSES.chip} />
+          <MobileViewToggleContainer className={SURFACE_PANEL_CLASSES.chip} />
+        </div>
+        <ReportContainer className="shadow-card py-2.5" />
       </div>
     )}
 

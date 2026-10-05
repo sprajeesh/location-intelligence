@@ -290,6 +290,7 @@ export default function ResultsPanel({
             ready={reportAction.ready}
             disabled={reportAction.disabled}
             onClick={reportAction.onClick}
+            fullLabel
           />
         </div>
 

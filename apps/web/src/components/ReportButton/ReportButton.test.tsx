@@ -5,14 +5,17 @@ import { ReportButton } from './ReportButton';
 jest.mock('next-intl', () => ({
   useTranslations: () => (key: string) =>
     ({
-      'results.report.generate': 'Generate report',
-      'results.report.generating': 'Generating report…',
-      'results.report.download': 'Download report',
+      'results.report.generate': 'Report',
+      'results.report.generating': 'Generating…',
+      'results.report.download': 'Download',
+      'results.report.generatingFull': 'Generating report…',
+      'results.report.generateLabel': 'Generate report',
+      'results.report.downloadLabel': 'Download report',
     })[key] ?? key,
 }));
 
 describe('ReportButton', () => {
-  it('shows "Generate report" label when not ready', () => {
+  it('shows short label "Report" when not ready (default)', () => {
     const onClick = jest.fn();
     render(
       <ReportButton
@@ -28,7 +31,7 @@ describe('ReportButton', () => {
     expect(button.className).toMatch(/bg-primary-600/);
   });
 
-  it('shows "Download report" label when ready', () => {
+  it('shows short label "Download" when ready (default)', () => {
     const onClick = jest.fn();
     render(
       <ReportButton
@@ -42,6 +45,36 @@ describe('ReportButton', () => {
     expect(screen.getByRole('button', { name: 'Download report' })).toBeEnabled();
   });
 
+  it('shows full label "Generate report" when not ready (fullLabel=true)', () => {
+    const onClick = jest.fn();
+    render(
+      <ReportButton
+        generating={false}
+        ready={false}
+        disabled={false}
+        onClick={onClick}
+        fullLabel
+      />
+    );
+
+    expect(screen.getByText('Generate report')).toBeInTheDocument();
+  });
+
+  it('shows full label "Download report" when ready (fullLabel=true)', () => {
+    const onClick = jest.fn();
+    render(
+      <ReportButton
+        generating={false}
+        ready={true}
+        disabled={false}
+        onClick={onClick}
+        fullLabel
+      />
+    );
+
+    expect(screen.getByText('Download report')).toBeInTheDocument();
+  });
+
   it('shows generating spinner when generating', () => {
     const onClick = jest.fn();
     render(
@@ -53,7 +86,7 @@ describe('ReportButton', () => {
       />
     );
 
-    const button = screen.getByRole('button', { name: /Generating report/ });
+    const button = screen.getByRole('button', { name: /Generating/ });
     expect(button).toBeDisabled();
     expect(button).toHaveAttribute('aria-busy', 'true');
   });
