@@ -11,7 +11,7 @@ import ScoreDisplay from "@/components/ScoreDisplay";
 import { ScoreExplainModal } from "@/components/ScoreExplainModal";
 import { RadiusAdjuster } from "@/components/RadiusAdjuster";
 import { ReportButton } from "@/components/ReportButton";
-import { SurfacePanel } from "@/components/ui/SurfacePanel";
+import { SurfacePanel, CHIP_BORDER_SHADOW } from "@/components/ui/SurfacePanel";
 import { useNavigate } from "@/hooks/useNavigate";
 import { useAnalyze } from "@/hooks/useAnalyze";
 import { useAnalyzeCategories } from "@/hooks/useAnalyzeCategories";
@@ -294,6 +294,7 @@ export default function ResultsPanel({
               disabled={reportAction.disabled}
               onClick={reportAction.onClick}
               fullLabel
+              className={CHIP_BORDER_SHADOW}
             />
           </div>
         )}
