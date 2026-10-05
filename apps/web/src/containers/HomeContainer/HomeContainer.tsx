@@ -15,7 +15,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { SettingsContainer } from "@/containers/SettingsContainer";
 import { MobileViewToggleContainer } from "@/containers/MobileViewToggleContainer";
 import { ReportButton } from "@/components/ReportButton";
-import { SURFACE_PANEL_CLASSES } from "@/components/ui/SurfacePanel";
+import { SURFACE_PANEL_CLASSES, CHIP_BORDER_SHADOW } from "@/components/ui/SurfacePanel";
 
 export function HomeContainer() {
   const {
@@ -222,15 +222,14 @@ export function HomeContainer() {
             <MobileViewToggleContainer className={SURFACE_PANEL_CLASSES.chip} />
           </div>
           {selectedAddress && (
-            <div className={SURFACE_PANEL_CLASSES.chip}>
-              <ReportButton
-                generating={reportAction.generating}
-                ready={reportAction.ready}
-                disabled={reportAction.disabled}
-                onClick={reportAction.onClick}
-                fullWidth={false}
-              />
-            </div>
+            <ReportButton
+              generating={reportAction.generating}
+              ready={reportAction.ready}
+              disabled={reportAction.disabled}
+              onClick={reportAction.onClick}
+              fullWidth={false}
+              className={CHIP_BORDER_SHADOW}
+            />
           )}
         </div>
       )}
