@@ -78,16 +78,8 @@ export function ReportButton({
       onClick={onClick}
       disabled={disabled}
       className={`${fullWidth ? "w-full justify-center" : ""} ${className}`}
-      ariaLabel={t(
-        ready
-          ? "results.report.downloadLabel"
-          : "results.report.generateLabel",
-      )}
-      title={t(
-        ready
-          ? "results.report.downloadLabel"
-          : "results.report.generateLabel",
-      )}
+      ariaLabel={label}
+      title={label}
     />
   );
 }
