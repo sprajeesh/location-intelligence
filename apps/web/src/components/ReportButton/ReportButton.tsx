@@ -55,7 +55,7 @@ export function ReportButton({
       <Button
         variant="primary"
         onClick={onClick}
-        disabled={disabled}
+        disabled={disabled || generating}
         className={`${fullWidth ? "w-full justify-center" : ""} gap-2 ${className}`}
         aria-busy={generating}
         ariaLabel={label}

@@ -91,6 +91,21 @@ describe('ReportButton', () => {
     expect(button).toHaveAttribute('aria-busy', 'true');
   });
 
+  it('forces button disabled while generating even if disabled=false', () => {
+    const onClick = jest.fn();
+    render(
+      <ReportButton
+        generating={true}
+        ready={false}
+        disabled={false}
+        onClick={onClick}
+      />
+    );
+
+    const button = screen.getByRole('button', { name: /Generating/ });
+    expect(button).toBeDisabled();
+  });
+
   it('is disabled when disabled prop is true', () => {
     const onClick = jest.fn();
     render(

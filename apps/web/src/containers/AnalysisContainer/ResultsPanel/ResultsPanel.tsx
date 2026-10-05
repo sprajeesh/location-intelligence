@@ -175,7 +175,7 @@ export default function ResultsPanel({
   // categories, weights and distance mode); any change resets the button.
   const reportRequest = useMemo(
     () =>
-      selectedAddress
+      selectedAddress && analysisResult && !isAnalyzing
         ? {
             address: selectedAddress.displayName,
             lat: selectedAddress.lat,
@@ -186,7 +186,7 @@ export default function ResultsPanel({
             categoryWeights: analyzeCategoryWeights,
           }
         : null,
-    [selectedAddress, radiusKm, distanceMode, analyzeCategories, analyzeCategoryWeights],
+    [selectedAddress, analysisResult, isAnalyzing, radiusKm, distanceMode, analyzeCategories, analyzeCategoryWeights],
   );
 
   // Manage report generation state and toasts
