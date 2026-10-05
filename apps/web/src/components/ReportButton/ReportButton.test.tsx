@@ -8,9 +8,12 @@ jest.mock('@/hooks/useReportGeneration');
 jest.mock('next-intl', () => ({
   useTranslations: () => (key: string) =>
     ({
-      'results.report.generate': 'Generate report',
-      'results.report.generating': 'Generating report…',
-      'results.report.download': 'Download report',
+      'results.report.generate': 'Report',
+      'results.report.generating': 'Generating…',
+      'results.report.download': 'Download',
+      'results.report.generatingFull': 'Generating report…',
+      'results.report.generateLabel': 'Generate report',
+      'results.report.downloadLabel': 'Download report',
       'results.report.readyToast': 'Your report is ready.',
       'results.report.downloadAction': 'Download',
       'results.report.failedToast': "Couldn't generate the report.",
@@ -56,10 +59,22 @@ describe('ReportButton', () => {
     expect(hook.start).toHaveBeenCalledTimes(1);
   });
 
+  it('fullLabel: shows the full text in each state', () => {
+    mockHook.mockReturnValue(hookState());
+    const { rerender } = render(<ReportButton request={request} fullLabel />);
+    expect(screen.getByText('Generate report')).toBeInTheDocument();
+    mockHook.mockReturnValue(hookState({ state: 'generating' }));
+    rerender(<ReportButton request={request} fullLabel />);
+    expect(screen.getByText('Generating report…')).toBeInTheDocument();
+    mockHook.mockReturnValue(hookState({ state: 'ready' }));
+    rerender(<ReportButton request={request} fullLabel />);
+    expect(screen.getByText('Download report')).toBeInTheDocument();
+  });
+
   it('generating: shows progress and is disabled', () => {
     mockHook.mockReturnValue(hookState({ state: 'generating' }));
     render(<ReportButton request={request} />);
-    const button = screen.getByRole('button', { name: /Generating report/ });
+    const button = screen.getByRole('button', { name: /Generating/ });
     expect(button).toBeDisabled();
     expect(button).toHaveAttribute('aria-busy', 'true');
   });

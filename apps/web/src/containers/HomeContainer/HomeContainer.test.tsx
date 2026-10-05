@@ -15,6 +15,9 @@ jest.mock('@/containers/MapContainer', () => ({
 jest.mock('@/containers/SettingsContainer', () => ({
   SettingsContainer: () => <div data-testid="settings-container-mock" />,
 }));
+jest.mock('@/containers/ReportContainer', () => ({
+  ReportContainer: () => <div data-testid="report-container-mock" />,
+}));
 jest.mock('@/components/ThemeToggle', () => ({
   ThemeToggle: () => <div data-testid="theme-toggle-mock" />,
 }));
@@ -161,6 +164,17 @@ describe('HomeContainer', () => {
     it('renders AnalysisContainer in the panel slot', () => {
       render(<HomeContainer />);
       expect(screen.getByTestId('analysis-container-mock')).toBeInTheDocument();
+    });
+  });
+
+  describe('Controls group', () => {
+    it('orders desktop controls Theme, Scoring and leaves Report to the results panel', () => {
+      mockUseLocationStore.mockReturnValue(makeStoreState({ selectedAddress: MOCK_ADDRESS }));
+      render(<HomeContainer />);
+      const theme = screen.getByTestId('theme-toggle-mock');
+      const settings = screen.getByTestId('settings-container-mock');
+      expect(theme.compareDocumentPosition(settings) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+      expect(screen.queryByTestId('report-container-mock')).not.toBeInTheDocument();
     });
   });
 
