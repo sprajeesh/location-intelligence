@@ -17,6 +17,7 @@ import { useAnalyze } from "@/hooks/useAnalyze";
 import { useAnalyzeCategories } from "@/hooks/useAnalyzeCategories";
 import { useAnalyzeCategoryWeights } from "@/hooks/useAnalyzeCategoryWeights";
 import { useCategoryColorMap } from "@/hooks/useCategoryColorMap";
+import { useReportAction } from "@/hooks/useReportAction";
 import { buildCategoryExplainItems, buildOverallExplainItems } from "@/utils/scoreDisplay";
 
 // What the "?" icon last opened -- owned here (not by ScoreDisplay/
@@ -186,6 +187,9 @@ export default function ResultsPanel({
     [selectedAddress, radiusKm, distanceMode, analyzeCategories, analyzeCategoryWeights],
   );
 
+  // Manage report generation state and toasts
+  const reportAction = useReportAction(reportRequest);
+
   // Remount the adjuster (collapsing it and resetting its draft value) whenever the address changes
   const addressKey = selectedAddress
     ? `${selectedAddress.lat},${selectedAddress.lon}`
@@ -281,7 +285,12 @@ export default function ResultsPanel({
 
         {/* Full PDF report -- persistent, so it's always one tap away */}
         <div className="flex-shrink-0 border-t border-slate-200 px-4 sm:px-6 pt-3 sm:pt-4">
-          <ReportButton request={reportRequest} />
+          <ReportButton
+            generating={reportAction.generating}
+            ready={reportAction.ready}
+            disabled={reportAction.disabled}
+            onClick={reportAction.onClick}
+          />
         </div>
 
         {/* Radius adjuster — persistent, visible below the score */}
