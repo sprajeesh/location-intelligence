@@ -1,57 +1,23 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import { SearchContainer } from "@/containers/SearchContainer";
 import { AnalysisContainer } from "@/containers/AnalysisContainer";
 import { MapContainerDynamic } from "@/containers/MapContainer";
 import { useLocationStore } from "@/store";
 import { useAddressSearch } from "@/hooks/useAddressSearch";
 import { useIsDesktop } from "@/hooks/useIsDesktop";
-import { useAnalyzeCategories } from "@/hooks/useAnalyzeCategories";
-import { useAnalyzeCategoryWeights } from "@/hooks/useAnalyzeCategoryWeights";
-import { useReportAction } from "@/hooks/useReportAction";
 import PanelCollapseButton from "@/components/PanelCollapseButton/PanelCollapseButton";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { SettingsContainer } from "@/containers/SettingsContainer";
 import { MobileViewToggleContainer } from "@/containers/MobileViewToggleContainer";
-import { ReportButton } from "@/components/ReportButton";
 import { SURFACE_PANEL_CLASSES } from "@/components/ui/SurfacePanel";
 
 export function HomeContainer() {
-  const {
-    selectedAddress,
-    analysisResult,
-    isAnalyzing,
-    radiusKm,
-    distanceMode,
-    isPanelCollapsed,
-    togglePanelCollapsed,
-    setPanelCollapsed,
-    isMapViewOnMobile,
-  } = useLocationStore();
+  const { selectedAddress, isPanelCollapsed, togglePanelCollapsed, setPanelCollapsed, isMapViewOnMobile } =
+    useLocationStore();
   const isDesktop = useIsDesktop();
   const addressSearch = useAddressSearch();
-  const categories = useAnalyzeCategories();
-  const categoryWeights = useAnalyzeCategoryWeights();
-
-  // Build report request from current analysis state (only valid when results exist)
-  const reportRequest = useMemo(
-    () =>
-      selectedAddress && analysisResult && !isAnalyzing
-        ? {
-            address: selectedAddress.displayName,
-            lat: selectedAddress.lat,
-            lon: selectedAddress.lon,
-            radiusKm,
-            distanceMode,
-            categories,
-            categoryWeights,
-          }
-        : null,
-    [selectedAddress, analysisResult, isAnalyzing, radiusKm, distanceMode, categories, categoryWeights],
-  );
-
-  const reportAction = useReportAction(reportRequest);
 
   // Expand panel when a new address is selected (don't collapse based on previous action)
   useEffect(() => {
@@ -205,15 +171,6 @@ export function HomeContainer() {
           <SettingsContainer className={SURFACE_PANEL_CLASSES.chip} />
           <MobileViewToggleContainer className={SURFACE_PANEL_CLASSES.chip} />
         </div>
-        {selectedAddress && (
-          <ReportButton
-            generating={reportAction.generating}
-            ready={reportAction.ready}
-            disabled={reportAction.disabled}
-            onClick={reportAction.onClick}
-            className="shadow-card py-2.5"
-          />
-        )}
       </div>
     )}
 
