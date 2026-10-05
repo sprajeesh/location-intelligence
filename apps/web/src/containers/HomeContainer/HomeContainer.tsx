@@ -172,7 +172,7 @@ export function HomeContainer() {
           <SettingsContainer className={SURFACE_PANEL_CLASSES.chip} />
           <MobileViewToggleContainer className={SURFACE_PANEL_CLASSES.chip} />
         </div>
-        <ReportContainer className="shadow-card" />
+        <ReportContainer className="shadow-card py-2.5" />
       </div>
     )}
 

@@ -77,7 +77,13 @@ export function ReportButton({ request, className = "", fullLabel = false }: Rep
             ? "results.report.downloadLabel"
             : "results.report.generateLabel",
       )}
-      title={t(ready ? "results.report.downloadLabel" : "results.report.generateLabel")}
+      title={t(
+        generating
+          ? "results.report.generating"
+          : ready
+            ? "results.report.downloadLabel"
+            : "results.report.generateLabel",
+      )}
     >
       {generating ? (
         <>
