@@ -36,9 +36,11 @@ export async function SiteFooter({ className = "" }: SiteFooterProps) {
           aria-label={t("navLabel")}
           className="flex min-w-0 flex-1 sm:flex-none items-center gap-x-2 sm:gap-x-3 whitespace-nowrap"
         >
-          <span className="mr-auto sm:mr-0 truncate">
-            {t("copyright", { year, appName: t("appName") })}
-            <span className="ml-1 text-[10px] opacity-90 sm:text-xs lg:hidden">
+          <span className="mr-auto sm:mr-0 flex items-center min-w-0 gap-x-1">
+            <span className="truncate">
+              {t("copyright", { year, appName: t("appName") })}
+            </span>
+            <span className="text-[10px] opacity-90 sm:text-xs lg:hidden whitespace-normal">
               {versionLabel}
             </span>
           </span>
