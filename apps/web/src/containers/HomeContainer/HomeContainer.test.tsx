@@ -4,6 +4,16 @@ import { HomeContainer } from './HomeContainer';
 jest.mock('@/store');
 jest.mock('@/hooks/useAddressSearch');
 jest.mock('@/hooks/useIsDesktop');
+jest.mock('@/hooks/useAnalyzeCategories', () => ({ useAnalyzeCategories: () => ['schools'] }));
+jest.mock('@/hooks/useAnalyzeCategoryWeights', () => ({ useAnalyzeCategoryWeights: () => ({ schools: 1 }) }));
+jest.mock('@/hooks/useReportAction', () => ({
+  useReportAction: () => ({
+    generating: false,
+    ready: false,
+    disabled: true,
+    onClick: jest.fn(),
+  }),
+}));
 jest.mock('@/containers/SearchContainer', () => ({
   SearchContainer: () => <div data-testid="search-container-mock" />,
 }));
@@ -15,6 +25,9 @@ jest.mock('@/containers/MapContainer', () => ({
 }));
 jest.mock('@/containers/SettingsContainer', () => ({
   SettingsContainer: () => <div data-testid="settings-container-mock" />,
+}));
+jest.mock('@/components/ReportButton', () => ({
+  ReportButton: () => <button data-testid="report-button-mock">Report</button>,
 }));
 jest.mock('@/components/ThemeToggle', () => ({
   ThemeToggle: () => <div data-testid="theme-toggle-mock" />,
@@ -169,16 +182,18 @@ describe('HomeContainer', () => {
   });
 
   describe('Controls group', () => {
-    it('shows mobile controls on mobile: Theme, Scoring and Map toggle', () => {
+    it('shows mobile controls on mobile: Theme, Scoring, Map toggle and Report (right-aligned)', () => {
       mockUseIsDesktop.mockReturnValue(false); // Mobile view
       mockUseLocationStore.mockReturnValue(makeStoreState({ selectedAddress: MOCK_ADDRESS }));
       render(<HomeContainer />);
       const theme = screen.getByTestId('theme-toggle-mock');
       const settings = screen.getByTestId('settings-container-mock');
       const mapToggle = screen.getByTestId('mobile-view-toggle-mock');
+      const report = screen.getByTestId('report-button-mock');
       expect(theme).toBeInTheDocument();
       expect(settings).toBeInTheDocument();
       expect(mapToggle).toBeInTheDocument();
+      expect(report).toBeInTheDocument();
     });
   });
 
