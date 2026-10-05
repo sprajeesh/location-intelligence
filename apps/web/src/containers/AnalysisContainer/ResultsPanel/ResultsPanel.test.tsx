@@ -1,6 +1,5 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { useIsDesktop } from '@/hooks/useIsDesktop';
 import ResultsPanel from './ResultsPanel';
 import type { AnalyzeResponse, CategoryScoreResult, Feature, ScoreResult } from '@/types/api';
 
@@ -46,8 +45,26 @@ jest.mock('@/components/RadiusAdjuster', () => ({
     </div>
   ),
 }));
-jest.mock('@/containers/ReportContainer', () => ({
-  ReportContainer: () => <div data-testid="report-container" />,
+jest.mock('@/hooks/useReportAction', () => ({
+  useReportAction: () => ({
+    generating: false,
+    ready: false,
+    disabled: false,
+    onClick: jest.fn(),
+  }),
+}));
+jest.mock('@/components/ReportButton', () => ({
+  __esModule: true,
+  ReportButton: ({ generating, ready, disabled, onClick, fullLabel }: { generating: boolean; ready: boolean; disabled: boolean; onClick: () => void; fullLabel?: boolean }) => (
+    <button
+      data-testid="report-button"
+      disabled={disabled}
+      onClick={onClick}
+      aria-busy={generating}
+    >
+      {generating ? (fullLabel ? 'Generating report…' : 'Generating…') : ready ? (fullLabel ? 'Download report' : 'Download') : fullLabel ? 'Generate report' : 'Report'}
+    </button>
+  ),
 }));
 jest.mock('@/hooks/useIsDesktop', () => ({ useIsDesktop: jest.fn(() => true) }));
 jest.mock('@/components/LoadingSkeleton', () => ({
@@ -293,27 +310,22 @@ describe('ResultsPanel', () => {
   });
 
   describe('Report button', () => {
-    it('is shown on desktop once there is an analysis', () => {
+    it('is shown when analysis result exists', () => {
       mockUseLocationStore.mockReturnValue(
         makeStoreState({ analysisResult: mockAnalysisResult, selectedAddress: MOCK_ADDRESS }),
       );
       render(<ResultsPanel />);
-      expect(screen.getByTestId('report-container')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Report|Generate report|Download report/ })).toBeInTheDocument();
     });
 
-    it('is left to the mobile controls bar on mobile', () => {
-      (useIsDesktop as jest.Mock).mockReturnValueOnce(false);
-      mockUseLocationStore.mockReturnValue(
-        makeStoreState({ analysisResult: mockAnalysisResult, selectedAddress: MOCK_ADDRESS }),
-      );
-      render(<ResultsPanel />);
-      expect(screen.queryByTestId('report-container')).not.toBeInTheDocument();
-    });
-
-    it('is not shown while analyzing', () => {
+    it('is not shown while analyzing or before any analysis', () => {
       mockUseLocationStore.mockReturnValue(makeStoreState({ isAnalyzing: true }));
+      const { unmount } = render(<ResultsPanel />);
+      expect(screen.queryByRole('button', { name: /Report|Generate report|Download report/ })).not.toBeInTheDocument();
+      unmount();
+      mockUseLocationStore.mockReturnValue(makeStoreState());
       render(<ResultsPanel />);
-      expect(screen.queryByTestId('report-container')).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /Report|Generate report|Download report/ })).not.toBeInTheDocument();
     });
   });
 

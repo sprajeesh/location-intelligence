@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslations } from "next-intl";
 import { Search, FileText } from "lucide-react";
@@ -10,14 +10,15 @@ import LoadingSkeleton from "@/components/LoadingSkeleton";
 import ScoreDisplay from "@/components/ScoreDisplay";
 import { ScoreExplainModal } from "@/components/ScoreExplainModal";
 import { RadiusAdjuster } from "@/components/RadiusAdjuster";
-import { ReportContainer } from "@/containers/ReportContainer";
-import { useIsDesktop } from "@/hooks/useIsDesktop";
-import { SurfacePanel } from "@/components/ui/SurfacePanel";
+import { ReportButton } from "@/components/ReportButton";
+import { SurfacePanel, CHIP_BORDER_SHADOW } from "@/components/ui/SurfacePanel";
 import { useNavigate } from "@/hooks/useNavigate";
 import { useAnalyze } from "@/hooks/useAnalyze";
 import { useAnalyzeCategories } from "@/hooks/useAnalyzeCategories";
 import { useAnalyzeCategoryWeights } from "@/hooks/useAnalyzeCategoryWeights";
 import { useCategoryColorMap } from "@/hooks/useCategoryColorMap";
+import { useIsDesktop } from "@/hooks/useIsDesktop";
+import { useReportAction } from "@/hooks/useReportAction";
 import { buildCategoryExplainItems, buildOverallExplainItems } from "@/utils/scoreDisplay";
 
 // What the "?" icon last opened -- owned here (not by ScoreDisplay/
@@ -56,6 +57,7 @@ export default function ResultsPanel({
   className = "",
 }: ResultsPanelProps) {
   const t = useTranslations();
+  const isDesktop = useIsDesktop();
 
   // Store state
   const {
@@ -75,7 +77,6 @@ export default function ResultsPanel({
     setIsMapViewOnMobile,
   } = useLocationStore();
 
-  const isDesktop = useIsDesktop();
   const { mutate: analyze } = useAnalyze();
   const analyzeCategories = useAnalyzeCategories();
   const analyzeCategoryWeights = useAnalyzeCategoryWeights();
@@ -170,6 +171,27 @@ export default function ResultsPanel({
     ],
   );
 
+  // The report covers exactly the analysis on screen (same address, radius,
+  // categories, weights and distance mode); any change resets the button.
+  const reportRequest = useMemo(
+    () =>
+      selectedAddress && analysisResult && !isAnalyzing
+        ? {
+            address: selectedAddress.displayName,
+            lat: selectedAddress.lat,
+            lon: selectedAddress.lon,
+            radiusKm,
+            distanceMode,
+            categories: analyzeCategories,
+            categoryWeights: analyzeCategoryWeights,
+          }
+        : null,
+    [selectedAddress, analysisResult, isAnalyzing, radiusKm, distanceMode, analyzeCategories, analyzeCategoryWeights],
+  );
+
+  // Manage report generation state and toasts
+  const reportAction = useReportAction(reportRequest);
+
   // Remount the adjuster (collapsing it and resetting its draft value) whenever the address changes
   const addressKey = selectedAddress
     ? `${selectedAddress.lat},${selectedAddress.lon}`
@@ -263,11 +285,17 @@ export default function ResultsPanel({
           )}
         </div>
 
-        {/* Full PDF report -- persistent, so it's always one tap away. Desktop
-            only: on mobile it lives in HomeContainer's bottom controls bar. */}
+        {/* Full PDF report -- desktop only; on mobile it lives in the fixed bottom controls bar */}
         {isDesktop && (
           <div className="flex-shrink-0 border-t border-slate-200 px-4 sm:px-6 pt-3 sm:pt-4">
-            <ReportContainer fullLabel className="w-full justify-center py-2.5" />
+            <ReportButton
+              generating={reportAction.generating}
+              ready={reportAction.ready}
+              disabled={reportAction.disabled}
+              onClick={reportAction.onClick}
+              fullLabel
+              className={CHIP_BORDER_SHADOW}
+            />
           </div>
         )}
 
