@@ -12,13 +12,15 @@ export interface ReportButtonProps {
   /** The analysis to report on. null disables the button. */
   request: ReportRequest | null;
   className?: string;
+  /** Use the full labels ("Generate report" / "Download report") instead of the short "Report" / "Download" -- for surfaces with room, like the results panel. */
+  fullLabel?: boolean;
 }
 
 /**
  * Starts a background PDF intelligence report for the current analysis and,
  * once it is ready, offers it for download (button label + toast action).
  */
-export function ReportButton({ request, className = "" }: ReportButtonProps) {
+export function ReportButton({ request, className = "", fullLabel = false }: ReportButtonProps) {
   const t = useTranslations();
   const addToast = useLocationStore((s) => s.addToast);
   const { state, error, start, download } = useReportGeneration(request);
@@ -66,8 +68,16 @@ export function ReportButton({ request, className = "" }: ReportButtonProps) {
       variant="primary"
       onClick={ready ? handleDownload : () => void start()}
       disabled={!request || generating}
-      className={`w-full justify-center gap-2 py-2.5 ${className}`}
+      className={`gap-2 ${className}`}
       aria-busy={generating}
+      ariaLabel={t(
+        generating
+          ? "results.report.generating"
+          : ready
+            ? "results.report.downloadLabel"
+            : "results.report.generateLabel",
+      )}
+      title={t(ready ? "results.report.downloadLabel" : "results.report.generateLabel")}
     >
       {generating ? (
         <>
@@ -75,12 +85,22 @@ export function ReportButton({ request, className = "" }: ReportButtonProps) {
             aria-hidden="true"
             className="w-4 h-4 rounded-full border-2 border-white/40 border-t-white animate-spin"
           />
-          <span>{t("results.report.generating")}</span>
+          <span>{t(fullLabel ? "results.report.generatingFull" : "results.report.generating")}</span>
         </>
       ) : (
         <>
           <FileDown size={16} strokeWidth={2} aria-hidden="true" />
-          <span>{t(ready ? "results.report.download" : "results.report.generate")}</span>
+          <span>
+            {t(
+              ready
+                ? fullLabel
+                  ? "results.report.downloadLabel"
+                  : "results.report.download"
+                : fullLabel
+                  ? "results.report.generateLabel"
+                  : "results.report.generate",
+            )}
+          </span>
         </>
       )}
     </Button>
