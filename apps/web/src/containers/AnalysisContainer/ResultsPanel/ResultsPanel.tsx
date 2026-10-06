@@ -11,6 +11,7 @@ import ScoreDisplay from "@/components/ScoreDisplay";
 import { ScoreExplainModal } from "@/components/ScoreExplainModal";
 import { RadiusAdjuster } from "@/components/RadiusAdjuster";
 import { ReportButton } from "@/components/ReportButton";
+import { MobileControlsBar } from "@/containers/MobileControlsBar";
 import { SurfacePanel, CHIP_BORDER_SHADOW } from "@/components/ui/SurfacePanel";
 import { useNavigate } from "@/hooks/useNavigate";
 import { useAnalyze } from "@/hooks/useAnalyze";
@@ -285,7 +286,7 @@ export default function ResultsPanel({
           )}
         </div>
 
-        {/* Full PDF report -- desktop only; on mobile it lives in the fixed bottom controls bar */}
+        {/* Full PDF report -- desktop only; on mobile it lives in the controls section below */}
         {isDesktop && (
           <div className="flex-shrink-0 border-t border-slate-200 px-4 sm:px-6 pt-3 sm:pt-4">
             <ReportButton
@@ -308,6 +309,9 @@ export default function ResultsPanel({
             onSearch={handleRadiusSearch}
           />
         </div>
+
+        {/* Mobile controls -- this branch only renders once an analysis exists, so an address is always selected and Report is safe to show */}
+        {!isDesktop && <MobileControlsBar report={reportAction} />}
       </SurfacePanel>
 
       {explainTarget &&
