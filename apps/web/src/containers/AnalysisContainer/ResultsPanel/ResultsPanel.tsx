@@ -11,7 +11,10 @@ import ScoreDisplay from "@/components/ScoreDisplay";
 import { ScoreExplainModal } from "@/components/ScoreExplainModal";
 import { RadiusAdjuster } from "@/components/RadiusAdjuster";
 import { ReportButton } from "@/components/ReportButton";
-import { SurfacePanel, CHIP_BORDER_SHADOW } from "@/components/ui/SurfacePanel";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { SettingsContainer } from "@/containers/SettingsContainer";
+import { MobileViewToggleContainer } from "@/containers/MobileViewToggleContainer";
+import { SurfacePanel, CHIP_BORDER_SHADOW, SURFACE_PANEL_CLASSES } from "@/components/ui/SurfacePanel";
 import { useNavigate } from "@/hooks/useNavigate";
 import { useAnalyze } from "@/hooks/useAnalyze";
 import { useAnalyzeCategories } from "@/hooks/useAnalyzeCategories";
@@ -285,7 +288,7 @@ export default function ResultsPanel({
           )}
         </div>
 
-        {/* Full PDF report -- desktop only; on mobile it lives in the fixed bottom controls bar */}
+        {/* Full PDF report -- desktop only; on mobile it lives in the controls section below */}
         {isDesktop && (
           <div className="flex-shrink-0 border-t border-slate-200 px-4 sm:px-6 pt-3 sm:pt-4">
             <ReportButton
@@ -308,6 +311,29 @@ export default function ResultsPanel({
             onSearch={handleRadiusSearch}
           />
         </div>
+
+        {/* Mobile controls bar — on mobile, placed inside the panel instead of fixed at bottom */}
+        {!isDesktop && (
+          <div className="flex-shrink-0 border-t border-slate-200 px-2 sm:px-4 md:px-6 py-1.5 sm:py-2 md:py-4 flex items-center justify-between gap-1 sm:gap-1.5 md:gap-2 overflow-hidden">
+            <div className="flex items-center gap-0.5 sm:gap-1 md:gap-1.5 min-w-0">
+              <ThemeToggle
+                compact
+                iconOnlyOnNarrow
+                className={SURFACE_PANEL_CLASSES.chip}
+              />
+              <SettingsContainer iconOnlyOnNarrow className={SURFACE_PANEL_CLASSES.chip} />
+              <MobileViewToggleContainer iconOnlyOnNarrow className={SURFACE_PANEL_CLASSES.chip} />
+            </div>
+            <ReportButton
+              generating={reportAction.generating}
+              ready={reportAction.ready}
+              disabled={reportAction.disabled}
+              onClick={reportAction.onClick}
+              fullWidth={false}
+              className={CHIP_BORDER_SHADOW}
+            />
+          </div>
+        )}
       </SurfacePanel>
 
       {explainTarget &&

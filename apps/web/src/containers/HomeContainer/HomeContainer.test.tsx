@@ -182,9 +182,21 @@ describe('HomeContainer', () => {
   });
 
   describe('Controls group', () => {
-    it('shows mobile controls on mobile: Theme, Scoring, Map toggle and Report (right-aligned)', () => {
+    it('hides the mobile controls bar in the results view (ResultsPanel owns them there)', () => {
+      mockUseIsDesktop.mockReturnValue(false);
+      mockUseLocationStore.mockReturnValue(
+        makeStoreState({ selectedAddress: MOCK_ADDRESS, isMapViewOnMobile: false })
+      );
+      render(<HomeContainer />);
+      expect(screen.queryByTestId('theme-toggle-mock')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('report-button-mock')).not.toBeInTheDocument();
+    });
+
+    it('shows mobile controls in map view: Theme, Scoring, Map toggle and Report (right-aligned)', () => {
       mockUseIsDesktop.mockReturnValue(false); // Mobile view
-      mockUseLocationStore.mockReturnValue(makeStoreState({ selectedAddress: MOCK_ADDRESS }));
+      mockUseLocationStore.mockReturnValue(
+        makeStoreState({ selectedAddress: MOCK_ADDRESS, isMapViewOnMobile: true })
+      );
       render(<HomeContainer />);
       const theme = screen.getByTestId('theme-toggle-mock');
       const settings = screen.getByTestId('settings-container-mock');

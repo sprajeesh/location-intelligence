@@ -92,11 +92,8 @@ export function HomeContainer() {
 
   return (
     <>
-      {/* Fills the relative slot in page.tsx, which already stops above the
-        footer. bottom-14 reserves room for the fixed mobile controls bar
-        below; md:bottom-0 removes that reservation on desktop, where the bar
-        doesn't exist. */}
-      <div className="absolute inset-0 bottom-14 md:bottom-0 flex flex-col md:flex-row">
+      {/* Fills the relative slot in page.tsx, which already stops above the footer. */}
+      <div className="absolute inset-0 flex flex-col md:flex-row">
         {/* Panel container — shows only when expanded; hidden when collapsed */}
         <div
           className={
@@ -179,6 +176,34 @@ export function HomeContainer() {
         >
           <MapContainerDynamic />
         </div>
+
+        {/* Mobile controls bar — an in-flow white row at the bottom of the
+          layout (above the footer) for the initial and map views, so the
+          buttons sit inside a panel instead of floating over the footer. In
+          the results view the same controls live inside ResultsPanel. */}
+        {!isDesktop && !showResultsOnMobile && (
+          <div className="relative z-20 flex-shrink-0 bg-white border-t border-slate-200 px-2 py-1.5 flex items-center justify-between gap-1">
+            <div className="flex items-center gap-1 min-w-0">
+              <ThemeToggle
+                compact
+                iconOnlyOnNarrow
+                className={SURFACE_PANEL_CLASSES.chip}
+              />
+              <SettingsContainer iconOnlyOnNarrow className={SURFACE_PANEL_CLASSES.chip} />
+              <MobileViewToggleContainer iconOnlyOnNarrow className={SURFACE_PANEL_CLASSES.chip} />
+            </div>
+            {selectedAddress && (
+              <ReportButton
+                generating={reportAction.generating}
+                ready={reportAction.ready}
+                disabled={reportAction.disabled}
+                onClick={reportAction.onClick}
+                fullWidth={false}
+                className={CHIP_BORDER_SHADOW}
+              />
+            )}
+          </div>
+        )}
       </div>
 
       {/* Search bar for mobile map view — floats above map */}
@@ -195,42 +220,6 @@ export function HomeContainer() {
               />
             </div>
           </div>
-        </div>
-      )}
-
-      {/* Mobile controls bar — fixed to the bottom of the screen across every
-        mobile state (initial view, results, map). Replaces the old inline
-        "Show map" / floating "View scores"/"Show route" buttons with a
-        single Map/Results toggle, alongside Scoring, Theme and the primary
-        Report action. Utilities are left-aligned (Theme, Scoring, Map) and
-        Report is right-aligned so it reads as the one primary action. (On
-        desktop, Report lives in the results panel instead.) No shared
-        panel background (matches the desktop treatment) — each button
-        carries its own white/bordered card so it still reads as tappable
-        over the map or results content behind it. */}
-      {!isDesktop && (
-        /* bottom-10 stacks the bar directly above the site footer (h-10 on
-         mobile, see SiteFooter) — keep the two in sync. */
-        <div className="fixed inset-x-0 bottom-10 z-[1000] flex items-center justify-between gap-2 px-3 py-3">
-          <div className="flex items-center gap-1.5 min-w-0">
-            <ThemeToggle
-              compact
-              iconOnlyOnNarrow
-              className={SURFACE_PANEL_CLASSES.chip}
-            />
-            <SettingsContainer className={SURFACE_PANEL_CLASSES.chip} />
-            <MobileViewToggleContainer className={SURFACE_PANEL_CLASSES.chip} />
-          </div>
-          {selectedAddress && (
-            <ReportButton
-              generating={reportAction.generating}
-              ready={reportAction.ready}
-              disabled={reportAction.disabled}
-              onClick={reportAction.onClick}
-              fullWidth={false}
-              className={CHIP_BORDER_SHADOW}
-            />
-          )}
         </div>
       )}
 
