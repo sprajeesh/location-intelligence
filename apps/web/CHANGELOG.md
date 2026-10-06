@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.23.1](https://github.com/sprajeesh/location-intelligence/compare/web@v0.23.0...web@v0.23.1) (2026-10-06)
+
+
+### Bug Fixes
+
+* **web:** keep mobile controls inside the panel on small screens ([#325](https://github.com/sprajeesh/location-intelligence/issues/325)) ([009dfb3](https://github.com/sprajeesh/location-intelligence/commit/009dfb33dba2185556d7ac8578e74f95df99f65b))
+
 ## [0.23.0](https://github.com/sprajeesh/location-intelligence/compare/web@v0.22.0...web@v0.23.0) (2026-10-05)
 
 
