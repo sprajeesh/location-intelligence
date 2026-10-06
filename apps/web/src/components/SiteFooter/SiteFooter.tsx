@@ -29,7 +29,8 @@ export async function SiteFooter({ className = "" }: SiteFooterProps) {
     <footer
       className={`flex-shrink-0 bg-primary-600 text-white text-xs ${className}`.trim()}
     >
-      <div className="flex h-10 md:h-11 items-center justify-between gap-x-4 px-3 sm:px-4 border-b border-white border-opacity-20">
+      {/* Desktop Layout (md and up) */}
+      <div className="hidden md:flex h-11 items-center justify-between gap-x-4 px-4 border-b border-white border-opacity-20">
         {/* Logo Column */}
         <div className="flex-shrink-0 relative">
           <div className="absolute inset-0 bg-white rounded-full opacity-20"></div>
@@ -69,7 +70,6 @@ export async function SiteFooter({ className = "" }: SiteFooterProps) {
             href={localizedPath(locale, "/data-sources")}
             className={LINK_CLASSES}
           >
-            <span className="md:hidden">{t("dataSourcesShort")}</span>
             <span className="hidden md:inline">{t("dataSources")}</span>
           </Link>
         </nav>
@@ -78,6 +78,55 @@ export async function SiteFooter({ className = "" }: SiteFooterProps) {
         <span className="flex-shrink-0 text-xs opacity-90">
           {versionLabel}
         </span>
+      </div>
+
+      {/* Mobile Layout (below md) - 3 column grid (auto, 1fr, auto) */}
+      <div className="md:hidden grid gap-2 p-2 min-h-20 border-b border-white border-opacity-20" style={{ gridTemplateColumns: 'auto 1fr auto' }}>
+        {/* Column 1: Logo */}
+        <div className="flex items-center justify-center">
+          <div className="flex-shrink-0 relative">
+            <div className="absolute inset-0 bg-white rounded-full opacity-20"></div>
+            <Image
+              src="/logo-mark.svg"
+              alt=""
+              width={40}
+              height={48}
+              className="h-12 w-auto relative filter brightness-0 invert"
+            />
+          </div>
+        </div>
+
+        {/* Column 2: App Name, Caption, Version */}
+        <div className="flex flex-col justify-center gap-y-1">
+          <span className="font-bold text-[11px] uppercase leading-tight">
+            {t("appName")}
+          </span>
+          <span className="text-[10px] italic opacity-75 leading-tight">
+            {t("appCaption")}
+          </span>
+          <span className="text-[9px] opacity-90 leading-tight">
+            {versionLabel}
+          </span>
+        </div>
+
+        {/* Column 3: Links (Right-aligned) */}
+        <nav
+          aria-label={t("navLabel")}
+          className="flex flex-col justify-center gap-y-0.5 text-right"
+        >
+          <Link href={localizedPath(locale, "/about")} className={LINK_CLASSES}>
+            {t("about")}
+          </Link>
+          <Link href={localizedPath(locale, "/faq")} className={LINK_CLASSES}>
+            {t("faq")}
+          </Link>
+          <Link
+            href={localizedPath(locale, "/data-sources")}
+            className={LINK_CLASSES}
+          >
+            <span className="md:hidden">{t("dataSourcesShort")}</span>
+          </Link>
+        </nav>
       </div>
 
       {/* Data Attribution Line */}
