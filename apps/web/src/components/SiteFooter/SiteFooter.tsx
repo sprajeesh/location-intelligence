@@ -6,8 +6,9 @@ import { version } from "../../../package.json";
 
 // Server-rendered so the links are in the initial HTML for crawlers.
 // Layout: Logo | App Name + Caption (2 lines) | Links with dividers | Version
-// bg-primary-600 + white text stays >= 4.5:1 in both light and dark.
-// Fixed height (h-10 md:h-11) because HomeContainer offsets by that amount.
+// Version appears on the right at all breakpoints. bg-primary-600 + white text
+// stays >= 4.5:1 in both light and dark. Fixed height (h-10 md:h-11) because
+// HomeContainer offsets its mobile controls bar by that amount — keep in sync.
 const LINK_CLASSES =
   "underline-offset-2 hover:underline focus-visible:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white";
 
