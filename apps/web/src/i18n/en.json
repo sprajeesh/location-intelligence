@@ -206,8 +206,7 @@
     "appCaption": "Smart Facility Insights",
     "about": "About",
     "faq": "FAQ",
-    "dataSources": "Data sources",
-    "dataSourcesShort": "Data"
+    "dataSources": "Data sources"
   },
   "dataSources": {
     "metaTitle": "Data Sources | Location Intelligence NZ",
