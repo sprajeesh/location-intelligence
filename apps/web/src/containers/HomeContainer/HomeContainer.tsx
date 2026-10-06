@@ -13,9 +13,8 @@ import { useReportAction } from "@/hooks/useReportAction";
 import PanelCollapseButton from "@/components/PanelCollapseButton/PanelCollapseButton";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { SettingsContainer } from "@/containers/SettingsContainer";
-import { MobileViewToggleContainer } from "@/containers/MobileViewToggleContainer";
-import { ReportButton } from "@/components/ReportButton";
-import { SURFACE_PANEL_CLASSES, CHIP_BORDER_SHADOW } from "@/components/ui/SurfacePanel";
+import { MobileControlsBar } from "@/containers/MobileControlsBar";
+import { SURFACE_PANEL_CLASSES } from "@/components/ui/SurfacePanel";
 
 export function HomeContainer() {
   const {
@@ -177,32 +176,16 @@ export function HomeContainer() {
           <MapContainerDynamic />
         </div>
 
-        {/* Mobile controls bar — an in-flow white row at the bottom of the
-          layout (above the footer) for the initial and map views, so the
-          buttons sit inside a panel instead of floating over the footer. In
-          the results view the same controls live inside ResultsPanel. */}
+        {/* Mobile controls -- an in-flow white row above the footer for the
+          initial and map views, so the buttons sit inside a panel instead of
+          floating over the footer. In the results view the same bar lives
+          inside ResultsPanel. */}
         {!isDesktop && !showResultsOnMobile && (
-          <div className="relative z-20 flex-shrink-0 bg-white border-t border-slate-200 px-2 py-1.5 flex items-center justify-between gap-1">
-            <div className="flex items-center gap-1 min-w-0">
-              <ThemeToggle
-                compact
-                iconOnlyOnNarrow
-                className={SURFACE_PANEL_CLASSES.chip}
-              />
-              <SettingsContainer iconOnlyOnNarrow className={SURFACE_PANEL_CLASSES.chip} />
-              <MobileViewToggleContainer iconOnlyOnNarrow className={SURFACE_PANEL_CLASSES.chip} />
-            </div>
-            {selectedAddress && (
-              <ReportButton
-                generating={reportAction.generating}
-                ready={reportAction.ready}
-                disabled={reportAction.disabled}
-                onClick={reportAction.onClick}
-                fullWidth={false}
-                className={CHIP_BORDER_SHADOW}
-              />
-            )}
-          </div>
+          <MobileControlsBar
+            report={reportAction}
+            showReport={!!selectedAddress}
+            className="relative z-20 bg-white"
+          />
         )}
       </div>
 
