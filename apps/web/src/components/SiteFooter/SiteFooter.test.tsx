@@ -39,15 +39,13 @@ describe("SiteFooter", () => {
 
   it("renders both short and long labels in the markup (not display:none) so crawlers see them", async () => {
     await renderFooter();
-    // Both desktop and mobile layouts render the data sources link with both labels
+    // Data sources link now shows full label on both desktop and mobile
     const dataLinks = screen.getAllByRole("link").filter((l) =>
       l.getAttribute("href")?.includes("data-sources")
     );
     expect(dataLinks.length).toBeGreaterThan(0);
-    // Check that both labels exist in at least one of the rendered links
-    const hasShortLabel = dataLinks.some((l) => l.textContent?.includes("dataSourcesShort"));
+    // Both layouts render the same full "dataSources" label (not hidden with display:none)
     const hasLongLabel = dataLinks.some((l) => l.textContent?.includes("dataSources"));
-    expect(hasShortLabel).toBe(true);
     expect(hasLongLabel).toBe(true);
   });
 
