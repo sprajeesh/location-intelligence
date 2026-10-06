@@ -209,9 +209,9 @@ export function HomeContainer() {
         carries its own white/bordered card so it still reads as tappable
         over the map or results content behind it. */}
       {!isDesktop && (
-        /* bottom-8 stacks the bar directly above the site footer (h-8 on
+        /* bottom-10 stacks the bar directly above the site footer (h-10 on
          mobile, see SiteFooter) — keep the two in sync. */
-        <div className="fixed inset-x-0 bottom-8 z-[1000] flex items-center justify-between gap-2 px-3 py-3">
+        <div className="fixed inset-x-0 bottom-10 z-[1000] flex items-center justify-between gap-2 px-3 py-3">
           <div className="flex items-center gap-1.5 min-w-0">
             <ThemeToggle
               compact

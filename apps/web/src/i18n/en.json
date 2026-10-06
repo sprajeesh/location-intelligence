@@ -202,13 +202,11 @@
   },
   "footer": {
     "navLabel": "Site",
-    "copyright": "© {year} {appName}",
     "appName": "Location Intelligence",
+    "appCaption": "Smart Facility Insights",
     "about": "About",
     "faq": "FAQ",
-    "dataSources": "Data sources",
-    "dataSourcesShort": "Data",
-    "dataCredit": "Data: LINZ · OpenStreetMap · Wikidata"
+    "dataSources": "Data sources"
   },
   "dataSources": {
     "metaTitle": "Data Sources | Location Intelligence NZ",
