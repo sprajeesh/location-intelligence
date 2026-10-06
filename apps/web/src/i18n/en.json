@@ -207,7 +207,8 @@
     "about": "About",
     "faq": "FAQ",
     "dataSources": "Data sources",
-    "dataSourcesShort": "Data"
+    "dataSourcesShort": "Data",
+    "dataCredit": "Data: LINZ · OpenStreetMap · Wikidata"
   },
   "dataSources": {
     "metaTitle": "Data Sources | Location Intelligence NZ",

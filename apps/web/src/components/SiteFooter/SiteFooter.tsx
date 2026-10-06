@@ -29,7 +29,7 @@ export async function SiteFooter({ className = "" }: SiteFooterProps) {
     <footer
       className={`flex-shrink-0 bg-primary-600 text-white text-xs ${className}`.trim()}
     >
-      <div className="flex h-10 md:h-11 items-center justify-between gap-x-4 px-3 sm:px-4">
+      <div className="flex h-10 md:h-11 items-center justify-between gap-x-4 px-3 sm:px-4 border-b border-white border-opacity-20">
         {/* Logo Column */}
         <div className="flex-shrink-0 relative">
           <div className="absolute inset-0 bg-white rounded-full opacity-20"></div>
@@ -78,6 +78,13 @@ export async function SiteFooter({ className = "" }: SiteFooterProps) {
         <span className="flex-shrink-0 text-xs opacity-90">
           {versionLabel}
         </span>
+      </div>
+
+      {/* Data Attribution Line */}
+      <div className="h-6 md:h-7 flex items-center px-3 sm:px-4 bg-primary-700">
+        <p className="text-[9px] md:text-xs opacity-75 truncate">
+          {t("dataCredit")}
+        </p>
       </div>
     </footer>
   );
