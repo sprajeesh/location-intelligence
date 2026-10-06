@@ -43,14 +43,14 @@ describe("SiteFooter", () => {
 
   it("shows the app version from package.json", async () => {
     await renderFooter();
-    expect(screen.getAllByText(`v${version}`)).toHaveLength(2);
+    expect(screen.getByText(`v${version}`)).toBeInTheDocument();
   });
 
   it("suffixes the commit hash when one is provided (dev)", async () => {
     process.env.APP_DEV_COMMIT = "abc1234";
     try {
       await renderFooter();
-      expect(screen.getAllByText(`v${version}+abc1234`)).toHaveLength(2);
+      expect(screen.getByText(`v${version}+abc1234`)).toBeInTheDocument();
     } finally {
       delete process.env.APP_DEV_COMMIT;
     }
