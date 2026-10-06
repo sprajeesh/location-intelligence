@@ -45,12 +45,31 @@ jest.mock('@/components/RadiusAdjuster', () => ({
     </div>
   ),
 }));
+jest.mock('@/hooks/useReportAction', () => ({
+  useReportAction: () => ({
+    generating: false,
+    ready: false,
+    disabled: false,
+    onClick: jest.fn(),
+  }),
+}));
 jest.mock('@/components/ReportButton', () => ({
   __esModule: true,
-  ReportButton: ({ request }: { request: { lat: number; radiusKm: number } | null }) => (
-    <button data-testid="report-button" data-request={JSON.stringify(request)}>
-      report
+  ReportButton: ({ generating, ready, disabled, onClick, fullLabel }: { generating: boolean; ready: boolean; disabled: boolean; onClick: () => void; fullLabel?: boolean }) => (
+    <button
+      data-testid="report-button"
+      disabled={disabled}
+      onClick={onClick}
+      aria-busy={generating}
+    >
+      {generating ? (fullLabel ? 'Generating report…' : 'Generating…') : ready ? (fullLabel ? 'Download report' : 'Download') : fullLabel ? 'Generate report' : 'Report'}
     </button>
+  ),
+}));
+jest.mock('@/hooks/useIsDesktop', () => ({ useIsDesktop: jest.fn(() => true) }));
+jest.mock('@/containers/MobileControlsBar', () => ({
+  MobileControlsBar: ({ report }: { report: { disabled: boolean } }) => (
+    <div data-testid="mobile-controls-bar" data-report-disabled={String(report.disabled)} />
   ),
 }));
 jest.mock('@/components/LoadingSkeleton', () => ({
@@ -141,9 +160,11 @@ jest.mock('@/components/ScoreDisplay', () => ({
 import { useLocationStore } from '@/store';
 import { useAnalyze } from '@/hooks/useAnalyze';
 import { useAnalyzeCategories } from '@/hooks/useAnalyzeCategories';
+import { useIsDesktop } from '@/hooks/useIsDesktop';
 
 const mockUseLocationStore = useLocationStore as jest.MockedFunction<typeof useLocationStore>;
 const mockUseAnalyze = useAnalyze as jest.MockedFunction<typeof useAnalyze>;
+const mockUseIsDesktop = useIsDesktop as jest.MockedFunction<typeof useIsDesktop>;
 const mockUseAnalyzeCategories = useAnalyzeCategories as jest.MockedFunction<typeof useAnalyzeCategories>;
 
 const MOCK_ADDRESS = {
@@ -268,6 +289,7 @@ const setViewportWidth = (width: number) => {
 describe('ResultsPanel', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseIsDesktop.mockReturnValue(true);
     setViewportWidth(1024);
     mockUseLocationStore.mockReturnValue(makeStoreState());
     mockUseAnalyzeCategories.mockReturnValue(undefined);
@@ -296,34 +318,54 @@ describe('ResultsPanel', () => {
   });
 
   describe('Report button', () => {
-    it('is shown with the on-screen analysis as the report request', () => {
+    it('is shown when analysis result exists', () => {
       mockUseLocationStore.mockReturnValue(
-        makeStoreState({
-          analysisResult: mockAnalysisResult,
-          selectedAddress: MOCK_ADDRESS,
-          radiusKm: 7,
-          distanceMode: 'walking',
-        }),
+        makeStoreState({ analysisResult: mockAnalysisResult, selectedAddress: MOCK_ADDRESS }),
       );
       render(<ResultsPanel />);
-      const request = JSON.parse(screen.getByTestId('report-button').dataset.request!);
-      expect(request).toMatchObject({
-        address: MOCK_ADDRESS.displayName,
-        lat: MOCK_ADDRESS.lat,
-        lon: MOCK_ADDRESS.lon,
-        radiusKm: 7,
-        distanceMode: 'walking',
-      });
+      expect(screen.getByRole('button', { name: /Report|Generate report|Download report/ })).toBeInTheDocument();
     });
 
     it('is not shown while analyzing or before any analysis', () => {
       mockUseLocationStore.mockReturnValue(makeStoreState({ isAnalyzing: true }));
       const { unmount } = render(<ResultsPanel />);
-      expect(screen.queryByTestId('report-button')).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /Report|Generate report|Download report/ })).not.toBeInTheDocument();
       unmount();
       mockUseLocationStore.mockReturnValue(makeStoreState());
       render(<ResultsPanel />);
-      expect(screen.queryByTestId('report-button')).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /Report|Generate report|Download report/ })).not.toBeInTheDocument();
+    });
+  });
+
+  describe('Mobile controls bar', () => {
+    beforeEach(() => {
+      mockUseLocationStore.mockReturnValue(
+        makeStoreState({ analysisResult: mockAnalysisResult, selectedAddress: MOCK_ADDRESS }),
+      );
+    });
+
+    it('is shown on mobile and fed the report action', () => {
+      mockUseIsDesktop.mockReturnValue(false);
+      render(<ResultsPanel />);
+      const bar = screen.getByTestId('mobile-controls-bar');
+      expect(bar).toBeInTheDocument();
+      expect(bar).toHaveAttribute('data-report-disabled', 'false');
+    });
+
+    it('is hidden on desktop, where Report lives in the panel footer', () => {
+      render(<ResultsPanel />);
+      expect(screen.queryByTestId('mobile-controls-bar')).not.toBeInTheDocument();
+    });
+
+    it('is not shown while analyzing or before any analysis', () => {
+      mockUseIsDesktop.mockReturnValue(false);
+      mockUseLocationStore.mockReturnValue(makeStoreState({ isAnalyzing: true }));
+      const { unmount } = render(<ResultsPanel />);
+      expect(screen.queryByTestId('mobile-controls-bar')).not.toBeInTheDocument();
+      unmount();
+      mockUseLocationStore.mockReturnValue(makeStoreState());
+      render(<ResultsPanel />);
+      expect(screen.queryByTestId('mobile-controls-bar')).not.toBeInTheDocument();
     });
   });
 

@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.23.0](https://github.com/sprajeesh/location-intelligence/compare/web@v0.22.0...web@v0.23.0) (2026-10-05)
+
+
+### Features
+
+* **web:** display app name and version in responsive footer ([#317](https://github.com/sprajeesh/location-intelligence/issues/317)) ([da8e6c4](https://github.com/sprajeesh/location-intelligence/commit/da8e6c42cdb680c01ab0e7b927f615ed81e92bba))
+* **web:** reorganize Report button placement and labels ([#320](https://github.com/sprajeesh/location-intelligence/issues/320)) ([e3eda14](https://github.com/sprajeesh/location-intelligence/commit/e3eda14a3bab24fd26ac9fa5a57836197c3068b3))
+
+
+### Bug Fixes
+
+* **web:** keep footer version visible when copyright truncates ([#318](https://github.com/sprajeesh/location-intelligence/issues/318)) ([5d1953b](https://github.com/sprajeesh/location-intelligence/commit/5d1953ba09c58a3baefae0b95349c505a5ed2b88))
+
 ## [0.22.0](https://github.com/sprajeesh/location-intelligence/compare/web@v0.21.0...web@v0.22.0) (2026-10-03)
 
 

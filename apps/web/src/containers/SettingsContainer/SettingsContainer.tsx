@@ -42,11 +42,14 @@ export interface SettingsContainerProps {
   className?: string;
   /** Use the fuller "Scoring Config" label instead of "Scoring" — desktop only, where there's room next to the search bar. */
   expanded?: boolean;
+  /** Collapse to icon-only below 400px (label stays as the accessible name) — mobile controls only, where buttons share limited space. */
+  iconOnlyOnNarrow?: boolean;
 }
 
 export function SettingsContainer({
   className,
   expanded = false,
+  iconOnlyOnNarrow = false,
 }: SettingsContainerProps = {}) {
   const [isOpen, setIsOpen] = useState(false);
   const [pendingReanalyze, setPendingReanalyze] = useState(false);
@@ -142,6 +145,8 @@ export function SettingsContainer({
             : t("settings.buttonLabel", { defaultValue: "Scoring" })
         }
         title={t("settings.tooltip", { defaultValue: "Settings" })}
+        ariaLabel={iconOnlyOnNarrow ? t("settings.buttonLabel", { defaultValue: "Scoring" }) : undefined}
+        labelClassName={iconOnlyOnNarrow ? "max-[400px]:hidden" : undefined}
         onClick={() => setIsOpen(true)}
         className={className}
       />

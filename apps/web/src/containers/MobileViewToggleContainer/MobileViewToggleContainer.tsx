@@ -15,9 +15,11 @@ import { Button } from "@/components/ui/Button";
  */
 export interface MobileViewToggleContainerProps {
   className?: string;
+  /** Collapse to icon-only below 400px (label stays as the accessible name) — mobile controls only, where buttons share limited space. */
+  iconOnlyOnNarrow?: boolean;
 }
 
-export function MobileViewToggleContainer({ className }: MobileViewToggleContainerProps = {}) {
+export function MobileViewToggleContainer({ className, iconOnlyOnNarrow = false }: MobileViewToggleContainerProps = {}) {
   const { selectedAddress, isMapViewOnMobile, setIsMapViewOnMobile, isNavigating, activeRoute } =
     useLocationStore();
   const t = useTranslations();
@@ -28,30 +30,34 @@ export function MobileViewToggleContainer({ className }: MobileViewToggleContain
 
   if (isMapViewOnMobile) {
     const isRouteDisplayed = isNavigating && !!activeRoute && activeRoute.length >= 2;
+    const label = isRouteDisplayed
+      ? t("map.showRoute", { defaultValue: "Route" })
+      : t("map.viewScores", { defaultValue: "Results" });
     return (
       <Button
         icon={isRouteDisplayed ? Route : BarChart3}
-        label={
-          isRouteDisplayed
-            ? t("map.showRoute", { defaultValue: "Route" })
-            : t("map.viewScores", { defaultValue: "Results" })
-        }
+        label={label}
         title={
           isRouteDisplayed
             ? t("map.showRouteTooltip", { defaultValue: "Show route details" })
             : t("map.viewScoresTooltip", { defaultValue: "View scores" })
         }
+        ariaLabel={iconOnlyOnNarrow ? label : undefined}
+        labelClassName={iconOnlyOnNarrow ? "max-[400px]:hidden" : undefined}
         onClick={() => setIsMapViewOnMobile(false)}
         className={className}
       />
     );
   }
 
+  const label = t("map.showMap", { defaultValue: "Map" });
   return (
     <Button
       icon={Map}
-      label={t("map.showMap", { defaultValue: "Map" })}
+      label={label}
       title={t("map.showMapTooltip", { defaultValue: "Show map" })}
+      ariaLabel={iconOnlyOnNarrow ? label : undefined}
+      labelClassName={iconOnlyOnNarrow ? "max-[400px]:hidden" : undefined}
       onClick={() => setIsMapViewOnMobile(true)}
       className={className}
     />

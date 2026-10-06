@@ -21,9 +21,12 @@
     "navigateTo": "Navigate to {name}",
     "showRoute": "Show route to {name}",
     "report": {
-      "generate": "Generate report",
-      "generating": "Generating report…",
-      "download": "Download report",
+      "generate": "Report",
+      "generating": "Generating…",
+      "generatingFull": "Generating report…",
+      "generateLabel": "Generate report",
+      "downloadLabel": "Download report",
+      "download": "Download",
       "readyToast": "Your report is ready.",
       "downloadAction": "Download",
       "failedToast": "Couldn't generate the report.",
@@ -199,13 +202,11 @@
   },
   "footer": {
     "navLabel": "Site",
-    "copyright": "© {year} {appName}",
     "appName": "Location Intelligence",
+    "appCaption": "Smart Facility Insights",
     "about": "About",
     "faq": "FAQ",
-    "dataSources": "Data sources",
-    "dataSourcesShort": "Data",
-    "dataCredit": "Data: LINZ · OpenStreetMap · Wikidata"
+    "dataSources": "Data sources"
   },
   "dataSources": {
     "metaTitle": "Data Sources | Location Intelligence NZ",

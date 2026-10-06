@@ -11,12 +11,15 @@ import ScoreDisplay from "@/components/ScoreDisplay";
 import { ScoreExplainModal } from "@/components/ScoreExplainModal";
 import { RadiusAdjuster } from "@/components/RadiusAdjuster";
 import { ReportButton } from "@/components/ReportButton";
-import { SurfacePanel } from "@/components/ui/SurfacePanel";
+import { MobileControlsBar } from "@/containers/MobileControlsBar";
+import { SurfacePanel, CHIP_BORDER_SHADOW } from "@/components/ui/SurfacePanel";
 import { useNavigate } from "@/hooks/useNavigate";
 import { useAnalyze } from "@/hooks/useAnalyze";
 import { useAnalyzeCategories } from "@/hooks/useAnalyzeCategories";
 import { useAnalyzeCategoryWeights } from "@/hooks/useAnalyzeCategoryWeights";
 import { useCategoryColorMap } from "@/hooks/useCategoryColorMap";
+import { useIsDesktop } from "@/hooks/useIsDesktop";
+import { useReportAction } from "@/hooks/useReportAction";
 import { buildCategoryExplainItems, buildOverallExplainItems } from "@/utils/scoreDisplay";
 
 // What the "?" icon last opened -- owned here (not by ScoreDisplay/
@@ -55,6 +58,7 @@ export default function ResultsPanel({
   className = "",
 }: ResultsPanelProps) {
   const t = useTranslations();
+  const isDesktop = useIsDesktop();
 
   // Store state
   const {
@@ -172,7 +176,7 @@ export default function ResultsPanel({
   // categories, weights and distance mode); any change resets the button.
   const reportRequest = useMemo(
     () =>
-      selectedAddress
+      selectedAddress && analysisResult && !isAnalyzing
         ? {
             address: selectedAddress.displayName,
             lat: selectedAddress.lat,
@@ -183,8 +187,11 @@ export default function ResultsPanel({
             categoryWeights: analyzeCategoryWeights,
           }
         : null,
-    [selectedAddress, radiusKm, distanceMode, analyzeCategories, analyzeCategoryWeights],
+    [selectedAddress, analysisResult, isAnalyzing, radiusKm, distanceMode, analyzeCategories, analyzeCategoryWeights],
   );
+
+  // Manage report generation state and toasts
+  const reportAction = useReportAction(reportRequest);
 
   // Remount the adjuster (collapsing it and resetting its draft value) whenever the address changes
   const addressKey = selectedAddress
@@ -279,10 +286,19 @@ export default function ResultsPanel({
           )}
         </div>
 
-        {/* Full PDF report -- persistent, so it's always one tap away */}
-        <div className="flex-shrink-0 border-t border-slate-200 px-4 sm:px-6 pt-3 sm:pt-4">
-          <ReportButton request={reportRequest} />
-        </div>
+        {/* Full PDF report -- desktop only; on mobile it lives in the controls section below */}
+        {isDesktop && (
+          <div className="flex-shrink-0 border-t border-slate-200 px-4 sm:px-6 pt-3 sm:pt-4">
+            <ReportButton
+              generating={reportAction.generating}
+              ready={reportAction.ready}
+              disabled={reportAction.disabled}
+              onClick={reportAction.onClick}
+              fullLabel
+              className={CHIP_BORDER_SHADOW}
+            />
+          </div>
+        )}
 
         {/* Radius adjuster — persistent, visible below the score */}
         <div className="flex-shrink-0 px-4 sm:px-6 py-3 sm:py-4">
@@ -293,6 +309,9 @@ export default function ResultsPanel({
             onSearch={handleRadiusSearch}
           />
         </div>
+
+        {/* Mobile controls -- this branch only renders once an analysis exists, so an address is always selected and Report is safe to show */}
+        {!isDesktop && <MobileControlsBar report={reportAction} />}
       </SurfacePanel>
 
       {explainTarget &&
