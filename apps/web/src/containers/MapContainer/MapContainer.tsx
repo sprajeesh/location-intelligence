@@ -29,8 +29,6 @@ import { useIsDesktop } from "@/hooks/useIsDesktop";
 import { computeMapBounds } from "@/utils/mapBounds";
 import { getCategoryIcon } from "@/utils/categoryIcons";
 import { useCategoryColorMap } from "@/hooks/useCategoryColorMap";
-import { ThemeToggle } from "@/components/ThemeToggle";
-import { SettingsContainer } from "@/containers/SettingsContainer";
 import { useTranslations } from "next-intl";
 import {
   MapToolbarContainer,
@@ -41,6 +39,8 @@ import {
 } from "@/containers/MapToolbarContainer";
 import { FeatureInfoCard } from "@/components/FeatureInfoCard";
 import { FacilityRouteModePicker } from "@/components/FacilityRouteModePicker";
+import { InlineBanner } from "@/components/ui/InlineBanner";
+import { Spinner } from "@/components/ui/Spinner";
 import type { FeatureDetails } from "@/types/api";
 import { isValidHttpUrl } from "@/utils/url";
 
@@ -183,7 +183,7 @@ function MapContent() {
   const defaultMarkerIconMarkup = useMemo(
     () =>
       renderToStaticMarkup(
-        <MapPin color="white" size={14} strokeWidth={2.5} />,
+        <MapPin color="rgb(var(--color-white))" size={14} strokeWidth={2.5} />,
       ),
     [],
   );
@@ -193,7 +193,7 @@ function MapContent() {
     for (const category of categories) {
       const Icon = getCategoryIcon(category.id);
       markup[category.id] = renderToStaticMarkup(
-        <Icon color="white" size={14} strokeWidth={2.5} />,
+        <Icon color="rgb(var(--color-white))" size={14} strokeWidth={2.5} />,
       );
     }
     return markup;
@@ -364,18 +364,15 @@ function MapContent() {
           pan/zoom with the map. */}
       {parcelNotFound && (
         <div className="absolute top-2 left-1/2 -translate-x-1/2 z-[1000] pointer-events-none">
-          <div className="bg-white border border-warning-200 shadow-card rounded-lg px-3 py-1.5 flex items-center gap-2 text-xs text-warning-800">
-            <TriangleAlert
-              className="w-3 h-3 flex-shrink-0"
-              aria-hidden="true"
-            />
-            <span>
-              {t("parcels.notFoundBanner", {
-                defaultValue:
-                  "Couldn't find a matching parcel boundary for this address.",
-              })}
-            </span>
-          </div>
+          <InlineBanner
+            tone="warning"
+            icon={<TriangleAlert className="w-3 h-3 flex-shrink-0" aria-hidden="true" />}
+          >
+            {t("parcels.notFoundBanner", {
+              defaultValue:
+                "Couldn't find a matching parcel boundary for this address.",
+            })}
+          </InlineBanner>
         </div>
       )}
 
@@ -385,18 +382,15 @@ function MapContent() {
           missing parcel for a valid address. */}
       {parcelServiceError && (
         <div className="absolute top-2 left-1/2 -translate-x-1/2 z-[1000] pointer-events-none">
-          <div className="bg-white border border-error-200 shadow-card rounded-lg px-3 py-1.5 flex items-center gap-2 text-xs text-error-800">
-            <TriangleAlert
-              className="w-3 h-3 flex-shrink-0"
-              aria-hidden="true"
-            />
-            <span>
-              {t("parcels.serviceError", {
-                defaultValue:
-                  "Couldn't retrieve parcel information. Please check your connection and try again.",
-              })}
-            </span>
-          </div>
+          <InlineBanner
+            tone="error"
+            icon={<TriangleAlert className="w-3 h-3 flex-shrink-0" aria-hidden="true" />}
+          >
+            {t("parcels.serviceError", {
+              defaultValue:
+                "Couldn't retrieve parcel information. Please check your connection and try again.",
+            })}
+          </InlineBanner>
         </div>
       )}
 
@@ -407,12 +401,9 @@ function MapContent() {
           anywhere, so this keeps that wait from looking like a dead click. */}
       {!!selectedAddress && parcelQuery.isFetching && (
         <div className="absolute top-2 left-1/2 -translate-x-1/2 z-[1000] pointer-events-none">
-          <div className="bg-white border border-slate-200 shadow-card rounded-lg px-3 py-1.5 flex items-center gap-2 text-xs text-slate-700">
-            <div className="w-3 h-3 border-2 border-slate-200 border-t-primary-500 rounded-full animate-spin" />
-            <span>
-              {t("parcels.locating", { defaultValue: "Locating parcel…" })}
-            </span>
-          </div>
+          <InlineBanner tone="neutral" icon={<Spinner size="xs" decorative />}>
+            {t("parcels.locating", { defaultValue: "Locating parcel…" })}
+          </InlineBanner>
         </div>
       )}
 
@@ -455,12 +446,9 @@ function MapContent() {
           );
         })()}
 
-      {/* Settings, theme toggle, and map toolbar -- grouped in one positioning wrapper
-          so all three sit as separate cards stacked vertically on the right edge,
-          vertically centered on all screen sizes. */}
+      {/* Map toolbar (zoom/layers/locate) -- app-level controls (Scoring,
+          Theme) live in HomeContainer now, not here. */}
       <div className="absolute right-3 top-1/2 -translate-y-1/2 z-[1000] flex flex-col items-center gap-2">
-        <SettingsContainer />
-        <ThemeToggle />
         <MapToolbarContainer
           activeLayer={activeLayer}
           onLayerChange={setActiveLayer}
@@ -647,9 +635,9 @@ export function MapContainer() {
 
       {/* Loading overlay */}
       {isAnalyzing && (
-        <div className="absolute inset-0 bg-black/10 backdrop-blur-sm flex items-center justify-center pointer-events-none">
+        <div className="absolute inset-0 bg-ink/10 backdrop-blur-sm flex items-center justify-center pointer-events-none">
           <div className="bg-white shadow-card-lg rounded-lg px-4 py-2 flex items-center gap-2">
-            <div className="w-4 h-4 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin" />
+            <Spinner size="sm" tone="neutral" />
             <span className="text-sm font-medium text-slate-700">
               Analyzing...
             </span>
@@ -661,7 +649,12 @@ export function MapContainer() {
 }
 
 /**
- * Create a red/accent colored icon for the main location marker
+ * Create a red/accent colored icon for the main location marker.
+ *
+ * All colors here go through `rgb(var(--color-x))` (see src/i18n/globals.css)
+ * rather than literal CSS colors, including `white`, so markers re-theme with
+ * the rest of the app in dark mode. Shadow color (16,24,40) intentionally
+ * matches tailwind.config.ts's `boxShadow` tokens rather than plain black.
  */
 function createMainLocationIcon(): L.DivIcon {
   const html = `
@@ -672,14 +665,14 @@ function createMainLocationIcon(): L.DivIcon {
       width: 32px;
       height: 32px;
       background: rgb(var(--color-error-500));
-      border: 3px solid white;
+      border: 3px solid rgb(var(--color-white));
       border-radius: 50%;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 2px 8px rgba(16, 24, 40, 0.3);
     ">
       <div style="
         width: 8px;
         height: 8px;
-        background: white;
+        background: rgb(var(--color-white));
         border-radius: 50%;
       "></div>
     </div>
@@ -706,9 +699,9 @@ function createCategoryIcon(color: string, iconMarkup: string): L.DivIcon {
       width: 28px;
       height: 28px;
       background: ${color};
-      border: 2px solid white;
+      border: 2px solid rgb(var(--color-white));
       border-radius: 50%;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 2px 6px rgba(16, 24, 40, 0.3);
     ">
       ${iconMarkup}
     </div>
@@ -758,9 +751,9 @@ function createSelectedFeatureIcon(
         width: 24px;
         height: 24px;
         background: ${color};
-        border: 3px solid white;
+        border: 3px solid rgb(var(--color-white));
         border-radius: 50%;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+        box-shadow: 0 2px 8px rgba(16, 24, 40, 0.4);
         z-index: 1;
       ">
         ${iconMarkup}

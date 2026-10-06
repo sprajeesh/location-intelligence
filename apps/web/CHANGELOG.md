@@ -1,5 +1,111 @@
 # Changelog
 
+## [0.23.1](https://github.com/sprajeesh/location-intelligence/compare/web@v0.23.0...web@v0.23.1) (2026-10-06)
+
+
+### Bug Fixes
+
+* **web:** keep mobile controls inside the panel on small screens ([#325](https://github.com/sprajeesh/location-intelligence/issues/325)) ([009dfb3](https://github.com/sprajeesh/location-intelligence/commit/009dfb33dba2185556d7ac8578e74f95df99f65b))
+
+## [0.23.0](https://github.com/sprajeesh/location-intelligence/compare/web@v0.22.0...web@v0.23.0) (2026-10-05)
+
+
+### Features
+
+* **web:** display app name and version in responsive footer ([#317](https://github.com/sprajeesh/location-intelligence/issues/317)) ([da8e6c4](https://github.com/sprajeesh/location-intelligence/commit/da8e6c42cdb680c01ab0e7b927f615ed81e92bba))
+* **web:** reorganize Report button placement and labels ([#320](https://github.com/sprajeesh/location-intelligence/issues/320)) ([e3eda14](https://github.com/sprajeesh/location-intelligence/commit/e3eda14a3bab24fd26ac9fa5a57836197c3068b3))
+
+
+### Bug Fixes
+
+* **web:** keep footer version visible when copyright truncates ([#318](https://github.com/sprajeesh/location-intelligence/issues/318)) ([5d1953b](https://github.com/sprajeesh/location-intelligence/commit/5d1953ba09c58a3baefae0b95349c505a5ed2b88))
+
+## [0.22.0](https://github.com/sprajeesh/location-intelligence/compare/web@v0.21.0...web@v0.22.0) (2026-10-03)
+
+
+### Features
+
+* **api:** report data model with per-facility score breakup and low-score hints ([#306](https://github.com/sprajeesh/location-intelligence/issues/306)) ([7a02e59](https://github.com/sprajeesh/location-intelligence/commit/7a02e5925bb65f148b3b9d40f0a7cdae678be80b))
+
+## [0.21.0](https://github.com/sprajeesh/location-intelligence/compare/web@v0.20.0...web@v0.21.0) (2026-10-02)
+
+
+### Features
+
+* **web:** add /faq and /about pages ([#292](https://github.com/sprajeesh/location-intelligence/issues/292)) ([9850361](https://github.com/sprajeesh/location-intelligence/commit/9850361f22c73eff36e7c18946c0b0c9451ba5be))
+* **web:** add site footer and /data-sources page ([#291](https://github.com/sprajeesh/location-intelligence/issues/291)) ([c0987d1](https://github.com/sprajeesh/location-intelligence/commit/c0987d12ad03f58ef471e53b6ad0acc051957767))
+* **web:** show app version in footer ([#294](https://github.com/sprajeesh/location-intelligence/issues/294)) ([ab436d6](https://github.com/sprajeesh/location-intelligence/commit/ab436d64417c111d16662e81bec67ddc07cd840a))
+
+
+### Bug Fixes
+
+* **web:** validate locale param and escape JSON-LD ([#293](https://github.com/sprajeesh/location-intelligence/issues/293)) ([cfa0f55](https://github.com/sprajeesh/location-intelligence/commit/cfa0f5512ae0f0053b416e7b3b76831b44d617bb))
+
+## [0.20.0](https://github.com/sprajeesh/location-intelligence/compare/web@v0.19.0...web@v0.20.0) (2026-09-30)
+
+
+### Features
+
+* **seo:** fix JSON-LD URLs, server-render html lang, stabilise sitemap ([#288](https://github.com/sprajeesh/location-intelligence/issues/288)) ([82de6c4](https://github.com/sprajeesh/location-intelligence/commit/82de6c424e4c68c8c1f1ec71eebc4c1b7df43331))
+
+## [0.19.0](https://github.com/sprajeesh/location-intelligence/compare/web@v0.18.0...web@v0.19.0) (2026-09-29)
+
+
+### Features
+
+* **seo:** add robots.ts and dynamic sitemap metadata routes ([#282](https://github.com/sprajeesh/location-intelligence/issues/282)) ([12852bd](https://github.com/sprajeesh/location-intelligence/commit/12852bde8d5a60e05a73bdd2b0a6cfe3586fbc74))
+* **seo:** enhance page metadata, hreflang alternates, keywords,   and JSON-LD schema ([#283](https://github.com/sprajeesh/location-intelligence/issues/283)) ([41e653a](https://github.com/sprajeesh/location-intelligence/commit/41e653a75c853ab49e7b2b80077a1fba602ffadb))
+
+
+### Bug Fixes
+
+* **i18n:** replace placeholder strings in mi.json with authentic te reo Maori translations ([#284](https://github.com/sprajeesh/location-intelligence/issues/284)) ([d1ac0cb](https://github.com/sprajeesh/location-intelligence/commit/d1ac0cb4d16a17fd6a2bcb52a75c8d9e19a896c1))
+
+## [0.18.0](https://github.com/sprajeesh/location-intelligence/compare/web@v0.17.0...web@v0.18.0) (2026-09-28)
+
+
+### Features
+
+* **web,api:** expose facility-level score sub-components in UI ([#278](https://github.com/sprajeesh/location-intelligence/issues/278)) ([48b3989](https://github.com/sprajeesh/location-intelligence/commit/48b3989248083a180078fbad3f9bc6aaa23c7ea2))
+* **web:** improve scoring config modal UI/UX ([#277](https://github.com/sprajeesh/location-intelligence/issues/277)) ([4618ab3](https://github.com/sprajeesh/location-intelligence/commit/4618ab3c6d8e75727c944d9d1df37374aea13086))
+
+## [0.17.0](https://github.com/sprajeesh/location-intelligence/compare/web@v0.16.0...web@v0.17.0) (2026-09-27)
+
+
+### Features
+
+* **web:** add back navigation to score explain modal ([#272](https://github.com/sprajeesh/location-intelligence/issues/272)) ([988c74d](https://github.com/sprajeesh/location-intelligence/commit/988c74d689b232ed07f8123994a91c946d305529))
+* **web:** show score alongside weight in explain modal bars ([#273](https://github.com/sprajeesh/location-intelligence/issues/273)) ([579ca98](https://github.com/sprajeesh/location-intelligence/commit/579ca985a640963744ce7cfca5d653db3dd7970b))
+
+## [0.16.0](https://github.com/sprajeesh/location-intelligence/compare/web@v0.15.0...web@v0.16.0) (2026-09-27)
+
+
+### Features
+
+* **web:** redesign score explanation modal ([#267](https://github.com/sprajeesh/location-intelligence/issues/267)) ([746a379](https://github.com/sprajeesh/location-intelligence/commit/746a379918085b849f12b384b1316f74e2e0a617))
+
+## [0.15.0](https://github.com/sprajeesh/location-intelligence/compare/web@v0.14.0...web@v0.15.0) (2026-09-25)
+
+
+### Features
+
+* **api,web:** add score explainability with per-criterion breakdown and contribution weights ([#263](https://github.com/sprajeesh/location-intelligence/issues/263)) ([a7a0eb4](https://github.com/sprajeesh/location-intelligence/commit/a7a0eb46f130f5d15ccb0f854fb6b1feb7a80ae3))
+
+## [0.14.0](https://github.com/sprajeesh/location-intelligence/compare/web@v0.13.0...web@v0.14.0) (2026-09-24)
+
+
+### Features
+
+* **web:** move Scoring and Theme controls off the map into app-level placement ([#247](https://github.com/sprajeesh/location-intelligence/issues/247)) ([0ef78a8](https://github.com/sprajeesh/location-intelligence/commit/0ef78a8cedfcb7cc185f2236d4a38348a813e24f))
+* **web:** rebrand primary color scale to [#007198](https://github.com/sprajeesh/location-intelligence/issues/007198) ([#257](https://github.com/sprajeesh/location-intelligence/issues/257)) ([a0083ae](https://github.com/sprajeesh/location-intelligence/commit/a0083aee21d70b73e191f1a2fa1b728cc27098f5))
+
+
+### Bug Fixes
+
+* **web,api:** route remaining literal colors through brand tokens ([#249](https://github.com/sprajeesh/location-intelligence/issues/249)) ([06686f7](https://github.com/sprajeesh/location-intelligence/commit/06686f77e9324ab1336d0957ddfcb5f58a0c0cf6))
+* **web:** apply brand color to secondary/outline/ghost variants and headings ([#259](https://github.com/sprajeesh/location-intelligence/issues/259)) ([e3d4940](https://github.com/sprajeesh/location-intelligence/commit/e3d49408c80f5feb2a9834cb5bd5643f99b5e353))
+* **web:** neutralize outline variant text and dedupe 404 CTA styling ([#256](https://github.com/sprajeesh/location-intelligence/issues/256)) ([d5a3618](https://github.com/sprajeesh/location-intelligence/commit/d5a3618f9295cd8591b3cc9d18c77168eff87731))
+
 ## [0.13.0](https://github.com/sprajeesh/location-intelligence/compare/web@v0.12.4...web@v0.13.0) (2026-09-22)
 
 

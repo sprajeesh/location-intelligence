@@ -1,4 +1,12 @@
-import { normalizeAnalyzeResponse, normalizeRouteResult } from './api';
+import {
+  ApiError,
+  createReport,
+  downloadReport,
+  filenameFromContentDisposition,
+  getReportStatus,
+  normalizeAnalyzeResponse,
+  normalizeRouteResult,
+} from './api';
 
 describe('normalizeAnalyzeResponse', () => {
   const wireResponse = {
@@ -16,11 +24,18 @@ describe('normalizeAnalyzeResponse', () => {
     score: {
       overall: 16.0,
       coverage: '2/5',
+      contribution: [
+        { category: 'education' as const, weight_pct: 100, score: 28.0 },
+      ],
       categories: [
         {
           category: 'education' as const,
           status: 'scored' as const,
           score: 28.0,
+          contribution: [
+            { facility_type: 'schools', weight_pct: 100, score: 28.0 },
+            { facility_type: 'universities', weight_pct: 0, score: null },
+          ],
           facilities: [
             {
               facility_type: 'schools',
@@ -29,6 +44,14 @@ describe('normalizeAnalyzeResponse', () => {
               nearest_distance_km: 0.52,
               count: 4,
               explanation: '1 schools within 1.0 km by walk, plus 2 more up to 1.9 km away.',
+              criteria: [
+                { label: 'Schools within 1.0 km', satisfied: true, detail: '1 school within 1.0 km.' },
+              ],
+              proximity_score: 45.2,
+              density_score: 89.3,
+              proximity_weight: 0.4,
+              density_weight: 0.6,
+              leg: null,
             },
             {
               facility_type: 'universities',
@@ -37,6 +60,14 @@ describe('normalizeAnalyzeResponse', () => {
               nearest_distance_km: null,
               count: 0,
               explanation: 'University not checked for this address.',
+              criteria: [
+                { label: 'University checked', satisfied: null, detail: 'University not checked for this address.' },
+              ],
+              proximity_score: null,
+              density_score: null,
+              proximity_weight: null,
+              density_weight: null,
+              leg: null,
             },
           ],
         },
@@ -79,6 +110,39 @@ describe('normalizeAnalyzeResponse', () => {
     expect(notChecked.explanation).toBe('University not checked for this address.');
   });
 
+  it('passes through facility criteria unchanged', () => {
+    const result = normalizeAnalyzeResponse(wireResponse);
+    const facility = result.score.categories[0]!.facilities[0]!;
+
+    expect(facility.criteria).toEqual([
+      { label: 'Schools within 1.0 km', satisfied: true, detail: '1 school within 1.0 km.' },
+    ]);
+  });
+
+  it('preserves a null satisfied value for not_checked criteria', () => {
+    const result = normalizeAnalyzeResponse(wireResponse);
+    const notChecked = result.score.categories[0]!.facilities[1]!;
+
+    expect(notChecked.criteria[0]!.satisfied).toBeNull();
+  });
+
+  it('remaps facility_type and weight_pct to camelCase in category contribution', () => {
+    const result = normalizeAnalyzeResponse(wireResponse);
+    const contribution = result.score.categories[0]!.contribution;
+
+    expect(contribution).toEqual([
+      { facilityType: 'schools', weightPct: 100, score: 28.0 },
+      { facilityType: 'universities', weightPct: 0, score: null },
+    ]);
+  });
+
+  it('remaps weight_pct to camelCase in composite contribution', () => {
+    const result = normalizeAnalyzeResponse(wireResponse);
+
+    expect(result.score.contribution).toEqual([
+      { category: 'education', weightPct: 100, score: 28.0 },
+    ]);
+  });
 });
 
 describe('normalizeRouteResult', () => {
@@ -169,5 +233,90 @@ describe('normalizeRouteResult', () => {
 
     const result = normalizeRouteResult(wireWithoutSteps);
     expect(result.routes[0]!.steps).toEqual([]);
+  });
+});
+
+describe('report job client', () => {
+  const originalFetch = global.fetch;
+  afterEach(() => {
+    global.fetch = originalFetch;
+  });
+
+  const request = {
+    address: '1 Queen St',
+    lat: -36.85,
+    lon: 174.76,
+    radiusKm: 5,
+    distanceMode: 'driving' as const,
+  };
+
+  it('createReport POSTs the analyze body to /api/reports', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ jobId: 'j1', status: 'queued' }),
+    });
+    await expect(createReport(request)).resolves.toEqual({ jobId: 'j1', status: 'queued' });
+    const [url, init] = (global.fetch as jest.Mock).mock.calls[0];
+    expect(url).toBe('/api/reports');
+    expect(init.method).toBe('POST');
+    expect(JSON.parse(init.body)).toEqual(request);
+  });
+
+  it('getReportStatus encodes the id and maps errors to ApiError', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: false,
+      status: 404,
+      statusText: 'Not Found',
+      json: async () => ({ error: 'Report not found or expired' }),
+    });
+    await expect(getReportStatus('a/b')).rejects.toMatchObject({
+      statusCode: 404,
+      message: 'Report not found or expired',
+    });
+    expect((global.fetch as jest.Mock).mock.calls[0][0]).toBe('/api/reports/a%2Fb');
+  });
+
+  it('downloadReport returns the blob and the server filename', async () => {
+    const blob = new Blob(['%PDF']);
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      blob: async () => blob,
+      headers: new Headers({
+        'content-disposition': 'attachment; filename="intelligence-report-x.pdf"',
+      }),
+    });
+    await expect(downloadReport('j1')).resolves.toEqual({
+      blob,
+      filename: 'intelligence-report-x.pdf',
+    });
+  });
+
+  it('downloadReport falls back to a default filename without Content-Disposition', async () => {
+    const blob = new Blob(['%PDF']);
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      blob: async () => blob,
+      headers: new Headers(),
+    });
+    await expect(downloadReport('j1')).resolves.toEqual({
+      blob,
+      filename: 'intelligence-report.pdf',
+    });
+  });
+
+  it('downloadReport throws ApiError when the report is not ready', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: false,
+      status: 409,
+      statusText: 'Conflict',
+      json: async () => ({ error: 'Report is running' }),
+    });
+    await expect(downloadReport('j1')).rejects.toBeInstanceOf(ApiError);
+  });
+
+  it('parses Content-Disposition filenames', () => {
+    expect(filenameFromContentDisposition('attachment; filename="a b.pdf"')).toBe('a b.pdf');
+    expect(filenameFromContentDisposition('attachment; filename=r.pdf')).toBe('r.pdf');
+    expect(filenameFromContentDisposition(null)).toBeNull();
   });
 });

@@ -8,6 +8,7 @@ import { formatScoreValue, getScoreColorClass, resolveFacilityDisplayStatus } fr
 import { StatusPill } from "@/components/StatusPill";
 import { FacilityItem } from "@/components/FacilityItem";
 import { IconButton } from "@/components/ui/IconButton";
+import { getVisibilityToggleClasses } from "@/components/ui/Button";
 
 /**
  * FacilityScoreRow — Renders one facility type's score breakdown within a
@@ -95,11 +96,7 @@ export function FacilityScoreRow({
               title={t(isTypeVisible ? "score.markers.hideTitle" : "score.markers.showTitle", {
                 defaultValue: isTypeVisible ? "Hide markers" : "Show markers",
               })}
-              className={
-                isTypeVisible
-                  ? "text-primary-600 hover:text-primary-700 hover:bg-primary-50"
-                  : "text-slate-400 hover:text-slate-500 hover:bg-slate-100"
-              }
+              className={getVisibilityToggleClasses(isTypeVisible)}
             />
           )}
         </div>

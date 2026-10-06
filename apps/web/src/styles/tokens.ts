@@ -11,17 +11,17 @@
  */
 
 export const primary = {
-  50: '#EFF5FF',
-  100: '#DBE9FF',
-  200: '#B8D2FF',
-  300: '#8AB4FF',
-  400: '#5389FF',
-  500: '#0B5CFF',
-  600: '#0044DB',
-  700: '#0036AD',
-  800: '#002C87',
-  900: '#01256B',
-  950: '#011642',
+  50: '#E8F9FF',
+  100: '#CAF1FF',
+  200: '#97E4FF',
+  300: '#53D3FF',
+  400: '#03BEFF',
+  500: '#007198',
+  600: '#005D7D',
+  700: '#004963',
+  800: '#00394D',
+  900: '#002E3E',
+  950: '#001C26',
 } as const;
 
 export const success = {
@@ -67,5 +67,10 @@ export const error = {
 // aliased rather than hand-duplicated, so there's only one blue to tune.
 export const info = primary;
 
-// Deep-navy heading/high-contrast text color (not pure black), Zoom-style.
+// Deep-navy body/high-contrast text color (not pure black), Zoom-style.
 export const ink = '#00053D';
+
+// Brand teal for all heading elements (h1-h6) -- see globals.css's :root
+// block for the dark-mode counterpart, which re-centers this hue brighter
+// (same treatment as primary) rather than reusing this exact value.
+export const heading = '#12837F';

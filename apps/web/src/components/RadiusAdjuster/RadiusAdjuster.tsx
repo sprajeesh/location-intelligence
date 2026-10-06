@@ -4,6 +4,10 @@ import React, { useId, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { ChevronRight, Minus, Plus } from 'lucide-react';
 import { DEFAULT_RADIUS_KM, MIN_RADIUS_KM, MAX_RADIUS_KM, RADIUS_STEP_KM } from '@/constants/radius';
+import { Button } from '@/components/ui/Button';
+import { IconButton } from '@/components/ui/IconButton';
+import { Input } from '@/components/ui/Input';
+import { SurfacePanel } from '@/components/ui/SurfacePanel';
 
 export interface RadiusAdjusterProps {
   // Radius currently in effect for the displayed results
@@ -55,8 +59,8 @@ export function RadiusAdjuster({
 
   if (!expanded) {
     return (
-      <button
-        type="button"
+      <Button
+        unstyled
         onClick={() => setExpanded(true)}
         disabled={disabled}
         className="flex items-center gap-1 text-xs text-slate-500 hover:text-slate-700 transition-colors active:text-slate-800 rounded"
@@ -65,28 +69,27 @@ export function RadiusAdjuster({
         {t('results.adjustRadius.caption', {
           defaultValue: 'Not seeing expected results? Adjust the search radius',
         })}
-      </button>
+      </Button>
     );
   }
 
   return (
-    <div className="bg-white border border-slate-200 shadow-card rounded-lg p-3 flex flex-col gap-2">
+    <SurfacePanel variant="chip" className="p-3 flex flex-col gap-2">
       <label htmlFor={radiusInputId} className="text-xs text-slate-500">
         {t('results.adjustRadius.label', { defaultValue: 'Search radius' })}
       </label>
       <div className="flex items-center gap-2">
-        <button
-          type="button"
+        <IconButton
+          icon={Minus}
+          size="sm"
+          variant="outline"
           onClick={() => handleStep(-step)}
           disabled={disabled || draft <= min}
-          aria-label={t('results.adjustRadius.decrease', {
+          label={t('results.adjustRadius.decrease', {
             defaultValue: 'Decrease radius',
           })}
-          className="w-7 h-7 flex items-center justify-center rounded text-primary-600 hover:text-primary-700 disabled:opacity-40 disabled:cursor-not-allowed bg-slate-50 border border-slate-200 active:bg-slate-100 active:scale-[0.97] focus-ring-flush"
-        >
-          <Minus className="h-4 w-4" />
-        </button>
-        <input
+        />
+        <Input
           id={radiusInputId}
           type="number"
           min={min}
@@ -96,30 +99,30 @@ export function RadiusAdjuster({
           onChange={handleInputChange}
           onBlur={handleInputBlur}
           disabled={disabled}
-          className="w-14 bg-white border border-slate-300 rounded px-2 py-1 text-sm text-center text-slate-900 disabled:opacity-50 disabled:cursor-not-allowed focus-ring-flush"
+          size="md"
+          align="center"
+          className="w-14 px-2"
         />
         <span className="text-xs text-slate-500">km</span>
-        <button
-          type="button"
+        <IconButton
+          icon={Plus}
+          size="sm"
+          variant="outline"
           onClick={() => handleStep(step)}
           disabled={disabled || draft >= max}
-          aria-label={t('results.adjustRadius.increase', {
+          label={t('results.adjustRadius.increase', {
             defaultValue: 'Increase radius',
           })}
-          className="w-7 h-7 flex items-center justify-center rounded text-primary-600 hover:text-primary-700 disabled:opacity-40 disabled:cursor-not-allowed bg-slate-50 border border-slate-200 active:bg-slate-100 active:scale-[0.97] focus-ring-flush"
-        >
-          <Plus className="h-4 w-4" />
-        </button>
-        <button
-          type="button"
+        />
+        <Button
+          variant="primary"
+          className="ml-auto"
           onClick={handleSearch}
           disabled={disabled}
-          className="ml-auto px-3 py-1.5 rounded-lg font-medium text-sm bg-primary-600 hover:bg-primary-700 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed active:bg-primary-800 active:scale-[0.98]"
-        >
-          {t('results.adjustRadius.search', { defaultValue: 'Search' })}
-        </button>
+          label={t('results.adjustRadius.search', { defaultValue: 'Search' })}
+        />
       </div>
-    </div>
+    </SurfacePanel>
   );
 }
 

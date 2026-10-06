@@ -1,5 +1,33 @@
 # Changelog
 
+## [0.10.0](https://github.com/sprajeesh/location-intelligence/compare/api@v0.9.0...api@v0.10.0) (2026-10-03)
+
+
+### Features
+
+* **api:** report data model with per-facility score breakup and low-score hints ([#306](https://github.com/sprajeesh/location-intelligence/issues/306)) ([7a02e59](https://github.com/sprajeesh/location-intelligence/commit/7a02e5925bb65f148b3b9d40f0a7cdae678be80b))
+
+## [0.9.0](https://github.com/sprajeesh/location-intelligence/compare/api@v0.8.0...api@v0.9.0) (2026-09-28)
+
+
+### Features
+
+* **web,api:** expose facility-level score sub-components in UI ([#278](https://github.com/sprajeesh/location-intelligence/issues/278)) ([48b3989](https://github.com/sprajeesh/location-intelligence/commit/48b3989248083a180078fbad3f9bc6aaa23c7ea2))
+
+## [0.8.0](https://github.com/sprajeesh/location-intelligence/compare/api@v0.7.1...api@v0.8.0) (2026-09-25)
+
+
+### Features
+
+* **api,web:** add score explainability with per-criterion breakdown and contribution weights ([#263](https://github.com/sprajeesh/location-intelligence/issues/263)) ([a7a0eb4](https://github.com/sprajeesh/location-intelligence/commit/a7a0eb46f130f5d15ccb0f854fb6b1feb7a80ae3))
+
+## [0.7.1](https://github.com/sprajeesh/location-intelligence/compare/api@v0.7.0...api@v0.7.1) (2026-09-24)
+
+
+### Bug Fixes
+
+* **web,api:** route remaining literal colors through brand tokens ([#249](https://github.com/sprajeesh/location-intelligence/issues/249)) ([06686f7](https://github.com/sprajeesh/location-intelligence/commit/06686f77e9324ab1336d0957ddfcb5f58a0c0cf6))
+
 ## [0.7.0](https://github.com/sprajeesh/location-intelligence/compare/api@v0.6.1...api@v0.7.0) (2026-09-22)
 
 

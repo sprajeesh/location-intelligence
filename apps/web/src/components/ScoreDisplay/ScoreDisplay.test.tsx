@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { ScoreDisplay } from './ScoreDisplay';
 import type { ScoreResult } from '@/types/api';
 
@@ -16,11 +17,13 @@ jest.mock('next-intl', () => ({
 const fullScore: ScoreResult = {
   overall: 21.0,
   coverage: '5/5',
+  contribution: [],
   categories: [
     {
       category: 'shopping',
       status: 'scored',
       score: 6.7,
+      contribution: [],
       facilities: [
         {
           facilityType: 'supermarkets',
@@ -29,6 +32,12 @@ const fullScore: ScoreResult = {
           nearestDistanceKm: 1.64,
           count: 2,
           explanation: 'Nearest supermarket is 1.6 km away by walk, 1 alternative beyond 1.1 km.',
+          criteria: [],
+          proximityScore: null,
+          densityScore: null,
+          proximityWeight: null,
+          densityWeight: null,
+          leg: null,
         },
       ],
     },
@@ -36,6 +45,7 @@ const fullScore: ScoreResult = {
       category: 'education',
       status: 'scored',
       score: 23.8,
+      contribution: [],
       facilities: [
         {
           facilityType: 'schools',
@@ -44,6 +54,12 @@ const fullScore: ScoreResult = {
           nearestDistanceKm: 0.52,
           count: 4,
           explanation: '1 schools within 1.0 km by walk, plus 2 more up to 1.9 km away.',
+          criteria: [],
+          proximityScore: null,
+          densityScore: null,
+          proximityWeight: null,
+          densityWeight: null,
+          leg: null,
         },
         {
           facilityType: 'universities',
@@ -52,6 +68,12 @@ const fullScore: ScoreResult = {
           nearestDistanceKm: null,
           count: 0,
           explanation: 'No university found nearby.',
+          criteria: [],
+          proximityScore: null,
+          densityScore: null,
+          proximityWeight: null,
+          densityWeight: null,
+          leg: null,
         },
       ],
     },
@@ -59,6 +81,7 @@ const fullScore: ScoreResult = {
       category: 'healthcare',
       status: 'scored',
       score: 3.5,
+      contribution: [],
       facilities: [
         {
           facilityType: 'hospitals',
@@ -67,6 +90,12 @@ const fullScore: ScoreResult = {
           nearestDistanceKm: null,
           count: 0,
           explanation: 'No hospital found nearby.',
+          criteria: [],
+          proximityScore: null,
+          densityScore: null,
+          proximityWeight: null,
+          densityWeight: null,
+          leg: null,
         },
         {
           facilityType: 'pharmacies',
@@ -75,6 +104,12 @@ const fullScore: ScoreResult = {
           nearestDistanceKm: 1.44,
           count: 2,
           explanation: 'Nearest pharmacy is 1.4 km away by walk, 1 alternative beyond 1.0 km.',
+          criteria: [],
+          proximityScore: null,
+          densityScore: null,
+          proximityWeight: null,
+          densityWeight: null,
+          leg: null,
         },
       ],
     },
@@ -82,6 +117,7 @@ const fullScore: ScoreResult = {
       category: 'recreation',
       status: 'scored',
       score: 17.4,
+      contribution: [],
       facilities: [
         {
           facilityType: 'parks',
@@ -90,6 +126,12 @@ const fullScore: ScoreResult = {
           nearestDistanceKm: null,
           count: 0,
           explanation: 'Park not checked for this address.',
+          criteria: [],
+          proximityScore: null,
+          densityScore: null,
+          proximityWeight: null,
+          densityWeight: null,
+          leg: null,
         },
         {
           facilityType: 'libraries',
@@ -98,6 +140,12 @@ const fullScore: ScoreResult = {
           nearestDistanceKm: 1.47,
           count: 2,
           explanation: '1 libraries within 1.5 km by walk, plus 1 more up to 1.6 km away.',
+          criteria: [],
+          proximityScore: null,
+          densityScore: null,
+          proximityWeight: null,
+          densityWeight: null,
+          leg: null,
         },
       ],
     },
@@ -105,6 +153,7 @@ const fullScore: ScoreResult = {
       category: 'transport',
       status: 'scored',
       score: 32.7,
+      contribution: [],
       facilities: [
         {
           facilityType: 'bus_stops',
@@ -113,6 +162,12 @@ const fullScore: ScoreResult = {
           nearestDistanceKm: 1.63,
           count: 1,
           explanation: 'Nearest bus stop is 1.6 km away by walk.',
+          criteria: [],
+          proximityScore: null,
+          densityScore: null,
+          proximityWeight: null,
+          densityWeight: null,
+          leg: null,
         },
         {
           facilityType: 'railway_stations',
@@ -121,6 +176,12 @@ const fullScore: ScoreResult = {
           nearestDistanceKm: 1.55,
           count: 1,
           explanation: 'Nearest railway station is 1.5 km away by drive.',
+          criteria: [],
+          proximityScore: null,
+          densityScore: null,
+          proximityWeight: null,
+          densityWeight: null,
+          leg: null,
         },
       ],
     },
@@ -168,5 +229,27 @@ describe('ScoreDisplay', () => {
   it('renders warnings when present', () => {
     render(<ScoreDisplay score={fullScore} warnings={['OSRM unavailable, used Haversine fallback']} />);
     expect(screen.getByText('OSRM unavailable, used Haversine fallback')).toBeInTheDocument();
+  });
+
+  describe('Overall score explanation ("?" icon)', () => {
+    // ScoreDisplay never renders the explanation modal itself -- that's a
+    // container's job (see ResultsPanel), so it can portal it to
+    // document.body. This component only has to report the click.
+    it('does not render a dialog itself', () => {
+      render(<ScoreDisplay score={fullScore} />);
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+
+    it('calls onExplainOverall when the explain button is clicked', async () => {
+      const onExplainOverall = jest.fn();
+      render(<ScoreDisplay score={fullScore} onExplainOverall={onExplainOverall} />);
+      await userEvent.click(screen.getByRole('button', { name: 'Explain the overall score' }));
+      expect(onExplainOverall).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not throw when clicked without an onExplainOverall handler', async () => {
+      render(<ScoreDisplay score={fullScore} />);
+      await userEvent.click(screen.getByRole('button', { name: 'Explain the overall score' }));
+    });
   });
 });

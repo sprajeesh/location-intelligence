@@ -5,7 +5,6 @@
  */
 
 import {
-  AddressResult,
   AnalyzeResponse,
   CategoryId,
   Category,
@@ -83,22 +82,6 @@ async function fetchJson<T>(
   }
 }
 
-/**
- * Search for addresses by query string.
- * Calls GET /api/search/address?q=...
- *
- * @param q - Search query (e.g., "123 Queen St, Auckland")
- * @returns Array of address suggestions
- * @throws ApiError on network or server error
- */
-export async function searchAddress(q: string): Promise<AddressResult[]> {
-  if (!q.trim()) {
-    return [];
-  }
-
-  const endpoint = `/search/address?q=${encodeURIComponent(q)}`;
-  return fetchJson<AddressResult[]>(endpoint, { method: "GET" });
-}
 
 /**
  * Request for location analysis.
@@ -127,6 +110,24 @@ export interface AnalyzeRequest {
  * (and normalizeAnalyzeResponse below) are the only place in the app that
  * ever touches the snake_case field names.
  */
+interface WireFacilityCriterion {
+  label: string;
+  satisfied: boolean | null;
+  detail: string;
+}
+
+interface WireFacilityContribution {
+  facility_type: string;
+  weight_pct: number;
+  score: number | null;
+}
+
+interface WireCategoryContribution {
+  category: CategoryId;
+  weight_pct: number;
+  score: number | null;
+}
+
 interface WireFacilityScoreResult {
   facility_type: string;
   status: FacilityStatus;
@@ -134,6 +135,12 @@ interface WireFacilityScoreResult {
   nearest_distance_km: number | null;
   count: number;
   explanation: string;
+  criteria: WireFacilityCriterion[];
+  proximity_score: number | null;
+  density_score: number | null;
+  proximity_weight: number | null;
+  density_weight: number | null;
+  leg: 'walk' | 'drive' | null;
 }
 
 interface WireCategoryScoreResult {
@@ -141,12 +148,14 @@ interface WireCategoryScoreResult {
   status: FacilityStatus;
   score: number | null;
   facilities: WireFacilityScoreResult[];
+  contribution: WireFacilityContribution[];
 }
 
 interface WireScoreResult {
   overall: number | null;
   coverage: string;
   categories: WireCategoryScoreResult[];
+  contribution: WireCategoryContribution[];
 }
 
 interface WireAnalyzeResponse extends Omit<AnalyzeResponse, "score"> {
@@ -212,7 +221,27 @@ export function normalizeAnalyzeResponse(
           nearestDistanceKm: f.nearest_distance_km,
           count: f.count,
           explanation: f.explanation,
+          criteria: f.criteria.map((c) => ({
+            label: c.label,
+            satisfied: c.satisfied,
+            detail: c.detail,
+          })),
+          proximityScore: f.proximity_score,
+          densityScore: f.density_score,
+          proximityWeight: f.proximity_weight,
+          densityWeight: f.density_weight,
+          leg: f.leg,
         })),
+        contribution: cat.contribution.map((c) => ({
+          facilityType: c.facility_type,
+          weightPct: c.weight_pct,
+          score: c.score,
+        })),
+      })),
+      contribution: raw.score.contribution.map((c) => ({
+        category: c.category,
+        weightPct: c.weight_pct,
+        score: c.score,
       })),
     },
   };
@@ -305,4 +334,69 @@ export async function fetchParcelAtPoint(
     }
     throw error;
   }
+}
+
+/**
+ * Report jobs (async PDF). POST /api/reports starts a background job,
+ * GET /api/reports/{id} reports its status, and
+ * GET /api/reports/{id}/download returns the PDF once `ready`.
+ */
+export type ReportJobState = "queued" | "running" | "ready" | "failed";
+
+export interface ReportJobStatus {
+  jobId: string;
+  status: ReportJobState;
+  error?: string | null;
+  expiresAt?: string | null;
+  filename?: string | null;
+}
+
+/** Same body as analyzeLocation: the report covers the same analysis. */
+export type ReportRequest = AnalyzeRequest;
+
+export async function createReport(
+  request: ReportRequest,
+): Promise<Pick<ReportJobStatus, "jobId" | "status">> {
+  return fetchJson("/reports", {
+    method: "POST",
+    body: JSON.stringify(request),
+  });
+}
+
+export async function getReportStatus(jobId: string): Promise<ReportJobStatus> {
+  return fetchJson<ReportJobStatus>(`/reports/${encodeURIComponent(jobId)}`, {
+    method: "GET",
+  });
+}
+
+/** Parses the filename out of a Content-Disposition header, if present. */
+export function filenameFromContentDisposition(header: string | null): string | null {
+  const match = header?.match(/filename="?([^";]+)"?/i);
+  return match?.[1] ?? null;
+}
+
+export async function downloadReport(
+  jobId: string,
+): Promise<{ blob: Blob; filename: string }> {
+  const url = `${getBaseUrl()}/api/reports/${encodeURIComponent(jobId)}/download`;
+  let response: Response;
+  try {
+    response = await fetch(url);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error occurred";
+    throw new ApiError(0, `Failed to fetch report download: ${message}`, error);
+  }
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new ApiError(
+      response.status,
+      errorData.error || `API error: ${response.status} ${response.statusText}`,
+    );
+  }
+  return {
+    blob: await response.blob(),
+    filename:
+      filenameFromContentDisposition(response.headers.get("content-disposition")) ??
+      "intelligence-report.pdf",
+  };
 }

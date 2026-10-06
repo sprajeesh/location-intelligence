@@ -395,10 +395,10 @@ describe('SearchBar', () => {
         />
       );
 
-      const firstSuggestion = screen.getByText('123 Main Street, Auckland').closest('button');
+      const firstSuggestion = screen.getByText('123 Main Street, Auckland').closest('li');
       fireEvent.mouseEnter(firstSuggestion!);
 
-      expect(firstSuggestion?.closest('li')).toHaveAttribute(
+      expect(firstSuggestion).toHaveAttribute(
         'aria-selected',
         'true'
       );

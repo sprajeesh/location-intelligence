@@ -27,6 +27,7 @@ const notCheckedCategory: CategoryScoreResult = {
   category: 'recreation',
   status: 'not_checked',
   score: null,
+  contribution: [],
   facilities: [
     {
       facilityType: 'parks',
@@ -35,6 +36,12 @@ const notCheckedCategory: CategoryScoreResult = {
       nearestDistanceKm: null,
       count: 0,
       explanation: 'Park not checked for this address.',
+      criteria: [],
+      proximityScore: null,
+      densityScore: null,
+      proximityWeight: null,
+      densityWeight: null,
+      leg: null,
     },
   ],
 };
@@ -45,6 +52,7 @@ const checkedZeroCategory: CategoryScoreResult = {
   category: 'transport',
   status: 'scored',
   score: 0,
+  contribution: [],
   facilities: [
     {
       facilityType: 'bus_stops',
@@ -53,6 +61,12 @@ const checkedZeroCategory: CategoryScoreResult = {
       nearestDistanceKm: 1.63,
       count: 1,
       explanation: 'Nearest bus stop is 1.6 km away by walk.',
+      criteria: [],
+      proximityScore: null,
+      densityScore: null,
+      proximityWeight: null,
+      densityWeight: null,
+      leg: null,
     },
   ],
 };
@@ -234,6 +248,72 @@ describe('CategoryScoreCard', () => {
     });
   });
 
+  describe('Score explanation ("?" icon)', () => {
+    // CategoryScoreCard never renders the explanation modal itself -- that's
+    // a container's job (see ResultsPanel), so it can portal it to
+    // document.body. This component only has to report the click, with the
+    // full category it was clicked for.
+    it('renders an explain button with a category-specific accessible name', () => {
+      render(
+        <CategoryScoreCard category={checkedZeroCategory} isExpanded={false} onToggleExpand={jest.fn()} />
+      );
+      expect(
+        screen.getByRole('button', { name: 'Explain the Transport score' })
+      ).toBeInTheDocument();
+    });
+
+    it('does not render a dialog itself', () => {
+      render(
+        <CategoryScoreCard category={checkedZeroCategory} isExpanded={false} onToggleExpand={jest.fn()} />
+      );
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+
+    it('calls onExplainCategory with the category when clicked', async () => {
+      const onExplainCategory = jest.fn();
+      render(
+        <CategoryScoreCard
+          category={checkedZeroCategory}
+          isExpanded={false}
+          onToggleExpand={jest.fn()}
+          onExplainCategory={onExplainCategory}
+        />
+      );
+      await userEvent.click(screen.getByRole('button', { name: 'Explain the Transport score' }));
+      expect(onExplainCategory).toHaveBeenCalledWith(checkedZeroCategory);
+    });
+
+    it('calls onExplainCategory even for a not_checked category', async () => {
+      const onExplainCategory = jest.fn();
+      render(
+        <CategoryScoreCard
+          category={notCheckedCategory}
+          isExpanded={false}
+          onToggleExpand={jest.fn()}
+          onExplainCategory={onExplainCategory}
+        />
+      );
+      await userEvent.click(screen.getByRole('button', { name: 'Explain the Recreation score' }));
+      expect(onExplainCategory).toHaveBeenCalledWith(notCheckedCategory);
+    });
+
+    it('clicking the explain button does not also trigger onToggleExpand', async () => {
+      const onToggleExpand = jest.fn();
+      render(
+        <CategoryScoreCard category={checkedZeroCategory} isExpanded={false} onToggleExpand={onToggleExpand} />
+      );
+      await userEvent.click(screen.getByRole('button', { name: 'Explain the Transport score' }));
+      expect(onToggleExpand).not.toHaveBeenCalled();
+    });
+
+    it('does not throw when clicked without an onExplainCategory handler', async () => {
+      render(
+        <CategoryScoreCard category={checkedZeroCategory} isExpanded={false} onToggleExpand={jest.fn()} />
+      );
+      await userEvent.click(screen.getByRole('button', { name: 'Explain the Transport score' }));
+    });
+  });
+
   describe('Localized expand/collapse label', () => {
     afterEach(() => {
       nextIntlMock.__setMessages(require('@/i18n/en.json'));
@@ -257,7 +337,7 @@ describe('CategoryScoreCard', () => {
         <CategoryScoreCard category={checkedZeroCategory} isExpanded={false} onToggleExpand={jest.fn()} />
       );
       expect(
-        screen.getByRole('button', { name: '[MI] score.actions.expand' })
+        screen.getByRole('button', { name: /Whakawhānui/i })
       ).toBeInTheDocument();
     });
   });

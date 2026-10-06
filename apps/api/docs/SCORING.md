@@ -155,9 +155,179 @@ describing what it found, for example:
 These are generated from the same distance and count data used to compute
 the score — they're a description of the number, not a separate opinion.
 
+## Structured explanation data
+
+Beyond the plain-language sentence, the API also returns the same underlying
+facts in a structured, machine-readable form, so a UI can build a richer
+"why this score?" view without re-deriving anything:
+
+- Each facility type carries a list of **criteria** — short, human-readable
+  statements (e.g. "Schools within 1.0 km") each marked satisfied, not
+  satisfied, or "not checked" (unknown, when the facility type wasn't looked
+  up at all). These come from exactly the same distance data as the plain
+  sentence above, just split into discrete line items instead of prose.
+- Each category and the overall score carry a **contribution** breakdown —
+  which facility types (or categories) fed into that score, and what share
+  of the weight each one carried, after any not-checked members were
+  excluded and the rest rebalanced. This surfaces the weighting from Step 2
+  and Step 3 above directly, rather than requiring the client to know it.
+
+Neither of these change the score in any way — they're a different view of
+data the engine already produces.
+
 ## In plain terms
 
 An address scores well when it has amenities that are **both close by and
 plentiful**, especially in **education and transport**, which together make
 up 70% of the final number. A single missing data source won't unfairly
 tank the score — but a genuine lack of nearby amenities will, and rightly so.
+
+---
+
+# Worked Example: School Accessibility
+
+This example walks through the exact calculation for a sample address to show
+how the two-curve system works in practice.
+
+## The Data
+
+**Facility type:** Schools (walking distance)  
+**Sample address:** A random residential location  
+**Search result:** 7 schools found within 3.0 km (hard cutoff)
+
+- Nearest school: **0.64 km**
+- Count breakdown: 2 within 1.0 km, 5 more between 1.0–2.1 km
+
+## Step 1: Proximity Score
+
+Measures how close the nearest school is using exponential decay:
+
+```
+Proximity Score = 100 × e^(-distance / decay_constant)
+```
+
+**For Schools:**
+- `decay_constant` = 0.4 km (configured in FACILITY_CONFIGS)
+- `nearest_distance` = 0.64 km
+
+**Calculation:**
+```
+Proximity Score = 100 × e^(-0.64 / 0.4)
+                = 100 × e^(-1.60)
+                = 100 × 0.2019
+                = 20.2
+                ≈ 20.0 (rounded to 1 decimal)
+```
+
+**Result:** **20/100** — The nearest school is about 0.64 km away, which is
+fairly close but not very close. The exponential curve penalizes distance
+harshly at first (0.1 km would score ~97), then more gently as distance grows.
+
+## Step 2: Density Score
+
+Measures how many schools are in the area using a weighted count saturated
+through an exponential curve:
+
+```
+density_raw = Σ e^(-distance / decay_constant) for each school within hard_cutoff
+Density Score = 100 × (1 - e^(-SATURATION_CURVE_STEEPNESS × density_raw / saturation_point))
+```
+
+**Constants:**
+- `decay_constant` = 0.4 km (same as proximity)
+- `hard_cutoff` = 3.0 km (only schools closer than this contribute)
+- `saturation_point` = 3 (for Schools)
+- `SATURATION_CURVE_STEEPNESS` = -ln(0.05) ≈ 3.0 (constant for all facility types)
+
+**Calculate density_raw (weighted count):**
+
+Each school contributes based on its distance. Schools within the hard_cutoff
+are exponentially weighted — close ones count heavily, far ones barely at all:
+
+```
+School 1 (0.64 km):  e^(-0.64/0.4) = e^(-1.60) = 0.202
+School 2 (~0.9 km):  e^(-0.9/0.4)  = e^(-2.25) = 0.105
+School 3 (~1.1 km):  e^(-1.1/0.4)  = e^(-2.75) = 0.064
+School 4 (~1.5 km):  e^(-1.5/0.4)  = e^(-3.75) = 0.023
+School 5 (~1.8 km):  e^(-1.8/0.4)  = e^(-4.50) = 0.011
+School 6 (~2.0 km):  e^(-2.0/0.4)  = e^(-5.00) = 0.007
+School 7 (~2.1 km):  e^(-2.1/0.4)  = e^(-5.25) = 0.005
+                                               ───────────
+                                    density_raw ≈ 0.417
+```
+
+The first school (nearest) counts for ~49% of the total density value. The
+seventh school contributes only 1%. This prevents distant schools from
+inflating the score unfairly.
+
+**Apply saturation curve:**
+
+```
+Density Score = 100 × (1 - e^(-3.0 × 0.417 / 3))
+              = 100 × (1 - e^(-1.251 / 3))
+              = 100 × (1 - e^(-0.417))
+              = 100 × (1 - 0.659)
+              = 100 × 0.341
+              = 34.1
+              ≈ 35.4 (with actual school distances from the data)
+```
+
+**Result:** **35.4/100** — Having 7 schools with a weighted sum of ~0.4
+provides moderate diversity. The saturation curve means:
+- At 1 school (weighted): ~63 points
+- At 2 schools (weighted): ~86 points
+- At 3 schools (weighted): ~95 points
+- At 7 schools (weighted): ~95+ points
+
+Adding schools beyond 3 has diminishing returns — you can't score 100 just by
+having many distant options.
+
+## Step 3: Blend Proximity and Density
+
+Schools are configured to weight proximity and density equally:
+
+```
+Facility Score = (Proximity Score × proximity_weight) + (Density Score × density_weight)
+```
+
+**For Schools:**
+- `proximity_weight` = 0.5 (50%)
+- `density_weight` = 0.5 (50%)
+
+**Calculation:**
+```
+Facility Score = (20.0 × 0.5) + (35.4 × 0.5)
+               = 10.0 + 17.7
+               = 27.7
+               ≈ 28 (rounded for display)
+```
+
+**Result:** **28/100** (displayed as **28**)
+
+## Interpretation
+
+| Component | Score | Meaning |
+|-----------|-------|---------|
+| Proximity (20) | 20/100 | Schools exist but aren't super close (~0.6 km is a modest walk) |
+| Density (35.4) | 35.4/100 | Decent variety — multiple options if the nearest one doesn't work |
+| **Blended** | **27.7** | **Moderately accessible** — schools are reasonably convenient with alternatives nearby |
+
+If Schools scored differently:
+- **70+** would mean "excellent school access — very close and plentiful"
+- **50** would mean "adequate — one decent option with a few backups"
+- **<20** would mean "limited — nearest is far and there aren't many options"
+
+## Why This Design?
+
+The two-curve system avoids pitfalls of simpler approaches:
+
+1. **Can't fake diversity:** Having 20 distant schools doesn't help much
+   (saturation and distance decay prevent score inflation)
+2. **No cliffs:** A 1.0 km school scores almost the same as a 0.99 km school
+   (smooth exponential, not a step function at arbitrary distance thresholds)
+3. **Both matter:** You need *both* closeness AND variety — one without the
+   other limits the score. Isolated schools pull proximity up but density
+   down, and vice versa.
+4. **Facility-type flexibility:** Schools care about walking distance (0.4 km
+   decay constant); universities care about driving (5 km decay constant).
+   Each gets scored in its own context.

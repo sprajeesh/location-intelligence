@@ -1,20 +1,64 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { SearchContainer } from "@/containers/SearchContainer";
 import { AnalysisContainer } from "@/containers/AnalysisContainer";
 import { MapContainerDynamic } from "@/containers/MapContainer";
 import { useLocationStore } from "@/store";
 import { useAddressSearch } from "@/hooks/useAddressSearch";
 import { useIsDesktop } from "@/hooks/useIsDesktop";
+import { useAnalyzeCategories } from "@/hooks/useAnalyzeCategories";
+import { useAnalyzeCategoryWeights } from "@/hooks/useAnalyzeCategoryWeights";
+import { useReportAction } from "@/hooks/useReportAction";
 import PanelCollapseButton from "@/components/PanelCollapseButton/PanelCollapseButton";
-import { Map, BarChart3, Route } from "lucide-react";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { SettingsContainer } from "@/containers/SettingsContainer";
+import { MobileControlsBar } from "@/containers/MobileControlsBar";
+import { SURFACE_PANEL_CLASSES } from "@/components/ui/SurfacePanel";
 
 export function HomeContainer() {
-  const { selectedAddress, isPanelCollapsed, togglePanelCollapsed, setPanelCollapsed, isMapViewOnMobile, setIsMapViewOnMobile, isNavigating, activeRoute } =
-    useLocationStore();
+  const {
+    selectedAddress,
+    analysisResult,
+    isAnalyzing,
+    radiusKm,
+    distanceMode,
+    isPanelCollapsed,
+    togglePanelCollapsed,
+    setPanelCollapsed,
+    isMapViewOnMobile,
+  } = useLocationStore();
   const isDesktop = useIsDesktop();
   const addressSearch = useAddressSearch();
+  const categories = useAnalyzeCategories();
+  const categoryWeights = useAnalyzeCategoryWeights();
+
+  // Build report request from current analysis state (only valid when results exist)
+  const reportRequest = useMemo(
+    () =>
+      selectedAddress && analysisResult && !isAnalyzing
+        ? {
+            address: selectedAddress.displayName,
+            lat: selectedAddress.lat,
+            lon: selectedAddress.lon,
+            radiusKm,
+            distanceMode,
+            categories,
+            categoryWeights,
+          }
+        : null,
+    [
+      selectedAddress,
+      analysisResult,
+      isAnalyzing,
+      radiusKm,
+      distanceMode,
+      categories,
+      categoryWeights,
+    ],
+  );
+
+  const reportAction = useReportAction(reportRequest);
 
   // Expand panel when a new address is selected (don't collapse based on previous action)
   useEffect(() => {
@@ -42,40 +86,113 @@ export function HomeContainer() {
   const panelWidthClass = getPanelWidth();
 
   const showMapOnMobile = isMapViewOnMobile && !isDesktop && hasActivePanel;
-  const showResultsOnMobile = !isMapViewOnMobile && !isDesktop && hasActivePanel;
-  const isRouteDisplayed = isNavigating && !!activeRoute && activeRoute.length >= 2;
+  const showResultsOnMobile =
+    !isMapViewOnMobile && !isDesktop && hasActivePanel;
 
   return (
     <>
-    <div className="absolute inset-0 flex flex-col md:flex-row">
-      {/* Panel container — shows only when expanded; hidden when collapsed */}
-      <div
-        className={
-          hasActivePanel && !isPanelCollapsed && !showMapOnMobile
-            ? `relative z-10 flex-shrink-0 flex flex-col overflow-visible bg-white h-full w-full md:h-full md:overflow-hidden ${panelWidthClass} transition-all duration-300 ease-in-out border-r border-slate-200`
-            : hasActivePanel && !showMapOnMobile && isPanelCollapsed
-            ? "hidden"
-            : showMapOnMobile
-            ? "hidden md:flex"
-            : "absolute inset-0 z-10 p-4 pointer-events-none overflow-hidden"
-        }
-      >
-
+      {/* Fills the relative slot in page.tsx, which already stops above the footer. */}
+      <div className="absolute inset-0 flex flex-col md:flex-row">
+        {/* Panel container — shows only when expanded; hidden when collapsed */}
         <div
           className={
-            hasActivePanel
-              ? `flex flex-col h-full overflow-hidden ${isPanelCollapsed && isDesktop ? "opacity-0 invisible" : "opacity-100 visible"} transition-opacity duration-300`
-              : "flex flex-col h-full pointer-events-none max-w-md md:h-[75vh] md:gap-2 lg:h-full"
+            hasActivePanel && !isPanelCollapsed && !showMapOnMobile
+              ? `relative z-10 flex-shrink-0 flex flex-col overflow-visible bg-white h-full w-full md:h-full ${panelWidthClass} transition-all duration-300 ease-in-out border-r border-slate-200`
+              : hasActivePanel && !showMapOnMobile && isPanelCollapsed
+                ? "hidden"
+                : showMapOnMobile
+                  ? "hidden md:flex"
+                  : "absolute inset-0 z-10 p-4 pointer-events-none"
           }
         >
-          {/* Search bar — always at the top */}
           <div
             className={
               hasActivePanel
-                ? "flex-shrink-0 p-4 pb-2 border-b border-slate-200 md:border-r md:border-b-0 flex items-center gap-2"
-                : "flex-shrink-0 relative z-20 pointer-events-auto"
+                ? `flex flex-col h-full ${isPanelCollapsed && isDesktop ? "opacity-0 invisible" : "opacity-100 visible"} transition-opacity duration-300`
+                : "flex flex-col h-full pointer-events-none max-w-md md:h-[75vh] md:gap-2 lg:h-full"
             }
           >
+            {/* Search bar — always at the top. `relative` makes it the
+              positioning anchor for the desktop Scoring/Theme buttons below,
+              which sit just past its right edge (left-full) so the search
+              input's own width is never squeezed to make room for them. */}
+            <div
+              className={
+                hasActivePanel
+                  ? "relative flex-shrink-0 p-4 pb-2 border-b border-slate-200 md:border-r md:border-b-0 flex items-center gap-2"
+                  : "relative flex-shrink-0 z-20 pointer-events-auto"
+              }
+            >
+              <div className="flex-1">
+                <SearchContainer
+                  query={addressSearch.query}
+                  setQuery={addressSearch.setQuery}
+                  suggestions={addressSearch.suggestions}
+                  isLoading={addressSearch.isLoading}
+                  error={addressSearch.error}
+                />
+              </div>
+              {/* Theme / Score Config buttons — desktop only; on mobile these
+                live in the fixed bottom controls bar instead. Gated on
+                isDesktop (not a CSS breakpoint) so SettingsContainer isn't
+                double-mounted alongside its mobile counterpart below.
+                Positioned outside the search row's own flow (left-full) so
+                the address input keeps its original width instead of
+                sharing the row with them. */}
+              {isDesktop && (
+                <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 flex items-center gap-2 pointer-events-auto whitespace-nowrap">
+                  <ThemeToggle className={SURFACE_PANEL_CLASSES.chip} />
+                  <SettingsContainer
+                    expanded
+                    className={SURFACE_PANEL_CLASSES.chip}
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Spacer — pushes the floating panel to the bottom on mobile before
+              a panel is active; once pinned, the panel slot below fills the
+              remaining flex space directly, so no spacer is needed. */}
+            {!hasActivePanel && <div className="flex-1 md:hidden" />}
+
+            {/* Results / route panel */}
+            <div
+              className={
+                hasActivePanel
+                  ? "flex-1 min-h-0 overflow-hidden"
+                  : "min-h-0 overflow-hidden pointer-events-auto h-[50vh] bottom-0 left-0 right-0 absolute sm:w-full md:relative md:h-auto md:flex-1 md:mt-0"
+              }
+            >
+              <AnalysisContainer />
+            </div>
+          </div>
+        </div>
+
+        {/* Map container — full-bleed before a panel is active; on mobile in map view, shows full screen.
+          On mobile when showing map, use z-20 to ensure toolbar sits above the results panel's z-10. */}
+        <div
+          className={`flex-1 min-w-0 min-h-0 relative ${showResultsOnMobile ? "hidden z-0" : showMapOnMobile ? "z-20 md:z-0" : "z-0"} md:flex`}
+        >
+          <MapContainerDynamic />
+        </div>
+
+        {/* Mobile controls -- an in-flow white row above the footer for the
+          initial and map views, so the buttons sit inside a panel instead of
+          floating over the footer. In the results view the same bar lives
+          inside ResultsPanel. */}
+        {!isDesktop && !showResultsOnMobile && (
+          <MobileControlsBar
+            report={reportAction}
+            showReport={!!selectedAddress}
+            className="relative z-20 bg-white"
+          />
+        )}
+      </div>
+
+      {/* Search bar for mobile map view — floats above map */}
+      {showMapOnMobile && (
+        <div className="absolute top-0 left-0 right-0 z-20 md:hidden p-4 pb-2 bg-white border-b border-slate-200 pointer-events-auto">
+          <div className="flex items-center gap-2">
             <div className="flex-1">
               <SearchContainer
                 query={addressSearch.query}
@@ -85,84 +202,19 @@ export function HomeContainer() {
                 error={addressSearch.error}
               />
             </div>
-            {/* Show Map button on mobile results view */}
-            {hasActivePanel && !isDesktop && !isMapViewOnMobile && (
-              <button
-                onClick={() => setIsMapViewOnMobile(true)}
-                className="flex-shrink-0 md:hidden p-2 hover:bg-slate-100 rounded-lg transition-colors"
-                title="Show map"
-                aria-label="Show map"
-              >
-                <Map className="w-5 h-5 text-slate-600" />
-              </button>
-            )}
-          </div>
-
-          {/* Spacer — pushes the floating panel to the bottom on mobile before
-              a panel is active; once pinned, the panel slot below fills the
-              remaining flex space directly, so no spacer is needed. */}
-          {!hasActivePanel && <div className="flex-1 md:hidden" />}
-
-          {/* Results / route panel */}
-          <div
-            className={
-              hasActivePanel
-                ? "flex-1 min-h-0 overflow-hidden"
-                : "min-h-0 overflow-hidden pointer-events-auto h-[50vh] bottom-0 left-0 right-0 absolute sm:w-full md:relative md:h-auto md:flex-1 md:mt-0"
-            }
-          >
-            <AnalysisContainer />
           </div>
         </div>
+      )}
 
-      </div>
-
-      {/* Map container — full-bleed before a panel is active; on mobile in map view, shows full screen.
-          On mobile when showing map, use z-20 to ensure toolbar sits above the results panel's z-10. */}
-      <div className={`flex-1 min-w-0 min-h-0 relative ${showResultsOnMobile ? "hidden z-0" : showMapOnMobile ? "z-20 md:z-0" : "z-0"} md:flex`}>
-        <MapContainerDynamic />
-      </div>
-    </div>
-
-    {/* Search bar for mobile map view — floats above map */}
-    {showMapOnMobile && (
-      <div className="absolute top-0 left-0 right-0 z-20 md:hidden p-4 pb-2 bg-white border-b border-slate-200 pointer-events-auto">
-        <div className="flex items-center gap-2">
-          <div className="flex-1">
-            <SearchContainer
-              query={addressSearch.query}
-              setQuery={addressSearch.setQuery}
-              suggestions={addressSearch.suggestions}
-              isLoading={addressSearch.isLoading}
-              error={addressSearch.error}
-            />
-          </div>
-          {/* View Score / Show route button on mobile map view */}
-          <button
-            onClick={() => setIsMapViewOnMobile(false)}
-            className="flex-shrink-0 p-2 hover:bg-slate-100 rounded-lg transition-colors"
-            title={isRouteDisplayed ? "Show route details" : "View scores"}
-            aria-label={isRouteDisplayed ? "Show route details" : "View scores"}
-          >
-            {isRouteDisplayed ? (
-              <Route className="w-5 h-5 text-slate-600" />
-            ) : (
-              <BarChart3 className="w-5 h-5 text-slate-600" />
-            )}
-          </button>
+      {/* Collapse button — positioned outside layout flow so it's always visible and clickable */}
+      {hasActivePanel && !showMapOnMobile && (
+        <div className="pointer-events-none fixed inset-0 z-0">
+          <PanelCollapseButton
+            isCollapsed={isPanelCollapsed}
+            onToggle={togglePanelCollapsed}
+          />
         </div>
-      </div>
-    )}
-
-    {/* Collapse button — positioned outside layout flow so it's always visible and clickable */}
-    {hasActivePanel && !showMapOnMobile && (
-      <div className="pointer-events-none fixed inset-0 z-0">
-        <PanelCollapseButton
-          isCollapsed={isPanelCollapsed}
-          onToggle={togglePanelCollapsed}
-        />
-      </div>
-    )}
+      )}
     </>
   );
 }

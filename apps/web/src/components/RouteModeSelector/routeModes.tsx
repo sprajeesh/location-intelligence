@@ -1,15 +1,15 @@
-import React from "react";
+import type { LucideIcon } from "lucide-react";
 import { Car, PersonStanding, Bike } from "lucide-react";
 import type { RouteTransportMode } from "@/types/api";
 
 export interface RouteModeButton {
   mode: RouteTransportMode;
   labelKey: string;
-  icon: React.ReactNode;
+  icon: LucideIcon;
 }
 
 export const ROUTE_MODES: RouteModeButton[] = [
-  { mode: "driving", labelKey: "driving", icon: <Car className="w-4 h-4" aria-hidden="true" /> },
-  { mode: "walking", labelKey: "walking", icon: <PersonStanding className="w-4 h-4" aria-hidden="true" /> },
-  { mode: "cycling", labelKey: "cycling", icon: <Bike className="w-4 h-4" aria-hidden="true" /> },
+  { mode: "driving", labelKey: "driving", icon: Car },
+  { mode: "walking", labelKey: "walking", icon: PersonStanding },
+  { mode: "cycling", labelKey: "cycling", icon: Bike },
 ];

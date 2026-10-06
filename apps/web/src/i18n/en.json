@@ -1,8 +1,8 @@
 {
   "meta": {
-    "title": "Location Intelligence",
-    "description": "Discover nearby facilities and neighbourhood scores for any New Zealand address",
-    "siteName": "Location Intelligence"
+    "title": "NZ Location Score & Nearby Facilities Search | Location Intelligence",
+    "description": "Calculate live location scores, nearby schools, bus stops, healthcare, and amenities for any New Zealand property address.",
+    "siteName": "Location Intelligence NZ"
   },
   "search": {
     "placeholder": "Search a New Zealand address...",
@@ -20,6 +20,19 @@
     "busStops": "Bus Stops",
     "navigateTo": "Navigate to {name}",
     "showRoute": "Show route to {name}",
+    "report": {
+      "generate": "Report",
+      "generating": "Generating…",
+      "generatingFull": "Generating report…",
+      "generateLabel": "Generate report",
+      "downloadLabel": "Download report",
+      "download": "Download",
+      "readyToast": "Your report is ready.",
+      "downloadAction": "Download",
+      "failedToast": "Couldn't generate the report.",
+      "retryAction": "Retry",
+      "downloadFailedToast": "Couldn't download the report. Please try again."
+    },
     "adjustRadius": {
       "caption": "Not seeing expected results? Adjust the search radius",
       "label": "Search radius",
@@ -39,6 +52,23 @@
     "actions": {
       "expand": "Expand {label}",
       "collapse": "Collapse {label}"
+    },
+    "explain": {
+      "openOverall": "Explain the overall score",
+      "openCategory": "Explain the {label} score",
+      "backToOverall": "Back to overall score",
+      "close": "Close",
+      "why": "Why this score",
+      "howCalculated": "How it's calculated",
+      "notChecked": "{label}: not checked for this address.",
+      "contribution": "{weightPct}% weight · scored {score}/100",
+      "legWalk": "Nearest reached on foot",
+      "legDrive": "Nearest reached by car",
+      "band": {
+        "good": "Good",
+        "moderate": "Average",
+        "poor": "Below average"
+      }
     },
     "categories": {
       "education": "Education",
@@ -97,6 +127,12 @@
     "rateLimit": "Too many requests. Please wait a moment."
   },
   "map": {
+    "showMap": "Map",
+    "showMapTooltip": "Show map",
+    "viewScores": "Results",
+    "viewScoresTooltip": "View scores",
+    "showRoute": "Route",
+    "showRouteTooltip": "Show route details",
     "markerPopup": {
       "name": "Name",
       "distance": "Distance",
@@ -114,6 +150,14 @@
         "healthcareSpeciality": "Speciality"
       }
     }
+  },
+  "theme": {
+    "dark": "Dark mode",
+    "light": "Light mode",
+    "darkShort": "Dark",
+    "lightShort": "Light",
+    "switchToDark": "Switch to dark mode",
+    "switchToLight": "Switch to light mode"
   },
   "nav": {
     "title": "Location Intelligence",
@@ -136,6 +180,8 @@
   },
   "settings": {
     "tooltip": "Settings",
+    "buttonLabel": "Scoring",
+    "buttonLabelExpanded": "Scoring Config",
     "title": "Settings",
     "description": "Facilities included in your location score, grouped by category.",
     "helpMaxFacilities": "Choose up to {max} facilities. Unselect one to choose a different one.",
@@ -153,5 +199,136 @@
       "helpNotHundred": "Adjust weights so they total 100% to save.",
       "helpZeroWeight": "Every selected category needs a weight greater than 0% to save."
     }
+  },
+  "footer": {
+    "navLabel": "Site",
+    "appName": "Location Intelligence",
+    "appCaption": "Smart Facility Insights",
+    "about": "About",
+    "faq": "FAQ",
+    "dataSources": "Data sources"
+  },
+  "dataSources": {
+    "metaTitle": "Data Sources | Location Intelligence NZ",
+    "metaDescription": "Where Location Intelligence NZ gets its address, property boundary, facility, routing and map data, with licences and attribution.",
+    "title": "Data sources",
+    "intro": "Location Intelligence combines open data to describe the area around a New Zealand address. This page lists each source, what we use it for and the licence it is published under.",
+    "backHome": "Back to the map",
+    "columns": {
+      "source": "Source",
+      "usedFor": "Used for",
+      "licence": "Licence"
+    },
+    "sources": {
+      "linzAddresses": {
+        "name": "LINZ NZ Addresses",
+        "usedFor": "Address search and geocoding",
+        "licence": "CC BY 4.0",
+        "url": "https://data.linz.govt.nz/layer/53353-nz-addresses/"
+      },
+      "linzParcels": {
+        "name": "LINZ NZ Primary Parcels",
+        "usedFor": "Property boundary outlines",
+        "licence": "CC BY 4.0",
+        "url": "https://data.linz.govt.nz/layer/50772-nz-primary-parcels/"
+      },
+      "osm": {
+        "name": "OpenStreetMap contributors",
+        "usedFor": "Nearby facilities such as schools and bus stops, and the base map",
+        "licence": "ODbL 1.0",
+        "url": "https://www.openstreetmap.org/copyright"
+      },
+      "osrm": {
+        "name": "OSRM routing on OpenStreetMap data",
+        "usedFor": "Walking, cycling and driving routes and distances",
+        "licence": "ODbL 1.0",
+        "url": "https://project-osrm.org/"
+      },
+      "wikidata": {
+        "name": "Wikidata",
+        "usedFor": "Extra detail on some facilities",
+        "licence": "CC0 1.0",
+        "url": "https://www.wikidata.org/"
+      },
+      "esri": {
+        "name": "Esri World Imagery",
+        "usedFor": "Optional satellite map layer",
+        "licence": "Esri terms of use",
+        "url": "https://www.esri.com/en-us/legal/terms/full-master-agreement"
+      },
+      "opentopomap": {
+        "name": "OpenTopoMap",
+        "usedFor": "Optional topographic map layer",
+        "licence": "CC BY-SA 3.0",
+        "url": "https://opentopomap.org/about"
+      }
+    },
+    "sourceLink": "{name} (opens in a new tab)",
+    "attributionTitle": "Attribution",
+    "attributionBody": "Contains data sourced from Land Information New Zealand (LINZ) under CC BY 4.0. © OpenStreetMap contributors. Location Intelligence is an independent service and is not endorsed by LINZ, OpenStreetMap, Wikidata, Esri or OpenTopoMap."
+  },
+  "faq": {
+    "metaTitle": "FAQ | Location Intelligence NZ",
+    "metaDescription": "Answers about how Location Intelligence NZ scores a New Zealand address, which facilities it counts, how far it searches and where the data comes from.",
+    "title": "Frequently asked questions",
+    "backHome": "Back to the map",
+    "items": {
+      "what": {
+        "q": "What is Location Intelligence NZ?",
+        "a": "A free tool that shows the schools, GPs, bus stops, railway stations, supermarkets and other facilities near any New Zealand address, and turns them into a location score. It is aimed at people comparing properties, such as buyers, renters and agents."
+      },
+      "score": {
+        "q": "How is the location score calculated?",
+        "a": "Each facility type gets a score from how close the nearest one is and how many there are within the search radius. Facility scores are blended into category scores (education, transport, healthcare, shopping), and the categories are weighted into an overall score out of 100. Open the explanation next to any score to see the numbers behind it."
+      },
+      "walkDrive": {
+        "q": "Does the score use walking or driving distance?",
+        "a": "Both are checked for each facility type and the one that gives the better score is used, so a supermarket that is a short drive away still counts even if it is a long walk. The score explanation shows which one was used."
+      },
+      "missing": {
+        "q": "What if a category has no data or nothing nearby?",
+        "a": "A category that was not checked for the address is left out and the remaining weights are rescaled, so it does not drag the score down. A category that was checked and has no facilities nearby scores 0 and stays in the overall score."
+      },
+      "facilities": {
+        "q": "Which facilities are counted, and can I change them?",
+        "a": "By default the score uses schools, GPs, bus stops, railway stations and supermarkets. Use the Scoring button to choose different facility types and to change how much each category counts. The weights must add up to 100%."
+      },
+      "radius": {
+        "q": "How far does it search?",
+        "a": "5 km by default. You can change the search radius from 1 km to 10 km and search again. If nothing shows up, try a larger radius."
+      },
+      "addresses": {
+        "q": "Which addresses can I search?",
+        "a": "New Zealand addresses only. Address search uses the LINZ NZ Addresses dataset."
+      },
+      "data": {
+        "q": "Where does the data come from?",
+        "a": "Addresses and property boundaries come from Land Information New Zealand (LINZ). Facilities come from OpenStreetMap, with extra detail for some from Wikidata. Routes and distances are calculated on OpenStreetMap roads and paths. The Data sources page lists every source with its licence."
+      },
+      "accuracy": {
+        "q": "How accurate and up to date is it?",
+        "a": "Facility data is contributed by the OpenStreetMap community, so a school, stop or shop may be missing, in the wrong place or out of date. If routing is temporarily unavailable, distances fall back to straight-line estimates and a warning is shown. Treat the score as a guide and check important details with the facility itself."
+      },
+      "cost": {
+        "q": "Is it free? Do I need an account?",
+        "a": "It is free and you do not need to sign in to search an address."
+      }
+    }
+  },
+  "about": {
+    "metaTitle": "About | Location Intelligence NZ",
+    "metaDescription": "What Location Intelligence NZ is, who it is for and how it works: a free tool that scores New Zealand addresses by the facilities nearby.",
+    "title": "About Location Intelligence NZ",
+    "backHome": "Back to the map",
+    "whatTitle": "What it does",
+    "whatBody": "Location Intelligence NZ helps you judge a place before you commit to it. Enter a New Zealand address and it maps the nearby schools, GPs, bus stops, railway stations, supermarkets and more, shows how far each one is on foot or by car, and combines them into a location score out of 100.",
+    "whoTitle": "Who it is for",
+    "whoBody": "People comparing properties: buyers, renters and agents who want a quick, consistent way to see what is around an address.",
+    "howTitle": "How it works",
+    "howBody": "Addresses and property boundaries come from LINZ open data. Nearby facilities come from OpenStreetMap, and distances are calculated along real roads and paths. You choose which facilities matter and how much each category counts, and the score updates to match. The FAQ explains the scoring in more detail and the Data sources page lists every source.",
+    "limitsTitle": "Good to know",
+    "limitsBody": "The service is free and works without an account. It is built on open data that is maintained by volunteers and public agencies, so it can be incomplete or out of date. It is a guide for comparing locations, not professional advice.",
+    "faqLink": "Read the FAQ",
+    "dataSourcesLink": "See the data sources"
   }
 }

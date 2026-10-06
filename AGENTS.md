@@ -13,8 +13,8 @@ location score. Target users: property buyers, real estate agents, renters in NZ
 ```
 /
 ├── apps/
-│   ├── api/          # FastAPI backend — DONE
-│   └── web/          # Next.js 16.2.9 frontend — BUILT
+│   ├── api/          # FastAPI backend
+│   └── web/          # Next.js 16 frontend
 ├── packages/         # Reserved
 ├── scripts/
 │   └── setup-osrm.sh
@@ -35,18 +35,24 @@ cd apps/web && pnpm dev                               # Next.js on :3000
 
 ---
 
-## Backend — COMPLETE (`apps/api/`)
+## Backend (`apps/api/`)
 
-FastAPI + Python 3.13 + uv. All 45 tests pass, ruff clean.
+FastAPI + Python 3.13 + uv. Tests: `uv run pytest`; lint: `uv run ruff check`.
 
 ### Endpoints
 
 | Method | Path                            | Notes                                                   |
 | ------ | ------------------------------- | ------------------------------------------------------- |
-| GET    | `/health`                       | `{"status": "ok", "version": "1.0.0"}`                  |
+| GET    | `/health`                       | `{"status": "ok", "version": <apps/api/pyproject.toml>}` |
 | GET    | `/search/address?q=&country=nz` | LINZ PostGIS address search, top 5, NZ addresses        |
 | GET    | `/categories`                   | All categories with `implemented` flag + marker `color` |
 | POST   | `/location/analyze`             | Full analysis — geocode + Overpass + OSRM + score       |
+| POST   | `/reports`                      | Start a background PDF report job → `202 {jobId}` (see `apps/api/docs/REPORTS.md`) |
+| GET    | `/reports/{jobId}`              | Job status: `queued\|running\|ready\|failed`            |
+| GET    | `/reports/{jobId}/download`     | The finished PDF (`409` until ready, `404` once expired) |
+| GET    | `/route`                        | Turn-by-turn route to a facility (driving/walking/cycling) |
+| GET    | `/category-weights`             | Per-category score weights                              |
+| GET    | `/parcels`                      | Parcel lookup at a point                                |
 
 ### Key backend files
 
@@ -109,197 +115,49 @@ Response:
 
 ### GET /categories response
 
+Returns every facility type (12 currently), for example:
+
 ```json
 [
-  {
-    "id": "schools",
-    "label": "Schools",
-    "implemented": true,
-    "color": "#F59E0B",
-    "isDefault": true
-  },
-  {
-    "id": "bus_stops",
-    "label": "Bus Stops",
-    "implemented": true,
-    "color": "#14B8A6",
-    "isDefault": true
-  },
-  {
-    "id": "hospitals",
-    "label": "Hospitals",
-    "implemented": false,
-    "color": "#EF4444",
-    "isDefault": false
-  },
-  {
-    "id": "universities",
-    "label": "Universities",
-    "implemented": false,
-    "color": "#8B5CF6",
-    "isDefault": false
-  },
-  {
-    "id": "supermarkets",
-    "label": "Supermarkets",
-    "implemented": false,
-    "color": "#10B981",
-    "isDefault": true
-  },
-  { "id": "parks", "label": "Parks", "implemented": false, "color": "#22C55E", "isDefault": false },
-  {
-    "id": "libraries",
-    "label": "Libraries",
-    "implemented": false,
-    "color": "#3B82F6",
-    "isDefault": false
-  },
-  {
-    "id": "pharmacies",
-    "label": "Pharmacies",
-    "implemented": false,
-    "color": "#EC4899",
-    "isDefault": false
-  }
+  { "id": "schools", "label": "Schools", "implemented": true, "color": "#F59E0B", "isDefault": true },
+  { "id": "bus_stops", "label": "Bus Stops", "implemented": true, "color": "#14B8A6", "isDefault": true }
 ]
 ```
 
-> Note: this example predates the current 12-facility catalog (missing
-> `kindergartens`, `playgrounds`, `gps`, `railway_stations`) and its
-> `implemented` values are stale (all 12 facility types are currently
-> `implemented: true`). Left as-is beyond adding `isDefault` — out of scope
-> for this change; worth a follow-up doc cleanup.
-
 ---
 
-## Frontend — (`apps/web/`)
+## Frontend (`apps/web/`)
+
+Exact dependency versions: `apps/web/package.json`.
 
 ### Tech stack
 
 | Layer           | Choice                                              |
 | --------------- | --------------------------------------------------- |
-| Framework       | Next.js 16.2.9 (Active LTS, App Router)             |
+| Framework       | Next.js 16 (App Router)                             |
 | Language        | TypeScript + React 19.0.0                           |
 | Map             | React Leaflet 4 + Leaflet 1.9 + OpenStreetMap tiles |
 | Server state    | TanStack React Query v5.101.1                       |
 | UI state        | Zustand v5                                          |
-| i18n            | next-intl v3 (URL-based: `/en/...`, `/mi/...`)      |
+| i18n            | next-intl v4 (URL-based: `/en/...`, `/mi/...`)      |
 | Testing         | Jest 29 + @testing-library/react v16.3.2            |
-| Linting         | ESLint 9.20 + eslint-config-next 16.2.9             |
+| Linting         | ESLint 9 + eslint-config-next                       |
 | Package manager | pnpm                                                |
 
-### Directory structure to create
+### Structure
 
-```
-apps/web/
-├── package.json
-├── tsconfig.json
-├── next.config.ts
-├── eslint.config.mjs
-├── jest.config.ts
-├── jest.setup.ts
-├── src/
-│   ├── proxy.ts               # next-intl routing proxy (Next.js 16 convention)
-│   ├── app/
-│   │   ├── layout.tsx             # Root layout (minimal, for next-intl)
-│   │   ├── api/
-│   │   │   ├── search/address/route.ts      # BFF proxy → FastAPI /search/address
-│   │   │   ├── location/analyze/route.ts    # BFF proxy → FastAPI /location/analyze
-│   │   │   └── categories/route.ts          # BFF proxy → FastAPI /categories
-│   │   └── [locale]/
-│   │       ├── layout.tsx         # Locale layout with QueryClient + Zustand providers
-│   │       ├── page.tsx           # Main page
-│   │       └── not-found.tsx
-│   ├── components/
-│   │   ├── SearchBar.tsx          # Floating search + autocomplete dropdown
-│   │   ├── MapView.tsx            # React Leaflet map (Client Component, ssr:false)
-│   │   ├── ResultsPanel.tsx       # Left panel (desktop) / bottom sheet (mobile)
-│   │   ├── CategoryGroup.tsx      # Collapsible group with map visibility toggle
-│   │   ├── FacilityItem.tsx       # Single facility row (name + distance)
-│   │   ├── ScoreDisplay.tsx       # Score section in panel
-│   │   ├── LoadingSkeleton.tsx    # Skeleton loaders for panel
-│   │   └── Toast.tsx              # Global error toast (top-right, auto-dismiss)
-│   ├── containers/
-│   │   ├── SearchContainer.tsx    # Wires SearchBar ↔ store ↔ analyze mutation
-│   │   └── AnalysisContainer.tsx  # Wires ResultsPanel ↔ store ↔ map
-│   ├── hooks/
-│   │   ├── useAddressSearch.ts    # 300ms debounced autocomplete query
-│   │   ├── useAnalyze.ts          # React Query mutation for /location/analyze
-│   │   └── useMapState.ts         # Map center/zoom state
-│   ├── services/
-│   │   └── api.ts                 # Typed fetch wrappers for BFF proxy routes
-│   ├── store/
-│   │   └── index.ts               # Zustand store (see shape below)
-│   ├── types/
-│   │   └── api.ts                 # TypeScript types matching backend responses
-│   └── i18n/
-│       ├── routing.ts             # next-intl routing config
-│       ├── request.ts             # next-intl server request config
-│       ├── en.json                # Full English translations
-│       └── mi.json                # Māori — same keys, placeholder values
-```
+- `src/app` — App Router; `[locale]/` pages (home, about, faq, data-sources); `api/*` BFF routes
+  forwarding to FastAPI; `robots.ts`, `sitemap.ts`
+- `src/containers/*` — wire store ↔ hooks ↔ components (e.g. `MapContainer`, `AnalysisContainer`)
+- `src/components/*` — presentational components, one folder each
+- `src/hooks`, `src/services/api.ts` (typed BFF fetch wrappers), `src/store/index.ts` (Zustand)
+- `src/types/api.ts` — TypeScript types matching backend responses; keep in sync with the API schemas
+- `src/i18n` — `routing.ts`, `request.ts`, `en.json`, `mi.json`, `globals.css`
+- `src/styles/tokens.ts` — brand color tokens
+- `src/middleware.ts` — next-intl routing
 
-### package.json name
-
-`@location-intelligence/web`
-
-### Zustand store shape
-
-```typescript
-{
-  selectedAddress: AddressResult | null
-  radiusKm: number                    // default 10
-  distanceMode: 'driving' | 'walking'
-  analysisResult: AnalyzeResponse | null
-  isAnalyzing: boolean
-  visibleCategories: Set<string>      // which category markers shown on map
-  // actions
-  setSelectedAddress: (addr: AddressResult | null) => void
-  setRadiusKm: (r: number) => void
-  setDistanceMode: (m: 'driving' | 'walking') => void
-  setAnalysisResult: (r: AnalyzeResponse | null) => void
-  setIsAnalyzing: (b: boolean) => void
-  toggleCategoryVisibility: (cat: string) => void
-}
-```
-
-### TypeScript types (types/api.ts) — must match backend exactly
-
-```typescript
-export interface AddressResult {
-  displayName: string;
-  lat: number;
-  lon: number;
-}
-export interface Feature {
-  id: string;
-  name: string;
-  category: string;
-  lat: number;
-  lon: number;
-  distanceKm: number;
-}
-export interface ScoreResult {
-  education: number | null;
-  healthcare: number | null;
-  transport: number | null;
-  shopping: number | null;
-  overall: number | null;
-  coverage: string;
-}
-export interface AnalyzeResponse {
-  location: { lat: number; lon: number; displayName: string };
-  features: Feature[];
-  score: ScoreResult;
-  warnings: string[];
-}
-export interface Category {
-  id: string;
-  label: string;
-  implemented: boolean;
-  color: string;
-}
-```
+Package name: `@location-intelligence/web`. Store, hooks and components sit next to their tests;
+read the source for their current shape.
 
 ### Layout — Desktop
 
@@ -326,19 +184,39 @@ Results panel becomes a draggable bottom sheet. Map occupies most of the screen.
 
 ### Theme
 
-- **Dark mode** with glassmorphism: `rgba` backgrounds + `backdrop-filter: blur`
-- Background: `#0f1117` or similar dark
-- Panels: semi-transparent over the map
+Solid, light-first UI with an opt-in dark toggle (`ThemeToggle`, persisted via
+`useLocationStore`). Only isolated surfaces (e.g. the score hero card's
+`.surface-glass-primary`) use a translucent/backdrop-blur treatment; panels are opaque.
+
+- **Brand colors**: single source of truth is `apps/web/src/styles/tokens.ts`
+  (hex scales for `primary`/`success`/`warning`/`error`, plus `info` aliased
+  to `primary` and `ink` for high-contrast text). `tailwind.config.ts` imports
+  it and wires each shade to a CSS variable, so Tailwind classes
+  (`bg-primary-500`, `text-error-600`, …) resolve through
+  `rgb(var(--color-x-500) / <alpha-value>)`.
+- **Dark mode**: the actual RGB values (light in `:root`, dark in `:root.dark`)
+  live in `src/i18n/globals.css`. Dark mode is a deliberate re-theme, not an
+  auto-invert — `primary` swaps to a distinct teal accent, while
+  `success`/`warning`/`error`/`slate` mirror shade-roles (50↔900, 100↔800, …).
+  Non-Tailwind consumers (Leaflet `divIcon` HTML strings and GeoJSON `style()`
+  callbacks in `MapContainer.tsx`) reference `rgb(var(--color-x-500))`
+  directly so they re-theme along with everything else — avoid literal CSS
+  colors (`white`, `black`, `rgba(0,0,0,...)`) in that file; use the
+  corresponding `--color-*` var instead, and match the `boxShadow` tokens'
+  `rgba(16,24,40,x)` convention for shadow color rather than plain black.
 - Font: Inter (via `next/font/google`)
 - Subtle micro-animations on interactions
 
 ### Map behavior
 
-- `dynamic(() => import('./MapView'), { ssr: false })` — no SSR
+- `containers/MapContainer/index.tsx` loads `MapContainer.tsx` via `dynamic(..., { ssr: false })` — no SSR
 - Import `leaflet/dist/leaflet.css` inside the component
 - Fix Leaflet default icon broken URLs in Next.js (delete `_getIconUrl`, set `iconUrl` manually)
 - Main location marker: red/accent colored pin
 - Category marker colors come from `/categories` API response (`color` field)
+  — a categorical palette hand-authored in `apps/api/app/config/scoring_config.py`
+  for marker-to-marker distinctiveness, intentionally separate from the
+  frontend brand tokens above
 - Cluster markers when count > 50 (use `leaflet.markercluster`)
 - Click marker → Leaflet popup: name, distance, category
 - Fit bounds on initial search result
@@ -369,63 +247,12 @@ Shows `"Analyzing..."` label while in-flight.
 - Each group header has a toggle to show/hide its markers on the map
 - Clicking a facility item → map centers on that marker and opens its popup
 - Skeleton loaders shown while `isAnalyzing` is true
+- Persistent primary-colour **Generate report** button (below the scrolling score, above the radius adjuster): starts a background PDF job, shows "Generating report…", then a toast with **Download** (failures offer **Retry**). Any change to address/radius/categories resets it
 - Empty state: illustration + "No facilities found within {radius}km. Try increasing your search radius." + button to auto-increase radius
 
-### i18n keys (en.json — must be complete; mi.json same keys)
+### i18n
 
-```json
-{
-  "search": {
-    "placeholder": "Search a New Zealand address...",
-    "loading": "Searching...",
-    "noResults": "No results found"
-  },
-  "radius": {
-    "label": "Radius",
-    "options": {
-      "1km": "1 km",
-      "5km": "5 km",
-      "10km": "10 km",
-      "20km": "20 km",
-      "custom": "Custom"
-    }
-  },
-  "analyze": { "button": "Analyze", "loading": "Analyzing..." },
-  "results": {
-    "title": "Results",
-    "noFacilities": "No facilities found within {radius}km. Try increasing your search radius.",
-    "schools": "Schools",
-    "busStops": "Bus Stops"
-  },
-  "score": {
-    "title": "Location Score",
-    "overall": "Overall",
-    "coverage": "Based on {count} of {total} categories",
-    "education": "Education",
-    "transport": "Transport",
-    "healthcare": "Healthcare",
-    "shopping": "Shopping"
-  },
-  "distance": {
-    "driving": "Driving",
-    "walking": "Walking",
-    "km": "{distance} km"
-  },
-  "errors": {
-    "generic": "Something went wrong. Please try again.",
-    "apiDown": "Service temporarily unavailable.",
-    "rateLimit": "Too many requests. Please wait a moment."
-  },
-  "map": {
-    "markerPopup": {
-      "name": "Name",
-      "distance": "Distance",
-      "category": "Category"
-    }
-  },
-  "nav": { "title": "Location Intelligence", "language": "Language" }
-}
-```
+Translations live in `src/i18n/en.json`; `mi.json` mirrors its keys. Add every new string to both.
 
 ### Notifications
 
@@ -479,6 +306,11 @@ OSRM_URL=http://localhost:5000
 OSRM_FOOT_URL=http://localhost:5001
 OSRM_BIKE_URL=http://localhost:5002
 REDIS_URL=redis://localhost:6379
+REPORT_TTL_SECONDS=3600
+REPORT_MAX_IN_FLIGHT=2
+REPORT_RENDER_TIMEOUT_SECONDS=60
+RATE_LIMIT_REPORT_TIMES=5
+RATE_LIMIT_REPORT_SECONDS=60
 SCORING_ALPHA=0.6
 SCORING_BETA=0.4
 SCORING_DENSITY_FACTOR=10
@@ -492,11 +324,4 @@ NEXT_PUBLIC_API_URL=http://localhost:8000
 ## Git / Remote
 
 - Remote: `git@github.com:sprajeesh/location-intelligence.git`
-- Default branch: `main`
-- Committed so far: monorepo scaffolding + full backend + full frontend (Next.js 16)
-
-### Changelog
-
-| Date       | Branch                | Description                                                                                                                                             |
-| ---------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 2026-06-23 | `upgrade/next-16-lts` | Upgraded Next.js 15 → 16.2.9 (Active LTS); migrated `middleware.ts` → `proxy.ts`; updated peer dependencies; resolved all TypeScript strict-mode errors |
+- Default branch: `main`; use feature branches and PRs

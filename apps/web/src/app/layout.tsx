@@ -1,6 +1,9 @@
 import { ReactNode } from 'react';
 import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
+import { getLocale } from 'next-intl/server';
+import { primary } from '@/styles/tokens';
+import { getSiteUrl } from '@/lib/siteUrl';
 import '../i18n/globals.css';
 
 const inter = Inter({
@@ -12,10 +15,10 @@ export const metadata: Metadata = {
   // Resolves relative canonical/OpenGraph URLs set by route metadata (e.g.
   // src/app/[locale]/page.tsx). Set NEXT_PUBLIC_SITE_URL in production to the
   // real deployed hostname.
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'),
+  metadataBase: new URL(getSiteUrl()),
   title: 'Location Intelligence',
   description:
-    'Discover nearby facilities and neighborhood scores for any NZ address',
+    'Discover nearby facilities and neighbourhood scores for any NZ address',
   manifest: '/manifest.json',
   icons: {
     icon: [
@@ -29,7 +32,14 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#0B5CFF',
+  // Browser-chrome metadata (address bar / task switcher tint) has to be a
+  // static hex — it can't reference the CSS vars in src/i18n/globals.css,
+  // which only exist once Tailwind's output CSS loads in the browser. It CAN
+  // import the plain hex constant from src/styles/tokens.ts, so this stays in
+  // sync automatically. `public/manifest.json`'s `theme_color`/
+  // `background_color` (mirroring this value and `white` respectively) can't
+  // import TS and still need the same update by hand if this ever changes.
+  themeColor: primary[500],
 };
 
 // Reads the persisted theme choice and sets the `dark` class before React
@@ -38,9 +48,10 @@ export const viewport: Viewport = {
 // src/store/index.ts.
 const THEME_INIT_SCRIPT = `(function(){try{var s=localStorage.getItem('li-theme');if(s){var t=JSON.parse(s).state.theme;if(t==='dark')document.documentElement.classList.add('dark');}}catch(e){}})();`;
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default async function RootLayout({ children }: { children: ReactNode }) {
+  const locale = await getLocale();
   return (
-    <html className={inter.variable} suppressHydrationWarning>
+    <html lang={locale} className={inter.variable} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>

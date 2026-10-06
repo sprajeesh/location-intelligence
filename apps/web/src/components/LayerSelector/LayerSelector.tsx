@@ -3,6 +3,8 @@
 import React, { useEffect, useRef } from "react";
 import { Layers, Map, Satellite, Mountain } from "lucide-react";
 import { ToolbarButton } from "@/components/ToolbarButton";
+import { Button } from "@/components/ui/Button";
+import { SURFACE_PANEL_CLASSES } from "@/components/ui/SurfacePanel";
 
 export type MapLayerId = "default" | "satellite" | "topo";
 
@@ -69,12 +71,12 @@ export function LayerSelector({ activeLayer, onSelectLayer }: LayerSelectorProps
 
       {isOpen && (
         <div
-          className="
+          className={`
             absolute right-full top-1/2 -translate-y-1/2 mr-2
-            bg-white border border-slate-200
-            rounded-lg shadow-popover py-1 min-w-[120px] z-50
+            ${SURFACE_PANEL_CLASSES.popover}
+            py-1 min-w-[120px] z-50
             animate-in fade-in slide-in-from-right-1 duration-150
-          "
+          `}
           role="menu"
           aria-label="Map layers"
           onClick={(e) => e.stopPropagation()}
@@ -84,10 +86,10 @@ export function LayerSelector({ activeLayer, onSelectLayer }: LayerSelectorProps
             const isActive = activeLayer === layer.id;
 
             return (
-              <button
+              <Button
                 key={layer.id}
+                unstyled
                 onClick={() => handleSelect(layer.id)}
-                type="button"
                 role="menuitem"
                 aria-current={isActive ? "true" : undefined}
                 className={`
@@ -105,7 +107,7 @@ export function LayerSelector({ activeLayer, onSelectLayer }: LayerSelectorProps
                 {isActive && (
                   <div className="ml-auto w-1.5 h-1.5 rounded-full bg-primary-500" />
                 )}
-              </button>
+              </Button>
             );
           })}
         </div>

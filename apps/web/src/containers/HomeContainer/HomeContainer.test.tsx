@@ -3,6 +3,17 @@ import { HomeContainer } from './HomeContainer';
 
 jest.mock('@/store');
 jest.mock('@/hooks/useAddressSearch');
+jest.mock('@/hooks/useIsDesktop');
+jest.mock('@/hooks/useAnalyzeCategories', () => ({ useAnalyzeCategories: () => ['schools'] }));
+jest.mock('@/hooks/useAnalyzeCategoryWeights', () => ({ useAnalyzeCategoryWeights: () => ({ schools: 1 }) }));
+jest.mock('@/hooks/useReportAction', () => ({
+  useReportAction: () => ({
+    generating: false,
+    ready: false,
+    disabled: true,
+    onClick: jest.fn(),
+  }),
+}));
 jest.mock('@/containers/SearchContainer', () => ({
   SearchContainer: () => <div data-testid="search-container-mock" />,
 }));
@@ -14,6 +25,15 @@ jest.mock('@/containers/MapContainer', () => ({
 }));
 jest.mock('@/containers/SettingsContainer', () => ({
   SettingsContainer: () => <div data-testid="settings-container-mock" />,
+}));
+jest.mock('@/components/ReportButton', () => ({
+  ReportButton: () => <button data-testid="report-button-mock">Report</button>,
+}));
+jest.mock('@/components/ThemeToggle', () => ({
+  ThemeToggle: () => <div data-testid="theme-toggle-mock" />,
+}));
+jest.mock('@/containers/MobileViewToggleContainer', () => ({
+  MobileViewToggleContainer: () => <div data-testid="mobile-view-toggle-mock" />,
 }));
 jest.mock('@/components/PanelCollapseButton/PanelCollapseButton', () => ({
   __esModule: true,
@@ -30,9 +50,11 @@ jest.mock('@/components/PanelCollapseButton/PanelCollapseButton', () => ({
 
 import { useLocationStore } from '@/store';
 import { useAddressSearch } from '@/hooks/useAddressSearch';
+import { useIsDesktop } from '@/hooks/useIsDesktop';
 
 const mockUseLocationStore = useLocationStore as jest.MockedFunction<typeof useLocationStore>;
 const mockUseAddressSearch = useAddressSearch as jest.MockedFunction<typeof useAddressSearch>;
+const mockUseIsDesktop = useIsDesktop as jest.MockedFunction<typeof useIsDesktop>;
 
 const MOCK_ADDRESS = { displayName: '123 Main St, Auckland', lat: -36.85, lon: 174.76 };
 
@@ -86,6 +108,7 @@ describe('HomeContainer', () => {
       isLoading: false,
       error: null,
     });
+    mockUseIsDesktop.mockReturnValue(true); // Default to desktop
   });
 
   describe('Before an address is selected', () => {
@@ -155,6 +178,34 @@ describe('HomeContainer', () => {
     it('renders AnalysisContainer in the panel slot', () => {
       render(<HomeContainer />);
       expect(screen.getByTestId('analysis-container-mock')).toBeInTheDocument();
+    });
+  });
+
+  describe('Controls group', () => {
+    it('hides the mobile controls bar in the results view (ResultsPanel owns them there)', () => {
+      mockUseIsDesktop.mockReturnValue(false);
+      mockUseLocationStore.mockReturnValue(
+        makeStoreState({ selectedAddress: MOCK_ADDRESS, isMapViewOnMobile: false })
+      );
+      render(<HomeContainer />);
+      expect(screen.queryByTestId('theme-toggle-mock')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('report-button-mock')).not.toBeInTheDocument();
+    });
+
+    it('shows mobile controls in map view: Theme, Scoring, Map toggle and Report (right-aligned)', () => {
+      mockUseIsDesktop.mockReturnValue(false); // Mobile view
+      mockUseLocationStore.mockReturnValue(
+        makeStoreState({ selectedAddress: MOCK_ADDRESS, isMapViewOnMobile: true })
+      );
+      render(<HomeContainer />);
+      const theme = screen.getByTestId('theme-toggle-mock');
+      const settings = screen.getByTestId('settings-container-mock');
+      const mapToggle = screen.getByTestId('mobile-view-toggle-mock');
+      const report = screen.getByTestId('report-button-mock');
+      expect(theme).toBeInTheDocument();
+      expect(settings).toBeInTheDocument();
+      expect(mapToggle).toBeInTheDocument();
+      expect(report).toBeInTheDocument();
     });
   });
 

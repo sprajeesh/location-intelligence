@@ -2,14 +2,20 @@
 
 import { useMemo } from "react";
 import { useTranslations } from "next-intl";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, HelpCircle } from "lucide-react";
 import type { CategoryScoreResult, Feature } from "@/types/api";
-import { formatScoreValue, getScoreColorClass, resolveFacilityDisplayStatus, sortFacilitiesForDisplay } from "@/utils/scoreDisplay";
+import {
+  formatScoreValue,
+  getScoreColorClass,
+  resolveFacilityDisplayStatus,
+  sortFacilitiesForDisplay,
+} from "@/utils/scoreDisplay";
 import { getScoreCategoryIcon } from "@/utils/categoryIcons";
 import { FacilityScoreRow } from "@/components/FacilityScoreRow";
 import { StatusPill } from "@/components/StatusPill";
 import { CollapsibleCard } from "@/components/ui/CollapsibleCard";
 import { IconButton } from "@/components/ui/IconButton";
+import { getVisibilityToggleClasses } from "@/components/ui/Button";
 
 /**
  * CategoryScoreCard — Collapsible card for one of the five composite
@@ -39,6 +45,10 @@ export interface CategoryScoreCardProps {
   onToggleCategoryVisibility?: (featureIds: string[], makeVisible: boolean) => void;
   onFacilityClick?: (feature: Feature) => void;
   onNavigate?: (feature: Feature) => void;
+  // Score explanation is presented by a container (see ResultsPanel), which
+  // owns the open/close state and portals ScoreExplainModal to document.body
+  // -- this component only reports the click, it never renders the modal.
+  onExplainCategory?: (category: CategoryScoreResult) => void;
 }
 
 export function CategoryScoreCard({
@@ -52,6 +62,7 @@ export function CategoryScoreCard({
   onToggleCategoryVisibility,
   onFacilityClick,
   onNavigate,
+  onExplainCategory,
 }: CategoryScoreCardProps) {
   const t = useTranslations();
   const isNotChecked = category.status === "not_checked";
@@ -125,26 +136,33 @@ export function CategoryScoreCard({
         )
       }
       actions={
-        onToggleCategoryVisibility && categoryFeatureIds.length > 0 ? (
+        <>
           <IconButton
-            icon={isCategoryVisible ? Eye : EyeOff}
+            icon={HelpCircle}
             size="sm"
-            pressed={isCategoryVisible}
-            onClick={() => onToggleCategoryVisibility(categoryFeatureIds, !isCategoryVisible)}
-            label={t(isCategoryVisible ? "score.markers.hide" : "score.markers.show", {
+            onClick={() => onExplainCategory?.(category)}
+            label={t("score.explain.openCategory", {
               label,
-              defaultValue: `${isCategoryVisible ? "Hide" : "Show"} ${label} markers on map`,
+              defaultValue: `Explain the ${label} score`,
             })}
-            title={t(isCategoryVisible ? "score.markers.hideTitle" : "score.markers.showTitle", {
-              defaultValue: isCategoryVisible ? "Hide markers" : "Show markers",
-            })}
-            className={
-              isCategoryVisible
-                ? "text-primary-600 hover:text-primary-700 hover:bg-primary-50"
-                : "text-slate-400 hover:text-slate-500 hover:bg-slate-100"
-            }
           />
-        ) : undefined
+          {onToggleCategoryVisibility && categoryFeatureIds.length > 0 ? (
+            <IconButton
+              icon={isCategoryVisible ? Eye : EyeOff}
+              size="sm"
+              pressed={isCategoryVisible}
+              onClick={() => onToggleCategoryVisibility(categoryFeatureIds, !isCategoryVisible)}
+              label={t(isCategoryVisible ? "score.markers.hide" : "score.markers.show", {
+                label,
+                defaultValue: `${isCategoryVisible ? "Hide" : "Show"} ${label} markers on map`,
+              })}
+              title={t(isCategoryVisible ? "score.markers.hideTitle" : "score.markers.showTitle", {
+                defaultValue: isCategoryVisible ? "Hide markers" : "Show markers",
+              })}
+              className={getVisibilityToggleClasses(isCategoryVisible)}
+            />
+          ) : undefined}
+        </>
       }
     >
       <ul className="space-y-2">

@@ -23,6 +23,7 @@ const config: Config = {
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
     './src/containers/**/*.{js,ts,jsx,tsx,mdx}',
     './src/app/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/utils/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   theme: {
     extend: {
@@ -37,6 +38,7 @@ const config: Config = {
         warning: cssVarScale('warning', warning),
         error: cssVarScale('error', error),
         ink: 'rgb(var(--color-ink) / <alpha-value>)',
+        heading: 'rgb(var(--color-heading) / <alpha-value>)',
         white: 'rgb(var(--color-white) / <alpha-value>)',
         slate: cssVarScale('slate', Object.fromEntries(SLATE_SHADES.map((s) => [s, s]))),
       },

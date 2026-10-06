@@ -23,6 +23,12 @@ const notCheckedFacility: FacilityScoreResult = {
   nearestDistanceKm: null,
   count: 0,
   explanation: 'Park not checked for this address.',
+  criteria: [],
+  proximityScore: null,
+  densityScore: null,
+  proximityWeight: null,
+  densityWeight: null,
+  leg: null,
 };
 
 const noDataFoundFacility: FacilityScoreResult = {
@@ -32,6 +38,12 @@ const noDataFoundFacility: FacilityScoreResult = {
   nearestDistanceKm: null,
   count: 0,
   explanation: 'No hospital found nearby.',
+  criteria: [],
+  proximityScore: null,
+  densityScore: null,
+  proximityWeight: null,
+  densityWeight: null,
+  leg: null,
 };
 
 const scoredFacility: FacilityScoreResult = {
@@ -41,6 +53,12 @@ const scoredFacility: FacilityScoreResult = {
   nearestDistanceKm: 0.52,
   count: 4,
   explanation: '1 schools within 1.0 km by walk, plus 2 more up to 1.9 km away.',
+  criteria: [],
+  proximityScore: null,
+  densityScore: null,
+  proximityWeight: null,
+  densityWeight: null,
+  leg: null,
 };
 
 describe('FacilityScoreRow', () => {

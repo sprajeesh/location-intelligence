@@ -1,19 +1,37 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { useTranslations } from "next-intl";
 import { Search, FileText } from "lucide-react";
 import { useLocationStore } from "@/store/index";
-import type { Feature } from "@/types/api";
+import type { CategoryScoreResult, Feature } from "@/types/api";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
 import ScoreDisplay from "@/components/ScoreDisplay";
+import { ScoreExplainModal } from "@/components/ScoreExplainModal";
 import { RadiusAdjuster } from "@/components/RadiusAdjuster";
-import { SurfacePanel } from "@/components/ui/SurfacePanel";
+import { ReportButton } from "@/components/ReportButton";
+import { MobileControlsBar } from "@/containers/MobileControlsBar";
+import { SurfacePanel, CHIP_BORDER_SHADOW } from "@/components/ui/SurfacePanel";
 import { useNavigate } from "@/hooks/useNavigate";
 import { useAnalyze } from "@/hooks/useAnalyze";
 import { useAnalyzeCategories } from "@/hooks/useAnalyzeCategories";
 import { useAnalyzeCategoryWeights } from "@/hooks/useAnalyzeCategoryWeights";
 import { useCategoryColorMap } from "@/hooks/useCategoryColorMap";
+import { useIsDesktop } from "@/hooks/useIsDesktop";
+import { useReportAction } from "@/hooks/useReportAction";
+import { buildCategoryExplainItems, buildOverallExplainItems } from "@/utils/scoreDisplay";
+
+// What the "?" icon last opened -- owned here (not by ScoreDisplay/
+// CategoryScoreCard, which stay pure/prop-driven) so the modal can be
+// portaled to document.body, escaping the results panel's row-entrance
+// animation (see globals.css's .animate-row-in), which leaves a lingering
+// `transform` on its element and would otherwise turn it into a containing
+// block for the modal's `position: fixed` backdrop -- confining it to the
+// panel's width instead of the full viewport.
+type ExplainTarget =
+  | { kind: "overall" }
+  | { kind: "category"; category: CategoryScoreResult; entryPoint: "overall" | "facility" };
 
 /**
  * ResultsPanel — Left side panel (desktop) or bottom sheet (mobile).
@@ -40,6 +58,7 @@ export default function ResultsPanel({
   className = "",
 }: ResultsPanelProps) {
   const t = useTranslations();
+  const isDesktop = useIsDesktop();
 
   // Store state
   const {
@@ -63,6 +82,25 @@ export default function ResultsPanel({
   const analyzeCategories = useAnalyzeCategories();
   const analyzeCategoryWeights = useAnalyzeCategoryWeights();
   const categoryColorMap = useCategoryColorMap();
+
+  const [explainTarget, setExplainTarget] = useState<ExplainTarget | null>(null);
+  const handleExplainOverall = useCallback(() => setExplainTarget({ kind: "overall" }), []);
+  const handleExplainCategory = useCallback(
+    (category: CategoryScoreResult) => setExplainTarget({ kind: "category", category, entryPoint: "facility" }),
+    [],
+  );
+  const handleCloseExplain = useCallback(() => setExplainTarget(null), []);
+  const handleGoBackToOverall = useCallback(() => setExplainTarget({ kind: "overall" }), []);
+  // Drill-down from a category row inside the overall-score modal into that
+  // category's own explanation -- only ever wired up while the overall modal
+  // is open (see the ScoreExplainModal render below).
+  const handleSelectCategoryFromOverall = useCallback(
+    (categoryId: string) => {
+      const category = analysisResult?.score?.categories.find((c) => c.category === categoryId);
+      if (category) setExplainTarget({ kind: "category", category, entryPoint: "overall" });
+    },
+    [analysisResult],
+  );
 
   // On mobile, showing a marker switches from the results panel to the
   // full-screen map so the newly-shown pin is actually visible.
@@ -134,6 +172,27 @@ export default function ResultsPanel({
     ],
   );
 
+  // The report covers exactly the analysis on screen (same address, radius,
+  // categories, weights and distance mode); any change resets the button.
+  const reportRequest = useMemo(
+    () =>
+      selectedAddress && analysisResult && !isAnalyzing
+        ? {
+            address: selectedAddress.displayName,
+            lat: selectedAddress.lat,
+            lon: selectedAddress.lon,
+            radiusKm,
+            distanceMode,
+            categories: analyzeCategories,
+            categoryWeights: analyzeCategoryWeights,
+          }
+        : null,
+    [selectedAddress, analysisResult, isAnalyzing, radiusKm, distanceMode, analyzeCategories, analyzeCategoryWeights],
+  );
+
+  // Manage report generation state and toasts
+  const reportAction = useReportAction(reportRequest);
+
   // Remount the adjuster (collapsing it and resetting its draft value) whenever the address changes
   const addressKey = selectedAddress
     ? `${selectedAddress.lat},${selectedAddress.lon}`
@@ -200,39 +259,90 @@ export default function ResultsPanel({
 
   // Render results
   return (
-    <SurfacePanel
-      key={addressKey}
-      as="section"
-      variant="sidebar"
-      aria-label={t("results.title")}
-      className={`w-full h-full overflow-hidden flex flex-col animate-panel-in ${className}`}
-    >
-      {/* Score -- the only part that scrolls */}
-      <div className="flex-1 min-h-0 overflow-y-auto px-4 sm:px-6 py-3 sm:py-4 space-y-3">
-        {analysisResult?.score && (
-          <ScoreDisplay
-            score={analysisResult.score}
-            warnings={analysisResult.warnings}
-            features={analysisResult.features}
-            categoryColorMap={categoryColorMap}
-            visibleFacilityIds={visibleFacilityIds}
-            onToggleFacilityVisibility={handleToggleFacilityVisibility}
-            onToggleCategoryVisibility={handleToggleCategoryVisibility}
-            onFacilityClick={handleFacilityClick}
-            onNavigate={navigate}
-          />
-        )}
-      </div>
+    <>
+      <SurfacePanel
+        key={addressKey}
+        as="section"
+        variant="sidebar"
+        aria-label={t("results.title")}
+        className={`w-full h-full overflow-hidden flex flex-col animate-panel-in ${className}`}
+      >
+        {/* Score -- the only part that scrolls */}
+        <div className="flex-1 min-h-0 overflow-y-auto px-4 sm:px-6 py-3 sm:py-4 space-y-3">
+          {analysisResult?.score && (
+            <ScoreDisplay
+              score={analysisResult.score}
+              warnings={analysisResult.warnings}
+              features={analysisResult.features}
+              categoryColorMap={categoryColorMap}
+              visibleFacilityIds={visibleFacilityIds}
+              onToggleFacilityVisibility={handleToggleFacilityVisibility}
+              onToggleCategoryVisibility={handleToggleCategoryVisibility}
+              onFacilityClick={handleFacilityClick}
+              onNavigate={navigate}
+              onExplainOverall={handleExplainOverall}
+              onExplainCategory={handleExplainCategory}
+            />
+          )}
+        </div>
 
-      {/* Radius adjuster — persistent, visible below the score */}
-      <div className="flex-shrink-0 border-t border-slate-200 px-4 sm:px-6 py-3 sm:py-4">
-        <RadiusAdjuster
-          key={addressKey}
-          initialValue={radiusKm}
-          disabled={isAnalyzing}
-          onSearch={handleRadiusSearch}
-        />
-      </div>
-    </SurfacePanel>
+        {/* Full PDF report -- desktop only; on mobile it lives in the controls section below */}
+        {isDesktop && (
+          <div className="flex-shrink-0 border-t border-slate-200 px-4 sm:px-6 pt-3 sm:pt-4">
+            <ReportButton
+              generating={reportAction.generating}
+              ready={reportAction.ready}
+              disabled={reportAction.disabled}
+              onClick={reportAction.onClick}
+              fullLabel
+              className={CHIP_BORDER_SHADOW}
+            />
+          </div>
+        )}
+
+        {/* Radius adjuster — persistent, visible below the score */}
+        <div className="flex-shrink-0 px-4 sm:px-6 py-3 sm:py-4">
+          <RadiusAdjuster
+            key={addressKey}
+            initialValue={radiusKm}
+            disabled={isAnalyzing}
+            onSearch={handleRadiusSearch}
+          />
+        </div>
+
+        {/* Mobile controls -- this branch only renders once an analysis exists, so an address is always selected and Report is safe to show */}
+        {!isDesktop && <MobileControlsBar report={reportAction} />}
+      </SurfacePanel>
+
+      {explainTarget &&
+        analysisResult?.score &&
+        createPortal(
+          <ScoreExplainModal
+            title={
+              explainTarget.kind === "overall"
+                ? t("score.title", { defaultValue: "Location Score" })
+                : t(`score.categories.${explainTarget.category.category}`, {
+                    defaultValue: explainTarget.category.category,
+                  })
+            }
+            score={
+              explainTarget.kind === "overall"
+                ? analysisResult.score.overall
+                : explainTarget.category.score
+            }
+            items={
+              explainTarget.kind === "overall"
+                ? buildOverallExplainItems(analysisResult.score)
+                : buildCategoryExplainItems(explainTarget.category)
+            }
+            itemNamespace={explainTarget.kind === "overall" ? "categories" : "facilityTypes"}
+            onClose={handleCloseExplain}
+            onSelectItem={explainTarget.kind === "overall" ? handleSelectCategoryFromOverall : undefined}
+            entryPoint={explainTarget.kind === "category" ? explainTarget.entryPoint : undefined}
+            onBack={explainTarget.kind === "category" ? handleGoBackToOverall : undefined}
+          />,
+          document.body,
+        )}
+    </>
   );
 }

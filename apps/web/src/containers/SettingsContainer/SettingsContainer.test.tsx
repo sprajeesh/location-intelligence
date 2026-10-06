@@ -69,9 +69,9 @@ beforeEach(() => {
 });
 
 describe("SettingsContainer", () => {
-  it("renders the Settings gear button", () => {
+  it("renders the Scoring button", () => {
     render(<SettingsContainer />);
-    expect(screen.getByRole("button", { name: "Settings" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Scoring" })).toBeInTheDocument();
   });
 
   it("fetches categories on mount", () => {
@@ -86,7 +86,7 @@ describe("SettingsContainer", () => {
 
   it("opens the modal when the gear button is clicked", async () => {
     render(<SettingsContainer />);
-    await userEvent.click(screen.getByRole("button", { name: "Settings" }));
+    await userEvent.click(screen.getByRole("button", { name: "Scoring" }));
     expect(screen.getByRole("dialog")).toBeInTheDocument();
     expect(screen.getByText("Schools")).toBeInTheDocument();
   });
@@ -96,7 +96,7 @@ describe("SettingsContainer", () => {
     mockUseLocationStore.mockReturnValue(makeStoreState({ setSelectedFacilities }));
 
     render(<SettingsContainer />);
-    await userEvent.click(screen.getByRole("button", { name: "Settings" }));
+    await userEvent.click(screen.getByRole("button", { name: "Scoring" }));
     await userEvent.click(screen.getByLabelText("Kindergartens"));
     await userEvent.click(screen.getByRole("button", { name: "Close" }));
 
@@ -110,7 +110,7 @@ describe("SettingsContainer", () => {
       mockUseLocationStore.mockReturnValue(makeStoreState({ setSelectedFacilities }));
 
       render(<SettingsContainer />);
-      await userEvent.click(screen.getByRole("button", { name: "Settings" }));
+      await userEvent.click(screen.getByRole("button", { name: "Scoring" }));
       await userEvent.click(screen.getByLabelText("Kindergartens"));
       await userEvent.click(screen.getByRole("button", { name: "Save" }));
 
@@ -120,20 +120,26 @@ describe("SettingsContainer", () => {
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     });
 
-    it("saves null when the draft matches the DB defaults, so the API keeps using its own default set", async () => {
+    it("saves null when the user reverts to default facilities", async () => {
       const setSelectedFacilities = jest.fn();
+      const setCategoryWeights = jest.fn();
       mockUseLocationStore.mockReturnValue(
-        makeStoreState({ setSelectedFacilities, selectedFacilities: ["kindergartens"] }),
+        makeStoreState({ setSelectedFacilities, setCategoryWeights, selectedFacilities: ["kindergartens"] }),
       );
 
       render(<SettingsContainer />);
-      await userEvent.click(screen.getByRole("button", { name: "Settings" }));
-      // Draft seeds from the saved selection (kindergartens); toggle back to the defaults.
+      await userEvent.click(screen.getByRole("button", { name: "Scoring" }));
+      // Draft seeds from saved selection (kindergartens); toggle back to default (schools).
       await userEvent.click(screen.getByLabelText("Kindergartens"));
       await userEvent.click(screen.getByLabelText("Schools"));
+      // Adjust weights to valid (education: 100%, since we only have education active)
+      fireEvent.change(screen.getByLabelText("education"), { target: { value: "100" } });
       await userEvent.click(screen.getByRole("button", { name: "Save" }));
 
+      // Saving default facilities sends null to the API
       expect(setSelectedFacilities).toHaveBeenCalledWith(null);
+      // Default weights should be saved explicitly if touched
+      expect(setCategoryWeights).toHaveBeenCalledWith({ education: 1 });
     });
 
     it("saves the user's explicit weights even when they coincidentally equal the computed default", async () => {
@@ -161,15 +167,13 @@ describe("SettingsContainer", () => {
       mockUseLocationStore.mockReturnValue(makeStoreState({ setCategoryWeights }));
 
       render(<SettingsContainer />);
-      await userEvent.click(screen.getByRole("button", { name: "Settings" }));
+      await userEvent.click(screen.getByRole("button", { name: "Scoring" }));
       await userEvent.click(screen.getByLabelText("Parks"));
       await userEvent.click(screen.getByLabelText("Restaurants"));
-      const recreationInput = screen.getByLabelText("recreation weight percent");
-      await userEvent.clear(recreationInput);
-      await userEvent.type(recreationInput, "50");
-      const foodInput = screen.getByLabelText("food_and_drink weight percent");
-      await userEvent.clear(foodInput);
-      await userEvent.type(foodInput, "50");
+      // Adjust recreation slider to 50%
+      fireEvent.change(screen.getByLabelText("recreation"), { target: { value: "50" } });
+      // Adjust food_and_drink slider to 50%
+      fireEvent.change(screen.getByLabelText("food_and_drink"), { target: { value: "50" } });
       await userEvent.click(screen.getByRole("button", { name: "Save" }));
 
       expect(setCategoryWeights).toHaveBeenCalledWith({ recreation: 0.5, food_and_drink: 0.5 });
@@ -188,7 +192,7 @@ describe("SettingsContainer", () => {
       );
 
       render(<SettingsContainer />);
-      await userEvent.click(screen.getByRole("button", { name: "Settings" }));
+      await userEvent.click(screen.getByRole("button", { name: "Scoring" }));
       await userEvent.click(screen.getByLabelText("Kindergartens"));
       await userEvent.click(screen.getByRole("button", { name: "Save" }));
 
@@ -214,7 +218,7 @@ describe("SettingsContainer", () => {
       );
 
       render(<SettingsContainer />);
-      await userEvent.click(screen.getByRole("button", { name: "Settings" }));
+      await userEvent.click(screen.getByRole("button", { name: "Scoring" }));
       await userEvent.click(screen.getByRole("button", { name: "Save" }));
 
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
@@ -253,7 +257,7 @@ describe("SettingsContainer", () => {
       );
 
       render(<SettingsContainer />);
-      await userEvent.click(screen.getByRole("button", { name: "Settings" }));
+      await userEvent.click(screen.getByRole("button", { name: "Scoring" }));
       fireEvent.change(screen.getByLabelText("education"), { target: { value: "70" } });
       fireEvent.change(screen.getByLabelText("transport"), { target: { value: "30" } });
       await userEvent.click(screen.getByRole("button", { name: "Save" }));
@@ -278,7 +282,7 @@ describe("SettingsContainer", () => {
       );
 
       render(<SettingsContainer />);
-      await userEvent.click(screen.getByRole("button", { name: "Settings" }));
+      await userEvent.click(screen.getByRole("button", { name: "Scoring" }));
       await userEvent.click(screen.getByLabelText("Kindergartens"));
       await userEvent.click(screen.getByRole("button", { name: "Save" }));
       await userEvent.click(screen.getByRole("button", { name: "Not now" }));

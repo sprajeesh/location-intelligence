@@ -1,4 +1,5 @@
 import logging
+from typing import Any
 
 import httpx
 from fastapi import APIRouter, HTTPException, Request
@@ -7,7 +8,10 @@ from app.models.domain import Facility
 from app.schemas.requests import AnalyzeRequest
 from app.schemas.responses import (
     AnalyzeResponse,
+    CategoryContributionResult,
     CategoryScoreResult,
+    FacilityContributionResult,
+    FacilityCriterionResult,
     FacilityScoreResult,
     FeatureResult,
     LocationResult,
@@ -33,11 +37,20 @@ async def analyze_location(
     body: AnalyzeRequest,
     request: Request,
 ) -> AnalyzeResponse:
-    geocoding_svc = request.app.state.geocoding_svc
-    facilities_svc = request.app.state.facilities_svc
-    distance_svc = request.app.state.distance_svc
-    scoring_svc = request.app.state.scoring_svc
-    wikidata_enrichment_svc = request.app.state.wikidata_enrichment_svc
+    return await run_analysis(request.app.state, body)
+
+
+async def run_analysis(state: Any, body: AnalyzeRequest) -> AnalyzeResponse:
+    """The full analyze pipeline, callable outside a request (e.g. report jobs).
+
+    `state` is the FastAPI `app.state`. Raises HTTPException on client errors,
+    exactly as the route does.
+    """
+    geocoding_svc = state.geocoding_svc
+    facilities_svc = state.facilities_svc
+    distance_svc = state.distance_svc
+    scoring_svc = state.scoring_svc
+    wikidata_enrichment_svc = state.wikidata_enrichment_svc
 
     warnings: list[str] = []
 
@@ -68,15 +81,13 @@ async def analyze_location(
 
     # --- Step 2: Resolve requested categories (None = use DB-configured defaults) ---
     categories = (
-        body.categories
-        if body.categories is not None
-        else request.app.state.scoring_config.default_categories
+        body.categories if body.categories is not None else state.scoring_config.default_categories
     )
 
     # The schema only bounds shape (length/dedup) -- the real category set is
     # DB-loaded and only available here, so this is the authoritative check
     # against the confirmed "categories: [garbage]*N" abuse vector.
-    known_categories = {c.id for c in request.app.state.scoring_config.categories}
+    known_categories = {c.id for c in state.scoring_config.categories}
     unknown_categories = set(categories) - known_categories
     if unknown_categories:
         raise HTTPException(
@@ -87,7 +98,7 @@ async def analyze_location(
     # Same rationale as the categories check above: the schema only bounds
     # shape, the real composite-category set is DB-loaded and only known here.
     if body.category_weights is not None:
-        known_composite_categories = set(request.app.state.scoring_config.category_weights)
+        known_composite_categories = set(state.scoring_config.category_weights)
         unknown_weight_categories = set(body.category_weights) - known_composite_categories
         if unknown_weight_categories:
             raise HTTPException(
@@ -156,11 +167,40 @@ async def analyze_location(
                         nearest_distance_km=fac.nearest_distance_km,
                         count=fac.count,
                         explanation=fac.explanation,
+                        criteria=[
+                            FacilityCriterionResult(
+                                label=criterion.label,
+                                satisfied=criterion.satisfied,
+                                detail=criterion.detail,
+                            )
+                            for criterion in fac.criteria
+                        ],
+                        proximity_score=fac.proximity_score,
+                        density_score=fac.density_score,
+                        proximity_weight=fac.proximity_weight,
+                        density_weight=fac.density_weight,
+                        leg=fac.leg,
                     )
                     for fac in cat.facilities
                 ],
+                contribution=[
+                    FacilityContributionResult(
+                        facility_type=contrib.facility_type,
+                        weight_pct=contrib.weight_pct,
+                        score=contrib.score,
+                    )
+                    for contrib in cat.contribution
+                ],
             )
             for cat in domain_score.categories
+        ],
+        contribution=[
+            CategoryContributionResult(
+                category=contrib.category,
+                weight_pct=contrib.weight_pct,
+                score=contrib.score,
+            )
+            for contrib in domain_score.contribution
         ],
     )
 

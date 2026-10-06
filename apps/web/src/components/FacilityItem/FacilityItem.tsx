@@ -4,6 +4,7 @@ import type { MouseEvent } from "react";
 import { useTranslations } from "next-intl";
 import { Navigation, Eye, EyeOff } from "lucide-react";
 import type { Feature } from "@/types/api";
+import { Button, getVisibilityToggleClasses } from "@/components/ui/Button";
 import { IconButton } from "@/components/ui/IconButton";
 import { getCategoryIcon } from "@/utils/categoryIcons";
 
@@ -37,7 +38,7 @@ export default function FacilityItem({
           className="w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 mt-1"
           style={{ backgroundColor: markerColor }}
         >
-          <Icon size={10} color="white" aria-hidden="true" />
+          <Icon size={10} color="rgb(var(--color-white))" aria-hidden="true" />
         </div>
         <span className="text-sm text-slate-700 truncate group-hover:text-slate-900 transition-colors">
           {feature.name}
@@ -55,8 +56,8 @@ export default function FacilityItem({
   return (
     <div className="flex items-center gap-1 group">
       {onClick ? (
-        <button
-          type="button"
+        <Button
+          unstyled
           onClick={onClick}
           className={`
             flex-1 min-w-0 text-left px-3 py-2 rounded-lg
@@ -64,10 +65,10 @@ export default function FacilityItem({
             hover:bg-slate-100
             focus-ring-inset active:bg-slate-200 active:scale-[0.99]
           `}
-          aria-label={rowLabel}
+          ariaLabel={rowLabel}
         >
           {rowContent}
-        </button>
+        </Button>
       ) : (
         <div
           className="flex-1 min-w-0 text-left px-3 py-2 rounded-lg"
@@ -83,11 +84,7 @@ export default function FacilityItem({
           size="sm"
           pressed={isVisible}
           onClick={onToggleVisibility}
-          className={
-            isVisible
-              ? "flex-shrink-0 text-primary-600 hover:text-primary-700 hover:bg-primary-50"
-              : "flex-shrink-0 text-slate-400 hover:text-slate-500 hover:bg-slate-100"
-          }
+          className={`flex-shrink-0 ${getVisibilityToggleClasses(isVisible)}`}
           label={t(isVisible ? "score.markers.hideOne" : "score.markers.showOne", {
             name: feature.name,
             defaultValue: `${isVisible ? "Hide" : "Show"} ${feature.name} marker on map`,

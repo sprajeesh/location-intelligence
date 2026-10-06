@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import ResultsPanel from './ResultsPanel';
-import type { AnalyzeResponse, Feature, ScoreResult } from '@/types/api';
+import type { AnalyzeResponse, CategoryScoreResult, Feature, ScoreResult } from '@/types/api';
 
 jest.mock('@/store');
 jest.mock('@/hooks/useAnalyze');
@@ -45,6 +45,33 @@ jest.mock('@/components/RadiusAdjuster', () => ({
     </div>
   ),
 }));
+jest.mock('@/hooks/useReportAction', () => ({
+  useReportAction: () => ({
+    generating: false,
+    ready: false,
+    disabled: false,
+    onClick: jest.fn(),
+  }),
+}));
+jest.mock('@/components/ReportButton', () => ({
+  __esModule: true,
+  ReportButton: ({ generating, ready, disabled, onClick, fullLabel }: { generating: boolean; ready: boolean; disabled: boolean; onClick: () => void; fullLabel?: boolean }) => (
+    <button
+      data-testid="report-button"
+      disabled={disabled}
+      onClick={onClick}
+      aria-busy={generating}
+    >
+      {generating ? (fullLabel ? 'Generating report…' : 'Generating…') : ready ? (fullLabel ? 'Download report' : 'Download') : fullLabel ? 'Generate report' : 'Report'}
+    </button>
+  ),
+}));
+jest.mock('@/hooks/useIsDesktop', () => ({ useIsDesktop: jest.fn(() => true) }));
+jest.mock('@/containers/MobileControlsBar', () => ({
+  MobileControlsBar: ({ report }: { report: { disabled: boolean } }) => (
+    <div data-testid="mobile-controls-bar" data-report-disabled={String(report.disabled)} />
+  ),
+}));
 jest.mock('@/components/LoadingSkeleton', () => ({
   __esModule: true,
   default: ({ count }: { count: number }) => (
@@ -62,6 +89,8 @@ jest.mock('@/components/ScoreDisplay', () => ({
     onToggleCategoryVisibility,
     onFacilityClick,
     onNavigate,
+    onExplainOverall,
+    onExplainCategory,
   }: {
     score: ScoreResult;
     features?: Feature[];
@@ -71,6 +100,8 @@ jest.mock('@/components/ScoreDisplay', () => ({
     onToggleCategoryVisibility?: (featureIds: string[], makeVisible: boolean) => void;
     onFacilityClick?: (feature: Feature) => void;
     onNavigate?: (feature: Feature) => void;
+    onExplainOverall?: () => void;
+    onExplainCategory?: (category: CategoryScoreResult) => void;
   }) => {
     const firstFeature = features?.[0];
     return (
@@ -109,6 +140,18 @@ jest.mock('@/components/ScoreDisplay', () => ({
           </button>
         </>
       )}
+      <button data-testid="explain-overall" onClick={() => onExplainOverall?.()}>
+        explain overall
+      </button>
+      {score.categories.map((category) => (
+        <button
+          key={category.category}
+          data-testid={`explain-category-${category.category}`}
+          onClick={() => onExplainCategory?.(category)}
+        >
+          explain {category.category}
+        </button>
+      ))}
     </div>
     );
   },
@@ -117,9 +160,11 @@ jest.mock('@/components/ScoreDisplay', () => ({
 import { useLocationStore } from '@/store';
 import { useAnalyze } from '@/hooks/useAnalyze';
 import { useAnalyzeCategories } from '@/hooks/useAnalyzeCategories';
+import { useIsDesktop } from '@/hooks/useIsDesktop';
 
 const mockUseLocationStore = useLocationStore as jest.MockedFunction<typeof useLocationStore>;
 const mockUseAnalyze = useAnalyze as jest.MockedFunction<typeof useAnalyze>;
+const mockUseIsDesktop = useIsDesktop as jest.MockedFunction<typeof useIsDesktop>;
 const mockUseAnalyzeCategories = useAnalyzeCategories as jest.MockedFunction<typeof useAnalyzeCategories>;
 
 const MOCK_ADDRESS = {
@@ -131,11 +176,13 @@ const MOCK_ADDRESS = {
 const mockScore: ScoreResult = {
   overall: 77,
   coverage: '2/5',
+  contribution: [],
   categories: [
     {
       category: 'education',
       status: 'scored',
       score: 72,
+      contribution: [],
       facilities: [
         {
           facilityType: 'schools',
@@ -144,6 +191,12 @@ const mockScore: ScoreResult = {
           nearestDistanceKm: 0.5,
           count: 3,
           explanation: '3 schools within 1.0 km by walk.',
+          criteria: [],
+          proximityScore: null,
+          densityScore: null,
+          proximityWeight: null,
+          densityWeight: null,
+          leg: null,
         },
       ],
     },
@@ -151,6 +204,7 @@ const mockScore: ScoreResult = {
       category: 'transport',
       status: 'scored',
       score: 85,
+      contribution: [],
       facilities: [
         {
           facilityType: 'bus_stops',
@@ -159,6 +213,12 @@ const mockScore: ScoreResult = {
           nearestDistanceKm: 0.3,
           count: 2,
           explanation: '2 bus_stops within 1.0 km by walk.',
+          criteria: [],
+          proximityScore: null,
+          densityScore: null,
+          proximityWeight: null,
+          densityWeight: null,
+          leg: null,
         },
       ],
     },
@@ -229,6 +289,7 @@ const setViewportWidth = (width: number) => {
 describe('ResultsPanel', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseIsDesktop.mockReturnValue(true);
     setViewportWidth(1024);
     mockUseLocationStore.mockReturnValue(makeStoreState());
     mockUseAnalyzeCategories.mockReturnValue(undefined);
@@ -253,6 +314,58 @@ describe('ResultsPanel', () => {
       mockUseLocationStore.mockReturnValue(makeStoreState({ isAnalyzing: true }));
       render(<ResultsPanel />);
       expect(screen.queryByTestId('score-display')).not.toBeInTheDocument();
+    });
+  });
+
+  describe('Report button', () => {
+    it('is shown when analysis result exists', () => {
+      mockUseLocationStore.mockReturnValue(
+        makeStoreState({ analysisResult: mockAnalysisResult, selectedAddress: MOCK_ADDRESS }),
+      );
+      render(<ResultsPanel />);
+      expect(screen.getByRole('button', { name: /Report|Generate report|Download report/ })).toBeInTheDocument();
+    });
+
+    it('is not shown while analyzing or before any analysis', () => {
+      mockUseLocationStore.mockReturnValue(makeStoreState({ isAnalyzing: true }));
+      const { unmount } = render(<ResultsPanel />);
+      expect(screen.queryByRole('button', { name: /Report|Generate report|Download report/ })).not.toBeInTheDocument();
+      unmount();
+      mockUseLocationStore.mockReturnValue(makeStoreState());
+      render(<ResultsPanel />);
+      expect(screen.queryByRole('button', { name: /Report|Generate report|Download report/ })).not.toBeInTheDocument();
+    });
+  });
+
+  describe('Mobile controls bar', () => {
+    beforeEach(() => {
+      mockUseLocationStore.mockReturnValue(
+        makeStoreState({ analysisResult: mockAnalysisResult, selectedAddress: MOCK_ADDRESS }),
+      );
+    });
+
+    it('is shown on mobile and fed the report action', () => {
+      mockUseIsDesktop.mockReturnValue(false);
+      render(<ResultsPanel />);
+      const bar = screen.getByTestId('mobile-controls-bar');
+      expect(bar).toBeInTheDocument();
+      expect(bar).toHaveAttribute('data-report-disabled', 'false');
+    });
+
+    it('is hidden on desktop, where Report lives in the panel footer', () => {
+      render(<ResultsPanel />);
+      expect(screen.queryByTestId('mobile-controls-bar')).not.toBeInTheDocument();
+    });
+
+    it('is not shown while analyzing or before any analysis', () => {
+      mockUseIsDesktop.mockReturnValue(false);
+      mockUseLocationStore.mockReturnValue(makeStoreState({ isAnalyzing: true }));
+      const { unmount } = render(<ResultsPanel />);
+      expect(screen.queryByTestId('mobile-controls-bar')).not.toBeInTheDocument();
+      unmount();
+      mockUseLocationStore.mockReturnValue(makeStoreState());
+      render(<ResultsPanel />);
+      expect(screen.queryByTestId('mobile-controls-bar')).not.toBeInTheDocument();
     });
   });
 
@@ -529,6 +642,73 @@ describe('ResultsPanel', () => {
         radiusKm: 8,
         distanceMode: 'driving',
       });
+    });
+  });
+
+  // ResultsPanel owns the explain-modal open/close state (not ScoreDisplay/
+  // CategoryScoreCard, which stay pure/prop-driven -- see their own tests)
+  // and portals ScoreExplainModal to document.body so it isn't confined by
+  // the results panel's row-entrance animation. RTL's screen queries search
+  // document.body by default, so the portaled dialog is found the same way
+  // as anything rendered inside the test's own container.
+  describe('Score explanation modal', () => {
+    beforeEach(() => {
+      mockUseLocationStore.mockReturnValue(makeStoreState({ analysisResult: mockAnalysisResult }));
+    });
+
+    it('does not render a dialog until an explain button is clicked', () => {
+      render(<ResultsPanel />);
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+
+    it('opens the modal for the overall score', async () => {
+      render(<ResultsPanel />);
+      await userEvent.click(screen.getByTestId('explain-overall'));
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+      expect(screen.getByText('Location Score')).toBeInTheDocument();
+    });
+
+    it('opens the modal for a specific category', async () => {
+      render(<ResultsPanel />);
+      await userEvent.click(screen.getByTestId('explain-category-education'));
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+      expect(screen.getByText('education')).toBeInTheDocument();
+    });
+
+    it('closes the modal and can reopen it for a different target', async () => {
+      render(<ResultsPanel />);
+      await userEvent.click(screen.getByTestId('explain-category-education'));
+      await userEvent.click(screen.getByRole('button', { name: 'Close' }));
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+
+      await userEvent.click(screen.getByTestId('explain-category-transport'));
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+      expect(screen.getByText('transport')).toBeInTheDocument();
+    });
+
+    it('drills down from a category row inside the overall modal into that category\'s own explanation', async () => {
+      render(<ResultsPanel />);
+      await userEvent.click(screen.getByTestId('explain-overall'));
+      expect(screen.getByText('Location Score')).toBeInTheDocument();
+
+      await userEvent.click(screen.getByRole('button', { name: 'Explain the education score' }));
+
+      expect(screen.getByText('education')).toBeInTheDocument();
+      expect(screen.queryByText('Location Score')).not.toBeInTheDocument();
+    });
+
+    it('does not offer drill-down rows inside a category modal (no deeper level to explain)', async () => {
+      render(<ResultsPanel />);
+      await userEvent.click(screen.getByTestId('explain-category-education'));
+      expect(screen.queryByRole('button', { name: /^Explain the .* score$/ })).not.toBeInTheDocument();
+    });
+
+    it('renders the dialog as a direct child of document.body, not nested inside the panel', async () => {
+      const { container } = render(<ResultsPanel />);
+      await userEvent.click(screen.getByTestId('explain-overall'));
+      const dialog = screen.getByRole('dialog');
+      expect(container.contains(dialog)).toBe(false);
+      expect(document.body.contains(dialog)).toBe(true);
     });
   });
 

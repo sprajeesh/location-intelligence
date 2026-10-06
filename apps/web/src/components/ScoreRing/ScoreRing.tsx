@@ -6,6 +6,10 @@ import { formatScoreValue, getScoreColorClass } from "@/utils/scoreDisplay";
 export interface ScoreRingProps {
   score: number | null;
   size?: number; // px diameter
+  /** Overridable so callers on a light background (e.g. ScoreExplainModal's hero) aren't stuck with white text. */
+  scoreClassName?: string;
+  unitClassName?: string;
+  trackClassName?: string;
 }
 
 const STROKE_WIDTH = 10;
@@ -33,7 +37,13 @@ function prefersReducedMotion() {
  * number animate together from 0 up to the target, driven by a single
  * eased progress value so they never fall out of sync.
  */
-export function ScoreRing({ score, size = 144 }: ScoreRingProps) {
+export function ScoreRing({
+  score,
+  size = 144,
+  scoreClassName = "text-4xl font-bold text-white tabular-nums",
+  unitClassName = "text-xs font-medium text-white/70",
+  trackClassName = "stroke-white/25",
+}: ScoreRingProps) {
   const radius = (size - STROKE_WIDTH) / 2;
   const circumference = 2 * Math.PI * radius;
   const clamped = score === null ? 0 : Math.max(0, Math.min(100, score));
@@ -86,7 +96,7 @@ export function ScoreRing({ score, size = 144 }: ScoreRingProps) {
           r={radius}
           strokeWidth={STROKE_WIDTH}
           fill="none"
-          className="stroke-white/25"
+          className={trackClassName}
         />
         <circle
           cx={center}
@@ -102,10 +112,10 @@ export function ScoreRing({ score, size = 144 }: ScoreRingProps) {
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-4xl font-bold text-white tabular-nums">
+        <span className={scoreClassName}>
           {formatScoreValue(score === null ? null : displayScore)}
         </span>
-        <span className="text-xs font-medium text-white/70">/100</span>
+        <span className={unitClassName}>/100</span>
       </div>
     </div>
   );
