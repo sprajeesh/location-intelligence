@@ -101,7 +101,7 @@ export async function SiteFooter({ className = "" }: SiteFooterProps) {
           <span className="font-bold text-[11px] uppercase leading-tight">
             {t("appName")}
           </span>
-          <span className="text-[10px] italic opacity-75 leading-tight">
+          <span className="text-xs italic opacity-75 leading-tight">
             {t("appCaption")}
           </span>
           <span className="text-[9px] opacity-90 leading-tight">
@@ -124,17 +124,11 @@ export async function SiteFooter({ className = "" }: SiteFooterProps) {
             href={localizedPath(locale, "/data-sources")}
             className={LINK_CLASSES}
           >
-            <span className="md:hidden">{t("dataSourcesShort")}</span>
+            {t("dataSources")}
           </Link>
         </nav>
       </div>
 
-      {/* Data Attribution Line */}
-      <div className="h-6 md:h-7 flex items-center px-3 sm:px-4 bg-primary-700">
-        <p className="text-[9px] md:text-xs opacity-75 truncate">
-          {t("dataCredit")}
-        </p>
-      </div>
     </footer>
   );
 }
