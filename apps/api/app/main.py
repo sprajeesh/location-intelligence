@@ -12,7 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi_limiter import FastAPILimiter
 
-from app.api import analyze, categories, health, parcels, reports, route, search
+from app.api import analyze, categories, contact, health, parcels, reports, route, search
 from app.api.concurrency import InFlightLimiter, analyze_capacity_guard
 from app.api.deps import verify_api_key
 from app.api.rate_limit import bff_client_identifier, rate_limit_exceeded, rate_limiter
@@ -264,6 +264,15 @@ def create_app() -> FastAPI:
                 rate_limiter(settings.rate_limit_analyze_times, settings.rate_limit_analyze_seconds)
             ),
             Depends(analyze_capacity_guard),
+        ],
+    )
+    app.include_router(
+        contact.router,
+        dependencies=[
+            Depends(verify_api_key),
+            Depends(
+                rate_limiter(settings.rate_limit_contact_times, settings.rate_limit_contact_seconds)
+            ),
         ],
     )
     app.include_router(reports.router, dependencies=[Depends(verify_api_key)])

@@ -57,6 +57,15 @@ class Settings(BaseSettings):
     # entirely; set in production from the API_SHARED_SECRET GitHub secret.
     api_shared_secret: str | None = None
 
+    # Contact form (app/api/contact.py): submissions are emailed via Resend to
+    # contact_recipient_email (the CONTACT_RECIPIENT_EMAIL GitHub secret).
+    # Resend's shared test sender only delivers to the Resend account owner's own
+    # address; override contact_from_email once a domain is verified in Resend.
+    # Recipient or API key unset makes POST /contact return 503 -- local dev needs none.
+    contact_recipient_email: str | None = None
+    resend_api_key: str | None = None
+    contact_from_email: str = "onboarding@resend.dev"
+
     # Circuit breakers (app/clients/circuit_breaker.py) -- open after this
     # many consecutive failures against the dependency, skip the network call
     # entirely for the cooldown, then allow one trial call through.
@@ -98,6 +107,8 @@ class Settings(BaseSettings):
     rate_limit_route_seconds: int = 60
     rate_limit_report_times: int = 5
     rate_limit_report_seconds: int = 60
+    rate_limit_contact_times: int = 3
+    rate_limit_contact_seconds: int = 300
     rate_limit_parcels_times: int = 30
     rate_limit_parcels_seconds: int = 60
 

@@ -53,6 +53,7 @@ FastAPI + Python 3.13 + uv. Tests: `uv run pytest`; lint: `uv run ruff check`.
 | GET    | `/route`                        | Turn-by-turn route to a facility (driving/walking/cycling) |
 | GET    | `/category-weights`             | Per-category score weights                              |
 | GET    | `/parcels`                      | Parcel lookup at a point                                |
+| POST   | `/contact`                      | Contact form → emailed via Resend to `CONTACT_RECIPIENT_EMAIL` (`202`; `503` if unconfigured) |
 
 ### Key backend files
 
@@ -311,6 +312,10 @@ REPORT_MAX_IN_FLIGHT=2
 REPORT_RENDER_TIMEOUT_SECONDS=60
 RATE_LIMIT_REPORT_TIMES=5
 RATE_LIMIT_REPORT_SECONDS=60
+# Contact form (all optional locally; POST /contact returns 503 until set)
+CONTACT_RECIPIENT_EMAIL=
+RESEND_API_KEY=
+# CONTACT_FROM_EMAIL=onboarding@resend.dev  (default; Resend test sender)
 SCORING_ALPHA=0.6
 SCORING_BETA=0.4
 SCORING_DENSITY_FACTOR=10
