@@ -15,17 +15,19 @@ function devCommitHash(): string {
   }
 }
 
-// Enforced (not Report-Only): Firefox ignores Report-Only policies that have no
-// report endpoint, so violations would be invisible. Next.js inlines hydration
-// scripts, so script-src needs 'unsafe-inline' until nonces are wired through
-// middleware.
+// Enforced (not Report-Only): there is no report endpoint, so Report-Only
+// violations would only appear in each visitor's own console and never reach us.
+// Next.js inlines hydration scripts, so script-src needs 'unsafe-inline' until
+// nonces are wired through middleware.
 const isDev = process.env.NODE_ENV === "development";
 const contentSecurityPolicy = [
   "default-src 'self'",
   `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
   "style-src 'self' 'unsafe-inline'",
-  // Map tiles (OSM, Esri, OpenTopoMap) plus facility photos from Wikimedia
-  "img-src 'self' data: blob: https:",
+  // Map tiles (OSM, Esri, OpenTopoMap; see MapToolbarContainer) plus facility
+  // photos: Wikidata P18 gives commons.wikimedia.org Special:FilePath URLs that
+  // redirect to upload.wikimedia.org, and CSP checks both hops.
+  "img-src 'self' data: blob: https://*.tile.openstreetmap.org https://server.arcgisonline.com https://*.tile.opentopomap.org https://commons.wikimedia.org https://upload.wikimedia.org",
   "font-src 'self' data:",
   // Dev also needs the HMR websocket
   `connect-src 'self'${isDev ? " ws://localhost:* ws://127.0.0.1:*" : ""}`,
