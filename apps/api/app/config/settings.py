@@ -64,6 +64,7 @@ class Settings(BaseSettings):
     # Recipient or API key unset makes POST /contact return 503 -- local dev needs none.
     contact_recipient_email: str | None = None
     resend_api_key: str | None = None
+    resend_emails_url: str = "https://api.resend.com/emails"
     contact_from_email: str = "onboarding@resend.dev"
 
     # Circuit breakers (app/clients/circuit_breaker.py) -- open after this

@@ -6,8 +6,6 @@ from app.config.settings import Settings
 
 logger = logging.getLogger(__name__)
 
-RESEND_EMAILS_URL = "https://api.resend.com/emails"
-
 
 class ContactMailerUnavailable(Exception):
     """Contact email delivery isn't configured, or the Resend call failed."""
@@ -34,7 +32,7 @@ async def send_contact_email(
     try:
         async with httpx.AsyncClient(timeout=10) as client:
             response = await client.post(
-                RESEND_EMAILS_URL,
+                settings.resend_emails_url,
                 json=payload,
                 headers={"Authorization": f"Bearer {settings.resend_api_key}"},
             )

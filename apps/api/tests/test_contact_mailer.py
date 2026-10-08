@@ -6,11 +6,7 @@ import httpx
 import pytest
 
 from app.config.settings import Settings
-from app.services.contact_mailer import (
-    RESEND_EMAILS_URL,
-    ContactMailerUnavailable,
-    send_contact_email,
-)
+from app.services.contact_mailer import ContactMailerUnavailable, send_contact_email
 
 FIELDS = {"first_name": "Aroha", "last_name": "Ngata", "email": "a@example.com", "message": "Hi"}
 POST = "app.services.contact_mailer.httpx.AsyncClient.post"
@@ -26,14 +22,16 @@ def _settings(**overrides) -> Settings:
 
 
 def _response(status: int) -> httpx.Response:
-    return httpx.Response(status, json={}, request=httpx.Request("POST", RESEND_EMAILS_URL))
+    return httpx.Response(
+        status, json={}, request=httpx.Request("POST", _settings().resend_emails_url)
+    )
 
 
 async def test_posts_to_resend_with_recipient_and_reply_to() -> None:
     with patch(POST, new=AsyncMock(return_value=_response(200))) as post:
         await send_contact_email(_settings(), **FIELDS)
 
-    assert post.await_args.args[0] == RESEND_EMAILS_URL
+    assert post.await_args.args[0] == _settings().resend_emails_url
     assert post.await_args.kwargs["headers"] == {"Authorization": "Bearer re_test"}
     body = post.await_args.kwargs["json"]
     assert body["to"] == ["owner@example.com"]
