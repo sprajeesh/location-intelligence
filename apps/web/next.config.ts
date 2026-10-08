@@ -15,6 +15,27 @@ function devCommitHash(): string {
   }
 }
 
+// Enforced (not Report-Only): Firefox ignores Report-Only policies that have no
+// report endpoint, so violations would be invisible. Next.js inlines hydration
+// scripts, so script-src needs 'unsafe-inline' until nonces are wired through
+// middleware.
+const isDev = process.env.NODE_ENV === "development";
+const contentSecurityPolicy = [
+  "default-src 'self'",
+  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
+  "style-src 'self' 'unsafe-inline'",
+  // Map tiles (OSM, Esri, OpenTopoMap) plus facility photos from Wikimedia
+  "img-src 'self' data: blob: https:",
+  "font-src 'self' data:",
+  // Dev also needs the HMR websocket
+  `connect-src 'self'${isDev ? " ws://localhost:* ws://127.0.0.1:*" : ""}`,
+  "worker-src 'self' blob:",
+  "object-src 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+  "frame-ancestors 'self'",
+].join("; ");
+
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
 const nextConfig: NextConfig = {
@@ -31,6 +52,9 @@ const nextConfig: NextConfig = {
 
   // Compression
   compress: true,
+
+  // Don't advertise the framework
+  poweredByHeader: false,
 
   // Production source maps disabled for security
   productionBrowserSourceMaps: false,
@@ -60,6 +84,19 @@ const nextConfig: NextConfig = {
           {
             key: "Referrer-Policy",
             value: "strict-origin-when-cross-origin",
+          },
+          {
+            key: "Content-Security-Policy",
+            value: contentSecurityPolicy,
+          },
+          {
+            key: "Strict-Transport-Security",
+            value: "max-age=63072000; includeSubDomains",
+          },
+          {
+            // Geolocation is used by the map toolbar's "locate me" button
+            key: "Permissions-Policy",
+            value: "camera=(), microphone=(), geolocation=(self)",
           },
         ],
       },
