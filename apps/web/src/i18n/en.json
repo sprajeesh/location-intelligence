@@ -205,6 +205,7 @@
     "appName": "Location Intelligence",
     "appCaption": "Smart Facility Insights",
     "about": "About",
+    "contact": "Contact",
     "faq": "FAQ",
     "dataSources": "Data sources"
   },
@@ -313,6 +314,27 @@
         "q": "Is it free? Do I need an account?",
         "a": "It is free and you do not need to sign in to search an address."
       }
+    }
+  },
+  "contact": {
+    "metaTitle": "Contact | Location Intelligence NZ",
+    "metaDescription": "Get in touch with Location Intelligence NZ to share feedback or ask a question.",
+    "backHome": "Back to the map",
+    "title": "Contact Us",
+    "caption": "Need to get in touch with us? Fill out the form with your inquiry or feedback.",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "email": "Email",
+    "message": "Share your feedback or comments",
+    "submit": "Submit",
+    "submitting": "Sending...",
+    "success": "Thanks! Your message has been sent.",
+    "error": "Sorry, we couldn't send your message. Please try again later.",
+    "errors": {
+      "firstNameRequired": "Please enter your first name.",
+      "emailRequired": "Please enter your email address.",
+      "emailInvalid": "Please enter a valid email address.",
+      "messageRequired": "Please enter your feedback or comments."
     }
   },
   "about": {

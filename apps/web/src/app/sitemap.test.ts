@@ -14,7 +14,7 @@ describe('sitemap metadata route', () => {
   it('generates sitemap entries for default and localized routes', () => {
     delete process.env.NEXT_PUBLIC_SITE_URL;
     const entries = sitemap();
-    expect(entries).toHaveLength(5);
+    expect(entries).toHaveLength(6);
     expect(entries[0]?.url).toBe('https://location-intelligence-web.sprajeesh.workers.dev/');
     expect(entries[1]?.url).toBe('https://location-intelligence-web.sprajeesh.workers.dev/mi');
     expect(entries[0]?.priority).toBe(1.0);
@@ -24,7 +24,7 @@ describe('sitemap metadata route', () => {
     delete process.env.NEXT_PUBLIC_SITE_URL;
     const base = 'https://location-intelligence-web.sprajeesh.workers.dev';
     const urls = sitemap().map((e) => e.url);
-    for (const path of ['/about', '/faq', '/data-sources']) {
+    for (const path of ['/about', '/contact', '/faq', '/data-sources']) {
       expect(urls).toContain(`${base}${path}`);
       expect(urls).not.toContain(`${base}/mi${path}`);
     }
