@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.23.2](https://github.com/sprajeesh/location-intelligence/compare/web@v0.23.1...web@v0.23.2) (2026-10-08)
+
+
+### Bug Fixes
+
+* **web:** add CSP, HSTS and Permissions-Policy headers ([#333](https://github.com/sprajeesh/location-intelligence/issues/333)) ([2cbca73](https://github.com/sprajeesh/location-intelligence/commit/2cbca73d3de90a10e20290dccf93a0cf4f62eec2))
+
 ## [0.23.1](https://github.com/sprajeesh/location-intelligence/compare/web@v0.23.0...web@v0.23.1) (2026-10-06)
 
 
