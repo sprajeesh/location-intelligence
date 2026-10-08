@@ -32,6 +32,17 @@ describe("ContactForm", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
+  it("clears a field's error once the visitor edits it", async () => {
+    setup();
+    await userEvent.click(screen.getByRole("button", { name: en.contact.submit }));
+    const first = screen.getByLabelText(/First name/);
+    expect(first).toHaveAttribute("aria-invalid", "true");
+    await userEvent.type(first, "A");
+    expect(first).toHaveAttribute("aria-invalid", "false");
+    expect(screen.queryByText(en.contact.errors.firstNameRequired)).not.toBeInTheDocument();
+    expect(screen.getByText(en.contact.errors.emailRequired)).toBeInTheDocument();
+  });
+
   it("rejects an invalid email", async () => {
     setup();
     await userEvent.type(screen.getByLabelText(/First name/), "Aroha");

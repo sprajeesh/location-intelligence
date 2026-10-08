@@ -54,6 +54,16 @@ export function ContactForm() {
     }
   }
 
+  // Clears the edited field's stale error and any previous submission outcome.
+  function clearFeedback(field: Field) {
+    setErrors((prev) => {
+      if (!prev[field]) return prev;
+      const { [field]: _removed, ...rest } = prev;
+      return rest;
+    });
+    setStatus((prev) => (prev === "sending" ? prev : "idle"));
+  }
+
   const fieldError = (field: Field) =>
     errors[field] && (
       <p id={`${field}-error`} className="mt-1 text-xs text-error-600">
@@ -77,6 +87,7 @@ export function ContactForm() {
             required
             aria-invalid={!!errors.firstName}
             aria-describedby={describedBy("firstName")}
+            onChange={() => clearFeedback("firstName")}
             className={`${FIELD_CLASSES} mt-1`}
           />
           {fieldError("firstName")}
@@ -108,6 +119,7 @@ export function ContactForm() {
           required
           aria-invalid={!!errors.email}
           aria-describedby={describedBy("email")}
+          onChange={() => clearFeedback("email")}
           className={`${FIELD_CLASSES} mt-1`}
         />
         {fieldError("email")}
@@ -125,6 +137,7 @@ export function ContactForm() {
           required
           aria-invalid={!!errors.message}
           aria-describedby={describedBy("message")}
+          onChange={() => clearFeedback("message")}
           className={`${FIELD_CLASSES} mt-1`}
         />
         {fieldError("message")}
