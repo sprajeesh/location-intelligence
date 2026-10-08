@@ -20,6 +20,19 @@
     "busStops": "Ngā Tūnga Pahi",
     "navigateTo": "Haere ki {name}",
     "showRoute": "Whakaaturia te ara ki {name}",
+    "report": {
+      "generate": "Pūrongo",
+      "generating": "E waihanga ana…",
+      "generatingFull": "E waihanga ana i te pūrongo…",
+      "generateLabel": "Waihangatia te pūrongo",
+      "downloadLabel": "Tikiake i te pūrongo",
+      "download": "Tikiake",
+      "readyToast": "Kua reri tō pūrongo.",
+      "downloadAction": "Tikiake",
+      "failedToast": "Kāore i taea te waihanga i te pūrongo.",
+      "retryAction": "Whakamātau anō",
+      "downloadFailedToast": "Kāore i taea te tikiake i te pūrongo. Tēnā, whakamātau anō."
+    },
     "adjustRadius": {
       "caption": "E hiahia ana ki ētahi atu hua? Whakarerekētia te awhe rapu",
       "label": "Awhe rapu",
@@ -186,5 +199,40 @@
       "helpNotHundred": "Whakaritea nga taumaha kia 100% te katoa.",
       "helpZeroWeight": "Me rahi ake i te 0% te taumaha."
     }
+  },
+  "footer": {
+    "navLabel": "Pae tukutuku",
+    "appName": "Mōhiotanga Wāhi",
+    "appCaption": "Ngā māramatanga atamai mō ngā whare",
+    "about": "Mō mātou",
+    "contact": "Whakapā mai",
+    "faq": "Ngā Pātai Auau",
+    "dataSources": "Ngā pūtake raraunga"
+  },
+  "contact": {
+    "metaTitle": "Whakapā Mai | Mōhiotanga Wāhi NZ",
+    "metaDescription": "Whakapā mai ki a Mōhiotanga Wāhi NZ ki te tuku kōrero whakahoki, ki te pātai rānei.",
+    "backHome": "Hoki ki te mahere",
+    "title": "Whakapā Mai",
+    "caption": "E hiahia ana koe ki te whakapā mai? Whakaotia te puka me tō pātai, tō kōrero whakahoki rānei.",
+    "firstName": "Ingoa tuatahi",
+    "lastName": "Ingoa whānau",
+    "email": "Īmēra",
+    "message": "Tukuna mai ō whakaaro, ō kōrero rānei",
+    "submit": "Tukuna",
+    "submitting": "E tuku ana...",
+    "success": "Ngā mihi! Kua tukuna tō karere.",
+    "error": "Aroha mai, kāore i taea te tuku i tō karere. Tēnā, whakamātau anō a muri atu.",
+    "errors": {
+      "firstNameRequired": "Tēnā, tuhia tō ingoa tuatahi.",
+      "emailRequired": "Tēnā, tuhia tō wāhitau īmēra.",
+      "emailInvalid": "Tēnā, tuhia he wāhitau īmēra tika.",
+      "messageRequired": "Tēnā, tuhia ō whakaaro, ō kōrero rānei."
+    }
+  },
+  "about": {
+    "feedbackTitle": "Tukuna mai ō whakaaro",
+    "feedbackBody": "Kei te hiahia mātou ki te whakarongo ki a koe. Mēnā he whakaaro tāu, he mea hē kua kitea e koe, he pātai rānei mō te āhua o te mahi a Mōhiotanga Wāhi NZ, tēnā, whakamōhiotia mai mātou.",
+    "feedbackLink": "Whakapā mai ki a mātou"
   }
 }
