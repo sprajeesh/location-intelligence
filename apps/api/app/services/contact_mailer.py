@@ -19,9 +19,7 @@ async def send_contact_email(
     """Emails a contact-form submission to the configured recipient via Resend.
     Reply-To is the visitor's address; From is the app's own verified sender."""
     if not (
-        settings.contact_recipient_email
-        and settings.resend_api_key
-        and settings.contact_from_email
+        settings.contact_recipient_email and settings.resend_api_key and settings.contact_from_email
     ):
         raise ContactMailerUnavailable("Contact email is not configured")
 
