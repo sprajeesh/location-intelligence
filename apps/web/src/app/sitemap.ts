@@ -13,6 +13,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const routes: { path: string; locales: readonly string[] }[] = [
     { path: '', locales: routing.locales },
     { path: '/about', locales: [routing.defaultLocale] },
+    { path: '/contact', locales: [routing.defaultLocale] },
     { path: '/faq', locales: [routing.defaultLocale] },
     { path: '/data-sources', locales: [routing.defaultLocale] },
   ];

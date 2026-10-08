@@ -55,6 +55,15 @@ export default async function AboutPage({ params }: AboutPageProps) {
             <p className="mt-2 text-slate-600">{t(`${key}Body`)}</p>
           </section>
         ))}
+        <section>
+          <h2 className="text-xl font-semibold">{t("feedbackTitle")}</h2>
+          <p className="mt-2 text-slate-600">
+            {t("feedbackBody")}{" "}
+            <Link href={localizedPath(locale, "/contact")} className={LINK_CLASSES}>
+              {t("feedbackLink")}
+            </Link>
+          </p>
+        </section>
       </div>
       <p className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm">
         <Link href={localizedPath(locale, "/faq")} className={LINK_CLASSES}>

@@ -15,7 +15,9 @@
 # provider hosts the VM.
 #
 # Secrets arrive base64-encoded, one per line, on stdin -- in order: db_user,
-# db_password, api_shared_secret, redis_password, linz_api_key -- rather than as CLI args.
+# db_password, api_shared_secret, redis_password, linz_api_key, then the optional
+# contact-form values contact_recipient_email and resend_api_key (blank is
+# fine) -- rather than as CLI args.
 # The deploy step assembles this script's invocation inside a heredoc that
 # gets re-parsed by a shell on arrival; raw secret bytes sitting in that text
 # could both break out of their quoting (injection) and show up in this
@@ -36,12 +38,17 @@ IFS= read -r DB_PASSWORD_B64
 IFS= read -r API_SHARED_SECRET_B64
 IFS= read -r REDIS_PASSWORD_B64
 IFS= read -r LINZ_API_KEY_B64
+# Contact form (optional: POST /contact returns 503 while these are unset).
+IFS= read -r CONTACT_RECIPIENT_EMAIL_B64 || true
+IFS= read -r RESEND_API_KEY_B64 || true
 
 DB_USER="$(b64_decode "$DB_USER_B64")"
 DB_PASSWORD="$(b64_decode "$DB_PASSWORD_B64")"
 API_SHARED_SECRET="$(b64_decode "$API_SHARED_SECRET_B64")"
 REDIS_PASSWORD="$(b64_decode "$REDIS_PASSWORD_B64")"
 LINZ_API_KEY="$(b64_decode "$LINZ_API_KEY_B64")"
+CONTACT_RECIPIENT_EMAIL="$(b64_decode "${CONTACT_RECIPIENT_EMAIL_B64:-}")"
+RESEND_API_KEY="$(b64_decode "${RESEND_API_KEY_B64:-}")"
 ENV_FILE="${1:-.env}"
 SECRETS_DIR="${2:-secrets}"
 
@@ -141,6 +148,16 @@ SCORING_DENSITY_FACTOR=10
 API_SHARED_SECRET=$(dotenv_quote "$(compose_escape "$API_SHARED_SECRET")")
 LINZ_API_KEY=$(dotenv_quote "$(compose_escape "$LINZ_API_KEY")")
 EOF
+
+# Contact-form settings are appended only when provided; unset leaves the API's
+# defaults, and POST /contact answers 503 until both are present.
+append_optional() {
+  if [ -n "$2" ]; then
+    printf '%s=%s\n' "$1" "$(dotenv_quote "$(compose_escape "$2")")" >>"$ENV_FILE"
+  fi
+}
+append_optional CONTACT_RECIPIENT_EMAIL "$CONTACT_RECIPIENT_EMAIL"
+append_optional RESEND_API_KEY "$RESEND_API_KEY"
 chmod 600 "$ENV_FILE"
 
 # Two Compose file-secrets for docker-compose.prod.yml's redis service, so

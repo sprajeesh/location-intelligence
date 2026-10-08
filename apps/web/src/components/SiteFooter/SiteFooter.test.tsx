@@ -26,15 +26,34 @@ describe("SiteFooter", () => {
     return Array.from(new Set(allLinks));
   };
 
-  it("links to About, FAQ and Data sources without a locale prefix for the default locale", async () => {
+  it("links to About, Contact, FAQ and Data sources without a locale prefix for the default locale", async () => {
     await renderFooter();
-    expect(hrefs()).toEqual(["/about", "/faq", "/data-sources"]);
+    expect(hrefs()).toEqual(["/about", "/contact", "/faq", "/data-sources"]);
   });
 
   it("prefixes the links for non-default locales", async () => {
     mockLocale = "mi";
     await renderFooter();
-    expect(hrefs()).toEqual(["/mi/about", "/mi/faq", "/mi/data-sources"]);
+    expect(hrefs()).toEqual(["/mi/about", "/mi/contact", "/mi/faq", "/mi/data-sources"]);
+  });
+
+  it("orders desktop links About, Contact, FAQ, Data sources", async () => {
+    await renderFooter();
+    const desktop = screen.getAllByRole("navigation")[0]!;
+    const labels = Array.from(desktop.querySelectorAll("a")).map((a) => a.textContent);
+    expect(labels).toEqual(["about", "contact", "faq", "dataSources"]);
+  });
+
+  it("lays mobile links out as Contact + About, then FAQ + Data sources", async () => {
+    await renderFooter();
+    const mobile = screen.getAllByRole("navigation")[1]!;
+    const columns = Array.from(mobile.children).map((col) =>
+      Array.from(col.querySelectorAll("a")).map((a) => a.textContent),
+    );
+    expect(columns).toEqual([
+      ["contact", "about"],
+      ["faq", "dataSources"],
+    ]);
   });
 
   it("renders both short and long labels in the markup (not display:none) so crawlers see them", async () => {

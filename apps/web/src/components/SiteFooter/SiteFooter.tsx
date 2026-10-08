@@ -62,6 +62,10 @@ export async function SiteFooter({ className = "" }: SiteFooterProps) {
             {t("about")}
           </Link>
           <span className="opacity-50 px-1">{DIVIDER}</span>
+          <Link href={localizedPath(locale, "/contact")} className={LINK_CLASSES}>
+            {t("contact")}
+          </Link>
+          <span className="opacity-50 px-1">{DIVIDER}</span>
           <Link href={localizedPath(locale, "/faq")} className={LINK_CLASSES}>
             {t("faq")}
           </Link>
@@ -109,23 +113,30 @@ export async function SiteFooter({ className = "" }: SiteFooterProps) {
           </span>
         </div>
 
-        {/* Column 3: Links (Right-aligned) */}
+        {/* Column 3: Links, in two columns -- Contact + About | FAQ + Data sources */}
         <nav
           aria-label={t("navLabel")}
-          className="flex flex-col justify-center gap-y-0.5 text-right"
+          className="grid grid-cols-2 gap-x-4 content-center text-left"
         >
-          <Link href={localizedPath(locale, "/about")} className={LINK_CLASSES}>
-            {t("about")}
-          </Link>
-          <Link href={localizedPath(locale, "/faq")} className={LINK_CLASSES}>
-            {t("faq")}
-          </Link>
-          <Link
-            href={localizedPath(locale, "/data-sources")}
-            className={LINK_CLASSES}
-          >
-            {t("dataSources")}
-          </Link>
+          <div className="flex flex-col justify-center gap-y-0.5">
+            <Link href={localizedPath(locale, "/contact")} className={LINK_CLASSES}>
+              {t("contact")}
+            </Link>
+            <Link href={localizedPath(locale, "/about")} className={LINK_CLASSES}>
+              {t("about")}
+            </Link>
+          </div>
+          <div className="flex flex-col justify-center gap-y-0.5">
+            <Link href={localizedPath(locale, "/faq")} className={LINK_CLASSES}>
+              {t("faq")}
+            </Link>
+            <Link
+              href={localizedPath(locale, "/data-sources")}
+              className={LINK_CLASSES}
+            >
+              {t("dataSources")}
+            </Link>
+          </div>
         </nav>
       </div>
 

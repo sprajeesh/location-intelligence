@@ -205,6 +205,7 @@
     "appName": "Location Intelligence",
     "appCaption": "Smart Facility Insights",
     "about": "About",
+    "contact": "Contact",
     "faq": "FAQ",
     "dataSources": "Data sources"
   },
@@ -315,6 +316,27 @@
       }
     }
   },
+  "contact": {
+    "metaTitle": "Contact | Location Intelligence NZ",
+    "metaDescription": "Get in touch with Location Intelligence NZ to share feedback or ask a question.",
+    "backHome": "Back to the map",
+    "title": "Contact Us",
+    "caption": "Need to get in touch with us? Fill out the form with your inquiry or feedback.",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "email": "Email",
+    "message": "Share your feedback or comments",
+    "submit": "Submit",
+    "submitting": "Sending...",
+    "success": "Thanks! Your message has been sent.",
+    "error": "Sorry, we couldn't send your message. Please try again later.",
+    "errors": {
+      "firstNameRequired": "Please enter your first name.",
+      "emailRequired": "Please enter your email address.",
+      "emailInvalid": "Please enter a valid email address.",
+      "messageRequired": "Please enter your feedback or comments."
+    }
+  },
   "about": {
     "metaTitle": "About | Location Intelligence NZ",
     "metaDescription": "What Location Intelligence NZ is, who it is for and how it works: a free tool that scores New Zealand addresses by the facilities nearby.",
@@ -328,6 +350,9 @@
     "howBody": "Addresses and property boundaries come from LINZ open data. Nearby facilities come from OpenStreetMap, and distances are calculated along real roads and paths. You choose which facilities matter and how much each category counts, and the score updates to match. The FAQ explains the scoring in more detail and the Data sources page lists every source.",
     "limitsTitle": "Good to know",
     "limitsBody": "The service is free and works without an account. It is built on open data that is maintained by volunteers and public agencies, so it can be incomplete or out of date. It is a guide for comparing locations, not professional advice.",
+    "feedbackTitle": "Share your feedback",
+    "feedbackBody": "We would love to hear from you. If you have feedback, spotted something that looks wrong, or have a question about how Location Intelligence NZ works, please let us know.",
+    "feedbackLink": "Contact us",
     "faqLink": "Read the FAQ",
     "dataSourcesLink": "See the data sources"
   }
