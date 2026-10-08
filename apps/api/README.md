@@ -293,9 +293,7 @@ out center;
 
 ```python
 distance_km, used_haversine = await client.distance(
-    origin=(lat1, lon1),
-    destination=(lat2, lon2),
-    mode="driving"
+    origin=(lat1, lon1), destination=(lat2, lon2), mode="driving"
 )
 ```
 
