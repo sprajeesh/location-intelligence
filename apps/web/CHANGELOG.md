@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.24.0](https://github.com/sprajeesh/location-intelligence/compare/web@v0.23.2...web@v0.24.0) (2026-10-08)
+
+
+### Features
+
+* add Contact page and feedback form ([#337](https://github.com/sprajeesh/location-intelligence/issues/337)) ([192476a](https://github.com/sprajeesh/location-intelligence/commit/192476a83cab1339cc5bdf4f56c0ec0bdc6a7662))
+
 ## [0.23.2](https://github.com/sprajeesh/location-intelligence/compare/web@v0.23.1...web@v0.23.2) (2026-10-08)
 
 
