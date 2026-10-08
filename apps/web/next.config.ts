@@ -15,6 +15,29 @@ function devCommitHash(): string {
   }
 }
 
+// Enforced (not Report-Only): there is no report endpoint, so Report-Only
+// violations would only appear in each visitor's own console and never reach us.
+// Next.js inlines hydration scripts, so script-src needs 'unsafe-inline' until
+// nonces are wired through middleware.
+const isDev = process.env.NODE_ENV === "development";
+const contentSecurityPolicy = [
+  "default-src 'self'",
+  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
+  "style-src 'self' 'unsafe-inline'",
+  // Map tiles (OSM, Esri, OpenTopoMap; see MapToolbarContainer) plus facility
+  // photos: Wikidata P18 gives commons.wikimedia.org Special:FilePath URLs that
+  // redirect to upload.wikimedia.org, and CSP checks both hops.
+  "img-src 'self' data: blob: https://*.tile.openstreetmap.org https://server.arcgisonline.com https://*.tile.opentopomap.org https://commons.wikimedia.org https://upload.wikimedia.org",
+  "font-src 'self' data:",
+  // Dev also needs the HMR websocket
+  `connect-src 'self'${isDev ? " ws://localhost:* ws://127.0.0.1:*" : ""}`,
+  "worker-src 'self' blob:",
+  "object-src 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+  "frame-ancestors 'self'",
+].join("; ");
+
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
 const nextConfig: NextConfig = {
@@ -31,6 +54,9 @@ const nextConfig: NextConfig = {
 
   // Compression
   compress: true,
+
+  // Don't advertise the framework
+  poweredByHeader: false,
 
   // Production source maps disabled for security
   productionBrowserSourceMaps: false,
@@ -60,6 +86,19 @@ const nextConfig: NextConfig = {
           {
             key: "Referrer-Policy",
             value: "strict-origin-when-cross-origin",
+          },
+          {
+            key: "Content-Security-Policy",
+            value: contentSecurityPolicy,
+          },
+          {
+            key: "Strict-Transport-Security",
+            value: "max-age=63072000; includeSubDomains",
+          },
+          {
+            // Geolocation is used by the map toolbar's "locate me" button
+            key: "Permissions-Policy",
+            value: "camera=(), microphone=(), geolocation=(self)",
           },
         ],
       },
