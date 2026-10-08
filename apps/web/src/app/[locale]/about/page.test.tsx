@@ -14,10 +14,11 @@ jest.mock("@/components/InfoPageShell", () => ({
 }));
 
 describe("About page", () => {
-  it("has one H1, the section headings and links to the FAQ and data sources", async () => {
+  it("has one H1, the section headings and links to the contact page, FAQ and data sources", async () => {
     render(await AboutPage({ params: Promise.resolve({ locale: "en" }) }));
     expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
-    expect(screen.getAllByRole("heading", { level: 2 })).toHaveLength(4);
+    expect(screen.getAllByRole("heading", { level: 2 })).toHaveLength(5);
+    expect(screen.getByRole("link", { name: en.about.feedbackLink })).toHaveAttribute("href", "/contact");
     expect(screen.getByRole("link", { name: en.about.faqLink })).toHaveAttribute("href", "/faq");
     expect(screen.getByRole("link", { name: en.about.dataSourcesLink })).toHaveAttribute("href", "/data-sources");
   });
