@@ -6,7 +6,7 @@ import type { ReactNode } from "react";
  * MapContainer previously hand-rolled three times (once per notice).
  */
 
-export type InlineBannerTone = "warning" | "error" | "neutral";
+export type InlineBannerTone = "warning" | "error" | "success" | "neutral";
 
 export interface InlineBannerProps {
   tone?: InlineBannerTone;
@@ -19,6 +19,7 @@ export interface InlineBannerProps {
 const TONE_CLASSES: Record<InlineBannerTone, string> = {
   warning: "border-warning-200 text-warning-800",
   error: "border-error-200 text-error-800",
+  success: "border-success-200 text-success-800",
   neutral: "border-slate-200 text-slate-700",
 };
 
