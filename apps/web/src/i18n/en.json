@@ -335,7 +335,24 @@
       "emailRequired": "Please enter your email address.",
       "emailInvalid": "Please enter a valid email address.",
       "messageRequired": "Please enter your feedback or comments."
-    }
+    },
+    "formTitle": "Send us a message",
+    "topics": {
+      "feedback": {
+        "title": "Share feedback",
+        "body": "Tell us what's working and what isn't."
+      },
+      "data": {
+        "title": "Report a data issue",
+        "body": "Spotted a missing or misplaced facility? Tell us the address and what you saw."
+      },
+      "ideas": {
+        "title": "Suggest a feature",
+        "body": "Have an idea that would make the map more useful? We'd love to hear it."
+      }
+    },
+    "faqPrompt": "Looking for a quick answer?",
+    "faqLink": "Browse the FAQ"
   },
   "about": {
     "metaTitle": "About | Location Intelligence NZ",

@@ -228,7 +228,24 @@
       "emailRequired": "Tēnā, tuhia tō wāhitau īmēra.",
       "emailInvalid": "Tēnā, tuhia he wāhitau īmēra tika.",
       "messageRequired": "Tēnā, tuhia ō whakaaro, ō kōrero rānei."
-    }
+    },
+    "formTitle": "Tukuna mai he karere",
+    "topics": {
+      "feedback": {
+        "title": "Tukuna ō whakaaro",
+        "body": "Kōrerotia mai ngā mea e pai ana, e kore ana hoki."
+      },
+      "data": {
+        "title": "Pūrongo i tētahi raru raraunga",
+        "body": "Kua kite koe i tētahi whakaurunga ngaro, he hē rānei? Whakamōhiotia mai te wāhitau me tāu i kite ai."
+      },
+      "ideas": {
+        "title": "Whakaarohia he āhuatanga hou",
+        "body": "He whakaaro tāu hei whakapai ake i te mahere? Kei te hiahia mātou ki te rongo."
+      }
+    },
+    "faqPrompt": "E rapu ana koe i tētahi whakautu tere?",
+    "faqLink": "Tirohia ngā Pātai Auau"
   },
   "about": {
     "feedbackTitle": "Tukuna mai ō whakaaro",

@@ -2,12 +2,15 @@
 
 import { useState, type FormEvent } from "react";
 import { useTranslations } from "next-intl";
-import { INPUT_BASE_CLASSES } from "@/components/ui/Input";
+import { Button } from "@/components/ui/Button";
+import { InlineBanner } from "@/components/ui/InlineBanner";
+import { Input } from "@/components/ui/Input";
+import { Textarea } from "@/components/ui/Textarea";
 
 type Status = "idle" | "sending" | "sent" | "error";
 type Field = "firstName" | "email" | "message";
 
-const FIELD_CLASSES = `${INPUT_BASE_CLASSES} w-full rounded-lg px-3 py-2.5 text-sm`;
+const FIELD_CLASSES = "mt-1 w-full px-3";
 const LABEL_CLASSES = "block text-sm font-medium text-ink";
 // Same shape the API enforces (apps/api/app/api/contact.py).
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
@@ -79,7 +82,8 @@ export function ContactForm() {
           <label htmlFor="firstName" className={LABEL_CLASSES}>
             {t("firstName")} <span aria-hidden="true">*</span>
           </label>
-          <input
+          <Input
+            size="lg"
             id="firstName"
             name="firstName"
             autoComplete="given-name"
@@ -88,7 +92,7 @@ export function ContactForm() {
             aria-invalid={!!errors.firstName}
             aria-describedby={describedBy("firstName")}
             onChange={() => clearFeedback("firstName")}
-            className={`${FIELD_CLASSES} mt-1`}
+            className={FIELD_CLASSES}
           />
           {fieldError("firstName")}
         </div>
@@ -96,12 +100,13 @@ export function ContactForm() {
           <label htmlFor="lastName" className={LABEL_CLASSES}>
             {t("lastName")}
           </label>
-          <input
+          <Input
+            size="lg"
             id="lastName"
             name="lastName"
             autoComplete="family-name"
             maxLength={100}
-            className={`${FIELD_CLASSES} mt-1`}
+            className={FIELD_CLASSES}
           />
         </div>
       </div>
@@ -110,7 +115,8 @@ export function ContactForm() {
         <label htmlFor="email" className={LABEL_CLASSES}>
           {t("email")} <span aria-hidden="true">*</span>
         </label>
-        <input
+        <Input
+          size="lg"
           id="email"
           name="email"
           type="email"
@@ -120,7 +126,7 @@ export function ContactForm() {
           aria-invalid={!!errors.email}
           aria-describedby={describedBy("email")}
           onChange={() => clearFeedback("email")}
-          className={`${FIELD_CLASSES} mt-1`}
+          className={FIELD_CLASSES}
         />
         {fieldError("email")}
       </div>
@@ -129,7 +135,7 @@ export function ContactForm() {
         <label htmlFor="message" className={LABEL_CLASSES}>
           {t("message")} <span aria-hidden="true">*</span>
         </label>
-        <textarea
+        <Textarea
           id="message"
           name="message"
           rows={6}
@@ -138,22 +144,22 @@ export function ContactForm() {
           aria-invalid={!!errors.message}
           aria-describedby={describedBy("message")}
           onChange={() => clearFeedback("message")}
-          className={`${FIELD_CLASSES} mt-1`}
+          className={FIELD_CLASSES}
         />
         {fieldError("message")}
       </div>
 
-      <button
+      <Button
         type="submit"
+        variant="primary"
+        label={status === "sending" ? t("submitting") : t("submit")}
         disabled={status === "sending"}
-        className="rounded-lg bg-primary-600 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
-      >
-        {status === "sending" ? t("submitting") : t("submit")}
-      </button>
+        className="w-full sm:w-auto"
+      />
 
       <div aria-live="polite">
-        {status === "sent" && <p className="text-sm text-success-700">{t("success")}</p>}
-        {status === "error" && <p className="text-sm text-error-600">{t("error")}</p>}
+        {status === "sent" && <InlineBanner tone="success">{t("success")}</InlineBanner>}
+        {status === "error" && <InlineBanner tone="error">{t("error")}</InlineBanner>}
       </div>
     </form>
   );
