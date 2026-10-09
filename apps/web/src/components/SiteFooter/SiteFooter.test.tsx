@@ -4,6 +4,8 @@ import { SiteFooter } from "./SiteFooter";
 
 let mockLocale = "en";
 
+jest.mock("next/navigation", () => ({ usePathname: () => "/about" }));
+
 jest.mock("next-intl/server", () => ({
   getLocale: async () => mockLocale,
   getTranslations:
@@ -21,7 +23,10 @@ describe("SiteFooter", () => {
   });
 
   const hrefs = () => {
-    const allLinks = screen.getAllByRole("link").map((l) => l.getAttribute("href"));
+    const allLinks = screen
+      .getAllByRole("link")
+      .filter((l) => !l.hasAttribute("hreflang"))
+      .map((l) => l.getAttribute("href"));
     // Return unique hrefs since both responsive layouts render the same links
     return Array.from(new Set(allLinks));
   };
@@ -40,7 +45,7 @@ describe("SiteFooter", () => {
   it("orders desktop links About, Contact, FAQ, Data sources", async () => {
     await renderFooter();
     const desktop = screen.getAllByRole("navigation")[0]!;
-    const labels = Array.from(desktop.querySelectorAll("a")).map((a) => a.textContent);
+    const labels = Array.from(desktop.querySelectorAll("a:not([hreflang])")).map((a) => a.textContent);
     expect(labels).toEqual(["about", "contact", "faq", "dataSources"]);
   });
 
@@ -48,7 +53,7 @@ describe("SiteFooter", () => {
     await renderFooter();
     const mobile = screen.getAllByRole("navigation")[1]!;
     const columns = Array.from(mobile.children).map((col) =>
-      Array.from(col.querySelectorAll("a")).map((a) => a.textContent),
+      Array.from(col.querySelectorAll("a:not([hreflang])")).map((a) => a.textContent),
     );
     expect(columns).toEqual([
       ["contact", "about"],
@@ -66,6 +71,23 @@ describe("SiteFooter", () => {
     // Both layouts render the same full "dataSources" label (not hidden with display:none)
     const hasLongLabel = dataLinks.some((l) => l.textContent?.includes("dataSources"));
     expect(hasLongLabel).toBe(true);
+  });
+
+  it("puts the language switcher before About on desktop and under About on mobile", async () => {
+    await renderFooter();
+    const [desktop, mobile] = screen.getAllByRole("navigation");
+    const order = (nav: HTMLElement) =>
+      Array.from(nav.querySelectorAll("a")).map((a) => a.textContent);
+    expect(order(desktop!).slice(0, 3)).toEqual(["EN", "MI", "about"]);
+    expect(order(mobile!).slice(0, 4)).toEqual(["contact", "about", "EN", "MI"]);
+  });
+
+  it("links the language switcher to the current page in each locale", async () => {
+    mockLocale = "mi";
+    await renderFooter();
+    const links = screen.getAllByRole("link").filter((l) => l.hasAttribute("hreflang"));
+    expect(Array.from(new Set(links.map((l) => l.getAttribute("href"))))).toEqual(["/about", "/mi/about"]);
+    expect(links.filter((l) => l.getAttribute("aria-current") === "true").map((l) => l.textContent)).toEqual(["MI", "MI"]);
   });
 
   it("shows the app version from package.json", async () => {

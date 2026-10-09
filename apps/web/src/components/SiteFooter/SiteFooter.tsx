@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { getLocale, getTranslations } from "next-intl/server";
 import { localizedPath } from "@/lib/localizedPath";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { version } from "../../../package.json";
 
 // Server-rendered so the links are in the initial HTML for crawlers.
@@ -58,6 +59,12 @@ export async function SiteFooter({ className = "" }: SiteFooterProps) {
           aria-label={t("navLabel")}
           className="flex flex-1 items-center gap-x-0 whitespace-nowrap min-w-0 justify-center"
         >
+          <LanguageSwitcher
+            locale={locale}
+            label={t("language")}
+            linkClassName={LINK_CLASSES}
+          />
+          <span className="opacity-50 px-1">{DIVIDER}</span>
           <Link href={localizedPath(locale, "/about")} className={LINK_CLASSES}>
             {t("about")}
           </Link>
@@ -125,6 +132,11 @@ export async function SiteFooter({ className = "" }: SiteFooterProps) {
             <Link href={localizedPath(locale, "/about")} className={LINK_CLASSES}>
               {t("about")}
             </Link>
+            <LanguageSwitcher
+              locale={locale}
+              label={t("language")}
+              linkClassName={LINK_CLASSES}
+            />
           </div>
           <div className="flex flex-col justify-center gap-y-0.5">
             <Link href={localizedPath(locale, "/faq")} className={LINK_CLASSES}>

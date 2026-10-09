@@ -207,7 +207,8 @@
     "about": "About",
     "contact": "Contact",
     "faq": "FAQ",
-    "dataSources": "Data sources"
+    "dataSources": "Data sources",
+    "language": "Language"
   },
   "dataSources": {
     "metaTitle": "Data Sources | Location Intelligence NZ",
