@@ -4,6 +4,7 @@ import React, { forwardRef } from "react";
 import type { LucideIcon } from "lucide-react";
 import {
   BUTTON_BASE_CLASSES,
+  TEXT_BUTTON_SHAPE_CLASSES,
   buttonColorVariants,
   getFocusRingClass,
   type ButtonActiveVariant,
@@ -34,7 +35,10 @@ export interface ButtonProps extends NativeButtonProps {
   title?: string;
   /** Accessible name, when it needs to differ from the visible `label` (icon-only buttons always use `label`). */
   ariaLabel?: string;
-  onClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
+  /** Optional only for `type="submit"` buttons, which act through their form. */
+  onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
+  /** Defaults to "button" so a Button never submits a form by accident. */
+  type?: "button" | "submit";
   active?: boolean;
   activeVariant?: ButtonActiveVariant;
   pressed?: boolean;
@@ -76,6 +80,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       title,
       ariaLabel,
       onClick,
+      type = "button",
       active = false,
       activeVariant = "tint",
       pressed,
@@ -96,7 +101,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       ? ICON_ONLY_SIZE_CLASSES[size]
       : Icon
         ? "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap"
-        : "inline-flex items-center justify-center px-4 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap";
+        : TEXT_BUTTON_SHAPE_CLASSES;
 
     const computedClassName = unstyled
       ? className
@@ -111,7 +116,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     return (
       <button
         ref={ref}
-        type="button"
+        type={type}
         onClick={onClick}
         disabled={disabled}
         aria-label={iconOnly ? (ariaLabel ?? label) : ariaLabel}

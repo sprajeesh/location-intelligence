@@ -4,6 +4,7 @@ export type { ButtonVariant, ButtonActiveVariant } from "./buttonStyles";
 export {
   getVisibilityToggleClasses,
   getFocusRingClass,
+  getButtonLinkClasses,
   buttonColorVariants,
   BUTTON_BASE_CLASSES,
 } from "./buttonStyles";
