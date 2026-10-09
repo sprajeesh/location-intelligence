@@ -88,4 +88,16 @@ describe('Button', () => {
       expect(svg).toHaveAttribute('aria-hidden', 'true');
     });
   });
+
+  describe('type', () => {
+    it('defaults to type="button" so it never submits a form by accident', () => {
+      render(<Button {...defaultProps} />);
+      expect(screen.getByRole('button', { name: 'Scoring' })).toHaveAttribute('type', 'button');
+    });
+
+    it('renders a submit button without an onClick', () => {
+      render(<Button type="submit" label="Send" />);
+      expect(screen.getByRole('button', { name: 'Send' })).toHaveAttribute('type', 'submit');
+    });
+  });
 });

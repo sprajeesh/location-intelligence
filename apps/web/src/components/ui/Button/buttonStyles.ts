@@ -25,6 +25,11 @@ export type ButtonActiveVariant = "tint" | "solid";
 export const BUTTON_BASE_CLASSES =
   "transition-all duration-150 active:scale-[0.97] disabled:opacity-40 disabled:cursor-not-allowed";
 
+// Shape of a text-only button; shared by Button and getButtonLinkClasses so a
+// link styled as a button can't drift from the real thing.
+export const TEXT_BUTTON_SHAPE_CLASSES =
+  "inline-flex items-center justify-center px-4 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap";
+
 const TOOLBAR_ACTIVE_TINT =
   "bg-primary-50 text-primary-600 hover:bg-primary-100 active:bg-primary-200";
 const TOOLBAR_ACTIVE_SOLID =
@@ -125,4 +130,13 @@ const VISIBILITY_TOGGLE_INACTIVE =
 
 export function getVisibilityToggleClasses(isVisible: boolean): string {
   return isVisible ? VISIBILITY_TOGGLE_ACTIVE : VISIBILITY_TOGGLE_INACTIVE;
+}
+
+/**
+ * Classes for a next/link (or <a>) that should look exactly like a text-only
+ * Button of the given variant -- for navigation CTAs, where an anchor is the
+ * right element but the visual should match the app's buttons.
+ */
+export function getButtonLinkClasses(variant: ButtonVariant = "primary"): string {
+  return `${TEXT_BUTTON_SHAPE_CLASSES} ${BUTTON_BASE_CLASSES} ${getFocusRingClass(variant)} ${buttonColorVariants({ variant })}`;
 }
