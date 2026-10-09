@@ -314,7 +314,17 @@
         "q": "Is it free? Do I need an account?",
         "a": "It is free and you do not need to sign in to search an address."
       }
-    }
+    },
+    "subtitle": "Quick answers about how scores are worked out, which facilities count and where the data comes from.",
+    "topicsLabel": "Topics",
+    "groups": {
+      "basics": "The basics",
+      "scoring": "Scores and settings",
+      "data": "Data and accuracy"
+    },
+    "ctaTitle": "Still have a question?",
+    "ctaBody": "If you can't find what you're looking for, send us a message and we'll help where we can.",
+    "ctaLink": "Contact us"
   },
   "contact": {
     "metaTitle": "Contact | Location Intelligence NZ",
