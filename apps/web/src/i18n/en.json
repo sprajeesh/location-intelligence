@@ -381,6 +381,7 @@
     "feedbackBody": "We would love to hear from you. If you have feedback, spotted something that looks wrong, or have a question about how Location Intelligence NZ works, please let us know.",
     "feedbackLink": "Contact us",
     "faqLink": "Read the FAQ",
-    "dataSourcesLink": "See the data sources"
+    "dataSourcesLink": "See the data sources",
+    "subtitle": "A free tool that scores New Zealand addresses by the facilities nearby."
   }
 }
