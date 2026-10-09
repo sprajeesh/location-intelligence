@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.25.0](https://github.com/sprajeesh/location-intelligence/compare/web@v0.24.0...web@v0.25.0) (2026-10-09)
+
+
+### Features
+
+* **web:** add language switcher (EN/MI) to the footer ([#345](https://github.com/sprajeesh/location-intelligence/issues/345)) ([df446ce](https://github.com/sprajeesh/location-intelligence/commit/df446ce347f769cc0a23dadf99c03612628ab3fe))
+* **web:** add Textarea ui component ([#343](https://github.com/sprajeesh/location-intelligence/issues/343)) ([434cb2f](https://github.com/sprajeesh/location-intelligence/commit/434cb2fc171ffad91c713a52b50f10d8677b2c09))
+* **web:** let Button submit forms and style links like buttons ([#342](https://github.com/sprajeesh/location-intelligence/issues/342)) ([cfc6f13](https://github.com/sprajeesh/location-intelligence/commit/cfc6f13ea380834ca0639f23eb8be01e03c7bb6b))
+* **web:** redesign Contact, FAQ and About pages for desktop ([#344](https://github.com/sprajeesh/location-intelligence/issues/344)) ([9e9b790](https://github.com/sprajeesh/location-intelligence/commit/9e9b7903da9ca7d5c66e8876673dcd99a288602b))
+
 ## [0.24.0](https://github.com/sprajeesh/location-intelligence/compare/web@v0.23.2...web@v0.24.0) (2026-10-08)
 
 
