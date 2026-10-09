@@ -10,7 +10,12 @@ jest.mock("next-intl/server", () => ({
   },
 }));
 jest.mock("@/components/InfoPageShell", () => ({
-  InfoPageShell: ({ children }: { children: React.ReactNode }) => <main>{children}</main>,
+  InfoPageShell: ({ title, children }: { title?: string; children: React.ReactNode }) => (
+    <main>
+      <h1>{title}</h1>
+      {children}
+    </main>
+  ),
 }));
 
 describe("About page", () => {

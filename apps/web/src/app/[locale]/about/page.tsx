@@ -5,14 +5,22 @@ import { infoPageMetadata } from "@/lib/infoPageMetadata";
 import { localizedPath } from "@/lib/localizedPath";
 import { getSiteUrl } from "@/lib/siteUrl";
 import { InfoPageShell } from "@/components/InfoPageShell";
+import { Info, MapPin, SlidersHorizontal, Users, type LucideIcon } from "lucide-react";
+import { getButtonLinkClasses } from "@/components/ui/Button";
+import { SurfacePanel } from "@/components/ui/SurfacePanel";
 import { serializeJsonLd } from "@/lib/jsonLd";
 
 interface AboutPageProps {
   params: Promise<{ locale: string }>;
 }
 
-const SECTIONS = ["what", "who", "how", "limits"] as const;
-const LINK_CLASSES = "font-medium text-primary-600 hover:underline";
+// Card layout on lg (3-col grid): what and limits span the row, how is wider than who.
+const SECTIONS: { key: string; icon: LucideIcon; span: string }[] = [
+  { key: "what", icon: MapPin, span: "lg:col-span-3" },
+  { key: "who", icon: Users, span: "lg:col-span-1" },
+  { key: "how", icon: SlidersHorizontal, span: "lg:col-span-2" },
+  { key: "limits", icon: Info, span: "lg:col-span-3" },
+];
 
 export async function generateMetadata({ params }: AboutPageProps): Promise<Metadata> {
   const { locale } = await params;
@@ -42,37 +50,54 @@ export default async function AboutPage({ params }: AboutPageProps) {
   };
 
   return (
-    <InfoPageShell locale={locale} backHomeLabel={t("backHome")}>
+    <InfoPageShell
+      locale={locale}
+      backHomeLabel={t("backHome")}
+      title={t("title")}
+      subtitle={t("subtitle")}
+      icon={<Info size={24} aria-hidden="true" />}
+    >
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
       />
-      <h1 className="mt-4 text-3xl font-bold">{t("title")}</h1>
-      <div className="mt-6 space-y-6">
-        {SECTIONS.map((key) => (
-          <section key={key}>
-            <h2 className="text-xl font-semibold">{t(`${key}Title`)}</h2>
-            <p className="mt-2 text-slate-600">{t(`${key}Body`)}</p>
-          </section>
+      <div className="grid gap-6 lg:grid-cols-3">
+        {SECTIONS.map(({ key, icon: Icon, span }) => (
+          <SurfacePanel
+            as="section"
+            key={key}
+            className={`p-6 transition-shadow hover:shadow-card-lg md:p-8 ${span}`}
+          >
+            <span
+              aria-hidden="true"
+              className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary-50 text-primary-600 dark:bg-primary-900 dark:text-primary-200"
+            >
+              <Icon size={22} aria-hidden="true" />
+            </span>
+            <h2 className="mt-4 text-xl font-semibold">{t(`${key}Title`)}</h2>
+            <p className="mt-2 max-w-3xl text-slate-600">{t(`${key}Body`)}</p>
+          </SurfacePanel>
         ))}
-        <section>
-          <h2 className="text-xl font-semibold">{t("feedbackTitle")}</h2>
-          <p className="mt-2 text-slate-600">
-            {t("feedbackBody")}{" "}
-            <Link href={localizedPath(locale, "/contact")} className={LINK_CLASSES}>
-              {t("feedbackLink")}
-            </Link>
-          </p>
-        </section>
       </div>
-      <p className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm">
-        <Link href={localizedPath(locale, "/faq")} className={LINK_CLASSES}>
-          {t("faqLink")}
-        </Link>
-        <Link href={localizedPath(locale, "/data-sources")} className={LINK_CLASSES}>
-          {t("dataSourcesLink")}
-        </Link>
-      </p>
+
+      <section className="mt-6 rounded-2xl border border-primary-200 bg-primary-50 p-6 dark:border-primary-800 dark:bg-primary-950 md:p-8">
+        <h2 className="text-xl font-semibold">{t("feedbackTitle")}</h2>
+        <p className="mt-2 max-w-3xl text-slate-600">{t("feedbackBody")}</p>
+        <div className="mt-5 flex flex-wrap gap-3">
+          <Link
+            href={localizedPath(locale, "/contact")}
+            className={getButtonLinkClasses("primary")}
+          >
+            {t("feedbackLink")}
+          </Link>
+          <Link href={localizedPath(locale, "/faq")} className={getButtonLinkClasses("outline")}>
+            {t("faqLink")}
+          </Link>
+          <Link href={localizedPath(locale, "/data-sources")} className={getButtonLinkClasses("outline")}>
+            {t("dataSourcesLink")}
+          </Link>
+        </div>
+      </section>
     </InfoPageShell>
   );
 }
