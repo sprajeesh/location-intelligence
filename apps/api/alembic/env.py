@@ -14,8 +14,9 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# No ORM models -- migrations use raw op.execute()/op.create_table(), so there's
-# nothing for autogenerate to diff against.
+# Deliberately None. Migrations use raw op.execute()/op.create_table(). The ORM
+# models in app/models/ map tables this project does not own -- `addresses` is
+# built into the postgis image -- so autogenerate must not see app.models.Base.metadata.
 target_metadata = None
 
 # The app connects at runtime via asyncpg with a plain postgresql:// DSN (see
