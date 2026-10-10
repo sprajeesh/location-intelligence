@@ -1,3 +1,5 @@
+import re
+
 import asyncpg
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
@@ -18,10 +20,11 @@ async def close_pool(pool: asyncpg.Pool) -> None:
 def create_engine(dsn: str) -> AsyncEngine:
     """SQLAlchemy async engine on the asyncpg driver.
 
-    Takes the same plain `postgresql://` DSN as `create_pool`. Kept small
+    Takes the same DSN as `create_pool` (`postgresql://` or `postgres://`). Kept small
     because it sits alongside the asyncpg pool rather than replacing it.
     """
-    url = dsn.replace("postgresql://", "postgresql+asyncpg://", 1)
+    # Accept both prefixes: SQLAlchemy 2.x no longer recognises "postgres://".
+    url = re.sub(r"^postgres(ql)?://", "postgresql+asyncpg://", dsn, count=1)
     return create_async_engine(url, pool_size=5, max_overflow=5)
 
 
