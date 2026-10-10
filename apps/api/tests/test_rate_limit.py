@@ -75,8 +75,6 @@ async def rate_limited_client(fake_redis):
 
     application = create_app()
     with (
-        patch("app.main.create_pool", new=AsyncMock(return_value=MagicMock())),
-        patch("app.main.close_pool", new=AsyncMock()),
         patch(
             "app.main.load_scoring_config",
             new=AsyncMock(return_value=build_test_scoring_config()),

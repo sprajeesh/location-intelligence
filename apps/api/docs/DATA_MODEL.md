@@ -191,8 +191,8 @@ an `add_column` + data-backfill migration on top of `0001`'s
 `UPDATE`s the 5 default-set slugs to `true`.
 
 Alembic connects synchronously via `psycopg` (see `alembic/env.py`) — this is
-separate from the app's own `asyncpg` connection pool used at runtime; only
-the migration tooling uses `psycopg`.
+separate from the app's runtime connection pool (a SQLAlchemy engine on the
+`asyncpg` driver); only the migration tooling uses `psycopg`.
 
 The Postgres user the app connects as (`gisuser` by default) needs `CREATE`
 on the `public` schema for `alembic upgrade head` to succeed — this is

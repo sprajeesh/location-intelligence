@@ -1,6 +1,5 @@
 import re
 
-import asyncpg
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
@@ -9,19 +8,12 @@ from sqlalchemy.ext.asyncio import (
 )
 
 
-async def create_pool(dsn: str) -> asyncpg.Pool:
-    return await asyncpg.create_pool(dsn=dsn, min_size=2, max_size=10)
-
-
-async def close_pool(pool: asyncpg.Pool) -> None:
-    await pool.close()
-
-
 def create_engine(dsn: str) -> AsyncEngine:
-    """SQLAlchemy async engine on the asyncpg driver.
+    """Process-wide SQLAlchemy async engine on the asyncpg driver.
 
-    Takes the same DSN as `create_pool` (`postgresql://` or `postgres://`). Kept small
-    because it sits alongside the asyncpg pool rather than replacing it.
+    The engine owns the only connection pool in the app; every repository gets its
+    sessions from `create_session_factory`. Accepts both `postgresql://` and
+    `postgres://` DSNs.
     """
     # Accept both prefixes: SQLAlchemy 2.x no longer recognises "postgres://".
     url = re.sub(r"^postgres(ql)?://", "postgresql+asyncpg://", dsn, count=1)
