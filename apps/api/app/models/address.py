@@ -1,11 +1,9 @@
 from decimal import Decimal
 
 from sqlalchemy import Numeric, String
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column
 
-
-class Base(DeclarativeBase):
-    """Declarative base for ORM models that map externally managed tables."""
+from app.models.base import Base
 
 
 class Address(Base):
