@@ -2,19 +2,19 @@ import logging
 
 from fastapi import APIRouter, HTTPException, Query, Request
 
-from app.schemas.responses import AddressResult
+from app.schemas.responses import AddressSuggestion
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
 
-@router.get("/search/address", response_model=list[AddressResult])
+@router.get("/search/address", response_model=list[AddressSuggestion])
 async def search_address(
     request: Request,
     q: str = Query(..., min_length=1, description="Search query"),
     country: str = Query(default="nz", description="Country code"),
-) -> list[AddressResult]:
+) -> list[AddressSuggestion]:
     geocoding_svc = request.app.state.geocoding_svc
 
     try:
@@ -26,6 +26,4 @@ async def search_address(
     if not results:
         raise HTTPException(status_code=404, detail="Address not found")
 
-    return [
-        AddressResult(displayName=r["displayName"], lat=r["lat"], lon=r["lon"]) for r in results
-    ]
+    return results

@@ -11,6 +11,7 @@ from app.config.version import get_version
 from app.main import create_app
 from app.repositories.cache import CacheRepository
 from app.repositories.db.address_repository import AddressRepository
+from app.schemas.responses import AddressSuggestion
 from app.services.distance import DistanceService
 from app.services.facilities import FacilitiesService
 from app.services.geocoding import GeocodingService
@@ -293,7 +294,7 @@ class TestSearchAddressEndpoint:
 
     def test_search_returns_address_list(self, client: TestClient) -> None:
         mock_results = [
-            {"displayName": "123 Queen Street, Auckland", "lat": -36.848, "lon": 174.763}
+            AddressSuggestion(displayName="123 Queen Street, Auckland", lat=-36.848, lon=174.763)
         ]
         with patch(
             "app.services.geocoding.GeocodingService.search",

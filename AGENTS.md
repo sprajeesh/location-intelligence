@@ -62,6 +62,7 @@ FastAPI + Python 3.13 + uv. Tests: `uv run pytest`; lint: `uv run ruff check`.
 - `app/clients/overpass.py` — parallel category queries, 2× retry with backoff, dedup by OSM id
 - `app/clients/osrm.py` — OSRM road distance, automatic Haversine fallback + warning
 - `app/repositories/cache.py` — Redis caching, silent skip when Redis unavailable
+- `app/repositories/db/address_repository.py` — SQLAlchemy query returning `Address` models (`app/models/address.py`); `GeocodingService` maps them to the `AddressSuggestion` DTO (`app/schemas/responses.py`)
 
 ### POST /location/analyze contract
 

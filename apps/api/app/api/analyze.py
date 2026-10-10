@@ -73,9 +73,9 @@ async def run_analysis(state: Any, body: AnalyzeRequest) -> AnalyzeResponse:
         if result is None:
             raise HTTPException(status_code=404, detail="Address not found")
 
-        lat = result["lat"]
-        lon = result["lon"]
-        display_name = result["displayName"]
+        lat = result.lat
+        lon = result.lon
+        display_name = result.displayName
     elif body.address:
         display_name = body.address
 

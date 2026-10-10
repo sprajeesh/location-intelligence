@@ -23,6 +23,10 @@ See "Migrations" below for the commands.
 LINZ NZ Street Address dataset (layer 123113), used for address
 autocomplete/geocoding (`GET /search/address`, `GeocodingService`).
 
+Read through the `Address` ORM model (`app/models/address.py`), which maps only
+the columns the API uses. The model is read-only: the table is not created or
+altered by Alembic, so `alembic/env.py` keeps `target_metadata = None`.
+
 | Column                         | Type              | Notes |
 | ------------------------------- | ----------------- | ----- |
 | `id`                            | `SERIAL PRIMARY KEY` | |
