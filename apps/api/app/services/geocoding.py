@@ -3,6 +3,7 @@ import logging
 
 from app.repositories.cache import CacheRepository
 from app.repositories.db.address_repository import AddressRepository
+from app.schemas.responses import AddressSuggestion
 
 logger = logging.getLogger(__name__)
 
@@ -19,10 +20,9 @@ class GeocodingService:
         self._repo = address_repo
         self._cache = cache
 
-    async def search(self, query: str, country: str = "nz") -> list[dict]:
-        """Return list of address suggestions for `query`.
+    async def search(self, query: str, country: str = "nz") -> list[AddressSuggestion]:
+        """Return address suggestions for `query`.
 
-        Each entry has: displayName, lat, lon.
         The `country` parameter is accepted for API compatibility but ignored —
         the LINZ PostGIS database is NZ-only.
         """
@@ -30,20 +30,23 @@ class GeocodingService:
         cached = await self._cache.get(key)
         if cached is not None:
             logger.debug("Geocode cache hit for query=%s", query)
-            return cached  # type: ignore[return-value]
+            return [AddressSuggestion.model_validate(item) for item in cached]  # type: ignore[union-attr]
 
         try:
-            results = await self._repo.search(query)
+            rows = await self._repo.search(query)
         except Exception as exc:
             logger.error("Address DB query failed: %s", exc)
             raise
 
+        results = [AddressSuggestion.from_model(row) for row in rows]
+
         if results:
-            await self._cache.set(key, results, GEOCODE_TTL)
+            # Cache plain dicts so the cache stays JSON-serialisable.
+            await self._cache.set(key, [r.model_dump() for r in results], GEOCODE_TTL)
 
         return results
 
-    async def geocode_first(self, query: str, country: str = "nz") -> dict | None:
+    async def geocode_first(self, query: str, country: str = "nz") -> AddressSuggestion | None:
         """Return the best single geocode result, or None if not found."""
         results = await self.search(query, country=country)
         return results[0] if results else None

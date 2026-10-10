@@ -2,11 +2,22 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
+from app.models.address import Address
 
-class AddressResult(BaseModel):
+
+class AddressSuggestion(BaseModel):
     displayName: str
     lat: float
     lon: float
+
+    @classmethod
+    def from_model(cls, address: Address) -> "AddressSuggestion":
+        # Callers only pass rows the query filtered to non-null coordinates.
+        return cls(
+            displayName=address.full_address,
+            lat=float(address.shape_y),  # type: ignore[arg-type]
+            lon=float(address.shape_x),  # type: ignore[arg-type]
+        )
 
 
 class CategoryInfo(BaseModel):

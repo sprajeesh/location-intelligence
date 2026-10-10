@@ -1,46 +1,40 @@
 import logging
 import unicodedata
 
-import asyncpg
+from sqlalchemy import case, func, select
+from sqlalchemy.ext.asyncio import async_sessionmaker
+
+from app.models.address import Address
 
 logger = logging.getLogger(__name__)
 
 
 class AddressRepository:
-    def __init__(self, pool: asyncpg.Pool) -> None:
-        self._pool = pool
+    def __init__(self, session_factory: async_sessionmaker) -> None:
+        self._session_factory = session_factory
 
-    async def search(self, query: str, limit: int = 5) -> list[dict]:
+    async def search(self, query: str, limit: int = 5) -> list[Address]:
         """Search NZ addresses using trigram-accelerated ILIKE.
 
-        Returns list of dicts with keys: displayName, lat, lon.
-        Uses full_address_ascii for matching (handles macrons/diacritics),
-        but returns full_address as displayName for correct NZ spelling.
+        Matches against `full_address_ascii` (handles macrons/diacritics). Returns
+        ORM `Address` rows; mapping to DTOs happens in the service layer.
         """
         normalized_query = (
             unicodedata.normalize("NFKD", query).encode("ascii", "ignore").decode("ascii")
         )
-        sql = """
-            SELECT
-                full_address  AS display_name,
-                shape_y       AS lat,
-                shape_x       AS lon
-            FROM addresses
-            WHERE full_address_ascii ILIKE '%' || $1 || '%'
-            ORDER BY
-                CASE WHEN full_address_ascii ILIKE $1 || '%' THEN 0 ELSE 1 END,
-                length(full_address_ascii)
-            LIMIT $2
-        """
-        async with self._pool.acquire() as conn:
-            rows = await conn.fetch(sql, normalized_query, limit)
-
-        return [
-            {
-                "displayName": row["display_name"],
-                "lat": float(row["lat"]),
-                "lon": float(row["lon"]),
-            }
-            for row in rows
-            if row["lat"] is not None and row["lon"] is not None
-        ]
+        stmt = (
+            select(Address)
+            .where(
+                Address.full_address_ascii.ilike(f"%{normalized_query}%"),
+                Address.shape_x.is_not(None),
+                Address.shape_y.is_not(None),
+            )
+            .order_by(
+                case((Address.full_address_ascii.ilike(f"{normalized_query}%"), 0), else_=1),
+                func.length(Address.full_address_ascii),
+            )
+            .limit(limit)
+        )
+        async with self._session_factory() as session:
+            result = await session.scalars(stmt)
+            return list(result)

@@ -27,7 +27,13 @@ from app.config.settings import get_settings
 from app.config.version import get_version
 from app.repositories.cache import CacheRepository
 from app.repositories.db.address_repository import AddressRepository
-from app.repositories.db.connection import close_pool, create_pool
+from app.repositories.db.connection import (
+    close_pool,
+    create_engine,
+    create_pool,
+    create_session_factory,
+    dispose_engine,
+)
 from app.repositories.db.facility_config_repository import FacilityConfigRepository
 from app.repositories.report_jobs import ReportJobStore
 from app.services.distance import DistanceService
@@ -77,6 +83,9 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     # Connect PostGIS
     db_pool = await create_pool(settings.database_url)
+    # SQLAlchemy engine for ORM-mapped tables (addresses). Coexists with the
+    # asyncpg pool until FacilityConfigRepository is migrated too.
+    db_engine = create_engine(settings.database_url)
 
     # Load facility/scoring config from the DB once at startup — see
     # app/config/scoring_config_loader.py. Picking up an edit requires a restart.
@@ -173,7 +182,9 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     )
 
     # Wire up services
-    app.state.geocoding_svc = GeocodingService(AddressRepository(db_pool), cache)
+    app.state.geocoding_svc = GeocodingService(
+        AddressRepository(create_session_factory(db_engine)), cache
+    )
     app.state.facilities_svc = FacilitiesService(overpass, cache, scoring_config)
     app.state.distance_svc = DistanceService(
         osrm,
@@ -194,6 +205,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     yield
 
     # Cleanup
+    await dispose_engine(db_engine)
     await close_pool(db_pool)
     await http_client.aclose()
     await redis_module.close_redis_client()
