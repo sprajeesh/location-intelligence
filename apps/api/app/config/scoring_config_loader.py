@@ -44,27 +44,27 @@ async def load_scoring_config(repo: FacilityConfigRepository) -> ScoringConfig:
     default_categories: list[str] = []
 
     for row in facility_rows:
-        slug = row["slug"]
+        slug = row.slug
         cfg = FacilityConfig(
-            distance_mode=row["distance_mode"],
-            decay_constant=row["decay_constant"],
-            reference_radius=row["reference_radius"],
-            hard_cutoff=row["hard_cutoff"],
-            saturation_point=row["saturation_point"],
-            proximity_weight=row["proximity_weight"],
-            density_weight=row["density_weight"],
-            count_ceiling=row["count_ceiling"],
-            drive_decay_constant=row["drive_decay_constant"],
-            drive_reference_radius=row["drive_reference_radius"],
-            drive_hard_cutoff=row["drive_hard_cutoff"],
-            label=row["label"],
-            singular_label=row["singular_label"],
-            color=row["color"],
-            implemented=row["implemented"],
-            composite_category=row["composite_category"],
-            category_weight=row["category_weight"],
-            is_default=row["is_default"],
-            osm_tags=row["osm_tags"],
+            distance_mode=row.distance_mode,
+            decay_constant=row.decay_constant,
+            reference_radius=row.reference_radius,
+            hard_cutoff=row.hard_cutoff,
+            saturation_point=row.saturation_point,
+            proximity_weight=row.proximity_weight,
+            density_weight=row.density_weight,
+            count_ceiling=row.count_ceiling,
+            drive_decay_constant=row.drive_decay_constant,
+            drive_reference_radius=row.drive_reference_radius,
+            drive_hard_cutoff=row.drive_hard_cutoff,
+            label=row.label,
+            singular_label=row.singular_label,
+            color=row.color,
+            implemented=row.implemented,
+            composite_category=row.composite_category,
+            category_weight=row.category_weight,
+            is_default=row.is_default,
+            osm_tags=[tuple(pair) for pair in row.osm_tags],
         )
         facility_configs[slug] = cfg
         categories.append(
@@ -84,7 +84,7 @@ async def load_scoring_config(repo: FacilityConfigRepository) -> ScoringConfig:
     category_facility_weights = build_category_facility_weights(facility_configs)
 
     category_weight_rows = await repo.fetch_category_weights()
-    category_weights = {row["category"]: row["weight"] for row in category_weight_rows}
+    category_weights = {row.category: row.weight for row in category_weight_rows}
 
     total = sum(category_weights.values())
     if abs(total - 1.0) > 1e-6:
