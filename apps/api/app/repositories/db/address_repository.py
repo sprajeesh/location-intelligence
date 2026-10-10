@@ -32,6 +32,8 @@ class AddressRepository:
             .order_by(
                 case((Address.full_address_ascii.ilike(f"{normalized_query}%"), 0), else_=1),
                 func.length(Address.full_address_ascii),
+                # Stable tie-break so equal-length matches don't reorder between calls.
+                Address.id,
             )
             .limit(limit)
         )
