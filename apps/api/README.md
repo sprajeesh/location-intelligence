@@ -164,7 +164,7 @@ app/
 │   ├── __init__.py
 │   ├── cache.py            # Redis-backed caching
 │   └── db/
-│       ├── connection.py           # asyncpg pool create/close
+│       ├── connection.py           # SQLAlchemy engine + session factory (single pool)
 │       └── address_repository.py  # LINZ address search (PostGIS)
 ├── schemas/                # Pydantic models (request/response)
 │   ├── __init__.py
@@ -230,9 +230,10 @@ Access via: `settings = get_settings()` (cached singleton).
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     # Startup
     await redis_module.init_redis(settings.redis_url)
-    db_pool = await create_pool(settings.database_url)
+    db_engine = create_engine(settings.database_url)
+    session_factory = create_session_factory(db_engine)
     http_client = httpx.AsyncClient()
-    app.state.geocoding_svc = GeocodingService(AddressRepository(db_pool), cache)
+    app.state.geocoding_svc = GeocodingService(AddressRepository(session_factory), cache)
     app.state.facilities_svc = FacilitiesService(...)
     app.state.distance_svc = DistanceService(...)
     app.state.scoring_svc = LocationScoringService(...)
@@ -240,7 +241,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     yield
 
     # Cleanup
-    await close_pool(db_pool)
+    await dispose_engine(db_engine)
     await http_client.aclose()
     await redis_module.close_redis_client()
 ```
@@ -688,7 +689,7 @@ select = ["E", "F", "I", "UP"]
 
 ### Timeouts
 
-- PostGIS (asyncpg pool): configurable via `create_pool` min/max size
+- PostGIS (SQLAlchemy engine pool): `pool_size=5`, `max_overflow=5` in `create_engine`
 - Overpass: 25s (specified in OverpassQL `[timeout:25]`)
 - OSRM: 10s default
 - Redis: 5s default

@@ -1,7 +1,7 @@
 """Report job endpoints: create -> poll -> download, plus failure modes."""
 
 import uuid
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 import fakeredis.aioredis as fakeredis
 import pytest
@@ -32,8 +32,6 @@ def _build_client(redis_client, max_in_flight: int = 2):
         # persisted rate-limit counters would make these tests order-dependent.
         patch("app.main.redis_module.init_redis", new=AsyncMock()),
         patch("app.main.redis_module.get_client", new=AsyncMock(return_value=None)),
-        patch("app.main.create_pool", new=AsyncMock(return_value=MagicMock())),
-        patch("app.main.close_pool", new=AsyncMock()),
         patch("app.main.load_scoring_config", new=AsyncMock(return_value=scoring_config)),
     ):
         with TestClient(application) as client:
