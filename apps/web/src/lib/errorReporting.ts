@@ -11,7 +11,7 @@
  * in the backend logs under that action. Errors outside any action get a fresh one.
  */
 
-import { CORRELATION_ID_HEADER, createTraceId } from "@/lib/tracing";
+import { CORRELATION_ID_HEADER, createTraceId, REQUEST_ID_HEADER } from "@/lib/tracing";
 
 export type ClientErrorKind = "error" | "unhandledrejection" | "boundary" | "api";
 
@@ -102,6 +102,8 @@ export function reportClientError(input: ClientErrorInput): void {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        // This POST's own ID. The report's requestId names the failed call, not this one.
+        [REQUEST_ID_HEADER]: createTraceId(),
         [CORRELATION_ID_HEADER]: input.correlationId ?? createTraceId(),
       },
       body: JSON.stringify(buildReport(input)),

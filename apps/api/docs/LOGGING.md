@@ -23,10 +23,10 @@ Extra fields depend on the event: `route`, `method`, `status`, `duration_ms`,
 
 ## Request and correlation IDs
 
-- Each response carries `X-Request-ID` and `X-Correlation-ID`. A valid incoming
-  header of either name is reused; otherwise a 32-character hex ID is generated.
-- A request with no correlation ID is its own action, so its correlation ID is its
-  request ID.
+- Each response carries `X-Request-ID` and `X-Correlation-ID`.
+- A valid incoming `X-Request-ID` is reused. Otherwise a 32-character hex ID is generated.
+- A valid incoming `X-Correlation-ID` is reused. Otherwise the correlation ID is the
+  request ID, so a request with no correlation ID is its own action.
 - A valid ID matches `^[A-Za-z0-9-]{1,64}$`. Anything else is discarded, so
   a caller can't inject newlines or forge log content.
 - Unhandled errors return `500 {"detail": "Internal server error", "requestId": "..."}`.

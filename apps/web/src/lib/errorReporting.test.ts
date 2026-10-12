@@ -118,6 +118,14 @@ describe('reportClientError', () => {
     expect(lastReport().headers.get('X-Correlation-ID')).toBe('act-5');
   });
 
+  it('gives the report POST its own request ID, separate from the failed call', () => {
+    reportClientError({ kind: 'api', errorMessage: 'x', requestId: 'failed-1' });
+
+    const { headers } = lastReport();
+    expect(headers.get('X-Request-ID')).toMatch(/^[A-Za-z0-9-]{1,64}$/);
+    expect(headers.get('X-Request-ID')).not.toBe('failed-1');
+  });
+
   it('gives an error outside any action its own correlation ID', () => {
     reportClientError({ kind: 'error', error: new Error('boom') });
 
