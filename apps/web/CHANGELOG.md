@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.26.0](https://github.com/sprajeesh/location-intelligence/compare/web@v0.25.0...web@v0.26.0) (2026-10-12)
+
+
+### Features
+
+* frontend error tracking and request ID correlation ([#359](https://github.com/sprajeesh/location-intelligence/issues/359)) ([#367](https://github.com/sprajeesh/location-intelligence/issues/367)) ([f1d343c](https://github.com/sprajeesh/location-intelligence/commit/f1d343c5bb5d24afac7ab91356d4204d4e37bc37))
+* per-action correlation IDs across frontend, API and backend logs ([#360](https://github.com/sprajeesh/location-intelligence/issues/360)) ([#368](https://github.com/sprajeesh/location-intelligence/issues/368)) ([dbfb028](https://github.com/sprajeesh/location-intelligence/commit/dbfb02849cca2154e0d0210bc2b4b67571406452))
+
+
+### Bug Fixes
+
+* **web:** hide footer caption on mobile ([#370](https://github.com/sprajeesh/location-intelligence/issues/370)) ([7c6f4eb](https://github.com/sprajeesh/location-intelligence/commit/7c6f4eb1e7660e6532a58c8ea4a7774d99e3103a))
+
 ## [0.25.0](https://github.com/sprajeesh/location-intelligence/compare/web@v0.24.0...web@v0.25.0) (2026-10-09)
 
 
