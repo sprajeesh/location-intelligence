@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { apiKeyHeaders } from "@/utils/apiAuth";
 import { clientIpHeaders } from "@/utils/clientIp";
+import { requestIdHeaders } from "@/lib/requestId";
 
 /** Starts a background PDF report job (forwards to FastAPI POST /reports). */
 export async function POST(request: NextRequest) {
@@ -28,7 +29,7 @@ export async function POST(request: NextRequest) {
       headers: {
         "Content-Type": "application/json",
         ...apiKeyHeaders(),
-        ...clientIpHeaders(request.headers),
+        ...clientIpHeaders(request.headers), ...requestIdHeaders(request.headers),
       },
       body: JSON.stringify(body),
     });

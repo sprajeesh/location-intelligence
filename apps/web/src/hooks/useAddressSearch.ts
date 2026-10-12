@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import type { AddressResult } from '@/types/api';
+import { trackedFetch } from '@/lib/trackedFetch';
 
 /**
  * useAddressSearch hook
@@ -55,7 +56,7 @@ export function useAddressSearch() {
         country: 'nz',
       });
 
-      const response = await fetch(`/api/search/address?${params}`);
+      const response = await trackedFetch(`/api/search/address?${params}`);
       if (!response.ok) {
         throw new Error(`Address search failed: ${response.statusText}`);
       }

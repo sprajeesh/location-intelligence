@@ -124,7 +124,8 @@
   "errors": {
     "generic": "Kua puta he raru. Tēnā whakamātauhia ano.",
     "apiDown": "Kei te kore te ratonga i te wā nei.",
-    "rateLimit": "He maha rawa ngā tono. Tēnā tatari."
+    "rateLimit": "He maha rawa ngā tono. Tēnā tatari.",
+    "retry": "Whakamātau anō"
   },
   "map": {
     "showMap": "Mahere",
