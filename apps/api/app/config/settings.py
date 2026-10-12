@@ -15,6 +15,12 @@ class Settings(BaseSettings):
     api_port: int = 8000
     # TODO: Move to environment variables
     database_url: str = "postgresql://gisuser:gisuser@localhost:5432/gis"
+    # SQLAlchemy engine pool (app/repositories/db/connection.py). Every worker
+    # process holds its own pool, so the Postgres connection budget is
+    # workers x (db_pool_size + db_pool_max_overflow) -- see
+    # apps/api/docs/DATABASE_CONNECTIONS.md before raising these.
+    db_pool_size: int = 5
+    db_pool_max_overflow: int = 5
     overpass_url: str = "https://overpass-api.de/api/interpreter"
     overpass_max_concurrency: int = 2
     # Driving routes and DistanceService's facility-distance scoring both use

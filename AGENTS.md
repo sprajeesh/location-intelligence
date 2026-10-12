@@ -303,6 +303,9 @@ Translations live in `src/i18n/en.json`; `mi.json` mirrors its keys. Add every n
 API_HOST=0.0.0.0
 API_PORT=8000
 DATABASE_URL=postgresql://gisuser:changeme@localhost:5432/gis
+# SQLAlchemy pool per worker process; budget = workers x (size + overflow). See apps/api/docs/DATABASE_CONNECTIONS.md
+DB_POOL_SIZE=5
+DB_POOL_MAX_OVERFLOW=5
 OVERPASS_URL=https://overpass-api.de/api/interpreter
 OSRM_URL=http://localhost:5000
 OSRM_FOOT_URL=http://localhost:5001
