@@ -21,6 +21,10 @@ class Settings(BaseSettings):
     # apps/api/docs/DATABASE_CONNECTIONS.md before raising these.
     db_pool_size: int = 5
     db_pool_max_overflow: int = 5
+    # Seconds before a pooled connection is replaced. Keeps us ahead of idle-timeout
+    # drops from NAT gateways and load balancers, which vary by provider (some as low
+    # as a few minutes), and would otherwise surface as failed requests.
+    db_pool_recycle_seconds: int = 1800
     overpass_url: str = "https://overpass-api.de/api/interpreter"
     overpass_max_concurrency: int = 2
     # Driving routes and DistanceService's facility-distance scoring both use

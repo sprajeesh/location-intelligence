@@ -7,13 +7,10 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 
-# Seconds before a pooled connection is replaced. Keeps us ahead of idle-timeout
-# drops from NAT gateways and load balancers, which vary by provider (some as low
-# as a few minutes), and would otherwise surface as failed requests.
-POOL_RECYCLE_SECONDS = 1800
 
-
-def create_engine(dsn: str, *, pool_size: int, max_overflow: int) -> AsyncEngine:
+def create_engine(
+    dsn: str, *, pool_size: int, max_overflow: int, pool_recycle_seconds: int
+) -> AsyncEngine:
     """Process-wide SQLAlchemy async engine on the asyncpg driver.
 
     The engine owns the only connection pool in the app; every repository gets its
@@ -32,7 +29,7 @@ def create_engine(dsn: str, *, pool_size: int, max_overflow: int) -> AsyncEngine
         pool_size=pool_size,
         max_overflow=max_overflow,
         pool_pre_ping=True,
-        pool_recycle=POOL_RECYCLE_SECONDS,
+        pool_recycle=pool_recycle_seconds,
     )
 
 
