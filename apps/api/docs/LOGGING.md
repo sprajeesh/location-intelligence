@@ -73,6 +73,16 @@ prefix, e.g. `event:overpass.*`.
 | `report.failure_not_recorded`     | ERROR   | report job                                      |
 | `report.map_render_failed`        | ERROR   | report section (falls back to a table)          |
 | `report_store.*`                  | WARNING | report Redis store reads and writes             |
+| `client.error`                    | WARNING / ERROR | `POST /client-errors`, browser reports (WARNING for `kind=api`) |
+
+## Browser errors
+
+The web app reports its own failures to `POST /client-errors`. Each report is logged
+as `event=client.error` with `kind` (`error`, `unhandledrejection`, `boundary`, or `api`),
+`error_message`, `stack`, `route` (page pathname), `endpoint` (API path), `status`, and
+`client_request_id`. `client_request_id` is the ID the browser sent with the failed call,
+so searching for it in the logs returns the backend lines for that same call. Page loads
+send at most 20 reports.
 
 ## What is never logged
 

@@ -124,7 +124,8 @@
   "errors": {
     "generic": "Something went wrong. Please try again.",
     "apiDown": "Service temporarily unavailable.",
-    "rateLimit": "Too many requests. Please wait a moment."
+    "rateLimit": "Too many requests. Please wait a moment.",
+    "retry": "Try again"
   },
   "map": {
     "showMap": "Map",

@@ -2,7 +2,9 @@ import {
   ApiError,
   createReport,
   downloadReport,
+  fetchRoute,
   filenameFromContentDisposition,
+  getCategories,
   getReportStatus,
   normalizeAnalyzeResponse,
   normalizeRouteResult,
@@ -318,5 +320,47 @@ describe('report job client', () => {
     expect(filenameFromContentDisposition('attachment; filename="a b.pdf"')).toBe('a b.pdf');
     expect(filenameFromContentDisposition('attachment; filename=r.pdf')).toBe('r.pdf');
     expect(filenameFromContentDisposition(null)).toBeNull();
+  });
+});
+
+describe('failed API calls carry a request ID', () => {
+  const originalFetch = global.fetch;
+  const originalSendBeacon = navigator.sendBeacon;
+
+  beforeEach(() => {
+    global.fetch = jest.fn();
+    Object.defineProperty(navigator, 'sendBeacon', { value: jest.fn().mockReturnValue(true), configurable: true });
+  });
+
+  afterEach(() => {
+    global.fetch = originalFetch;
+    Object.defineProperty(navigator, 'sendBeacon', { value: originalSendBeacon, configurable: true });
+  });
+
+  it('sends an X-Request-ID and attaches the same ID to the ApiError', async () => {
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: false,
+      status: 503,
+      statusText: 'Service Unavailable',
+      json: async () => ({ error: 'Unavailable' }),
+    });
+
+    const error = await getCategories().catch((e: unknown) => e);
+
+    const sentId = new Headers((global.fetch as jest.Mock).mock.calls[0][1].headers).get('X-Request-ID');
+    expect(error).toBeInstanceOf(ApiError);
+    expect((error as ApiError).statusCode).toBe(503);
+    expect((error as ApiError).requestId).toBe(sentId);
+    expect(sentId).toMatch(/^[A-Za-z0-9-]{1,64}$/);
+  });
+
+  it('keeps the query string out of the network-error message', async () => {
+    (global.fetch as jest.Mock).mockRejectedValue(new TypeError('network down'));
+
+    const error = await fetchRoute(1, 2, 3, 4, 'driving').catch((e: unknown) => e);
+
+    expect(error).toBeInstanceOf(ApiError);
+    expect((error as ApiError).message).not.toContain('?');
+    expect((error as ApiError).requestId).toMatch(/^[A-Za-z0-9-]{1,64}$/);
   });
 });

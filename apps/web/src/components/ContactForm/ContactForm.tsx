@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { InlineBanner } from "@/components/ui/InlineBanner";
 import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
+import { trackedFetch } from "@/lib/trackedFetch";
 
 type Status = "idle" | "sending" | "sent" | "error";
 type Field = "firstName" | "email" | "message";
@@ -39,7 +40,7 @@ export function ContactForm() {
 
     setStatus("sending");
     try {
-      const response = await fetch("/api/contact", {
+      const response = await trackedFetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

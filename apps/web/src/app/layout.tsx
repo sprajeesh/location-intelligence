@@ -5,6 +5,7 @@ import { getLocale } from 'next-intl/server';
 import { primary } from '@/styles/tokens';
 import { getSiteUrl } from '@/lib/siteUrl';
 import '../i18n/globals.css';
+import { ErrorReporter } from '@/components/ErrorReporter/ErrorReporter';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -56,6 +57,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
       <body>
+        <ErrorReporter />
         {children}
       </body>
     </html>
