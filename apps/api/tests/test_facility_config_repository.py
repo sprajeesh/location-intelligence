@@ -1,30 +1,34 @@
 """Unit tests for the DB-backed facility config repository and loader.
 
-The session factory is mocked (matching the pattern used for AddressRepository in
-test_address_repository.py) rather than hitting a real Postgres instance.
+The session factory is mocked (matching test_address_repository.py) rather than
+hitting a real Postgres instance. The repository returns ORM models, so the
+mocked rows are model instances built from the same column values.
 """
 
-import json
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
+from sqlalchemy.dialects import postgresql
 
 from app.config.scoring_config_loader import load_scoring_config
+from app.models.facility import CategoryWeight, FacilityType
 from app.repositories.db.facility_config_repository import FacilityConfigRepository
 
 
-def _mock_session_factory(rows: list[dict]) -> MagicMock:
-    result = MagicMock()
-    result.mappings.return_value.all.return_value = rows
-
+def _mock_session_factory(rows: list) -> tuple[MagicMock, MagicMock]:
     session = MagicMock()
-    session.execute = AsyncMock(return_value=result)
+    session.scalars = AsyncMock(return_value=rows)
 
     cm = MagicMock()
     cm.__aenter__ = AsyncMock(return_value=session)
     cm.__aexit__ = AsyncMock(return_value=False)
 
-    return MagicMock(return_value=cm)
+    return MagicMock(return_value=cm), session
+
+
+def _compiled_sql(session: MagicMock) -> str:
+    stmt = session.scalars.call_args.args[0]
+    return str(stmt.compile(dialect=postgresql.dialect()))
 
 
 SCHOOLS_ROW = {
@@ -46,7 +50,7 @@ SCHOOLS_ROW = {
     "drive_decay_constant": None,
     "drive_reference_radius": None,
     "drive_hard_cutoff": None,
-    "osm_tags": json.dumps([["amenity", "school"]]),
+    "osm_tags": [["amenity", "school"]],
     "is_default": True,
 }
 
@@ -69,42 +73,45 @@ SUPERMARKETS_ROW = {
     "drive_decay_constant": None,
     "drive_reference_radius": None,
     "drive_hard_cutoff": None,
-    "osm_tags": json.dumps([["shop", "supermarket"]]),
+    "osm_tags": [["shop", "supermarket"]],
     "is_default": True,
 }
 
 
 class TestFacilityConfigRepository:
-    async def test_fetch_facility_types_parses_osm_tags_jsonb(self) -> None:
-        repo = FacilityConfigRepository(_mock_session_factory([SCHOOLS_ROW]))
-        rows = await repo.fetch_facility_types()
+    async def test_fetch_facility_types_returns_models_ordered_by_slug(self) -> None:
+        schools = FacilityType(**SCHOOLS_ROW)
+        factory, session = _mock_session_factory([schools])
 
-        assert len(rows) == 1
-        assert rows[0]["slug"] == "schools"
-        assert rows[0]["osm_tags"] == [("amenity", "school")]
+        rows = await FacilityConfigRepository(factory).fetch_facility_types()
 
-    async def test_fetch_category_weights(self) -> None:
-        repo = FacilityConfigRepository(
-            _mock_session_factory([{"category": "education", "weight": 0.40}])
-        )
-        rows = await repo.fetch_category_weights()
+        assert rows == [schools]
+        assert isinstance(rows[0], FacilityType)
+        assert "ORDER BY facility_types.slug" in _compiled_sql(session)
 
-        assert rows == [{"category": "education", "weight": 0.40}]
+    async def test_fetch_category_weights_returns_models_ordered_by_category(self) -> None:
+        weight = CategoryWeight(id=1, category="education", weight=0.40)
+        factory, session = _mock_session_factory([weight])
+
+        rows = await FacilityConfigRepository(factory).fetch_category_weights()
+
+        assert rows == [weight]
+        assert isinstance(rows[0], CategoryWeight)
+        assert "ORDER BY category_weights.category" in _compiled_sql(session)
 
 
 class _FakeRepo:
+    """Stands in for FacilityConfigRepository, returning the same model types."""
+
     def __init__(self, facility_rows: list[dict], category_weight_rows: list[dict]) -> None:
         self._facility_rows = facility_rows
         self._category_weight_rows = category_weight_rows
 
-    async def fetch_facility_types(self) -> list[dict]:
-        return [
-            {**row, "osm_tags": [tuple(pair) for pair in json.loads(row["osm_tags"])]}
-            for row in self._facility_rows
-        ]
+    async def fetch_facility_types(self) -> list[FacilityType]:
+        return [FacilityType(**row) for row in self._facility_rows]
 
-    async def fetch_category_weights(self) -> list[dict]:
-        return self._category_weight_rows
+    async def fetch_category_weights(self) -> list[CategoryWeight]:
+        return [CategoryWeight(**row) for row in self._category_weight_rows]
 
 
 class TestLoadScoringConfig:
