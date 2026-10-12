@@ -21,4 +21,13 @@ def test_create_engine_passes_pool_sizes_to_sqlalchemy(monkeypatch: pytest.Monke
 
     monkeypatch.setattr(connection, "create_async_engine", fake_create_async_engine)
     create_engine("postgresql://u:p@localhost/gis", pool_size=3, max_overflow=7)
-    assert calls == [{"pool_size": 3, "max_overflow": 7}]
+    assert calls == [
+        {"pool_size": 3, "max_overflow": 7, "pool_pre_ping": True, "pool_recycle": 1800}
+    ]
+
+
+def test_create_engine_enables_pre_ping_and_recycle() -> None:
+    engine = create_engine("postgresql://u:p@localhost/gis", pool_size=5, max_overflow=5)
+    assert engine.pool._pre_ping is True
+    assert engine.pool._recycle == connection.POOL_RECYCLE_SECONDS
+    assert engine.pool._recycle > 0
