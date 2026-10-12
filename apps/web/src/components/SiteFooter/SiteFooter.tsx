@@ -107,13 +107,10 @@ export async function SiteFooter({ className = "" }: SiteFooterProps) {
           </div>
         </div>
 
-        {/* Column 2: App Name, Caption, Version */}
+        {/* Column 2: App Name, Version (caption is desktop-only) */}
         <div className="flex flex-col justify-center gap-y-1">
           <span className="font-bold text-[11px] uppercase leading-tight">
             {t("appName")}
-          </span>
-          <span className="text-xs italic opacity-75 leading-tight">
-            {t("appCaption")}
           </span>
           <span className="text-[9px] opacity-90 leading-tight">
             {versionLabel}
