@@ -25,6 +25,8 @@ from app.clients.wikidata import WikidataClient
 from app.config.scoring_config_loader import load_scoring_config
 from app.config.settings import get_settings
 from app.config.version import get_version
+from app.logging_config import configure_logging
+from app.middleware.request_context import RequestContextMiddleware
 from app.repositories.cache import CacheRepository
 from app.repositories.db.address_repository import AddressRepository
 from app.repositories.db.connection import (
@@ -77,7 +79,10 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
             redis_client, identifier=bff_client_identifier, http_callback=rate_limit_exceeded
         )
     else:
-        logger.warning("Rate limiting disabled -- Redis unavailable, failing open")
+        logger.warning(
+            "Rate limiting disabled -- Redis unavailable, failing open",
+            extra={"event": "rate_limit.disabled"},
+        )
 
     # Connect PostGIS -- one engine/pool shared by every repository.
     db_engine = create_engine(
@@ -211,6 +216,9 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
 
 def create_app() -> FastAPI:
+    settings = get_settings()
+    configure_logging(settings)
+
     app = FastAPI(
         title="Location Intelligence API",
         version=get_version(),
@@ -225,6 +233,9 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+    # Added last so it wraps CORS: every response, including CORS-rejected ones,
+    # gets an X-Request-ID and an access log line.
+    app.add_middleware(RequestContextMiddleware)
 
     @app.exception_handler(RequestValidationError)
     async def _validation_exception_handler(
@@ -232,8 +243,6 @@ def create_app() -> FastAPI:
     ) -> JSONResponse:
         errors = _sanitize_non_finite_floats(jsonable_encoder(exc.errors()))
         return JSONResponse(status_code=422, content={"detail": errors})
-
-    settings = get_settings()
 
     # health stays unauthenticated -- the docker-compose healthcheck (and any
     # external uptime monitor) doesn't have the shared secret.

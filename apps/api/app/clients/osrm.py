@@ -5,6 +5,7 @@ import math
 import httpx
 
 from app.clients.circuit_breaker import CircuitBreaker
+from app.logging_config import exception_fields
 
 logger = logging.getLogger(__name__)
 
@@ -53,7 +54,10 @@ class OSRMClient:
         Raises on network error or OSRM returning a non-OK code.
         """
         if self._breaker is not None and self._breaker.is_open:
-            logger.warning("OSRM circuit breaker open, skipping route call")
+            logger.warning(
+                "OSRM circuit breaker open, skipping route call",
+                extra={"event": "osrm.breaker_open"},
+            )
             raise RuntimeError("OSRM circuit breaker is open")
 
         url = f"{self._base_url}/route/v1/{profile}/{coords}"
@@ -70,12 +74,18 @@ class OSRMClient:
                 self._breaker.record_success()
             return data
         except (httpx.ConnectError, httpx.TimeoutException, httpx.RemoteProtocolError) as exc:
-            logger.warning("OSRM unavailable for routing: %s", exc)
+            logger.warning(
+                "OSRM unavailable for routing",
+                extra={"event": "osrm.route_unavailable", **exception_fields(exc)},
+            )
             if self._breaker is not None:
                 self._breaker.record_failure()
             raise
         except Exception as exc:
-            logger.warning("OSRM route request failed: %s", exc)
+            logger.warning(
+                "OSRM route request failed",
+                extra={"event": "osrm.route_failed", **exception_fields(exc)},
+            )
             if self._breaker is not None:
                 self._breaker.record_failure()
             raise
@@ -99,7 +109,10 @@ class OSRMClient:
             return [], False
 
         if self._breaker is not None and self._breaker.is_open:
-            logger.warning("OSRM circuit breaker open, skipping call and falling back to Haversine")
+            logger.warning(
+                "OSRM circuit breaker open, falling back to Haversine",
+                extra={"event": "osrm.breaker_open_fallback"},
+            )
             return [
                 haversine_km(origin_lat, origin_lon, lat, lon) for lat, lon in destinations
             ], True
@@ -133,14 +146,20 @@ class OSRMClient:
                 self._breaker.record_success()
             return distances, used_fallback
         except (httpx.ConnectError, httpx.TimeoutException, httpx.RemoteProtocolError) as exc:
-            logger.warning("OSRM unavailable, falling back to Haversine: %s", exc)
+            logger.warning(
+                "OSRM unavailable, falling back to Haversine",
+                extra={"event": "osrm.table_unavailable_fallback", **exception_fields(exc)},
+            )
             if self._breaker is not None:
                 self._breaker.record_failure()
             return [
                 haversine_km(origin_lat, origin_lon, lat, lon) for lat, lon in destinations
             ], True
         except Exception as exc:
-            logger.warning("OSRM request failed, falling back to Haversine: %s", exc)
+            logger.warning(
+                "OSRM request failed, falling back to Haversine",
+                extra={"event": "osrm.table_failed_fallback", **exception_fields(exc)},
+            )
             if self._breaker is not None:
                 self._breaker.record_failure()
             return [

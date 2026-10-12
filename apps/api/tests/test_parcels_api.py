@@ -62,7 +62,10 @@ class TestGetParcels:
 
         assert response.status_code == 502
         assert "super-secret-key" not in caplog.text
-        assert "500" in caplog.text
+        records = [
+            r for r in caplog.records if getattr(r, "event", None) == "linz.parcel_lookup_failed"
+        ]
+        assert records and records[0].upstream_status == 500
 
     def test_rejects_out_of_range_latitude(self, test_client: TestClient) -> None:
         response = test_client.get("/parcels", params={"lat": -91, "lon": 174.7633})

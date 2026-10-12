@@ -9,6 +9,7 @@ from fastapi import HTTPException
 
 from app.api.analyze import run_analysis
 from app.config.version import get_version
+from app.logging_config import exception_fields
 from app.repositories.report_jobs import ReportJobStore, ReportStoreUnavailable
 from app.schemas.requests import AnalyzeRequest
 from app.services.report_data import build_report_data
@@ -51,15 +52,24 @@ async def run_report_job(
         )
         await store.save_pdf(job_id, pdf)
         await store.set_status(job_id, "ready", filename=report_filename(data.address))
-    except ReportStoreUnavailable:
-        logger.error("Report job %s lost its Redis store", job_id)
+    except ReportStoreUnavailable as exc:
+        logger.error(
+            "Report job lost its Redis store",
+            extra={"event": "report.store_unavailable", "job_id": job_id, **exception_fields(exc)},
+        )
     except TimeoutError:
-        logger.error("Report job %s timed out while rendering", job_id)
+        logger.error(
+            "Report job timed out while rendering",
+            extra={"event": "report.render_timeout", "job_id": job_id},
+        )
         await _fail(store, job_id, "Report took too long to generate. Please try again.")
     except HTTPException as exc:
         await _fail(store, job_id, str(exc.detail))
-    except Exception:
-        logger.exception("Report job %s failed", job_id)
+    except Exception as exc:
+        logger.error(
+            "Report job failed",
+            extra={"event": "report.job_failed", "job_id": job_id, **exception_fields(exc)},
+        )
         await _fail(store, job_id, GENERIC_FAILURE)
 
 
@@ -67,4 +77,7 @@ async def _fail(store: ReportJobStore, job_id: str, message: str) -> None:
     try:
         await store.set_status(job_id, "failed", error=message)
     except ReportStoreUnavailable:
-        logger.error("Could not record failure for report job %s", job_id)
+        logger.error(
+            "Could not record report job failure",
+            extra={"event": "report.failure_not_recorded", "job_id": job_id},
+        )

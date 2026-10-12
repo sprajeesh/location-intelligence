@@ -3,6 +3,7 @@ import logging
 
 from app.clients.overpass import OverpassClient
 from app.config.scoring_config_loader import ScoringConfig
+from app.logging_config import exception_fields
 from app.models.domain import Facility
 from app.repositories.cache import CacheRepository
 
@@ -109,7 +110,14 @@ class FacilitiesService:
 
         for batch, result in zip(batches, batch_results):
             if isinstance(result, BaseException):
-                logger.error("Overpass batch failed for %s: %s", [cat for cat, _ in batch], result)
+                logger.error(
+                    "Overpass batch failed",
+                    extra={
+                        "event": "overpass.batch_failed",
+                        "categories": [cat for cat, _ in batch],
+                        **exception_fields(result),
+                    },
+                )
                 for category, _effective_radius_km in batch:
                     warnings.append(f"Could not fetch {category} data")
                     failed_categories.add(category)

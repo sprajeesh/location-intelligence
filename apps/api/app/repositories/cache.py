@@ -3,6 +3,8 @@ import logging
 
 import redis.asyncio as aioredis
 
+from app.logging_config import exception_fields
+
 logger = logging.getLogger(__name__)
 
 
@@ -19,7 +21,9 @@ class CacheRepository:
                 return None
             return json.loads(raw)
         except Exception as exc:
-            logger.warning("Cache get failed for key %s: %s", key, exc)
+            logger.warning(
+                "Cache get failed", extra={"event": "cache.get_failed", **exception_fields(exc)}
+            )
             return None
 
     async def set(self, key: str, value: dict | list, ttl_seconds: int) -> None:
@@ -28,4 +32,6 @@ class CacheRepository:
         try:
             await self._client.set(key, json.dumps(value), ex=ttl_seconds)
         except Exception as exc:
-            logger.warning("Cache set failed for key %s: %s", key, exc)
+            logger.warning(
+                "Cache set failed", extra={"event": "cache.set_failed", **exception_fields(exc)}
+            )

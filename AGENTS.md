@@ -39,6 +39,8 @@ cd apps/web && pnpm dev                               # Next.js on :3000
 
 FastAPI + Python 3.13 + uv. Tests: `uv run pytest`; lint: `uv run ruff check`.
 
+Every response carries an `X-Request-ID` header, and logs are one JSON object per line tagged with that ID. See `apps/api/docs/LOGGING.md`.
+
 ### Endpoints
 
 | Method | Path                            | Notes                                                   |
@@ -302,6 +304,8 @@ Translations live in `src/i18n/en.json`; `mi.json` mirrors its keys. Add every n
 # Backend (apps/api/.env or root .env)
 API_HOST=0.0.0.0
 API_PORT=8000
+LOG_LEVEL=INFO
+LOG_FORMAT=json
 DATABASE_URL=postgresql://gisuser:changeme@localhost:5432/gis
 # SQLAlchemy pool per worker process; budget = workers x (size + overflow). See apps/api/docs/DATABASE_CONNECTIONS.md
 DB_POOL_SIZE=5

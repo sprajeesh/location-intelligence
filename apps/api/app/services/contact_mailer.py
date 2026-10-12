@@ -3,6 +3,7 @@ import logging
 import httpx
 
 from app.config.settings import Settings
+from app.logging_config import exception_fields
 
 logger = logging.getLogger(__name__)
 
@@ -40,5 +41,12 @@ async def send_contact_email(
     except httpx.HTTPError as exc:
         # Log the type/status only: the request URL/headers must never reach logs.
         status = exc.response.status_code if isinstance(exc, httpx.HTTPStatusError) else None
-        logger.error("Contact email send failed (%s, status=%s)", type(exc).__name__, status)
+        logger.error(
+            "Contact email send failed",
+            extra={
+                "event": "contact.send_failed",
+                "upstream_status": status,
+                **exception_fields(exc),
+            },
+        )
         raise ContactMailerUnavailable("Contact email send failed") from None

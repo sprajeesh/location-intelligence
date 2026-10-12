@@ -7,6 +7,7 @@ from email.utils import parsedate_to_datetime
 import httpx
 
 from app.clients.circuit_breaker import CircuitBreaker
+from app.logging_config import exception_fields
 
 logger = logging.getLogger(__name__)
 
@@ -145,7 +146,10 @@ def _parse_merged_elements(
         tags = elem.get("tags", {})
         categories = _categorize(tags, tag_to_category)
         if not categories:
-            logger.warning("Overpass element %s matched no known category tag; skipping", osm_id)
+            logger.warning(
+                "Overpass element matched no known category tag; skipping",
+                extra={"event": "overpass.unmatched_element", "osm_id": osm_id},
+            )
             continue
 
         base_name = tags.get("name") or tags.get("name:en") or tags.get("ref")
@@ -261,11 +265,14 @@ class OverpassClient:
 
             if attempt < retries:
                 logger.warning(
-                    "Overpass attempt %d failed for [%s], retrying in %.1fs: %s",
-                    attempt + 1,
-                    label,
-                    wait,
-                    last_exc,
+                    "Overpass attempt failed; retrying",
+                    extra={
+                        "event": "overpass.retry",
+                        "attempt": attempt + 1,
+                        "categories": label,
+                        "wait_seconds": round(wait, 1),
+                        **exception_fields(last_exc),
+                    },
                 )
                 await asyncio.sleep(wait)
 

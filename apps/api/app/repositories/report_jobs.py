@@ -11,6 +11,7 @@ from datetime import UTC, datetime, timedelta
 
 import redis.asyncio as aioredis
 
+from app.logging_config import exception_fields
 from app.schemas.responses import ReportJobStatus
 
 logger = logging.getLogger(__name__)
@@ -62,7 +63,14 @@ class ReportJobStore:
         try:
             await client.set(self._job_key(job_id), json.dumps(payload), ex=self._ttl)
         except Exception as exc:
-            logger.warning("Report status write failed for %s: %s", job_id, exc)
+            logger.warning(
+                "Report status write failed",
+                extra={
+                    "event": "report_store.write_failed",
+                    "job_id": job_id,
+                    **exception_fields(exc),
+                },
+            )
             raise ReportStoreUnavailable from exc
 
     async def get_status(self, job_id: str) -> ReportJobStatus | None:
@@ -70,7 +78,14 @@ class ReportJobStore:
         try:
             raw = await client.get(self._job_key(job_id))
         except Exception as exc:
-            logger.warning("Report status read failed for %s: %s", job_id, exc)
+            logger.warning(
+                "Report status read failed",
+                extra={
+                    "event": "report_store.read_failed",
+                    "job_id": job_id,
+                    **exception_fields(exc),
+                },
+            )
             raise ReportStoreUnavailable from exc
         return ReportJobStatus(**json.loads(raw)) if raw else None
 
@@ -81,7 +96,14 @@ class ReportJobStore:
                 self._pdf_key(job_id), base64.b64encode(pdf).decode("ascii"), ex=self._ttl
             )
         except Exception as exc:
-            logger.warning("Report PDF write failed for %s: %s", job_id, exc)
+            logger.warning(
+                "Report PDF write failed",
+                extra={
+                    "event": "report_store.pdf_write_failed",
+                    "job_id": job_id,
+                    **exception_fields(exc),
+                },
+            )
             raise ReportStoreUnavailable from exc
 
     async def get_pdf(self, job_id: str) -> bytes | None:
@@ -89,6 +111,13 @@ class ReportJobStore:
         try:
             raw = await client.get(self._pdf_key(job_id))
         except Exception as exc:
-            logger.warning("Report PDF read failed for %s: %s", job_id, exc)
+            logger.warning(
+                "Report PDF read failed",
+                extra={
+                    "event": "report_store.pdf_read_failed",
+                    "job_id": job_id,
+                    **exception_fields(exc),
+                },
+            )
             raise ReportStoreUnavailable from exc
         return base64.b64decode(raw) if raw else None

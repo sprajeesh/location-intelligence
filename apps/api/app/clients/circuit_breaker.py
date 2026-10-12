@@ -77,7 +77,10 @@ class CircuitBreaker:
 
     def record_failure(self) -> None:
         if self._state is CircuitState.HALF_OPEN:
-            logger.warning("Circuit breaker %s: trial call failed, reopening", self._name)
+            logger.warning(
+                "Circuit breaker trial call failed, reopening",
+                extra={"event": "circuit_breaker.reopened", "breaker": self._name},
+            )
             self._state = CircuitState.OPEN
             self._opened_at = time.monotonic()
             self._half_open_trial_in_flight = False
@@ -86,9 +89,12 @@ class CircuitBreaker:
         self._consecutive_failures += 1
         if self._consecutive_failures >= self._failure_threshold:
             logger.warning(
-                "Circuit breaker %s: opening after %d consecutive failures",
-                self._name,
-                self._consecutive_failures,
+                "Circuit breaker opened",
+                extra={
+                    "event": "circuit_breaker.opened",
+                    "breaker": self._name,
+                    "consecutive_failures": self._consecutive_failures,
+                },
             )
             self._state = CircuitState.OPEN
             self._opened_at = time.monotonic()

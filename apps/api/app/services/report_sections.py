@@ -9,6 +9,7 @@ from reportlab.lib import colors
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.platypus import Flowable, LongTable, Paragraph, Spacer, TableStyle
 
+from app.logging_config import exception_fields
 from app.services.report_data import ReportData, ReportFeature
 from app.services.report_pdf import (
     CONTENT_W,
@@ -131,8 +132,11 @@ def map_section(data: ReportData, st: dict[str, ParagraphStyle]) -> list[Flowabl
     out: list[Flowable] = [_p("Facility map", st["h1"])]
     try:
         drawing, plotted = build_map_drawing(data)
-    except Exception:  # noqa: BLE001 - a plot failure must never fail the whole report
-        logger.exception("Report map rendering failed; falling back to the facility table")
+    except Exception as exc:  # noqa: BLE001 - a plot failure must never fail the whole report
+        logger.error(
+            "Report map rendering failed; falling back to the facility table",
+            extra={"event": "report.map_render_failed", **exception_fields(exc)},
+        )
         return out + [
             _p(
                 "The map could not be drawn for this report. "

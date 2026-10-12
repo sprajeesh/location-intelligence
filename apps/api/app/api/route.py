@@ -2,11 +2,14 @@ import logging
 
 from fastapi import APIRouter, HTTPException, Query, Request
 
+from app.logging_config import exception_fields
 from app.schemas.responses import RouteResponse
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+_KNOWN_MODES = frozenset({"driving", "walking", "cycling"})
 
 
 @router.get("/route", response_model=RouteResponse)
@@ -33,7 +36,12 @@ async def get_route(
     try:
         routes = await routing_svc.get_routes(fromLat, fromLon, toLat, toLon, mode)
     except Exception as exc:
-        logger.error("Routing service failed: %s", exc)
+        # `mode` is free text from the query string, so only known values are logged.
+        logged_mode = mode if mode in _KNOWN_MODES else "other"
+        logger.error(
+            "Routing service failed",
+            extra={"event": "routing.failed", "mode": logged_mode, **exception_fields(exc)},
+        )
         raise HTTPException(status_code=502, detail="Routing service unavailable")
 
     return RouteResponse(routes=routes, fallback=False)
