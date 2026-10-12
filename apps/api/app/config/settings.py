@@ -13,6 +13,10 @@ class Settings(BaseSettings):
     environment: Literal["development", "production"] = "development"
     api_host: str = "0.0.0.0"
     api_port: int = 8000
+    # Structured logging (app/logging_config.py). log_format "json" emits one
+    # JSON object per line for the log backend; "text" is for local terminals.
+    log_level: str = "INFO"
+    log_format: Literal["json", "text"] = "json"
     # TODO: Move to environment variables
     database_url: str = "postgresql://gisuser:gisuser@localhost:5432/gis"
     # SQLAlchemy engine pool (app/repositories/db/connection.py). Every worker
