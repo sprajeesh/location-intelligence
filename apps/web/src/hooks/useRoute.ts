@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchRoute } from "@/services/api";
 import type { RouteTransportMode } from "@/types/api";
@@ -18,9 +19,12 @@ export function useRoute(
   mode: RouteTransportMode,
   enabled: boolean,
 ) {
+  // One correlation ID per route. Retries of the same route reuse it.
+  const correlationId = useMemo(() => createTraceId(), [fromLat, fromLon, toLat, toLon, mode]);
+
   return useQuery({
     queryKey: ["route", fromLat, fromLon, toLat, toLon, mode],
-    queryFn: () => fetchRoute(fromLat!, fromLon!, toLat!, toLon!, mode, createTraceId()),
+    queryFn: () => fetchRoute(fromLat!, fromLon!, toLat!, toLon!, mode, correlationId),
     enabled:
       enabled &&
       fromLat != null &&
