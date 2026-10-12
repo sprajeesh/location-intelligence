@@ -3,6 +3,8 @@ import logging
 import httpx
 from fastapi import APIRouter, HTTPException, Query, Request
 
+from app.logging_config import exception_fields
+
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
@@ -31,13 +33,19 @@ async def get_parcels(
         # the full request URL (including the `key` query param, i.e. the
         # LINZ API key) in both. Log only the exception type and status code.
         logger.error(
-            "LINZ parcel lookup failed: %s (upstream status %d)",
-            type(exc).__name__,
-            exc.response.status_code,
+            "LINZ parcel lookup failed",
+            extra={
+                "event": "linz.parcel_lookup_failed",
+                "upstream_status": exc.response.status_code,
+                **exception_fields(exc),
+            },
         )
         raise HTTPException(status_code=502, detail="Parcel lookup service unavailable")
     except Exception as exc:
-        logger.error("LINZ parcel lookup failed: %s", type(exc).__name__)
+        logger.error(
+            "LINZ parcel lookup failed",
+            extra={"event": "linz.parcel_lookup_failed", **exception_fields(exc)},
+        )
         raise HTTPException(status_code=502, detail="Parcel lookup service unavailable")
 
     if feature is None:

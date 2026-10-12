@@ -2,6 +2,7 @@ import logging
 
 from fastapi import APIRouter, HTTPException, Query, Request
 
+from app.logging_config import exception_fields
 from app.schemas.responses import RouteResponse
 
 logger = logging.getLogger(__name__)
@@ -33,7 +34,10 @@ async def get_route(
     try:
         routes = await routing_svc.get_routes(fromLat, fromLon, toLat, toLon, mode)
     except Exception as exc:
-        logger.error("Routing service failed: %s", exc)
+        logger.error(
+            "Routing service failed",
+            extra={"event": "routing.failed", "mode": mode, **exception_fields(exc)},
+        )
         raise HTTPException(status_code=502, detail="Routing service unavailable")
 
     return RouteResponse(routes=routes, fallback=False)
