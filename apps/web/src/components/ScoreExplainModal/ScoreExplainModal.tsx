@@ -4,6 +4,7 @@ import { useId } from "react";
 import { useTranslations } from "next-intl";
 import { Check, ChevronRight, ChevronLeft, X as XIcon, HelpCircle as UnknownIcon, ChevronDown } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { Button } from "@/components/ui/Button";
 import { Modal, ModalHeader, ModalContent } from "@/components/ui/Modal";
 import { ScoreRing } from "@/components/ScoreRing";
 import {
@@ -121,14 +122,14 @@ function ContributionRow({
   return (
     <li>
       {onSelect ? (
-        <button
-          type="button"
+        <Button
+          unstyled
           onClick={onSelect}
-          aria-label={selectLabel}
+          ariaLabel={selectLabel}
           className="flex items-center gap-2 w-full text-left -mx-1.5 px-1.5 py-2 rounded-lg hover:bg-slate-50 active:bg-slate-100 transition-colors focus-ring-inset"
         >
           {headerContent}
-        </button>
+        </Button>
       ) : (
         <div className="flex items-center gap-2">{headerContent}</div>
       )}
@@ -167,8 +168,8 @@ function ContributionRow({
       )}
 
       {(hasCriteria || facilityBreakdown) && children && (
-        <button
-          type="button"
+        <Button
+          unstyled
           onClick={() => setExpandedCriteria(!expandedCriteria)}
           className="mt-1.5 ml-6 text-xs text-slate-500 hover:text-slate-700 font-medium flex items-center gap-1 -mx-1.5 px-1.5 py-1 rounded hover:bg-slate-50 transition-colors"
           aria-expanded={expandedCriteria}
@@ -178,7 +179,7 @@ function ContributionRow({
             aria-hidden="true"
           />
           {expandedCriteria ? "Hide criteria" : "Show criteria"}
-        </button>
+        </Button>
       )}
 
       {expandedCriteria && children && (
@@ -262,15 +263,15 @@ export function ScoreExplainModal({
     <Modal onClose={onClose} aria-labelledby={titleId} data-testid="score-explain-modal">
       {showBackButton && (
         <div className="border-b border-slate-200 px-4 sm:px-6 py-2 flex items-center">
-          <button
-            type="button"
+          <Button
+            unstyled
             onClick={onBack}
             className="flex items-center gap-1.5 text-sm text-slate-600 hover:text-slate-800 font-medium -ml-1 px-1 py-1 rounded hover:bg-slate-50 transition-colors focus-ring-inset"
-            aria-label={t("score.explain.backToOverall", { defaultValue: "Back to overall score" })}
+            ariaLabel={t("score.explain.backToOverall", { defaultValue: "Back to overall score" })}
           >
             <ChevronLeft className="w-4 h-4" aria-hidden="true" />
             {t("score.explain.backToOverall", { defaultValue: "Back to overall score" })}
-          </button>
+          </Button>
         </div>
       )}
       <ModalHeader

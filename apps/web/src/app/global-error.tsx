@@ -36,6 +36,7 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
         }}
       >
         <h1 style={{ fontSize: '20px', margin: 0 }}>Something went wrong. Please try again.</h1>
+        {/* Raw <button> on purpose: this boundary can render when the Tailwind CSS that shared Button relies on has failed to load. */}
         <button type="button" onClick={reset} style={{ padding: '8px 16px', cursor: 'pointer' }}>
           Try again
         </button>
