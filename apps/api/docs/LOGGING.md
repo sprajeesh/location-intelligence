@@ -1,9 +1,10 @@
 # Logging
 
 The API writes one JSON object per line to stdout. Lines written while a request
-is in progress carry that request's ID, so one request's lines can be pulled
-from the log backend with a single filter. Startup and background lines have
-no request, so their `request_id` is `null`.
+is in progress carry that request's `request_id` and its `correlation_id`. The
+request ID pulls one call's lines; the correlation ID pulls one user action's lines,
+across all the calls the action made. Startup and background lines have no request,
+so their `request_id` is `null`.
 
 ## Fields
 
@@ -15,14 +16,17 @@ no request, so their `request_id` is `null`.
 | `message`    | Human-readable summary (fixed text, no values interpolated)         |
 | `event`      | Stable tag for filtering, e.g. `overpass.retry`. `null` if untagged |
 | `request_id` | The `X-Request-ID` of the request that produced the line, or `null` outside a request |
+| `correlation_id` | The `X-Correlation-ID` of the user action the request belongs to, or `null` outside a request |
 
 Extra fields depend on the event: `route`, `method`, `status`, `duration_ms`,
 `error_type`, `stack`, `job_id`, `categories`, and similar.
 
-## Request IDs
+## Request and correlation IDs
 
-- Each response carries `X-Request-ID`. A valid incoming header is reused;
-  otherwise a 32-character hex ID is generated.
+- Each response carries `X-Request-ID` and `X-Correlation-ID`. A valid incoming
+  header of either name is reused; otherwise a 32-character hex ID is generated.
+- A request with no correlation ID is its own action, so its correlation ID is its
+  request ID.
 - A valid ID matches `^[A-Za-z0-9-]{1,64}$`. Anything else is discarded, so
   a caller can't inject newlines or forge log content.
 - Unhandled errors return `500 {"detail": "Internal server error", "requestId": "..."}`.
@@ -81,8 +85,9 @@ The web app reports its own failures to `POST /client-errors`. Each report is lo
 as `event=client.error` with `kind` (`error`, `unhandledrejection`, `boundary`, or `api`),
 `error_message`, `stack`, `route` (page pathname), `endpoint` (API path), `status`, and
 `client_request_id`. `client_request_id` is the ID the browser sent with the failed call,
-so searching for it in the logs returns the backend lines for that same call. Page loads
-send at most 20 reports.
+so searching for it returns the backend lines for that same call. The report's own
+`correlation_id` is the user action that failed, so the report also appears among that
+action's lines. Page loads send at most 20 reports.
 
 ## What is never logged
 

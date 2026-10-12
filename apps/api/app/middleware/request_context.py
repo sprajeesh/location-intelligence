@@ -18,17 +18,18 @@ from fastapi.responses import JSONResponse
 from starlette.datastructures import MutableHeaders
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
-from app.logging_config import exception_fields, request_id_var
+from app.logging_config import correlation_id_var, exception_fields, request_id_var
 
 REQUEST_ID_HEADER = "X-Request-ID"
+CORRELATION_ID_HEADER = "X-Correlation-ID"
 _VALID_INCOMING_ID = re.compile(r"^[A-Za-z0-9-]{1,64}$")
 
 logger = logging.getLogger(__name__)
 
 
-def _incoming_request_id(scope: Scope) -> str | None:
+def _incoming_id(scope: Scope, header: bytes) -> str | None:
     for name, value in scope.get("headers", []):
-        if name == b"x-request-id":
+        if name == header:
             candidate = value.decode("latin-1")
             # Reject anything that could forge or break a log line.
             if _VALID_INCOMING_ID.fullmatch(candidate):
@@ -55,8 +56,11 @@ class RequestContextMiddleware:
             await self.app(scope, receive, send)
             return
 
-        request_id = _incoming_request_id(scope) or uuid.uuid4().hex
-        token = request_id_var.set(request_id)
+        request_id = _incoming_id(scope, b"x-request-id") or uuid.uuid4().hex
+        # A correlation ID spans one user action. Without one, the request is its own action.
+        correlation_id = _incoming_id(scope, b"x-correlation-id") or request_id
+        request_token = request_id_var.set(request_id)
+        correlation_token = correlation_id_var.set(correlation_id)
         started = time.perf_counter()
         status_code = 500
         response_started = False
@@ -67,7 +71,9 @@ class RequestContextMiddleware:
             if message["type"] == "http.response.start":
                 status_code = message["status"]
                 response_started = True
-                MutableHeaders(scope=message)[REQUEST_ID_HEADER] = request_id
+                headers = MutableHeaders(scope=message)
+                headers[REQUEST_ID_HEADER] = request_id
+                headers[CORRELATION_ID_HEADER] = correlation_id
             elif message["type"] == "http.response.body" and not message.get("more_body", False):
                 body_complete = True
             await send(message)
@@ -90,7 +96,7 @@ class RequestContextMiddleware:
                 response = JSONResponse(
                     status_code=500,
                     content={"detail": "Internal server error", "requestId": request_id},
-                    headers={REQUEST_ID_HEADER: request_id},
+                    headers={REQUEST_ID_HEADER: request_id, CORRELATION_ID_HEADER: correlation_id},
                 )
                 status_code = 500
                 await response(scope, receive, send)
@@ -109,4 +115,5 @@ class RequestContextMiddleware:
                     "duration_ms": round((time.perf_counter() - started) * 1000, 1),
                 },
             )
-            request_id_var.reset(token)
+            request_id_var.reset(request_token)
+            correlation_id_var.reset(correlation_token)

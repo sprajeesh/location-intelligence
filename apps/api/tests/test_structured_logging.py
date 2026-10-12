@@ -15,7 +15,13 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from sqlalchemy.exc import DBAPIError
 
-from app.logging_config import JsonFormatter, RequestIdFilter, exception_fields, request_id_var
+from app.logging_config import (
+    JsonFormatter,
+    TraceContextFilter,
+    correlation_id_var,
+    exception_fields,
+    request_id_var,
+)
 from app.repositories.cache import CacheRepository
 from app.repositories.db.address_repository import AddressRepository
 from app.services.geocoding import GeocodingService
@@ -33,6 +39,7 @@ def test_json_formatter_emits_tagged_fields_for_one_line() -> None:
     record.event = "thing.failed"
     record.breaker = "osrm"
     record.request_id = "req-1"
+    record.correlation_id = "act-1"
 
     line = JsonFormatter().format(record)
     payload = json.loads(line)
@@ -42,17 +49,21 @@ def test_json_formatter_emits_tagged_fields_for_one_line() -> None:
     assert payload["message"] == "Thing failed"
     assert payload["event"] == "thing.failed"
     assert payload["request_id"] == "req-1"
+    assert payload["correlation_id"] == "act-1"
     assert payload["breaker"] == "osrm"
 
 
-def test_request_id_filter_reads_the_active_request() -> None:
-    token = request_id_var.set("abc-123")
+def test_trace_filter_reads_the_active_request_and_action() -> None:
+    request_token = request_id_var.set("req-1")
+    correlation_token = correlation_id_var.set("act-9")
     try:
         record = logging.LogRecord("app.x", logging.INFO, __file__, 1, "msg", (), None)
-        RequestIdFilter().filter(record)
+        TraceContextFilter().filter(record)
     finally:
-        request_id_var.reset(token)
-    assert record.request_id == "abc-123"
+        request_id_var.reset(request_token)
+        correlation_id_var.reset(correlation_token)
+    assert record.request_id == "req-1"
+    assert record.correlation_id == "act-9"
 
 
 def test_exception_fields_keep_type_and_stack_but_not_message() -> None:
@@ -74,6 +85,41 @@ def test_every_response_carries_a_request_id(test_client: TestClient) -> None:
     response = test_client.get("/health")
 
     assert len(response.headers["X-Request-ID"]) == 32
+
+
+def test_correlation_id_defaults_to_the_request_id(test_client: TestClient) -> None:
+    response = test_client.get("/health")
+
+    assert response.headers["X-Correlation-ID"] == response.headers["X-Request-ID"]
+
+
+def test_incoming_correlation_id_is_echoed_and_separate_from_request_id(
+    test_client: TestClient,
+) -> None:
+    response = test_client.get(
+        "/health", headers={"X-Correlation-ID": "action-7", "X-Request-ID": "req-7"}
+    )
+
+    assert response.headers["X-Correlation-ID"] == "action-7"
+    assert response.headers["X-Request-ID"] == "req-7"
+
+
+def test_request_log_lines_carry_the_correlation_id(
+    test_client: TestClient, caplog: pytest.LogCaptureFixture
+) -> None:
+    with caplog.at_level(logging.INFO):
+        test_client.get("/health", headers={"X-Correlation-ID": "action-8"})
+
+    access = [r for r in caplog.records if getattr(r, "event", None) == "http.request"]
+    assert access[-1].correlation_id == "action-8"
+
+
+@pytest.mark.parametrize("bad_id", ["x" * 65, "has spaces", "new\nline"])
+def test_unsafe_incoming_correlation_id_is_replaced(test_client: TestClient, bad_id: str) -> None:
+    response = test_client.get("/health", headers={"X-Correlation-ID": bad_id})
+
+    assert response.headers["X-Correlation-ID"] != bad_id
+    assert response.headers["X-Correlation-ID"] == response.headers["X-Request-ID"]
 
 
 def test_valid_incoming_request_id_is_echoed(test_client: TestClient) -> None:
