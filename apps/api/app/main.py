@@ -28,9 +28,7 @@ from app.config.version import get_version
 from app.repositories.cache import CacheRepository
 from app.repositories.db.address_repository import AddressRepository
 from app.repositories.db.connection import (
-    close_pool,
     create_engine,
-    create_pool,
     create_session_factory,
     dispose_engine,
 )
@@ -81,15 +79,13 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     else:
         logger.warning("Rate limiting disabled -- Redis unavailable, failing open")
 
-    # Connect PostGIS
-    db_pool = await create_pool(settings.database_url)
-    # SQLAlchemy engine for ORM-mapped tables (addresses). Coexists with the
-    # asyncpg pool until FacilityConfigRepository is migrated too.
+    # Connect PostGIS -- one engine/pool shared by every repository.
     db_engine = create_engine(settings.database_url)
+    session_factory = create_session_factory(db_engine)
 
     # Load facility/scoring config from the DB once at startup — see
     # app/config/scoring_config_loader.py. Picking up an edit requires a restart.
-    scoring_config = await load_scoring_config(FacilityConfigRepository(db_pool))
+    scoring_config = await load_scoring_config(FacilityConfigRepository(session_factory))
     app.state.scoring_config = scoring_config
 
     # Process-wide cap on concurrent /location/analyze requests -- protects
@@ -182,9 +178,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     )
 
     # Wire up services
-    app.state.geocoding_svc = GeocodingService(
-        AddressRepository(create_session_factory(db_engine)), cache
-    )
+    app.state.geocoding_svc = GeocodingService(AddressRepository(session_factory), cache)
     app.state.facilities_svc = FacilitiesService(overpass, cache, scoring_config)
     app.state.distance_svc = DistanceService(
         osrm,
@@ -206,7 +200,6 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     # Cleanup
     await dispose_engine(db_engine)
-    await close_pool(db_pool)
     await http_client.aclose()
     await redis_module.close_redis_client()
 

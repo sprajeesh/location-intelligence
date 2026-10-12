@@ -85,8 +85,6 @@ def test_client() -> TestClient:
     osrm = OSRMClient("http://mock-osrm", mock_http)
 
     with (
-        patch("app.main.create_pool", new=AsyncMock(return_value=MagicMock())),
-        patch("app.main.close_pool", new=AsyncMock()),
         patch("app.main.load_scoring_config", new=AsyncMock(return_value=scoring_config)),
     ):
         with TestClient(application) as client:
@@ -116,8 +114,6 @@ async def async_test_client() -> AsyncClient:
     osrm = OSRMClient("http://mock-osrm", mock_http)
 
     with (
-        patch("app.main.create_pool", new=AsyncMock(return_value=MagicMock())),
-        patch("app.main.close_pool", new=AsyncMock()),
         patch("app.main.load_scoring_config", new=AsyncMock(return_value=scoring_config)),
     ):
         async with AsyncClient(app=application, base_url="http://test") as client:

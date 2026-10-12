@@ -1,7 +1,7 @@
 """Unit tests for the DB-backed facility config repository and loader.
 
-Mocks the asyncpg pool (matching the pattern used for AddressRepository elsewhere
-in this test suite) rather than hitting a real Postgres instance.
+The session factory is mocked (matching the pattern used for AddressRepository in
+test_address_repository.py) rather than hitting a real Postgres instance.
 """
 
 import json
@@ -13,17 +13,18 @@ from app.config.scoring_config_loader import load_scoring_config
 from app.repositories.db.facility_config_repository import FacilityConfigRepository
 
 
-def _mock_pool(rows: list[dict]) -> MagicMock:
-    conn = MagicMock()
-    conn.fetch = AsyncMock(return_value=rows)
+def _mock_session_factory(rows: list[dict]) -> MagicMock:
+    result = MagicMock()
+    result.mappings.return_value.all.return_value = rows
 
-    acquire_cm = MagicMock()
-    acquire_cm.__aenter__ = AsyncMock(return_value=conn)
-    acquire_cm.__aexit__ = AsyncMock(return_value=False)
+    session = MagicMock()
+    session.execute = AsyncMock(return_value=result)
 
-    pool = MagicMock()
-    pool.acquire = MagicMock(return_value=acquire_cm)
-    return pool
+    cm = MagicMock()
+    cm.__aenter__ = AsyncMock(return_value=session)
+    cm.__aexit__ = AsyncMock(return_value=False)
+
+    return MagicMock(return_value=cm)
 
 
 SCHOOLS_ROW = {
@@ -75,7 +76,7 @@ SUPERMARKETS_ROW = {
 
 class TestFacilityConfigRepository:
     async def test_fetch_facility_types_parses_osm_tags_jsonb(self) -> None:
-        repo = FacilityConfigRepository(_mock_pool([SCHOOLS_ROW]))
+        repo = FacilityConfigRepository(_mock_session_factory([SCHOOLS_ROW]))
         rows = await repo.fetch_facility_types()
 
         assert len(rows) == 1
@@ -83,7 +84,9 @@ class TestFacilityConfigRepository:
         assert rows[0]["osm_tags"] == [("amenity", "school")]
 
     async def test_fetch_category_weights(self) -> None:
-        repo = FacilityConfigRepository(_mock_pool([{"category": "education", "weight": 0.40}]))
+        repo = FacilityConfigRepository(
+            _mock_session_factory([{"category": "education", "weight": 0.40}])
+        )
         rows = await repo.fetch_category_weights()
 
         assert rows == [{"category": "education", "weight": 0.40}]
