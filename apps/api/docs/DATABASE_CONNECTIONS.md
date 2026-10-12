@@ -22,12 +22,33 @@ close again afterwards.
 | ---------------------- | ------- | ------------------------------------------------------ |
 | `DB_POOL_SIZE`         | `5`     | Persistent connections per worker process              |
 | `DB_POOL_MAX_OVERFLOW` | `5`     | Extra connections per worker allowed under burst load  |
+| `DB_STATEMENT_TIMEOUT_MS` | `5000` | Server-side `statement_timeout` on every connection  |
 
-Both are read from `app/config/settings.py` (`db_pool_size`,
+Pool sizes are read from `app/config/settings.py` (`db_pool_size`,
 `db_pool_max_overflow`) and passed to `create_engine` at startup. Changing
 them requires an API restart.
 
 With the defaults, one worker can use up to 10 connections.
+
+## Statement timeout
+
+Every connection is opened with `statement_timeout` set (through asyncpg's
+`server_settings`), so PostgreSQL cancels any statement that runs longer than
+`DB_STATEMENT_TIMEOUT_MS`. A slow query therefore can't hold a pooled connection
+indefinitely and starve other requests.
+
+When a query is cancelled, the repository raises `QueryTimeoutError`
+(`app/repositories/db/errors.py`) and the API responds with a clear error
+instead of a 500:
+
+| Endpoint                     | Response                                                |
+| ---------------------------- | ------------------------------------------------------- |
+| `GET /search/address`        | `504` `"Address search timed out, please try again"`    |
+| `POST /location/analyze`     | `504` `"Address lookup timed out, please try again"`    |
+
+Other database errors keep their existing handling. Set the timeout to a value
+comfortably above normal query time: address search typically completes in
+milliseconds.
 
 ## Staying under `max_connections`
 

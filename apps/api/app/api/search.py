@@ -2,6 +2,7 @@ import logging
 
 from fastapi import APIRouter, HTTPException, Query, Request
 
+from app.repositories.db.errors import QueryTimeoutError
 from app.schemas.responses import AddressSuggestion
 
 logger = logging.getLogger(__name__)
@@ -19,6 +20,8 @@ async def search_address(
 
     try:
         results = await geocoding_svc.search(q, country=country)
+    except QueryTimeoutError:
+        raise HTTPException(status_code=504, detail="Address search timed out, please try again")
     except Exception:
         # TODO: More specific error handling (e.g. timeout, connection error)
         raise HTTPException(status_code=502, detail="Address search service unavailable")

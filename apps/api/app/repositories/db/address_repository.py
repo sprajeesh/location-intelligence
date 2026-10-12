@@ -2,9 +2,11 @@ import logging
 import unicodedata
 
 from sqlalchemy import case, func, select
+from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
 from app.models.address import Address
+from app.repositories.db.errors import QueryTimeoutError, is_query_timeout
 
 logger = logging.getLogger(__name__)
 
@@ -38,5 +40,10 @@ class AddressRepository:
             .limit(limit)
         )
         async with self._session_factory() as session:
-            result = await session.scalars(stmt)
+            try:
+                result = await session.scalars(stmt)
+            except DBAPIError as exc:
+                if is_query_timeout(exc):
+                    raise QueryTimeoutError("Address search exceeded statement timeout") from exc
+                raise
             return list(result)

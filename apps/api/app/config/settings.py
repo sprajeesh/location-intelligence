@@ -1,7 +1,7 @@
 from functools import lru_cache
 from typing import Literal
 
-from pydantic import model_validator
+from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -25,6 +25,10 @@ class Settings(BaseSettings):
     # drops from NAT gateways and load balancers, which vary by provider (some as low
     # as a few minutes), and would otherwise surface as failed requests.
     db_pool_recycle_seconds: int = 1800
+    # Server-side statement_timeout applied to every connection (see
+    # app/repositories/db/connection.py). PostgreSQL cancels any statement that runs
+    # longer, so one slow query cannot hold a pooled connection indefinitely.
+    db_statement_timeout_ms: int = Field(default=5000, gt=0)
     overpass_url: str = "https://overpass-api.de/api/interpreter"
     overpass_max_concurrency: int = 2
     # Driving routes and DistanceService's facility-distance scoring both use
