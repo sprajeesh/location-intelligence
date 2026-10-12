@@ -56,6 +56,7 @@ Every response carries an `X-Request-ID` header, and logs are one JSON object pe
 | GET    | `/category-weights`             | Per-category score weights                              |
 | GET    | `/parcels`                      | Parcel lookup at a point                                |
 | POST   | `/contact`                      | Contact form → emailed via Resend to `CONTACT_RECIPIENT_EMAIL` (`202`; `503` if unconfigured) |
+| POST   | `/client-errors`                | Browser error reports, logged as `event=client.error` (`202`) |
 
 ### Key backend files
 
@@ -226,6 +227,12 @@ Solid, light-first UI with an opt-in dark toggle (`ThemeToggle`, persisted via
 - Fit bounds on initial search result
 - Preserve zoom level on filter/visibility changes
 - Max 500 markers rendered
+
+### Error reporting (web)
+
+- Every backend call from the browser sends an `X-Request-ID` (`src/lib/trackedFetch.ts`). BFF routes forward it, and the backend echoes and logs it. A failed call's ID matches its backend log lines.
+- Failed calls, uncaught exceptions and unhandled rejections are posted to `/api/client-errors`, which relays them to `POST /client-errors` (`src/lib/errorReporting.ts`). Query strings and request bodies are never included.
+- Render errors are caught by `src/app/[locale]/error.tsx` (translated) and `src/app/global-error.tsx` (English only, because it sits outside the i18n provider).
 
 ### BFF proxy routes (Next.js API routes)
 
