@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { CircleX, TriangleAlert, CircleCheckBig, Info, X } from 'lucide-react';
 import { useLocationStore } from '@/store';
 import type { Toast as ToastType } from '@/store';
+import { Button } from '@/components/ui/Button';
 import { IconButton } from '@/components/ui/IconButton';
 
 /**
@@ -69,8 +70,8 @@ function ToastItem({ toast }: { toast: ToastType }) {
 
       {/* Optional call-to-action */}
       {toast.action && (
-        <button
-          type="button"
+        <Button
+          unstyled
           onClick={() => {
             toast.action?.onClick();
             removeToast(toast.id);
@@ -78,7 +79,7 @@ function ToastItem({ toast }: { toast: ToastType }) {
           className={`flex-shrink-0 ${textColor} text-sm font-semibold underline underline-offset-2 hover:opacity-75 focus-ring-inset rounded`}
         >
           {toast.action.label}
-        </button>
+        </Button>
       )}
 
       {/* Close button */}
