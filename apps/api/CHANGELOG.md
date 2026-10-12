@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.13.0](https://github.com/sprajeesh/location-intelligence/compare/api@v0.12.0...api@v0.13.0) (2026-10-12)
+
+
+### Features
+
+* frontend error tracking and request ID correlation ([#359](https://github.com/sprajeesh/location-intelligence/issues/359)) ([#367](https://github.com/sprajeesh/location-intelligence/issues/367)) ([f1d343c](https://github.com/sprajeesh/location-intelligence/commit/f1d343c5bb5d24afac7ab91356d4204d4e37bc37))
+* per-action correlation IDs across frontend, API and backend logs ([#360](https://github.com/sprajeesh/location-intelligence/issues/360)) ([#368](https://github.com/sprajeesh/location-intelligence/issues/368)) ([dbfb028](https://github.com/sprajeesh/location-intelligence/commit/dbfb02849cca2154e0d0210bc2b4b67571406452))
+
+
+### Documentation
+
+* document logging, tracing and event conventions ([#362](https://github.com/sprajeesh/location-intelligence/issues/362)) ([#371](https://github.com/sprajeesh/location-intelligence/issues/371)) ([5945cb5](https://github.com/sprajeesh/location-intelligence/commit/5945cb58a34e863fb400332e14407deb708f6cef))
+
 ## [0.12.0](https://github.com/sprajeesh/location-intelligence/compare/api@v0.11.0...api@v0.12.0) (2026-10-12)
 
 
