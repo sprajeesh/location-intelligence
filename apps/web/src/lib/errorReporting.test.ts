@@ -75,7 +75,8 @@ describe('buildReport', () => {
   it('truncates long messages', () => {
     const report = buildReport({ kind: 'error', errorMessage: 'x'.repeat(2000) });
 
-    expect(report.errorMessage.length).toBeLessThanOrEqual(501);
+    expect(report.errorMessage).toHaveLength(500);
+    expect(report.errorMessage.endsWith('…')).toBe(true);
   });
 
   it('keeps the endpoint path and status, and drops its query string', () => {

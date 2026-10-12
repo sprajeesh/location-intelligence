@@ -54,8 +54,9 @@ export function scrubUrls(text: string): string {
   return text.replace(/((?:https?:\/\/)?[^\s?#'"()]*\/[^\s?#'"()]*)[?#][^\s'"()]*/g, "$1");
 }
 
+/** Returns at most `max` characters. The backend rejects longer fields with a 422. */
 function truncate(text: string, max: number): string {
-  return text.length > max ? `${text.slice(0, max)}…` : text;
+  return text.length > max ? `${text.slice(0, max - 1)}…` : text;
 }
 
 function describe(error: unknown): { message: string; stack?: string } {
