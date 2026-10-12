@@ -224,7 +224,7 @@ def test_render_timeout_marks_job_failed_and_frees_slot(client, analysis):
 def test_slot_released_when_scheduling_fails(client):
     limiter = client.app.state.report_in_flight_limiter
     with patch("fastapi.BackgroundTasks.add_task", side_effect=RuntimeError("boom")):
-        with pytest.raises(RuntimeError):
-            client.post("/reports", json=BODY)
+        response = client.post("/reports", json=BODY)
+    assert response.status_code == 500  # unhandled errors are answered, not re-raised
     # both slots (cap=2) must still be free
     assert limiter.try_acquire() and limiter.try_acquire()
