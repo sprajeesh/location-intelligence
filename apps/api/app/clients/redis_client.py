@@ -2,6 +2,8 @@ import logging
 
 import redis.asyncio as aioredis
 
+from app.logging_config import exception_fields
+
 logger = logging.getLogger(__name__)
 
 _redis_client: aioredis.Redis | None = None
@@ -18,8 +20,11 @@ async def get_redis_client(redis_url: str) -> aioredis.Redis | None:
         _redis_client = client
         logger.info("Redis connected successfully")
         return _redis_client
-    except Exception:
-        logger.warning("Redis unavailable — caching disabled")
+    except Exception as exc:
+        logger.warning(
+            "Redis unavailable, caching disabled",
+            extra={"event": "redis.unavailable", **exception_fields(exc)},
+        )
         return None
 
 
