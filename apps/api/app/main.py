@@ -80,7 +80,11 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         logger.warning("Rate limiting disabled -- Redis unavailable, failing open")
 
     # Connect PostGIS -- one engine/pool shared by every repository.
-    db_engine = create_engine(settings.database_url)
+    db_engine = create_engine(
+        settings.database_url,
+        pool_size=settings.db_pool_size,
+        max_overflow=settings.db_pool_max_overflow,
+    )
     session_factory = create_session_factory(db_engine)
 
     # Load facility/scoring config from the DB once at startup — see
