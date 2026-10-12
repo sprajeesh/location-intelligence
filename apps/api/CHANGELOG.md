@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.12.0](https://github.com/sprajeesh/location-intelligence/compare/api@v0.11.0...api@v0.12.0) (2026-10-12)
+
+
+### Features
+
+* **api:** move DB pool sizes into Settings and document the connection budget ([#356](https://github.com/sprajeesh/location-intelligence/issues/356)) ([5328af9](https://github.com/sprajeesh/location-intelligence/commit/5328af9a9623a3470e04b3dead490ad2ec926d67))
+* **api:** set a server-side statement_timeout on DB connections ([#363](https://github.com/sprajeesh/location-intelligence/issues/363)) ([7a01f63](https://github.com/sprajeesh/location-intelligence/commit/7a01f6364ef9bc06c2a30c8cd80c595635a2cbf6)), closes [#351](https://github.com/sprajeesh/location-intelligence/issues/351)
+* **api:** structured JSON logging and request IDs ([#358](https://github.com/sprajeesh/location-intelligence/issues/358)) ([#364](https://github.com/sprajeesh/location-intelligence/issues/364)) ([8d2770c](https://github.com/sprajeesh/location-intelligence/commit/8d2770c4f700cb204cb339659b9b7f02ec3e7359))
+
+
+### Bug Fixes
+
+* **api:** enable pool_pre_ping and pool_recycle on the DB engine ([#357](https://github.com/sprajeesh/location-intelligence/issues/357)) ([baa3adf](https://github.com/sprajeesh/location-intelligence/commit/baa3adfed068a9a1749f9512b32e9511b0e28a9e))
+
 ## [0.11.0](https://github.com/sprajeesh/location-intelligence/compare/api@v0.10.0...api@v0.11.0) (2026-10-08)
 
 
