@@ -8,7 +8,8 @@ from sqlalchemy.ext.asyncio import (
 )
 
 # Seconds before a pooled connection is replaced. Keeps us ahead of idle-timeout
-# drops from NAT/load balancers, which would otherwise surface as failed requests.
+# drops from NAT gateways and load balancers, which vary by provider (some as low
+# as a few minutes), and would otherwise surface as failed requests.
 POOL_RECYCLE_SECONDS = 1800
 
 
