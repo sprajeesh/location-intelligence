@@ -9,7 +9,7 @@ Handles geocoding (LINZ PostGIS), Overpass queries, distance calculation, cachin
 **Testing:** pytest (197 tests)  
 **Linting:** Ruff
 
-**Docs:** [How an address gets scored](docs/SCORING.md) — a plain-language explanation of the scoring engine, no code required. [Database tables](docs/DATA_MODEL.md) — schema for `addresses`, `facility_types`, `category_weights`. [How the API is protected](docs/PROTECTION.md) — rate limiting, circuit breakers, concurrency limits, and input validation.
+**Docs:** [How an address gets scored](docs/SCORING.md) — a plain-language explanation of the scoring engine, no code required. [Database tables](docs/DATA_MODEL.md) — schema for `addresses`, `facility_types`, `category_weights`. [How the API is protected](docs/PROTECTION.md) — rate limiting, circuit breakers, concurrency limits, and input validation. [Logging and tracing](docs/LOGGING.md) — log fields, request and correlation IDs, and the event tags used for statistics.
 
 ---
 
@@ -730,11 +730,7 @@ API_SHARED_SECRET=your-shared-secret-for-api-auth
 
 ### Structured Logging
 
-FastAPI logs are JSON-formatted (via Uvicorn):
-
-```bash
-uv run uvicorn app.main:app --log-config logging.yaml
-```
+Logs are one JSON object per line, tagged with `request_id` and `correlation_id`. Set `LOG_FORMAT=text` for a readable local terminal. Fields, event tags, and how to add a log line are in [docs/LOGGING.md](docs/LOGGING.md).
 
 ### Health Checks
 
@@ -820,7 +816,7 @@ curl "https://data.linz.govt.nz/services/query/v1/vector.json?key=YOUR_KEY&layer
 
 ## Future Enhancements
 
-- [ ] **Request IDs:** Generate in BFF, pass to FastAPI for tracing
+- [x] **Request IDs:** Generated in BFF, passed to FastAPI for tracing — see [docs/LOGGING.md](docs/LOGGING.md)
 - [x] **Rate limiting:** Per IP, via the BFF-forwarded visitor IP — see [How the API is protected](docs/PROTECTION.md)
 - [ ] **Authentication:** JWT tokens, OAuth2
 - [ ] **OpenAPI spec generation:** For frontend type generation (`openapi-typescript`)

@@ -156,6 +156,58 @@ Next.js API routes (in `src/app/api/*`) proxy to FastAPI backend. This keeps COR
 
 Changes to components, hooks, and pages auto-refresh (Fast Refresh).
 
+### 4. Error Reporting and Tracing
+
+Every browser call carries two IDs, minted by `src/lib/tracing.ts`:
+
+- `X-Request-ID`: one per HTTP call. Identifies a single failed call.
+- `X-Correlation-ID`: one per user action (an analyze run, a report, a search). Every call the action makes shares it.
+
+The backend logs both IDs on every line. Backend fields, the event table, and how to search logs are in [apps/api/docs/LOGGING.md](../api/docs/LOGGING.md).
+
+**What is reported automatically**
+
+| Source | Reported as |
+| ------ | ----------- |
+| `trackedFetch` (non-2xx or network error) | `kind=api` |
+| `ErrorReporter` (uncaught error, unhandled rejection) | `kind=error` / `unhandledrejection` |
+| `error.tsx` and `global-error.tsx` (render errors) | `kind=boundary` |
+
+Reports go to `POST /api/client-errors`, which the backend logs as `event=client.error`. Query strings and request bodies are never sent.
+
+**Making a call in an action**
+
+Mint the correlation ID once when the action starts, then pass it to each call:
+
+```ts
+import { trackedFetch } from "@/lib/trackedFetch";
+import { createTraceId } from "@/lib/tracing";
+
+const correlationId = createTraceId();
+const response = await trackedFetch(`/api/route?${params}`, {}, correlationId);
+```
+
+Use `trackedFetch` for every browser call to a BFF route. A bare `fetch` sends no IDs and reports no failures.
+
+**Reporting an error you catch yourself**
+
+```ts
+import { reportClientError } from "@/lib/errorReporting";
+
+try {
+  await saveSomething();
+} catch (error) {
+  reportClientError({ kind: "error", error, correlationId });
+  // then show the user an inline or toast message
+}
+```
+
+**Rules**
+
+- Keep user input (addresses, form fields) out of error messages. URLs are scrubbed, but other text is not.
+- Each page load sends at most 20 reports, so a render loop can't flood the logs.
+- Reporting never throws, so it is safe inside `catch` and error boundaries.
+
 ---
 
 ## Testing
