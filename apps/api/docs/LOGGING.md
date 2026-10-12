@@ -1,8 +1,9 @@
 # Logging
 
-The API writes one JSON object per line to stdout. Every line carries the
-request ID, so one request's lines can be pulled from the log backend with a
-single filter.
+The API writes one JSON object per line to stdout. Lines written while a request
+is in progress carry that request's ID, so one request's lines can be pulled
+from the log backend with a single filter. Startup and background lines have
+no request, so their `request_id` is `null`.
 
 ## Fields
 
@@ -13,9 +14,9 @@ single filter.
 | `logger`     | Python logger name, e.g. `app.clients.osrm`                         |
 | `message`    | Human-readable summary (fixed text, no values interpolated)         |
 | `event`      | Stable tag for filtering, e.g. `overpass.retry`. `null` if untagged |
-| `request_id` | The `X-Request-ID` of the request that produced the line            |
+| `request_id` | The `X-Request-ID` of the request that produced the line, or `null` outside a request |
 
-Extra fields depend on the event: `path`, `method`, `status`, `duration_ms`,
+Extra fields depend on the event: `route`, `method`, `status`, `duration_ms`,
 `error_type`, `stack`, `job_id`, `categories`, and similar.
 
 ## Request IDs
@@ -31,9 +32,10 @@ Extra fields depend on the event: `path`, `method`, `status`, `duration_ms`,
 
 ## Access log
 
-Each request gets one `event="http.request"` line with `method`, `path`,
-`status`, and `duration_ms`. The query string is never logged, because
-`/search/address` carries the typed address in `q`.
+Each request gets one `event="http.request"` line with `method`, `route`,
+`status`, and `duration_ms`. The `route` field is the matched route template
+(e.g. `/reports/{job_id}`), or `<unmatched>`. The raw path and query string are
+never logged, because a caller can put an address in either, including on a 404.
 
 ## Events
 
