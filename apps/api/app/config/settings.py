@@ -130,6 +130,10 @@ class Settings(BaseSettings):
     rate_limit_contact_seconds: int = 300
     rate_limit_parcels_times: int = 30
     rate_limit_parcels_seconds: int = 60
+    # POST /client-errors: browser error reports. Generous enough for a real
+    # error loop on one page, tight enough that a script can't flood the logs.
+    rate_limit_client_errors_times: int = 20
+    rate_limit_client_errors_seconds: int = 60
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
