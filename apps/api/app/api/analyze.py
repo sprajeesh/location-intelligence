@@ -5,6 +5,7 @@ import httpx
 from fastapi import APIRouter, HTTPException, Request
 
 from app.models.domain import Facility
+from app.repositories.db.errors import QueryTimeoutError
 from app.schemas.requests import AnalyzeRequest
 from app.schemas.responses import (
     AnalyzeResponse,
@@ -67,6 +68,10 @@ async def run_analysis(state: Any, body: AnalyzeRequest) -> AnalyzeResponse:
             )
         try:
             result = await geocoding_svc.geocode_first(body.address)
+        except QueryTimeoutError:
+            raise HTTPException(
+                status_code=504, detail="Address lookup timed out, please try again"
+            )
         except httpx.HTTPError:
             raise HTTPException(status_code=502, detail="Address search service unavailable")
 

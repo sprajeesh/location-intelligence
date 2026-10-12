@@ -306,6 +306,8 @@ DATABASE_URL=postgresql://gisuser:changeme@localhost:5432/gis
 # SQLAlchemy pool per worker process; budget = workers x (size + overflow). See apps/api/docs/DATABASE_CONNECTIONS.md
 DB_POOL_SIZE=5
 DB_POOL_MAX_OVERFLOW=5
+# Server-side statement_timeout per DB query, in ms. Timed-out address searches return 504.
+DB_STATEMENT_TIMEOUT_MS=5000
 OVERPASS_URL=https://overpass-api.de/api/interpreter
 OSRM_URL=http://localhost:5000
 OSRM_FOOT_URL=http://localhost:5001
