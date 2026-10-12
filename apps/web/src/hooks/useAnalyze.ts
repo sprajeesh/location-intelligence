@@ -4,6 +4,7 @@ import { useMutation } from '@tanstack/react-query';
 import { useLocationStore } from '@/store';
 import { analyzeLocation, type AnalyzeRequest } from '@/services/api';
 import type { AnalyzeResponse } from '@/types/api';
+import { createTraceId } from "@/lib/tracing";
 
 /**
  * useAnalyze hook
@@ -51,7 +52,8 @@ export function useAnalyze() {
   } = useLocationStore();
 
   return useMutation<AnalyzeResponse, Error, AnalyzeRequest>({
-    mutationFn: analyzeLocation,
+    // Each analyze run is one user action, so it gets its own correlation ID.
+    mutationFn: (request) => analyzeLocation(request, createTraceId()),
 
     onMutate: () => {
       // Set loading state before request starts

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { apiKeyHeaders } from "@/utils/apiAuth";
 import { clientIpHeaders } from "@/utils/clientIp";
-import { requestIdHeaders } from "@/lib/requestId";
+import { traceHeaders } from "@/lib/tracing";
 
 // Above the API's own 10s Resend timeout, so a slow-but-working send isn't cut off.
 const UPSTREAM_TIMEOUT_MS = 15_000;
@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
       headers: {
         "Content-Type": "application/json",
         ...apiKeyHeaders(),
-        ...clientIpHeaders(request.headers), ...requestIdHeaders(request.headers),
+        ...clientIpHeaders(request.headers), ...traceHeaders(request.headers),
       },
       body: JSON.stringify(body),
       signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),

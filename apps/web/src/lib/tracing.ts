@@ -1,14 +1,19 @@
 /**
- * Request IDs that tie a browser failure to the backend log line for the same call.
+ * IDs that tie browser activity to backend log lines.
  *
- * The browser mints the ID, the BFF forwards it, and the FastAPI backend echoes it
- * and tags its log lines with it (see apps/api/docs/LOGGING.md). A failed call's ID
- * is therefore the `request_id` to search for in backend logs.
+ * - X-Request-ID: one per HTTP call. It identifies a single failed call.
+ * - X-Correlation-ID: one per user action (an analyze run, a report, a search). An
+ *   action can make several calls, and they all share this ID.
+ *
+ * The browser mints both. The BFF forwards them, and the FastAPI backend echoes them
+ * and tags its log lines with them (see apps/api/docs/LOGGING.md).
  */
 
 export const REQUEST_ID_HEADER = "X-Request-ID";
+export const CORRELATION_ID_HEADER = "X-Correlation-ID";
 
-export function createRequestId(): string {
+export function createTraceId(): string {
+  // randomUUID needs a secure context, so plain-http dev hosts fall back to random bytes.
   if (typeof crypto.randomUUID === "function") return crypto.randomUUID();
   const bytes = new Uint8Array(16);
   crypto.getRandomValues(bytes);
@@ -16,10 +21,14 @@ export function createRequestId(): string {
 }
 
 /**
- * For BFF route handlers: forwards the caller's request ID to the backend, if one was
- * sent. Returns no header otherwise, and the backend mints its own.
+ * For BFF route handlers: forwards whichever trace IDs the caller sent. The backend
+ * mints any that are missing.
  */
-export function requestIdHeaders(requestHeaders: Headers): HeadersInit {
-  const id = requestHeaders.get(REQUEST_ID_HEADER);
-  return id ? { [REQUEST_ID_HEADER]: id } : {};
+export function traceHeaders(requestHeaders: Headers): HeadersInit {
+  const headers: Record<string, string> = {};
+  const requestId = requestHeaders.get(REQUEST_ID_HEADER);
+  const correlationId = requestHeaders.get(CORRELATION_ID_HEADER);
+  if (requestId) headers[REQUEST_ID_HEADER] = requestId;
+  if (correlationId) headers[CORRELATION_ID_HEADER] = correlationId;
+  return headers;
 }

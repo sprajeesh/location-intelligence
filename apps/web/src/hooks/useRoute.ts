@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { fetchRoute } from "@/services/api";
 import type { RouteTransportMode } from "@/types/api";
+import { createTraceId } from "@/lib/tracing";
 
 /**
  * Fetches route alternatives between two coordinates for the given transport mode.
@@ -19,7 +20,7 @@ export function useRoute(
 ) {
   return useQuery({
     queryKey: ["route", fromLat, fromLon, toLat, toLon, mode],
-    queryFn: () => fetchRoute(fromLat!, fromLon!, toLat!, toLon!, mode),
+    queryFn: () => fetchRoute(fromLat!, fromLon!, toLat!, toLon!, mode, createTraceId()),
     enabled:
       enabled &&
       fromLat != null &&

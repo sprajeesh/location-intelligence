@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { apiKeyHeaders } from "@/utils/apiAuth";
 import { clientIpHeaders } from "@/utils/clientIp";
+import { traceHeaders } from "@/lib/tracing";
 
 /**
  * Relays browser error reports (lib/errorReporting.ts) to the backend unchanged.
@@ -16,6 +17,7 @@ export async function POST(request: NextRequest) {
         "Content-Type": "application/json",
         ...apiKeyHeaders(),
         ...clientIpHeaders(request.headers),
+        ...traceHeaders(request.headers),
       },
       body: await request.text(),
     });

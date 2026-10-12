@@ -7,6 +7,7 @@ import { InlineBanner } from "@/components/ui/InlineBanner";
 import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { trackedFetch } from "@/lib/trackedFetch";
+import { createTraceId } from "@/lib/tracing";
 
 type Status = "idle" | "sending" | "sent" | "error";
 type Field = "firstName" | "email" | "message";
@@ -49,7 +50,7 @@ export function ContactForm() {
           email: value("email"),
           message: value("message"),
         }),
-      });
+      }, createTraceId());
       if (!response.ok) throw new Error(String(response.status));
       form.reset();
       setStatus("sent");

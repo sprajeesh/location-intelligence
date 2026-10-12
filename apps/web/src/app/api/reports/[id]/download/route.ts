@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { apiKeyHeaders } from "@/utils/apiAuth";
 import { clientIpHeaders } from "@/utils/clientIp";
-import { requestIdHeaders } from "@/lib/requestId";
+import { traceHeaders } from "@/lib/tracing";
 
 /** Finished report PDF (forwards to FastAPI GET /reports/{id}/download). */
 export async function GET(
@@ -14,7 +14,7 @@ export async function GET(
     const response = await fetch(
       `${apiUrl}/reports/${encodeURIComponent(id)}/download`,
       {
-        headers: { ...apiKeyHeaders(), ...clientIpHeaders(request.headers), ...requestIdHeaders(request.headers) },
+        headers: { ...apiKeyHeaders(), ...clientIpHeaders(request.headers), ...traceHeaders(request.headers) },
         cache: "no-store",
       },
     );

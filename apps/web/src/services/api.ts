@@ -15,7 +15,6 @@ import {
 import type { ParcelFeature } from "@/types/parcel";
 import { stripQuery } from "@/lib/errorReporting";
 import { trackedFetch } from "@/lib/trackedFetch";
-import { createRequestId } from "@/lib/requestId";
 
 /**
  * Base URL for API calls. Uses NEXT_PUBLIC_API_URL if set,
@@ -38,8 +37,6 @@ export class ApiError extends Error {
     public statusCode: number,
     message: string,
     public originalError?: unknown,
-    /** The failed call's request ID; matches the backend log for that call. */
-    public requestId?: string,
   ) {
     super(message);
     this.name = "ApiError";
@@ -47,15 +44,16 @@ export class ApiError extends Error {
 }
 
 /**
- * Generic fetch wrapper with error handling.
+ * Generic fetch wrapper with error handling. `correlationId` is the user action this
+ * call belongs to (see lib/tracing.ts).
  */
 async function fetchJson<T>(
   endpoint: string,
   options: RequestInit = {},
+  correlationId?: string,
 ): Promise<T> {
   const baseUrl = getBaseUrl();
   const url = `${baseUrl}/api${endpoint}`;
-  const requestId = createRequestId();
 
   try {
     const response = await trackedFetch(
@@ -67,7 +65,7 @@ async function fetchJson<T>(
           ...options.headers,
         },
       },
-      requestId,
+      correlationId,
     );
 
     if (!response.ok) {
@@ -75,7 +73,7 @@ async function fetchJson<T>(
       const errorMessage =
         errorData.error ||
         `API error: ${response.status} ${response.statusText}`;
-      throw new ApiError(response.status, errorMessage, undefined, requestId);
+      throw new ApiError(response.status, errorMessage);
     }
 
     const data: T = await response.json();
@@ -89,12 +87,7 @@ async function fetchJson<T>(
     // search endpoints carry the typed address in it.
     const message =
       error instanceof Error ? error.message : "Unknown error occurred";
-    throw new ApiError(
-      0,
-      `Failed to fetch ${stripQuery(endpoint)}: ${message}`,
-      error,
-      requestId,
-    );
+    throw new ApiError(0, `Failed to fetch ${stripQuery(endpoint)}: ${message}`, error);
   }
 }
 
@@ -273,11 +266,13 @@ export function normalizeAnalyzeResponse(
  */
 export async function analyzeLocation(
   request: AnalyzeRequest,
+  correlationId?: string,
 ): Promise<AnalyzeResponse> {
-  const raw = await fetchJson<WireAnalyzeResponse>("/location/analyze", {
-    method: "POST",
-    body: JSON.stringify(request),
-  });
+  const raw = await fetchJson<WireAnalyzeResponse>(
+    "/location/analyze",
+    { method: "POST", body: JSON.stringify(request) },
+    correlationId,
+  );
   return normalizeAnalyzeResponse(raw);
 }
 
@@ -314,6 +309,7 @@ export async function fetchRoute(
   toLat: number,
   toLon: number,
   mode: RouteTransportMode = "driving",
+  correlationId?: string,
 ): Promise<RouteResult> {
   const params = new URLSearchParams({
     fromLat: String(fromLat),
@@ -322,7 +318,11 @@ export async function fetchRoute(
     toLon: String(toLon),
     mode,
   });
-  const raw = await fetchJson<WireRouteResult>(`/route?${params}`, { method: "GET" });
+  const raw = await fetchJson<WireRouteResult>(
+    `/route?${params}`,
+    { method: "GET" },
+    correlationId,
+  );
   return normalizeRouteResult(raw);
 }
 
@@ -338,12 +338,15 @@ export async function fetchRoute(
 export async function fetchParcelAtPoint(
   lat: number,
   lon: number,
+  correlationId?: string,
 ): Promise<ParcelFeature | null> {
   const params = new URLSearchParams({ lat: String(lat), lon: String(lon) });
   try {
-    return await fetchJson<ParcelFeature>(`/parcels?${params}`, {
-      method: "GET",
-    });
+    return await fetchJson<ParcelFeature>(
+      `/parcels?${params}`,
+      { method: "GET" },
+      correlationId,
+    );
   } catch (error) {
     if (error instanceof ApiError && error.statusCode === 404) {
       return null;
@@ -372,17 +375,24 @@ export type ReportRequest = AnalyzeRequest;
 
 export async function createReport(
   request: ReportRequest,
+  correlationId?: string,
 ): Promise<Pick<ReportJobStatus, "jobId" | "status">> {
-  return fetchJson("/reports", {
-    method: "POST",
-    body: JSON.stringify(request),
-  });
+  return fetchJson(
+    "/reports",
+    { method: "POST", body: JSON.stringify(request) },
+    correlationId,
+  );
 }
 
-export async function getReportStatus(jobId: string): Promise<ReportJobStatus> {
-  return fetchJson<ReportJobStatus>(`/reports/${encodeURIComponent(jobId)}`, {
-    method: "GET",
-  });
+export async function getReportStatus(
+  jobId: string,
+  correlationId?: string,
+): Promise<ReportJobStatus> {
+  return fetchJson<ReportJobStatus>(
+    `/reports/${encodeURIComponent(jobId)}`,
+    { method: "GET" },
+    correlationId,
+  );
 }
 
 /** Parses the filename out of a Content-Disposition header, if present. */
@@ -393,23 +403,21 @@ export function filenameFromContentDisposition(header: string | null): string | 
 
 export async function downloadReport(
   jobId: string,
+  correlationId?: string,
 ): Promise<{ blob: Blob; filename: string }> {
   const url = `${getBaseUrl()}/api/reports/${encodeURIComponent(jobId)}/download`;
-  const requestId = createRequestId();
   let response: Response;
   try {
-    response = await trackedFetch(url, {}, requestId);
+    response = await trackedFetch(url, {}, correlationId);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error occurred";
-    throw new ApiError(0, `Failed to fetch report download: ${message}`, error, requestId);
+    throw new ApiError(0, `Failed to fetch report download: ${message}`, error);
   }
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
     throw new ApiError(
       response.status,
       errorData.error || `API error: ${response.status} ${response.statusText}`,
-      undefined,
-      requestId,
     );
   }
   return {

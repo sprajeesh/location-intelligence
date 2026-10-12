@@ -67,6 +67,26 @@ describe('useReportGeneration', () => {
     expect(mockStatus).toHaveBeenCalledTimes(2);
   });
 
+  it('sends one correlation ID for the create call and every status poll', async () => {
+    mockStatus
+      .mockResolvedValueOnce(status('running'))
+      .mockResolvedValueOnce(status('ready'));
+    const { result } = renderHook(() => useReportGeneration(request));
+
+    await act(async () => {
+      void result.current.start();
+    });
+    await tick(1000);
+    await tick(1500);
+
+    const createCorrelation = mockCreate.mock.calls[0][1];
+    expect(createCorrelation).toEqual(expect.any(String));
+    expect(mockStatus.mock.calls.map(([, correlationId]) => correlationId)).toEqual([
+      createCorrelation,
+      createCorrelation,
+    ]);
+  });
+
   it('surfaces a failed job with its message', async () => {
     mockStatus.mockResolvedValue(status('failed', 'Address not found'));
     const { result } = renderHook(() => useReportGeneration(request));

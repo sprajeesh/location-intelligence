@@ -39,7 +39,7 @@ cd apps/web && pnpm dev                               # Next.js on :3000
 
 FastAPI + Python 3.13 + uv. Tests: `uv run pytest`; lint: `uv run ruff check`.
 
-Every response carries an `X-Request-ID` header, and logs are one JSON object per line tagged with that ID. See `apps/api/docs/LOGGING.md`.
+Every response carries `X-Request-ID` (per call) and `X-Correlation-ID` (per user action) headers. Logs are one JSON object per line tagged with both. See `apps/api/docs/LOGGING.md`.
 
 ### Endpoints
 
@@ -230,7 +230,7 @@ Solid, light-first UI with an opt-in dark toggle (`ThemeToggle`, persisted via
 
 ### Error reporting (web)
 
-- Every backend call from the browser sends an `X-Request-ID` (`src/lib/trackedFetch.ts`). BFF routes forward it, and the backend echoes and logs it. A failed call's ID matches its backend log lines.
+- Every browser call sends an `X-Request-ID` (per call) and an `X-Correlation-ID` (per user action, from `src/lib/tracing.ts`). Hooks mint the correlation ID when an action starts, for example an analyze run or a report, and pass it to `trackedFetch`. BFF routes forward both, and the backend echoes and logs both.
 - Failed calls, uncaught exceptions and unhandled rejections are posted to `/api/client-errors`, which relays them to `POST /client-errors` (`src/lib/errorReporting.ts`). Query strings and request bodies are never included.
 - Render errors are caught by `src/app/[locale]/error.tsx` (translated) and `src/app/global-error.tsx` (English only, because it sits outside the i18n provider).
 

@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { fetchParcelAtPoint } from "@/services/api";
 import { useLocationStore } from "@/store/index";
 import type { AddressResult } from "@/types/api";
+import { createTraceId } from "@/lib/tracing";
 
 /**
  * useParcelAtPoint hook
@@ -20,7 +21,8 @@ export function useParcelAtPoint(selectedAddress: AddressResult | null) {
 
   const query = useQuery({
     queryKey: ["parcel-at-point", selectedAddress?.lat, selectedAddress?.lon],
-    queryFn: () => fetchParcelAtPoint(selectedAddress!.lat, selectedAddress!.lon),
+    queryFn: () =>
+      fetchParcelAtPoint(selectedAddress!.lat, selectedAddress!.lon, createTraceId()),
     enabled: selectedAddress !== null,
     staleTime: 1000 * 60 * 10,
     retry: 1,

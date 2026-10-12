@@ -6,7 +6,12 @@
  * knows: the error text, the stack, the page pathname, and the API path. Query
  * strings are removed, since they carry typed addresses. Request and response bodies
  * are never included.
+ *
+ * Each report travels with the correlation ID of the action that failed, so it lands
+ * in the backend logs under that action. Errors outside any action get a fresh one.
  */
+
+import { CORRELATION_ID_HEADER, createTraceId } from "@/lib/tracing";
 
 export type ClientErrorKind = "error" | "unhandledrejection" | "boundary" | "api";
 
@@ -19,7 +24,9 @@ export interface ClientErrorInput {
   /** API path without its query string. */
   endpoint?: string;
   status?: number;
-  /** The failed call's request ID (see lib/requestId.ts). */
+  /** The failed call's request ID (X-Request-ID). */
+  requestId?: string;
+  /** The user action's correlation ID (X-Correlation-ID). */
   correlationId?: string;
   digest?: string;
 }
@@ -31,7 +38,7 @@ export interface ClientErrorReport {
   route: string;
   endpoint?: string;
   status?: number;
-  correlationId?: string;
+  requestId?: string;
   digest?: string;
 }
 
@@ -81,7 +88,7 @@ export function buildReport(input: ClientErrorInput): ClientErrorReport {
     route: typeof window === "undefined" ? "" : stripQuery(window.location.pathname),
     ...(input.endpoint ? { endpoint: stripQuery(input.endpoint) } : {}),
     ...(input.status !== undefined ? { status: input.status } : {}),
-    ...(input.correlationId ? { correlationId: input.correlationId } : {}),
+    ...(input.requestId ? { requestId: input.requestId } : {}),
     ...(input.digest ? { digest: input.digest } : {}),
   };
 }
@@ -91,19 +98,13 @@ export function reportClientError(input: ClientErrorInput): void {
   reportsSent += 1;
 
   try {
-    const body = JSON.stringify(buildReport(input));
-    const beaconAccepted =
-      typeof navigator.sendBeacon === "function" &&
-      navigator.sendBeacon(
-        CLIENT_ERRORS_PATH,
-        new Blob([body], { type: "application/json" }),
-      );
-    if (beaconAccepted) return;
-
     void fetch(CLIENT_ERRORS_PATH, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body,
+      headers: {
+        "Content-Type": "application/json",
+        [CORRELATION_ID_HEADER]: input.correlationId ?? createTraceId(),
+      },
+      body: JSON.stringify(buildReport(input)),
       keepalive: true,
     }).catch(() => undefined);
   } catch {
