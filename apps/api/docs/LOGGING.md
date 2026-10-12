@@ -111,7 +111,10 @@ action's lines. Page loads send at most 20 reports.
 
 ## Adding a log line
 
-Use a stable `event` tag, a fixed message, and `extra=` for values:
+1. Pick an `event` tag: `<subsystem>.<what_happened>` in lowercase. Reuse an existing
+   prefix when one fits (`osrm.`, `report.`, `overpass.`).
+2. Use a fixed message, and pass values in `extra=`.
+3. Add a row to the Events table in the same change, so the tag is documented.
 
 ```python
 logger.warning(
@@ -119,3 +122,19 @@ logger.warning(
     extra={"event": "example.call_failed", "categories": cats, **exception_fields(exc)},
 )
 ```
+
+## Counting events
+
+Each tagged line is one occurrence. The log stream is the only statistics source, since the
+repo has no separate analytics store. To count occurrences by event, filter the JSON lines
+on `event`:
+
+```bash
+jq -r 'select(.event != null) | .event' api.log | sort | uniq -c | sort -rn
+```
+
+To see one user action, filter on `correlation_id` instead. It returns every line from
+every request the action made, including browser reports.
+
+Browser activity has no event tags of its own. Its failures are counted as
+`event=client.error`, split by `kind`.
