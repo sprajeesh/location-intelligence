@@ -79,7 +79,7 @@ describe('useReportGeneration', () => {
     await tick(1000);
     await tick(1500);
 
-    const createCorrelation = mockCreate.mock.calls[0][1];
+    const createCorrelation = mockCreate.mock.calls[0]?.[1];
     expect(createCorrelation).toEqual(expect.any(String));
     expect(mockStatus.mock.calls.map(([, correlationId]) => correlationId)).toEqual([
       createCorrelation,
