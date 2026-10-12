@@ -100,9 +100,22 @@ def test_access_log_has_path_and_status_but_no_query_string(
 
     access = [r for r in caplog.records if getattr(r, "event", None) == "http.request"]
     assert access, "expected an access log line"
-    assert access[-1].path == "/health"
+    assert access[-1].route == "/health"
     assert access[-1].status == 200
     assert access[-1].levelno == logging.INFO
+    assert secret not in caplog.text
+
+
+def test_unmatched_path_is_logged_as_a_fixed_value(
+    test_client: TestClient, caplog: pytest.LogCaptureFixture
+) -> None:
+    secret = _marker()
+
+    with caplog.at_level(logging.INFO):
+        test_client.get(f"/no-such-route/{secret}")
+
+    access = [r for r in caplog.records if getattr(r, "event", None) == "http.request"]
+    assert access[-1].route == "<unmatched>"
     assert secret not in caplog.text
 
 
@@ -150,7 +163,7 @@ def test_unhandled_exception_returns_500_with_request_id(
     errors = [r for r in caplog.records if getattr(r, "event", None) == "unhandled_exception"]
     assert len(errors) == 1
     assert errors[0].error_type == "RuntimeError"
-    assert errors[0].path == "/__boom"
+    assert errors[0].route == "/__boom"
     assert errors[0].request_id == body["requestId"]
     assert secret not in caplog.text
 
@@ -172,3 +185,35 @@ def test_geocoding_db_failure_does_not_log_the_typed_address(
     records = [r for r in caplog.records if getattr(r, "event", None) == "address_db.query_failed"]
     assert records and records[0].error_type == "DBAPIError"
     assert typed not in caplog.text
+
+
+def test_error_after_headers_is_logged_and_response_closed(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    from fastapi.responses import StreamingResponse
+
+    from app.middleware.request_context import RequestContextMiddleware
+
+    secret = _marker()
+    application = FastAPI()
+    application.add_middleware(RequestContextMiddleware)
+
+    async def chunks():  # type: ignore[no-untyped-def]
+        yield b"partial"
+        # The message is built at runtime so the marker never appears in source.
+        raise RuntimeError(secret)
+
+    @application.get("/stream")
+    def stream() -> StreamingResponse:
+        return StreamingResponse(chunks())
+
+    with caplog.at_level(logging.ERROR):
+        # No exception reaches the caller: the middleware closes the response itself.
+        response = TestClient(application).get("/stream")
+
+    assert response.status_code == 200
+    assert response.content == b"partial"
+    errors = [r for r in caplog.records if getattr(r, "event", None) == "unhandled_exception"]
+    assert len(errors) == 1
+    assert errors[0].route == "/stream"
+    assert secret not in caplog.text

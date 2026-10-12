@@ -9,6 +9,8 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
+_KNOWN_MODES = frozenset({"driving", "walking", "cycling"})
+
 
 @router.get("/route", response_model=RouteResponse)
 async def get_route(
@@ -34,9 +36,11 @@ async def get_route(
     try:
         routes = await routing_svc.get_routes(fromLat, fromLon, toLat, toLon, mode)
     except Exception as exc:
+        # `mode` is free text from the query string, so only known values are logged.
+        logged_mode = mode if mode in _KNOWN_MODES else "other"
         logger.error(
             "Routing service failed",
-            extra={"event": "routing.failed", "mode": mode, **exception_fields(exc)},
+            extra={"event": "routing.failed", "mode": logged_mode, **exception_fields(exc)},
         )
         raise HTTPException(status_code=502, detail="Routing service unavailable")
 
