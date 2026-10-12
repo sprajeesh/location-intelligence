@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { apiKeyHeaders } from "@/utils/apiAuth";
 import { clientIpHeaders } from "@/utils/clientIp";
-import { requestIdHeaders } from "@/lib/requestId";
+import { traceHeaders } from "@/lib/tracing";
 
 /** Report job status (forwards to FastAPI GET /reports/{id}). */
 export async function GET(
@@ -12,7 +12,7 @@ export async function GET(
     const { id } = await ctx.params;
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
     const response = await fetch(`${apiUrl}/reports/${encodeURIComponent(id)}`, {
-      headers: { ...apiKeyHeaders(), ...clientIpHeaders(request.headers), ...requestIdHeaders(request.headers) },
+      headers: { ...apiKeyHeaders(), ...clientIpHeaders(request.headers), ...traceHeaders(request.headers) },
       cache: "no-store",
     });
 

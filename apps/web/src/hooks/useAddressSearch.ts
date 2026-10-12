@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import type { AddressResult } from '@/types/api';
 import { trackedFetch } from '@/lib/trackedFetch';
+import { createTraceId } from '@/lib/tracing';
 
 /**
  * useAddressSearch hook
@@ -39,6 +40,10 @@ export function useAddressSearch() {
     };
   }, [query]);
 
+  // One correlation ID per search term. Retries of the same search reuse it, so one
+  // search stays one action in the logs.
+  const correlationId = useMemo(() => createTraceId(), [debouncedQuery]);
+
   // Query the BFF proxy endpoint
   const {
     data: suggestions = [],
@@ -56,7 +61,7 @@ export function useAddressSearch() {
         country: 'nz',
       });
 
-      const response = await trackedFetch(`/api/search/address?${params}`);
+      const response = await trackedFetch(`/api/search/address?${params}`, {}, correlationId);
       if (!response.ok) {
         throw new Error(`Address search failed: ${response.statusText}`);
       }

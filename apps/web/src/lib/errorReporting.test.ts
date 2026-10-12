@@ -6,32 +6,18 @@ import {
   stripQuery,
 } from './errorReporting';
 
-// jsdom has no Response or Blob.text(), so read the sent body through FileReader.
-function readBlob(blob: Blob): Promise<string> {
-  return new Promise((resolve) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result as string);
-    reader.readAsText(blob);
-  });
-}
-
-function stubResponse(status: number): Response {
-  return { ok: status >= 200 && status < 300, status, statusText: '' } as unknown as Response;
-}
-
-const sendBeacon = jest.fn();
 const fetchMock = jest.fn();
 
 beforeEach(() => {
   resetErrorReportingForTests();
-  sendBeacon.mockReset().mockReturnValue(true);
-  fetchMock.mockReset().mockResolvedValue(stubResponse(202));
-  Object.defineProperty(navigator, 'sendBeacon', { value: sendBeacon, configurable: true });
+  fetchMock.mockReset().mockResolvedValue({ ok: true, status: 202 });
   global.fetch = fetchMock as unknown as typeof fetch;
 });
 
-async function sentBody(): Promise<Record<string, unknown>> {
-  return JSON.parse(await readBlob(sendBeacon.mock.calls[0][1] as Blob));
+/** Parsed body and headers of the report sent by the most recent call. */
+function lastReport(): { body: Record<string, unknown>; headers: Headers } {
+  const [, init] = fetchMock.mock.calls[fetchMock.mock.calls.length - 1];
+  return { body: JSON.parse(init.body), headers: new Headers(init.headers) };
 }
 
 describe('stripQuery', () => {
@@ -72,7 +58,7 @@ describe('buildReport', () => {
     expect(report.stack).toBeUndefined();
   });
 
-  it('truncates long messages', () => {
+  it('truncates long messages to exactly the backend limit, ellipsis included', () => {
     const report = buildReport({ kind: 'error', errorMessage: 'x'.repeat(2000) });
 
     expect(report.errorMessage).toHaveLength(500);
@@ -84,28 +70,18 @@ describe('buildReport', () => {
       kind: 'api',
       endpoint: '/api/search/address?q=secret+address',
       status: 500,
-      correlationId: 'req-1',
+      requestId: 'req-1',
     });
 
     expect(report.endpoint).toBe('/api/search/address');
     expect(report.status).toBe(500);
-    expect(report.correlationId).toBe('req-1');
+    expect(report.requestId).toBe('req-1');
     expect(JSON.stringify(report)).not.toContain('secret');
   });
 });
 
 describe('reportClientError', () => {
-  it('sends the report with sendBeacon', () => {
-    reportClientError({ kind: 'error', error: new Error('boom') });
-
-    expect(sendBeacon).toHaveBeenCalledTimes(1);
-    expect(sendBeacon.mock.calls[0][0]).toBe('/api/client-errors');
-    expect(fetchMock).not.toHaveBeenCalled();
-  });
-
-  it('falls back to fetch with keepalive when sendBeacon declines', () => {
-    sendBeacon.mockReturnValue(false);
-
+  it('posts the report to the BFF relay with keepalive', () => {
     reportClientError({ kind: 'error', error: new Error('boom') });
 
     expect(fetchMock).toHaveBeenCalledWith(
@@ -114,26 +90,46 @@ describe('reportClientError', () => {
     );
   });
 
-  it('sends the sanitized report as JSON', async () => {
+  it('sends the sanitized report as JSON', () => {
     reportClientError({
       kind: 'api',
       errorMessage: 'Failed to fetch /api/search/address?q=secret+address',
       endpoint: '/api/search/address?q=secret+address',
       status: 500,
-      correlationId: 'req-1',
+      requestId: 'req-1',
     });
 
-    const body = await sentBody();
+    const { body } = lastReport();
     expect(body).toEqual(
       expect.objectContaining({
         kind: 'api',
         errorMessage: 'Failed to fetch /api/search/address',
         endpoint: '/api/search/address',
         status: 500,
-        correlationId: 'req-1',
+        requestId: 'req-1',
       }),
     );
     expect(JSON.stringify(body)).not.toContain('secret');
+  });
+
+  it('sends the action correlation ID as a header, so the report joins that action in the logs', () => {
+    reportClientError({ kind: 'api', errorMessage: 'x', correlationId: 'act-5' });
+
+    expect(lastReport().headers.get('X-Correlation-ID')).toBe('act-5');
+  });
+
+  it('gives the report POST its own request ID, separate from the failed call', () => {
+    reportClientError({ kind: 'api', errorMessage: 'x', requestId: 'failed-1' });
+
+    const { headers } = lastReport();
+    expect(headers.get('X-Request-ID')).toMatch(/^[A-Za-z0-9-]{1,64}$/);
+    expect(headers.get('X-Request-ID')).not.toBe('failed-1');
+  });
+
+  it('gives an error outside any action its own correlation ID', () => {
+    reportClientError({ kind: 'error', error: new Error('boom') });
+
+    expect(lastReport().headers.get('X-Correlation-ID')).toMatch(/^[A-Za-z0-9-]{1,64}$/);
   });
 
   it('stops after the per-page budget', () => {
@@ -141,13 +137,10 @@ describe('reportClientError', () => {
       reportClientError({ kind: 'error', error: new Error(`e${i}`) });
     }
 
-    expect(sendBeacon).toHaveBeenCalledTimes(20);
+    expect(fetchMock).toHaveBeenCalledTimes(20);
   });
 
   it('never throws, even if sending fails', () => {
-    sendBeacon.mockImplementation(() => {
-      throw new Error('blocked');
-    });
     fetchMock.mockRejectedValue(new Error('offline'));
 
     expect(() => reportClientError({ kind: 'error', error: new Error('boom') })).not.toThrow();

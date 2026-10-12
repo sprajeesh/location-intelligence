@@ -25,9 +25,9 @@ async def report_client_error(body: ClientErrorReport) -> dict[str, str]:
             "route": body.route,
             "endpoint": body.endpoint,
             "status": body.status,
-            # The failed call's own request ID, minted by the browser and echoed by
-            # the backend. Matches the request_id on that call's backend log lines.
-            "client_request_id": body.correlation_id,
+            # The failed call's request ID. Matches the request_id on that call's backend
+            # log lines. This report's own correlation_id is the action it belongs to.
+            "client_request_id": body.request_id,
             "digest": body.digest,
         },
     )

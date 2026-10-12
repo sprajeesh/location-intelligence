@@ -19,7 +19,7 @@ def _report(**overrides: object) -> dict[str, object]:
         "route": "/en",
         "endpoint": "/location/analyze",
         "status": 404,
-        "correlationId": "7f3c9a2e-1b4d-4e8f-9a6b-2c5d7e8f9a0b",
+        "requestId": "7f3c9a2e-1b4d-4e8f-9a6b-2c5d7e8f9a0b",
         **overrides,
     }
 
@@ -80,9 +80,9 @@ def test_caller_ip_is_not_logged(test_client: TestClient, caplog: pytest.LogCapt
     assert caller not in caplog.text
 
 
-def test_correlation_id_is_optional(test_client: TestClient) -> None:
+def test_request_id_is_optional(test_client: TestClient) -> None:
     body = _report()
-    del body["correlationId"]
+    del body["requestId"]
 
     response = test_client.post(
         "/client-errors", json=body, headers={"X-Forwarded-Client-Ip": _ip()}
@@ -109,10 +109,10 @@ def test_rejects_unknown_kind(test_client: TestClient) -> None:
     assert response.status_code == 422
 
 
-def test_rejects_correlation_id_that_could_break_a_log_line(test_client: TestClient) -> None:
+def test_rejects_request_id_that_could_break_a_log_line(test_client: TestClient) -> None:
     response = test_client.post(
         "/client-errors",
-        json=_report(correlationId="abc\nforged=1"),
+        json=_report(requestId="abc\nforged=1"),
         headers={"X-Forwarded-Client-Ip": _ip()},
     )
 

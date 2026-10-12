@@ -8,6 +8,7 @@ import {
   getReportStatus,
   type ReportRequest,
 } from "@/services/api";
+import { createTraceId } from "@/lib/tracing";
 
 export type ReportGenerationState = "idle" | "generating" | "ready" | "failed";
 
@@ -86,7 +87,9 @@ export function useReportGeneration(
     setJobId(null);
 
     try {
-      const created = await createReport(current);
+      // One user action: the create call and every status poll share this ID.
+      const correlationId = createTraceId();
+      const created = await createReport(current, correlationId);
       if (cancelled()) return;
       setJobId(created.jobId);
 
@@ -99,7 +102,7 @@ export function useReportGeneration(
 
         let status;
         try {
-          status = await getReportStatus(created.jobId);
+          status = await getReportStatus(created.jobId, correlationId);
         } catch (pollError) {
           // A network blip or 5xx shouldn't throw away a job that is still
           // running server-side; a 404 (unknown/expired job) is final.

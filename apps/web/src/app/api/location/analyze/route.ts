@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { apiKeyHeaders } from '@/utils/apiAuth'
 import { clientIpHeaders } from '@/utils/clientIp'
-import { requestIdHeaders } from "@/lib/requestId";
+import { traceHeaders } from "@/lib/tracing";
 
 export async function POST(request: NextRequest) {
   try {
@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
       headers: {
         'Content-Type': 'application/json',
         ...apiKeyHeaders(),
-        ...clientIpHeaders(request.headers), ...requestIdHeaders(request.headers),
+        ...clientIpHeaders(request.headers), ...traceHeaders(request.headers),
       },
       body: JSON.stringify(body),
     })

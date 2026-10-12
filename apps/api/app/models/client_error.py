@@ -17,9 +17,9 @@ class ClientErrorReport(BaseModel):
     route: str = Field(max_length=200)
     endpoint: str | None = Field(default=None, max_length=200)
     status: int | None = Field(default=None, ge=0, le=599)
-    correlation_id: str | None = Field(
-        default=None, alias="correlationId", pattern=r"^[A-Za-z0-9-]{1,64}$"
-    )
+    # The failed call's own request ID, not the action's correlation ID (which the
+    # browser sends as a header, so it lands on this report's log line).
+    request_id: str | None = Field(default=None, alias="requestId", pattern=r"^[A-Za-z0-9-]{1,64}$")
     digest: str | None = Field(default=None, max_length=100)
 
     model_config = {"populate_by_name": True}

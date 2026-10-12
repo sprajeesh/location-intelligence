@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchParcelAtPoint } from "@/services/api";
 import { useLocationStore } from "@/store/index";
 import type { AddressResult } from "@/types/api";
+import { createTraceId } from "@/lib/tracing";
 
 /**
  * useParcelAtPoint hook
@@ -18,9 +19,16 @@ import type { AddressResult } from "@/types/api";
 export function useParcelAtPoint(selectedAddress: AddressResult | null) {
   const setParcelFeature = useLocationStore((s) => s.setParcelFeature);
 
+  // One correlation ID per point. Retries of the same lookup reuse it.
+  const correlationId = useMemo(
+    () => createTraceId(),
+    [selectedAddress?.lat, selectedAddress?.lon],
+  );
+
   const query = useQuery({
     queryKey: ["parcel-at-point", selectedAddress?.lat, selectedAddress?.lon],
-    queryFn: () => fetchParcelAtPoint(selectedAddress!.lat, selectedAddress!.lon),
+    queryFn: () =>
+      fetchParcelAtPoint(selectedAddress!.lat, selectedAddress!.lon, correlationId),
     enabled: selectedAddress !== null,
     staleTime: 1000 * 60 * 10,
     retry: 1,

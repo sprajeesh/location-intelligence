@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { apiKeyHeaders } from '@/utils/apiAuth'
 import { clientIpHeaders } from '@/utils/clientIp'
-import { requestIdHeaders } from "@/lib/requestId";
+import { traceHeaders } from "@/lib/tracing";
 
 export async function GET(request: NextRequest) {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
 
   try {
     const response = await fetch(fastApiUrl, {
-      headers: { ...apiKeyHeaders(), ...clientIpHeaders(request.headers), ...requestIdHeaders(request.headers) },
+      headers: { ...apiKeyHeaders(), ...clientIpHeaders(request.headers), ...traceHeaders(request.headers) },
     })
 
     if (!response.ok) {

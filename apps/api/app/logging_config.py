@@ -1,7 +1,8 @@
-"""Structured logging: one JSON object per line, tagged with the request ID.
+"""Structured logging: one JSON object per line, tagged with request and correlation IDs.
 
-Records get their request ID from `request_id_var`, which the request context
-middleware (app/middleware/request_context.py) sets for the life of each request.
+Records get their IDs from `request_id_var` and `correlation_id_var`, which the
+request context middleware (app/middleware/request_context.py) sets for the life
+of each request. A correlation ID spans one user action, which can be several requests.
 Call sites add a stable `event` tag and safe context via `extra=`, e.g.
 `logger.warning("...", extra={"event": "overpass.batch_failed"})`.
 """
@@ -17,6 +18,9 @@ from app.config.settings import Settings
 request_id_var: contextvars.ContextVar[str | None] = contextvars.ContextVar(
     "request_id", default=None
 )
+correlation_id_var: contextvars.ContextVar[str | None] = contextvars.ContextVar(
+    "correlation_id", default=None
+)
 
 _HANDLER_MARK = "_li_structured_handler"
 _UVICORN_LOGGERS = ("uvicorn", "uvicorn.error")
@@ -26,12 +30,14 @@ _STANDARD_ATTRS = set(logging.LogRecord("", logging.INFO, "", 0, "", (), None)._
     "message",
     "asctime",
     "request_id",
+    "correlation_id",
 }
 
 
-class RequestIdFilter(logging.Filter):
+class TraceContextFilter(logging.Filter):
     def filter(self, record: logging.LogRecord) -> bool:
         record.request_id = request_id_var.get()
+        record.correlation_id = correlation_id_var.get()
         return True
 
 
@@ -57,6 +63,7 @@ class JsonFormatter(logging.Formatter):
             "message": record.getMessage(),
             "event": getattr(record, "event", None),
             "request_id": record.request_id,
+            "correlation_id": record.correlation_id,
         }
         for key, value in record.__dict__.items():
             if key not in _STANDARD_ATTRS and key not in payload:
@@ -74,12 +81,12 @@ def configure_logging(settings: Settings) -> None:
         formatter: logging.Formatter = JsonFormatter()
     else:
         formatter = logging.Formatter(
-            "%(asctime)s %(levelname)s %(name)s [%(request_id)s] %(message)s"
+            "%(asctime)s %(levelname)s %(name)s [%(request_id)s %(correlation_id)s] %(message)s"
         )
 
     handler = logging.StreamHandler()
     handler.setFormatter(formatter)
-    handler.addFilter(RequestIdFilter())
+    handler.addFilter(TraceContextFilter())
     setattr(handler, _HANDLER_MARK, True)
 
     root = logging.getLogger()

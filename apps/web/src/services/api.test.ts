@@ -323,21 +323,28 @@ describe('report job client', () => {
   });
 });
 
-describe('failed API calls carry a request ID', () => {
+describe('API calls send trace IDs', () => {
   const originalFetch = global.fetch;
-  const originalSendBeacon = navigator.sendBeacon;
 
   beforeEach(() => {
     global.fetch = jest.fn();
-    Object.defineProperty(navigator, 'sendBeacon', { value: jest.fn().mockReturnValue(true), configurable: true });
   });
 
   afterEach(() => {
     global.fetch = originalFetch;
-    Object.defineProperty(navigator, 'sendBeacon', { value: originalSendBeacon, configurable: true });
   });
 
-  it('sends an X-Request-ID and attaches the same ID to the ApiError', async () => {
+  it('sends the action correlation ID on the request', async () => {
+    (global.fetch as jest.Mock).mockResolvedValue({ ok: true, status: 200, json: async () => ({ status: 'ready' }) });
+
+    await getReportStatus('job-1', 'act-3');
+
+    const headers = new Headers((global.fetch as jest.Mock).mock.calls[0][1].headers);
+    expect(headers.get('X-Correlation-ID')).toBe('act-3');
+    expect(headers.get('X-Request-ID')).toMatch(/^[A-Za-z0-9-]{1,64}$/);
+  });
+
+  it('reports a failure with the status, not a request ID on the error', async () => {
     (global.fetch as jest.Mock).mockResolvedValue({
       ok: false,
       status: 503,
@@ -347,11 +354,8 @@ describe('failed API calls carry a request ID', () => {
 
     const error = await getCategories().catch((e: unknown) => e);
 
-    const sentId = new Headers((global.fetch as jest.Mock).mock.calls[0][1].headers).get('X-Request-ID');
     expect(error).toBeInstanceOf(ApiError);
     expect((error as ApiError).statusCode).toBe(503);
-    expect((error as ApiError).requestId).toBe(sentId);
-    expect(sentId).toMatch(/^[A-Za-z0-9-]{1,64}$/);
   });
 
   it('keeps the query string out of the network-error message', async () => {
@@ -361,6 +365,5 @@ describe('failed API calls carry a request ID', () => {
 
     expect(error).toBeInstanceOf(ApiError);
     expect((error as ApiError).message).not.toContain('?');
-    expect((error as ApiError).requestId).toMatch(/^[A-Za-z0-9-]{1,64}$/);
   });
 });
