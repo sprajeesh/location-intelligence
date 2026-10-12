@@ -1,6 +1,7 @@
 import hashlib
 import logging
 
+from app.logging_config import exception_fields
 from app.repositories.cache import CacheRepository
 from app.repositories.db.address_repository import AddressRepository
 from app.schemas.responses import AddressSuggestion
@@ -29,13 +30,16 @@ class GeocodingService:
         key = _cache_key(f"{country}:{query}")
         cached = await self._cache.get(key)
         if cached is not None:
-            logger.debug("Geocode cache hit for query=%s", query)
+            logger.debug("Geocode cache hit")  # no query text: it is the user-entered address
             return [AddressSuggestion.model_validate(item) for item in cached]  # type: ignore[union-attr]
 
         try:
             rows = await self._repo.search(query)
         except Exception as exc:
-            logger.error("Address DB query failed: %s", exc)
+            logger.error(
+                "Address DB query failed",
+                extra={"event": "address_db.query_failed", **exception_fields(exc)},
+            )
             raise
 
         results = [AddressSuggestion.from_model(row) for row in rows]

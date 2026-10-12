@@ -1,6 +1,7 @@
 import logging
 
 from app.clients.wikidata import WikidataClient
+from app.logging_config import exception_fields
 from app.models.domain import Facility
 from app.repositories.cache import CacheRepository
 
@@ -54,7 +55,14 @@ class WikidataEnrichmentService:
             try:
                 fetched = await self._client.fetch_entities(missing_qids)
             except Exception as exc:
-                logger.warning("Wikidata enrichment failed for %d QIDs: %s", len(missing_qids), exc)
+                logger.warning(
+                    "Wikidata enrichment failed",
+                    extra={
+                        "event": "wikidata.enrichment_failed",
+                        "qid_count": len(missing_qids),
+                        **exception_fields(exc),
+                    },
+                )
                 fetched = {}
                 fetch_failed = True
 
