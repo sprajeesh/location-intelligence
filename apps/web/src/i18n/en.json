@@ -38,7 +38,8 @@
       "label": "Search radius",
       "increase": "Increase radius",
       "decrease": "Decrease radius",
-      "search": "Search"
+      "search": "Search",
+      "close": "Close search radius"
     }
   },
   "score": {
