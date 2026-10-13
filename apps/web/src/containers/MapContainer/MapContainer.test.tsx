@@ -64,7 +64,9 @@ jest.mock('react-leaflet', () => {
       </div>
     ),
     Popup: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
-    Polyline: () => null,
+    Polyline: ({ pathOptions }: { pathOptions?: { color?: string } }) => (
+      <div data-testid="leaflet-polyline" data-color={pathOptions?.color} />
+    ),
     GeoJSON: () => null,
     ScaleControl: () => null,
     useMap: jest.fn(),
@@ -102,6 +104,14 @@ class MockResizeObserver {
 }
 
 const mockUseLocationStore = useLocationStore as jest.MockedFunction<typeof useLocationStore>;
+// Components subscribe with selectors (and useShallow), so the mock applies the
+// selector the way zustand's real hook does. Always set state through this
+// helper -- a plain mockReturnValue would hand selectors the whole object.
+const applyStoreState = (state: ReturnType<typeof makeStoreState>) => {
+  mockUseLocationStore.mockImplementation(((selector?: (s: unknown) => unknown) =>
+    selector ? selector(state) : state) as unknown as typeof useLocationStore);
+};
+
 const mockUseCategories = useCategories as jest.MockedFunction<typeof useCategories>;
 const mockUseParcelAtPoint = useParcelAtPoint as jest.MockedFunction<typeof useParcelAtPoint>;
 
@@ -126,7 +136,7 @@ beforeEach(() => {
   (global as unknown as { ResizeObserver: unknown }).ResizeObserver = MockResizeObserver;
   useMap.mockReturnValue(mockMap);
   mockMap.getContainer.mockReturnValue(mapContainerEl);
-  mockUseLocationStore.mockReturnValue(makeStoreState());
+  applyStoreState(makeStoreState());
   // MapContainer also reads a few fields directly via useLocationStore.getState()
   // (see fitBoundsToMapContent) rather than through the hook -- zustand's real
   // hook carries this as a static, but the module auto-mock doesn't, so it's
@@ -192,7 +202,7 @@ describe('MapContainer', () => {
     };
 
     it('shows a house marker at the address, not the pin, once a parcel matches', () => {
-      mockUseLocationStore.mockReturnValue(
+      applyStoreState(
         makeStoreState({ selectedAddress, parcelFeature: mockParcelFeature }),
       );
       render(<MapContainer />);
@@ -202,7 +212,7 @@ describe('MapContainer', () => {
     });
 
     it('falls back to the red pin when no parcel matches the address', () => {
-      mockUseLocationStore.mockReturnValue(
+      applyStoreState(
         makeStoreState({ selectedAddress, parcelFeature: null }),
       );
       render(<MapContainer />);
@@ -212,7 +222,7 @@ describe('MapContainer', () => {
     });
 
     it('opens the parcel details card when the house marker is clicked', () => {
-      mockUseLocationStore.mockReturnValue(
+      applyStoreState(
         makeStoreState({ selectedAddress, parcelFeature: mockParcelFeature }),
       );
       render(<MapContainer />);
@@ -240,7 +250,7 @@ describe('MapContainer', () => {
           calc_area: 1000,
         },
       };
-      mockUseLocationStore.mockReturnValue(
+      applyStoreState(
         makeStoreState({
           parcelFeature: mockParcelFeature,
         }),
@@ -250,7 +260,7 @@ describe('MapContainer', () => {
     });
 
     it('does not display the feature info card when no parcel feature is present', () => {
-      mockUseLocationStore.mockReturnValue(makeStoreState({ parcelFeature: null }));
+      applyStoreState(makeStoreState({ parcelFeature: null }));
       render(<MapContainer />);
       expect(screen.queryByTestId('feature-info-card-stub')).not.toBeInTheDocument();
     });
@@ -268,7 +278,7 @@ describe('MapContainer', () => {
     };
 
     it('only renders markers whose feature id is in visibleFacilityIds', () => {
-      mockUseLocationStore.mockReturnValue(
+      applyStoreState(
         makeStoreState({ analysisResult, visibleFacilityIds: new Set(['school-1']) }),
       );
       render(<MapContainer />);
@@ -277,7 +287,7 @@ describe('MapContainer', () => {
     });
 
     it('renders no facility markers when visibleFacilityIds is empty, even with two facilities of the same type', () => {
-      mockUseLocationStore.mockReturnValue(
+      applyStoreState(
         makeStoreState({ analysisResult, visibleFacilityIds: new Set() }),
       );
       render(<MapContainer />);
@@ -286,7 +296,7 @@ describe('MapContainer', () => {
     });
 
     it('renders every visible facility marker, independent of the others sharing its facility type', () => {
-      mockUseLocationStore.mockReturnValue(
+      applyStoreState(
         makeStoreState({ analysisResult, visibleFacilityIds: new Set(['school-1', 'bus-1']) }),
       );
       render(<MapContainer />);
@@ -304,7 +314,7 @@ describe('MapContainer', () => {
           },
         ],
       };
-      mockUseLocationStore.mockReturnValue(
+      applyStoreState(
         makeStoreState({ analysisResult: withDetails, visibleFacilityIds: new Set(['school-1']) }),
       );
       render(<MapContainer />);
@@ -327,7 +337,7 @@ describe('MapContainer', () => {
           },
         ],
       };
-      mockUseLocationStore.mockReturnValue(
+      applyStoreState(
         makeStoreState({ analysisResult: withDetails, visibleFacilityIds: new Set(['school-1']) }),
       );
       render(<MapContainer />);
@@ -343,7 +353,7 @@ describe('MapContainer', () => {
           { ...analysisResult.features[0], details: { description: 'A local primary school' } },
         ],
       };
-      mockUseLocationStore.mockReturnValue(
+      applyStoreState(
         makeStoreState({ analysisResult: withDetails, visibleFacilityIds: new Set(['school-1']) }),
       );
       render(<MapContainer />);
@@ -360,7 +370,7 @@ describe('MapContainer', () => {
           },
         ],
       };
-      mockUseLocationStore.mockReturnValue(
+      applyStoreState(
         makeStoreState({ analysisResult: withDetails, visibleFacilityIds: new Set(['school-1']) }),
       );
       render(<MapContainer />);
@@ -381,7 +391,7 @@ describe('MapContainer', () => {
           },
         ],
       };
-      mockUseLocationStore.mockReturnValue(
+      applyStoreState(
         makeStoreState({ analysisResult: withDetails, visibleFacilityIds: new Set(['school-1']) }),
       );
       render(<MapContainer />);
@@ -398,7 +408,7 @@ describe('MapContainer', () => {
         ...analysisResult,
         features: [{ ...analysisResult.features[0], details: { image: 'not-a-url' } }],
       };
-      mockUseLocationStore.mockReturnValue(
+      applyStoreState(
         makeStoreState({ analysisResult: withDetails, visibleFacilityIds: new Set(['school-1']) }),
       );
       render(<MapContainer />);
@@ -406,7 +416,7 @@ describe('MapContainer', () => {
     });
 
     it('renders no detail rows when the feature has no details', () => {
-      mockUseLocationStore.mockReturnValue(
+      applyStoreState(
         makeStoreState({ analysisResult, visibleFacilityIds: new Set(['school-1']) }),
       );
       render(<MapContainer />);
@@ -438,7 +448,7 @@ describe('MapContainer', () => {
 
     it('is hidden on desktop, where the results panel and map are both already visible', () => {
       setInnerWidth(1024);
-      mockUseLocationStore.mockReturnValue(
+      applyStoreState(
         makeStoreState({ analysisResult, visibleFacilityIds: new Set(['school-1']) }),
       );
       render(<MapContainer />);
@@ -448,7 +458,7 @@ describe('MapContainer', () => {
     it('switches back to the results panel on mobile', () => {
       setInnerWidth(500);
       const setIsMapViewOnMobile = jest.fn();
-      mockUseLocationStore.mockReturnValue(
+      applyStoreState(
         makeStoreState({
           analysisResult,
           visibleFacilityIds: new Set(['school-1']),
@@ -463,29 +473,99 @@ describe('MapContainer', () => {
 
   describe('Navigation popup cleanup', () => {
     it('does not close the popup while navigation is active', () => {
-      mockUseLocationStore.mockReturnValue(makeStoreState({ isNavigating: true }));
+      applyStoreState(makeStoreState({ isNavigating: true }));
       render(<MapContainer />);
       expect(mockMap.closePopup).not.toHaveBeenCalled();
     });
 
     it('closes the popup once navigation exits', () => {
-      mockUseLocationStore.mockReturnValue(makeStoreState({ isNavigating: true }));
+      applyStoreState(makeStoreState({ isNavigating: true }));
       const { rerender } = render(<MapContainer />);
       expect(mockMap.closePopup).not.toHaveBeenCalled();
 
-      mockUseLocationStore.mockReturnValue(makeStoreState({ isNavigating: false }));
+      applyStoreState(makeStoreState({ isNavigating: false }));
       rerender(<MapContainer />);
       expect(mockMap.closePopup).toHaveBeenCalledTimes(1);
     });
 
     it('does not close the popup again on unrelated re-renders once navigation has already ended', () => {
-      mockUseLocationStore.mockReturnValue(makeStoreState({ isNavigating: false }));
+      applyStoreState(makeStoreState({ isNavigating: false }));
       const { rerender } = render(<MapContainer />);
       expect(mockMap.closePopup).toHaveBeenCalledTimes(1);
 
-      mockUseLocationStore.mockReturnValue(makeStoreState({ isNavigating: false }));
+      applyStoreState(makeStoreState({ isNavigating: false }));
       rerender(<MapContainer />);
       expect(mockMap.closePopup).toHaveBeenCalledTimes(1);
     });
+  });
+});
+
+describe('MapContainer parcel notices and overlays', () => {
+  const selectedAddress = { lat: -36.85, lon: 174.76, displayName: '123 Main St' };
+
+  it('shows the locating notice while the parcel lookup is in flight', () => {
+    applyStoreState(makeStoreState({ selectedAddress }));
+    mockUseParcelAtPoint.mockReturnValue({ isFetching: true, data: undefined, isError: false } as any);
+    render(<MapContainer />);
+    expect(screen.getByText('Locating parcel…')).toBeInTheDocument();
+  });
+
+  it('shows the not-found notice when the lookup settles with no parcel', () => {
+    applyStoreState(makeStoreState({ selectedAddress }));
+    mockUseParcelAtPoint.mockReturnValue({ isFetching: false, data: null, isError: false } as any);
+    render(<MapContainer />);
+    expect(
+      screen.getByText("Couldn't find a matching parcel boundary for this address."),
+    ).toBeInTheDocument();
+    expect(screen.queryByText('Locating parcel…')).not.toBeInTheDocument();
+  });
+
+  it('shows the service-error notice when the lookup fails', () => {
+    applyStoreState(makeStoreState({ selectedAddress }));
+    mockUseParcelAtPoint.mockReturnValue({ isFetching: false, data: undefined, isError: true } as any);
+    render(<MapContainer />);
+    expect(
+      screen.getByText(
+        "Couldn't retrieve parcel information. Please check your connection and try again.",
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText("Couldn't find a matching parcel boundary for this address."),
+    ).not.toBeInTheDocument();
+  });
+
+  it('shows no parcel notice when no address is selected', () => {
+    applyStoreState(makeStoreState({ selectedAddress: null }));
+    mockUseParcelAtPoint.mockReturnValue({ isFetching: true, data: undefined, isError: false } as any);
+    render(<MapContainer />);
+    expect(screen.queryByText('Locating parcel…')).not.toBeInTheDocument();
+  });
+
+  it('shows the translated loading overlay only while analysing', () => {
+    applyStoreState(makeStoreState({ isAnalyzing: true }));
+    const { unmount } = render(<MapContainer />);
+    expect(screen.getByText('analyze.loading')).toBeInTheDocument();
+    unmount();
+
+    applyStoreState(makeStoreState({ isAnalyzing: false }));
+    render(<MapContainer />);
+    expect(screen.queryByText('analyze.loading')).not.toBeInTheDocument();
+  });
+});
+
+describe('MapContainer active route', () => {
+  it('draws the route in the colour for its transport mode', () => {
+    applyStoreState(makeStoreState({ activeRoute: [[1, 2], [3, 4]], routeMode: 'walking' }));
+    render(<MapContainer />);
+    expect(screen.getByTestId('leaflet-polyline')).toHaveAttribute(
+      'data-color',
+      'rgb(var(--color-success-500))',
+    );
+  });
+
+  it('does not draw a route with fewer than two points', () => {
+    applyStoreState(makeStoreState({ activeRoute: [[1, 2]] }));
+    render(<MapContainer />);
+    expect(screen.queryByTestId('leaflet-polyline')).not.toBeInTheDocument();
   });
 });
