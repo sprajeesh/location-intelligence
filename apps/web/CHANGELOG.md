@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.27.0](https://github.com/sprajeesh/location-intelligence/compare/web@v0.26.0...web@v0.27.0) (2026-10-13)
+
+
+### Features
+
+* **web:** add close button to search radius panel ([#377](https://github.com/sprajeesh/location-intelligence/issues/377)) ([0c394b9](https://github.com/sprajeesh/location-intelligence/commit/0c394b9c795a1eefe381b95d2bbc6712e5c15e3c))
+* **web:** mark matched address with house icon instead of parcel polygon ([#378](https://github.com/sprajeesh/location-intelligence/issues/378)) ([c40602e](https://github.com/sprajeesh/location-intelligence/commit/c40602ea8525b03317b63e2a688f8966f1850736))
+* **web:** redesign mobile map view controls ([#376](https://github.com/sprajeesh/location-intelligence/issues/376)) ([152b9e6](https://github.com/sprajeesh/location-intelligence/commit/152b9e63562fdf3da5e61ed3fa549bd3037da82b))
+
 ## [0.26.0](https://github.com/sprajeesh/location-intelligence/compare/web@v0.25.0...web@v0.26.0) (2026-10-12)
 
 
