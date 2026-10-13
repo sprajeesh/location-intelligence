@@ -11,12 +11,15 @@ export interface ThemeToggleProps {
   compact?: boolean;
   /** Collapse to icon-only below 400px (label stays as the accessible name) — mobile bar only, where four controls share one row. */
   iconOnlyOnNarrow?: boolean;
+  /** Always render icon-only (label becomes the accessible name) — mobile map view's floating controls. */
+  iconOnly?: boolean;
 }
 
 export function ThemeToggle({
   className,
   compact = false,
   iconOnlyOnNarrow = false,
+  iconOnly = false,
 }: ThemeToggleProps = {}) {
   const theme = useLocationStore((s) => s.theme);
   const toggleTheme = useLocationStore((s) => s.toggleTheme);
@@ -35,6 +38,7 @@ export function ThemeToggle({
       icon={isDark ? Sun : Moon}
       variant="ghost"
       label={label}
+      iconOnly={iconOnly}
       ariaLabel={iconOnlyOnNarrow ? label : undefined}
       labelClassName={iconOnlyOnNarrow ? "max-[400px]:hidden" : undefined}
       title={

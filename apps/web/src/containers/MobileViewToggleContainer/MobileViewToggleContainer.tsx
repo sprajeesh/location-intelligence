@@ -17,9 +17,15 @@ export interface MobileViewToggleContainerProps {
   className?: string;
   /** Collapse to icon-only below 400px (label stays as the accessible name) — mobile controls only, where buttons share limited space. */
   iconOnlyOnNarrow?: boolean;
+  /** Always render icon-only (label becomes the accessible name) — mobile map view's floating controls. */
+  iconOnly?: boolean;
 }
 
-export function MobileViewToggleContainer({ className, iconOnlyOnNarrow = false }: MobileViewToggleContainerProps = {}) {
+export function MobileViewToggleContainer({
+  className,
+  iconOnlyOnNarrow = false,
+  iconOnly = false,
+}: MobileViewToggleContainerProps = {}) {
   const { selectedAddress, isMapViewOnMobile, setIsMapViewOnMobile, isNavigating, activeRoute } =
     useLocationStore();
   const t = useTranslations();
@@ -42,6 +48,7 @@ export function MobileViewToggleContainer({ className, iconOnlyOnNarrow = false 
             ? t("map.showRouteTooltip", { defaultValue: "Show route details" })
             : t("map.viewScoresTooltip", { defaultValue: "View scores" })
         }
+        iconOnly={iconOnly}
         ariaLabel={iconOnlyOnNarrow ? label : undefined}
         labelClassName={iconOnlyOnNarrow ? "max-[400px]:hidden" : undefined}
         onClick={() => setIsMapViewOnMobile(false)}
@@ -56,6 +63,7 @@ export function MobileViewToggleContainer({ className, iconOnlyOnNarrow = false 
       icon={Map}
       label={label}
       title={t("map.showMapTooltip", { defaultValue: "Show map" })}
+      iconOnly={iconOnly}
       ariaLabel={iconOnlyOnNarrow ? label : undefined}
       labelClassName={iconOnlyOnNarrow ? "max-[400px]:hidden" : undefined}
       onClick={() => setIsMapViewOnMobile(true)}

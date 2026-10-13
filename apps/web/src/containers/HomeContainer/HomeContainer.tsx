@@ -14,7 +14,11 @@ import PanelCollapseButton from "@/components/PanelCollapseButton/PanelCollapseB
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { SettingsContainer } from "@/containers/SettingsContainer";
 import { MobileControlsBar } from "@/containers/MobileControlsBar";
+import { MobileViewToggleContainer } from "@/containers/MobileViewToggleContainer";
 import { SURFACE_PANEL_CLASSES } from "@/components/ui/SurfacePanel";
+
+// Match the map toolbar's outer width (40px) so the column lines up with it.
+const FLOATING_CONTROL_CLASSES = `!w-10 !h-10 ${SURFACE_PANEL_CLASSES.chip}`;
 
 export function HomeContainer() {
   const {
@@ -177,10 +181,11 @@ export function HomeContainer() {
         </div>
 
         {/* Mobile controls -- an in-flow white row above the footer for the
-          initial and map views, so the buttons sit inside a panel instead of
-          floating over the footer. In the results view the same bar lives
-          inside ResultsPanel. */}
-        {!isDesktop && !showResultsOnMobile && (
+          initial view, so the buttons sit inside a panel instead of floating
+          over the footer. In the map view the bar is hidden (the map fills to
+          the footer and the controls float over it instead). In the results
+          view the same bar lives inside ResultsPanel. */}
+        {!isDesktop && !showResultsOnMobile && !showMapOnMobile && (
           <MobileControlsBar
             report={reportAction}
             showReport={!!selectedAddress}
@@ -189,19 +194,29 @@ export function HomeContainer() {
         )}
       </div>
 
-      {/* Search bar for mobile map view — floats above map */}
+      {/* Search bar for mobile map view — floats above map, with the icon-only
+          Theme / Scoring / Map-Results controls in a column just below it.
+          The wrapper ignores pointer events so the map stays draggable around
+          the floating pieces. */}
       {showMapOnMobile && (
-        <div className="absolute top-0 left-0 right-0 z-20 md:hidden p-4 pb-2 bg-white border-b border-slate-200 pointer-events-auto">
-          <div className="flex items-center gap-2">
-            <div className="flex-1">
-              <SearchContainer
-                query={addressSearch.query}
-                setQuery={addressSearch.setQuery}
-                suggestions={addressSearch.suggestions}
-                isLoading={addressSearch.isLoading}
-                error={addressSearch.error}
-              />
-            </div>
+        <div className="absolute top-0 left-0 right-0 z-20 md:hidden p-3 pointer-events-none">
+          <div className="pointer-events-auto">
+            <SearchContainer
+              query={addressSearch.query}
+              setQuery={addressSearch.setQuery}
+              suggestions={addressSearch.suggestions}
+              isLoading={addressSearch.isLoading}
+              error={addressSearch.error}
+            />
+          </div>
+          {/* 40px square buttons: the map toolbar's outer width (32px button + p-1 padding). */}
+          <div className="mt-3 flex flex-col items-end gap-2 pointer-events-auto">
+            <ThemeToggle iconOnly className={FLOATING_CONTROL_CLASSES} />
+            <SettingsContainer iconOnly className={FLOATING_CONTROL_CLASSES} />
+            <MobileViewToggleContainer
+              iconOnly
+              className={FLOATING_CONTROL_CLASSES}
+            />
           </div>
         </div>
       )}

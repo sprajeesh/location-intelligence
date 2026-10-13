@@ -44,12 +44,15 @@ export interface SettingsContainerProps {
   expanded?: boolean;
   /** Collapse to icon-only below 400px (label stays as the accessible name) — mobile controls only, where buttons share limited space. */
   iconOnlyOnNarrow?: boolean;
+  /** Always render icon-only (label becomes the accessible name) — mobile map view's floating controls. */
+  iconOnly?: boolean;
 }
 
 export function SettingsContainer({
   className,
   expanded = false,
   iconOnlyOnNarrow = false,
+  iconOnly = false,
 }: SettingsContainerProps = {}) {
   const [isOpen, setIsOpen] = useState(false);
   const [pendingReanalyze, setPendingReanalyze] = useState(false);
@@ -145,6 +148,7 @@ export function SettingsContainer({
             : t("settings.buttonLabel", { defaultValue: "Scoring" })
         }
         title={t("settings.tooltip", { defaultValue: "Settings" })}
+        iconOnly={iconOnly}
         ariaLabel={iconOnlyOnNarrow ? t("settings.buttonLabel", { defaultValue: "Scoring" }) : undefined}
         labelClassName={iconOnlyOnNarrow ? "max-[400px]:hidden" : undefined}
         onClick={() => setIsOpen(true)}
