@@ -46,7 +46,23 @@ jest.mock('react-leaflet', () => {
       ({ children }: { children?: React.ReactNode }, _ref: unknown) => <div>{children}</div>,
     ),
     TileLayer: () => null,
-    Marker: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
+    Marker: ({
+      children,
+      icon,
+      eventHandlers,
+    }: {
+      children?: React.ReactNode;
+      icon?: { options?: { className?: string } };
+      eventHandlers?: { click?: (e: { latlng: { lat: number; lng: number } }) => void };
+    }) => (
+      <div
+        data-testid="leaflet-marker"
+        data-icon-class={icon?.options?.className}
+        onClick={() => eventHandlers?.click?.({ latlng: { lat: 0, lng: 0 } })}
+      >
+        {children}
+      </div>
+    ),
     Popup: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
     Polyline: () => null,
     GeoJSON: () => null,
@@ -68,6 +84,7 @@ const mockMap = {
   fitBounds: jest.fn(),
   invalidateSize: jest.fn(),
   closePopup: jest.fn(),
+  latLngToContainerPoint: jest.fn(() => ({ x: 100, y: 100 })),
 };
 
 // jsdom has no ResizeObserver -- stub one that captures its callback so
@@ -152,6 +169,56 @@ describe('MapContainer', () => {
       expect(wrapper.className).toContain('top-1/2');
       expect(wrapper.className).toContain('-translate-y-1/2');
       expect(wrapper).toContainElement(screen.getByTestId('map-toolbar-stub'));
+    });
+  });
+
+  describe('Address marker', () => {
+    const selectedAddress = { lat: -36.85, lon: 174.76, displayName: '123 Main St' };
+    const mockParcelFeature = {
+      type: 'Feature' as const,
+      geometry: { type: 'Polygon' as const, coordinates: [] },
+      properties: {
+        id: 123,
+        appellation: 'Test Lot',
+        parcel_intent: 'Test Intent',
+        titles: 'TEST/123',
+        land_district: 'Test',
+        topology_type: 'Primary',
+        affected_surveys: null,
+        statutory_actions: null,
+        survey_area: null,
+        calc_area: 1000,
+      },
+    };
+
+    it('shows a house marker at the address, not the pin, once a parcel matches', () => {
+      mockUseLocationStore.mockReturnValue(
+        makeStoreState({ selectedAddress, parcelFeature: mockParcelFeature }),
+      );
+      render(<MapContainer />);
+      const markers = screen.getAllByTestId('leaflet-marker');
+      expect(markers).toHaveLength(1);
+      expect(markers[0]).toHaveAttribute('data-icon-class', 'leaflet-house-marker');
+    });
+
+    it('falls back to the red pin when no parcel matches the address', () => {
+      mockUseLocationStore.mockReturnValue(
+        makeStoreState({ selectedAddress, parcelFeature: null }),
+      );
+      render(<MapContainer />);
+      const markers = screen.getAllByTestId('leaflet-marker');
+      expect(markers).toHaveLength(1);
+      expect(markers[0]).toHaveAttribute('data-icon-class', 'leaflet-main-marker');
+    });
+
+    it('opens the parcel details card when the house marker is clicked', () => {
+      mockUseLocationStore.mockReturnValue(
+        makeStoreState({ selectedAddress, parcelFeature: mockParcelFeature }),
+      );
+      render(<MapContainer />);
+      expect(screen.queryByTestId('feature-info-card-stub')).not.toBeInTheDocument();
+      fireEvent.click(screen.getByTestId('leaflet-marker'));
+      expect(screen.getByTestId('feature-info-card-stub')).toBeInTheDocument();
     });
   });
 
