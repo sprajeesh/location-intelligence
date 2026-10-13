@@ -53,12 +53,12 @@ jest.mock('react-leaflet', () => {
     }: {
       children?: React.ReactNode;
       icon?: { options?: { className?: string } };
-      eventHandlers?: { click?: (e: { latlng: [number, number] }) => void };
+      eventHandlers?: { click?: (e: { latlng: { lat: number; lng: number } }) => void };
     }) => (
       <div
         data-testid="leaflet-marker"
         data-icon-class={icon?.options?.className}
-        onClick={() => eventHandlers?.click?.({ latlng: [0, 0] })}
+        onClick={() => eventHandlers?.click?.({ latlng: { lat: 0, lng: 0 } })}
       >
         {children}
       </div>
