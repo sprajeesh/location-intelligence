@@ -210,10 +210,13 @@ export function HomeContainer() {
             />
           </div>
           {/* 40px square buttons: the map toolbar's outer width (32px button + p-1 padding). */}
-          <div className="mt-2 flex flex-col items-end gap-2 pointer-events-auto">
+          <div className="mt-3 flex flex-col items-end gap-2 pointer-events-auto">
             <ThemeToggle iconOnly className={FLOATING_CONTROL_CLASSES} />
             <SettingsContainer iconOnly className={FLOATING_CONTROL_CLASSES} />
-            <MobileViewToggleContainer iconOnly className={FLOATING_CONTROL_CLASSES} />
+            <MobileViewToggleContainer
+              iconOnly
+              className={FLOATING_CONTROL_CLASSES}
+            />
           </div>
         </div>
       )}
