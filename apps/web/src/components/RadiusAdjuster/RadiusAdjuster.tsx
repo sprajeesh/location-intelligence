@@ -2,7 +2,7 @@
 
 import React, { useId, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { ChevronRight, Minus, Plus } from 'lucide-react';
+import { ChevronRight, Minus, Plus, X } from 'lucide-react';
 import { DEFAULT_RADIUS_KM, MIN_RADIUS_KM, MAX_RADIUS_KM, RADIUS_STEP_KM } from '@/constants/radius';
 import { Button } from '@/components/ui/Button';
 import { IconButton } from '@/components/ui/IconButton';
@@ -75,9 +75,17 @@ export function RadiusAdjuster({
 
   return (
     <SurfacePanel variant="chip" className="p-3 flex flex-col gap-2">
-      <label htmlFor={radiusInputId} className="text-xs text-slate-500">
-        {t('results.adjustRadius.label', { defaultValue: 'Search radius' })}
-      </label>
+      <div className="flex items-center justify-between gap-2">
+        <label htmlFor={radiusInputId} className="text-xs text-slate-500">
+          {t('results.adjustRadius.label', { defaultValue: 'Search radius' })}
+        </label>
+        <IconButton
+          icon={X}
+          size="close"
+          onClick={() => setExpanded(false)}
+          label={t('results.adjustRadius.close', { defaultValue: 'Close search radius' })}
+        />
+      </div>
       <div className="flex items-center gap-2">
         <IconButton
           icon={Minus}

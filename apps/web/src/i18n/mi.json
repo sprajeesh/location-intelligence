@@ -38,7 +38,8 @@
       "label": "Awhe rapu",
       "increase": "Whakawhānui i te awhe",
       "decrease": "Whakawhiti i te awhe",
-      "search": "Rapu"
+      "search": "Rapu",
+      "close": "Kati te awhe rapu"
     }
   },
   "score": {

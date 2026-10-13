@@ -29,6 +29,14 @@ describe('RadiusAdjuster', () => {
   });
 
   describe('Expanded stepper', () => {
+    it('collapses back to the caption when the close button is clicked', async () => {
+      const user = userEvent.setup();
+      render(<RadiusAdjuster onSearch={jest.fn()} defaultExpanded />);
+      await user.click(screen.getByRole('button', { name: 'Close search radius' }));
+      expect(screen.queryByLabelText('Search radius')).not.toBeInTheDocument();
+      expect(screen.getByText(/Adjust the search radius/)).toBeInTheDocument();
+    });
+
     it('initialises the field with initialValue', () => {
       render(<RadiusAdjuster onSearch={jest.fn()} defaultExpanded initialValue={7} />);
       expect(screen.getByLabelText('Search radius')).toHaveValue(7);
