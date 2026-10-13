@@ -219,7 +219,7 @@ describe('HomeContainer', () => {
         makeStoreState({ selectedAddress: MOCK_ADDRESS, isMapViewOnMobile: true })
       );
       render(<HomeContainer />);
-      // Panel's own copies stay mounted (hidden on mobile); the floating ones are last in the DOM.
+      // In map view the floating column is the only copy of these controls mounted.
       const theme = screen.getAllByTestId('theme-toggle-mock').at(-1) as HTMLElement;
       const settings = screen.getAllByTestId('settings-container-mock').at(-1) as HTMLElement;
       const mapToggle = screen.getAllByTestId('mobile-view-toggle-mock').at(-1) as HTMLElement;
