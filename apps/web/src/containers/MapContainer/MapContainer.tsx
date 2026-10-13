@@ -15,13 +15,12 @@ import {
   Marker,
   Popup,
   Polyline,
-  GeoJSON,
   ScaleControl,
   useMap,
 } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { TriangleAlert, MapPin } from "lucide-react";
+import { TriangleAlert, MapPin, House } from "lucide-react";
 import { useLocationStore } from "@/store/index";
 import { useCategories } from "@/hooks/useCategories";
 import { useParcelAtPoint } from "@/hooks/useParcelAtPoint";
@@ -129,6 +128,37 @@ function MapContent() {
     setCardPosition(null);
   }, [selectedAddress]);
 
+  // Open the parcel info card anchored near the clicked point, clamped so it
+  // stays inside the map container.
+  const openParcelCard = (latlng: L.LatLng) => {
+    const point = map.latLngToContainerPoint(latlng);
+    const containerRect = map.getContainer().getBoundingClientRect();
+
+    const CARD_WIDTH = 320;
+    const CARD_HEIGHT = 160;
+    const MIN_MARGIN = 10;
+    const OFFSET = 50;
+
+    const idealTop = point.y - OFFSET;
+    const idealLeft = point.x - OFFSET;
+
+    const clampedTop = Math.max(
+      MIN_MARGIN,
+      Math.min(idealTop, containerRect.height - CARD_HEIGHT - MIN_MARGIN)
+    );
+
+    const clampedLeft = Math.max(
+      MIN_MARGIN,
+      Math.min(idealLeft, containerRect.width - CARD_WIDTH - MIN_MARGIN)
+    );
+
+    setCardPosition({
+      top: clampedTop,
+      left: clampedLeft,
+    });
+    setShowParcelInfo(true);
+  };
+
   // Facility marker popups stay open (Leaflet manages that internally, not
   // React) even after navigation ends, since the underlying marker never
   // unmounts. Close any open popup once navigation exits so the tooltip
@@ -164,18 +194,6 @@ function MapContent() {
   const tileAttribution = TILE_LAYER_ATTRIBUTIONS[activeLayer];
   const tileMaxZoom = TILE_LAYER_MAX_ZOOM[activeLayer];
 
-  // Parcel highlight pane -- below Leaflet's own markerPane (600), so
-  // category/main markers stay on top and clickable. Interaction (click to
-  // show popup) is enabled since the parcel layer itself doesn't block
-  // markers (those sit in a higher pane).
-  useEffect(() => {
-    if (!map.getPane("parcelPane")) {
-      const pane = map.createPane("parcelPane");
-      pane.style.zIndex = "450";
-      pane.style.pointerEvents = "auto";
-    }
-  }, [map]);
-
   // Map category id -> DB-configured color, from GET /categories
   const categoryColorMap = useCategoryColorMap();
 
@@ -184,6 +202,14 @@ function MapContent() {
     () =>
       renderToStaticMarkup(
         <MapPin color="rgb(var(--color-white))" size={14} strokeWidth={2.5} />,
+      ),
+    [],
+  );
+
+  const houseIconMarkup = useMemo(
+    () =>
+      renderToStaticMarkup(
+        <House color="rgb(var(--color-ink))" size={16} strokeWidth={2.5} />,
       ),
     [],
   );
@@ -308,54 +334,6 @@ function MapContent() {
         className={isDarkDefault ? "map-tiles-inverted" : undefined}
       />
 
-      {/* Parcel highlight -- the cadastral parcel matched to the selected
-          address, replacing the plain pin marker once resolved (see the
-          Marker below). Bold outline, light fill so the basemap stays
-          legible underneath. */}
-      {parcelFeature && (
-        <GeoJSON
-          key={`${selectedAddress?.lat}-${selectedAddress?.lon}`}
-          data={parcelFeature as unknown as GeoJSON.Feature}
-          pane="parcelPane"
-          style={{
-            color: "rgb(var(--color-error-500))",
-            weight: 3,
-            fillColor: "rgb(var(--color-error-500))",
-            fillOpacity: 0.15,
-          }}
-          onEachFeature={(_, layer) => {
-            layer.on("click", (e) => {
-              const point = map.latLngToContainerPoint(e.latlng);
-              const container = map.getContainer();
-              const containerRect = container.getBoundingClientRect();
-
-              const CARD_WIDTH = 320;
-              const CARD_HEIGHT = 160;
-              const MIN_MARGIN = 10;
-              const OFFSET = 50;
-
-              const idealTop = point.y - OFFSET;
-              const idealLeft = point.x - OFFSET;
-
-              const clampedTop = Math.max(
-                MIN_MARGIN,
-                Math.min(idealTop, containerRect.height - CARD_HEIGHT - MIN_MARGIN)
-              );
-
-              const clampedLeft = Math.max(
-                MIN_MARGIN,
-                Math.min(idealLeft, containerRect.width - CARD_WIDTH - MIN_MARGIN)
-              );
-
-              setCardPosition({
-                top: clampedTop,
-                left: clampedLeft,
-              });
-              setShowParcelInfo(true);
-            });
-          }}
-        />
-      )}
 
       {/* No-parcel-matched notice -- shown once the parcel lookup for the
           selected address has settled with no match, so the fallback pin
@@ -459,8 +437,8 @@ function MapContent() {
       <ScaleControl position="bottomleft" imperial={false} metric={true} />
 
       {/* Main location marker - shown immediately on address selection, and
-          as the no-parcel-matched fallback; hidden once a parcel highlight
-          is drawn above so the two aren't shown together. */}
+          as the no-parcel-matched fallback; replaced by the house marker
+          below once a parcel is matched so the two aren't shown together. */}
       {selectedAddress && !parcelFeature && (
         <Marker
           position={[selectedAddress.lat, selectedAddress.lon]}
@@ -475,6 +453,17 @@ function MapContent() {
             </div>
           </Popup>
         </Marker>
+      )}
+
+      {/* House marker - replaces the pin once the address is matched to a
+          parcel. Click opens the parcel details card. */}
+      {selectedAddress && parcelFeature && (
+        <Marker
+          key={`house-${selectedAddress.lat}-${selectedAddress.lon}`}
+          position={[selectedAddress.lat, selectedAddress.lon]}
+          icon={createHouseIcon(houseIconMarkup)}
+          eventHandlers={{ click: (e) => openParcelCard(e.latlng) }}
+        />
       )}
 
       {/* Category markers - show after analysis */}
@@ -684,6 +673,36 @@ function createMainLocationIcon(): L.DivIcon {
     iconSize: [32, 32],
     iconAnchor: [16, 16],
     popupAnchor: [0, -16],
+  });
+}
+
+/**
+ * Create a yellow house icon marking the address's matched parcel.
+ * Same shape as the main location pin, but in the warning token; the glyph
+ * uses the ink token rather than white, since white on yellow is low contrast.
+ */
+function createHouseIcon(iconMarkup: string): L.DivIcon {
+  const html = `
+    <div style="
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      background: rgb(var(--color-warning-500));
+      border: 3px solid rgb(var(--color-white));
+      border-radius: 50%;
+      box-shadow: 0 2px 8px rgba(16, 24, 40, 0.3);
+    ">
+      ${iconMarkup}
+    </div>
+  `;
+
+  return L.divIcon({
+    html,
+    className: "leaflet-house-marker",
+    iconSize: [32, 32],
+    iconAnchor: [16, 16],
   });
 }
 
