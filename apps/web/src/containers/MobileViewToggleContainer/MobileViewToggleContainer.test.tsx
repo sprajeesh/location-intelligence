@@ -78,4 +78,18 @@ describe("MobileViewToggleContainer", () => {
     await userEvent.click(screen.getByRole("button", { name: "Results" }));
     expect(setIsMapViewOnMobile).toHaveBeenCalledWith(false);
   });
+
+  it("renders icon-only with the label as its accessible name when iconOnly is set", () => {
+    mockUseLocationStore.mockReturnValue(makeStoreState({ selectedAddress: MOCK_ADDRESS }));
+    render(<MobileViewToggleContainer iconOnly />);
+    const button = screen.getByRole("button", { name: "Map" });
+    expect(button).toHaveAccessibleName("Map");
+    expect(button).not.toHaveTextContent("Map");
+  });
+
+  it("keeps the visible label by default", () => {
+    mockUseLocationStore.mockReturnValue(makeStoreState({ selectedAddress: MOCK_ADDRESS }));
+    render(<MobileViewToggleContainer />);
+    expect(screen.getByRole("button", { name: "Map" })).toHaveTextContent("Map");
+  });
 });
