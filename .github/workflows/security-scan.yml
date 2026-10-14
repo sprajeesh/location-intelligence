@@ -69,4 +69,3 @@ jobs:
             --severity-threshold=high
 
           snyk test --file=apps/api/requirements.txt --command=/tmp/snyk-venv/bin/python3 --severity-threshold=high
-        continue-on-error: true
