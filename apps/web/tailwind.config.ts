@@ -28,7 +28,7 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['var(--font-inter)'],
+        sans: ['var(--font-plus-jakarta-sans)'],
       },
       colors: {
         primary: cssVarScale('primary', primary),
