@@ -209,7 +209,7 @@ Solid, light-first UI with an opt-in dark toggle (`ThemeToggle`, persisted via
   colors (`white`, `black`, `rgba(0,0,0,...)`) in that file; use the
   corresponding `--color-*` var instead, and match the `boxShadow` tokens'
   `rgba(16,24,40,x)` convention for shadow color rather than plain black.
-- Font: Inter (via `next/font/google`)
+- Font: Plus Jakarta Sans (via `next/font/google`)
 - Subtle micro-animations on interactions
 
 ### Map behavior
