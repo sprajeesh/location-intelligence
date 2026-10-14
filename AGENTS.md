@@ -28,10 +28,34 @@ location score. Target users: property buyers, real estate agents, renters in NZ
 directly on the host.
 
 ```bash
-docker compose up -d                                  # Redis, PostGIS, OSRM
+docker compose up -d                                  # Redis, PostGIS, OSRM (car, foot and bike profiles)
 cd apps/api && uv run uvicorn app.main:app --reload   # FastAPI on :8000
 cd apps/web && pnpm dev                               # Next.js on :3000
 ```
+
+## Commands (as CI runs them)
+
+`.github/workflows/push.yml` is the source of truth. Install and run from the app directory, not the repo root.
+
+```bash
+cd apps/web && pnpm install           # web deps (pnpm)
+cd apps/api && uv sync                # API deps (Python 3.13)
+
+cd apps/web && pnpm run lint          # eslint .
+cd apps/api && uv run ruff check . && uv run ruff format --check .
+
+cd apps/web && pnpm test              # Jest
+cd apps/api && uv run pytest
+
+pnpm run build:web                    # repo root; the CI build job
+cd apps/web && pnpm run build:cf      # OpenNext build for Cloudflare; the web deploy job
+
+cd apps/api && uv run alembic upgrade head   # migrations; needed on a fresh DB before the API runs
+```
+
+The unit-test job in CI starts no Docker services, so Jest and pytest should run without Docker.
+
+E2E (Playwright) needs the full stack: `cd apps/web && pnpm exec playwright install --with-deps chromium`, then `docker compose up -d --wait postgis redis osrm osrm-foot osrm-bike`, migrations, and FastAPI on :8000. Then run `pnpm test:e2e:smoke` (tag `@smoke`, runs on every branch in CI) or `pnpm test:e2e` (full suite, CI runs it on `main` only). CI routes against a small fixture OSRM extract; for real road data, run `scripts/setup-osrm.sh` by hand. If Docker isn't available, the E2E suite can't run here. Say so rather than skipping it.
 
 ---
 
@@ -41,93 +65,7 @@ FastAPI + Python 3.13 + uv. Tests: `uv run pytest`; lint: `uv run ruff check`.
 
 Every response carries `X-Request-ID` (per call) and `X-Correlation-ID` (per user action) headers. Logs are one JSON object per line tagged with both. See `apps/api/docs/LOGGING.md`.
 
-### Endpoints
-
-| Method | Path                            | Notes                                                   |
-| ------ | ------------------------------- | ------------------------------------------------------- |
-| GET    | `/health`                       | `{"status": "ok", "version": <apps/api/pyproject.toml>}` |
-| GET    | `/search/address?q=&country=nz` | LINZ PostGIS address search, top 5, NZ addresses        |
-| GET    | `/categories`                   | All categories with `implemented` flag + marker `color` |
-| POST   | `/location/analyze`             | Full analysis — geocode + Overpass + OSRM + score       |
-| POST   | `/reports`                      | Start a background PDF report job → `202 {jobId}` (see `apps/api/docs/REPORTS.md`) |
-| GET    | `/reports/{jobId}`              | Job status: `queued\|running\|ready\|failed`            |
-| GET    | `/reports/{jobId}/download`     | The finished PDF (`409` until ready, `404` once expired) |
-| GET    | `/route`                        | Turn-by-turn route to a facility (driving/walking/cycling) |
-| GET    | `/category-weights`             | Per-category score weights                              |
-| GET    | `/parcels`                      | Parcel lookup at a point                                |
-| POST   | `/contact`                      | Contact form → emailed via Resend to `CONTACT_RECIPIENT_EMAIL` (`202`; `503` if unconfigured) |
-| POST   | `/client-errors`                | Browser error reports, logged as `event=client.error` (`202`) |
-
-### Key backend files
-
-- `app/main.py` — lifespan wires all services via `app.state`, CORS allows `localhost:3000`
-- `app/services/scoring.py` — isolated `LocationScoringService` (swappable formula)
-- `app/clients/overpass.py` — parallel category queries, 2× retry with backoff, dedup by OSM id
-- `app/clients/osrm.py` — OSRM road distance, automatic Haversine fallback + warning
-- `app/repositories/cache.py` — Redis caching, silent skip when Redis unavailable
-- `app/repositories/db/address_repository.py` — SQLAlchemy query returning `Address` models (`app/models/address.py`); `GeocodingService` maps them to the `AddressSuggestion` DTO (`app/schemas/responses.py`)
-
-### POST /location/analyze contract
-
-Request:
-
-```json
-{
-  "address": "...",
-  "lat": -36.848,
-  "lon": 174.763,
-  "radiusKm": 10,
-  "categories": ["schools", "bus_stops"],
-  "distanceMode": "driving"
-}
-```
-
-`categories` is optional. If omitted entirely, the API uses the DB-configured
-default facility set (currently: `schools`, `gps`, `bus_stops`,
-`railway_stations`, `supermarkets` — one from education, one from
-healthcare, two from transport, and the only shopping facility type;
-recreation is excluded from defaults). Pass `"categories": []` explicitly to
-request no facilities (score comes back with `overall: null`). Which facility
-types count as defaults is DB-driven (`facility_types.is_default`, see
-`apps/api/docs/DATA_MODEL.md`) — editable without a redeploy.
-
-Response:
-
-```json
-{
-  "location": { "lat": -36.848, "lon": 174.763, "displayName": "..." },
-  "features": [
-    {
-      "id": "osm_node_12345",
-      "name": "...",
-      "category": "schools",
-      "lat": -36.852,
-      "lon": 174.77,
-      "distanceKm": 1.2
-    }
-  ],
-  "score": {
-    "education": 72,
-    "healthcare": null,
-    "transport": 85,
-    "shopping": null,
-    "overall": 77,
-    "coverage": "2/4"
-  },
-  "warnings": []
-}
-```
-
-### GET /categories response
-
-Returns every facility type (12 currently), for example:
-
-```json
-[
-  { "id": "schools", "label": "Schools", "implemented": true, "color": "#F59E0B", "isDefault": true },
-  { "id": "bus_stops", "label": "Bus Stops", "implemented": true, "color": "#14B8A6", "isDefault": true }
-]
-```
+Endpoints, the `POST /location/analyze` contract and the `/categories` response: [`apps/api/docs/API_CONTRACT.md`](apps/api/docs/API_CONTRACT.md). Module map: `apps/api/README.md` (Key Components).
 
 ---
 
@@ -135,173 +73,7 @@ Returns every facility type (12 currently), for example:
 
 Exact dependency versions: `apps/web/package.json`.
 
-### Tech stack
-
-| Layer           | Choice                                              |
-| --------------- | --------------------------------------------------- |
-| Framework       | Next.js 16 (App Router)                             |
-| Language        | TypeScript + React 19.0.0                           |
-| Map             | React Leaflet 4 + Leaflet 1.9 + OpenStreetMap tiles |
-| Server state    | TanStack React Query v5.101.1                       |
-| UI state        | Zustand v5                                          |
-| i18n            | next-intl v4 (URL-based: `/en/...`, `/mi/...`)      |
-| Testing         | Jest 29 + @testing-library/react v16.3.2            |
-| Linting         | ESLint 9 + eslint-config-next                       |
-| Package manager | pnpm                                                |
-
-### Structure
-
-- `src/app` — App Router; `[locale]/` pages (home, about, faq, data-sources); `api/*` BFF routes
-  forwarding to FastAPI; `robots.ts`, `sitemap.ts`
-- `src/containers/*` — wire store ↔ hooks ↔ components (e.g. `MapContainer`, `AnalysisContainer`)
-- `src/components/*` — presentational components, one folder each
-- `src/hooks`, `src/services/api.ts` (typed BFF fetch wrappers), `src/store/index.ts` (Zustand)
-- `src/types/api.ts` — TypeScript types matching backend responses; keep in sync with the API schemas
-- `src/i18n` — `routing.ts`, `request.ts`, `en.json`, `mi.json`, `globals.css`
-- `src/styles/tokens.ts` — brand color tokens
-- `src/middleware.ts` — next-intl routing
-
-Package name: `@location-intelligence/web`. Store, hooks and components sit next to their tests;
-read the source for their current shape.
-
-### Layout — Desktop
-
-```
-┌─────────────────────────────────────────────────────┐
-│  [🔍 Search address...  ▾ 10km] [Driving|Walking] [Analyze] │  ← floating top bar
-├────────────────┬────────────────────────────────────┤
-│                │                                    │
-│  Results Panel │           MAP                      │
-│  (collapsible) │      (full width behind)           │
-│                │                                    │
-│  ▸ Schools (3) │                                    │
-│  ▸ Bus Stops(7)│                                    │
-│                │                                    │
-│  ── Score ──   │                                    │
-│  Overall: 77   │                                    │
-│  (2/4 cats)    │                                    │
-└────────────────┴────────────────────────────────────┘
-```
-
-### Layout — Mobile
-
-Results panel becomes a draggable bottom sheet. Map occupies most of the screen.
-
-### Theme
-
-Solid, light-first UI with an opt-in dark toggle (`ThemeToggle`, persisted via
-`useLocationStore`). Only isolated surfaces (e.g. the score hero card's
-`.surface-glass-primary`) use a translucent/backdrop-blur treatment; panels are opaque.
-
-- **Brand colors**: single source of truth is `apps/web/src/styles/tokens.ts`
-  (hex scales for `primary`/`success`/`warning`/`error`, plus `info` aliased
-  to `primary` and `ink` for high-contrast text). `tailwind.config.ts` imports
-  it and wires each shade to a CSS variable, so Tailwind classes
-  (`bg-primary-500`, `text-error-600`, …) resolve through
-  `rgb(var(--color-x-500) / <alpha-value>)`.
-- **Dark mode**: the actual RGB values (light in `:root`, dark in `:root.dark`)
-  live in `src/i18n/globals.css`. Dark mode is a deliberate re-theme, not an
-  auto-invert — `primary` swaps to a distinct teal accent, while
-  `success`/`warning`/`error`/`slate` mirror shade-roles (50↔900, 100↔800, …).
-  Non-Tailwind consumers (Leaflet `divIcon` HTML strings and GeoJSON `style()`
-  callbacks in `MapContainer.tsx`) reference `rgb(var(--color-x-500))`
-  directly so they re-theme along with everything else — avoid literal CSS
-  colors (`white`, `black`, `rgba(0,0,0,...)`) in that file; use the
-  corresponding `--color-*` var instead, and match the `boxShadow` tokens'
-  `rgba(16,24,40,x)` convention for shadow color rather than plain black.
-- Font: Plus Jakarta Sans (via `next/font/google`)
-- Subtle micro-animations on interactions
-
-### Map behavior
-
-- `containers/MapContainer/index.tsx` loads `MapContainer.tsx` via `dynamic(..., { ssr: false })` — no SSR
-- Import `leaflet/dist/leaflet.css` inside the component
-- Fix Leaflet default icon broken URLs in Next.js (delete `_getIconUrl`, set `iconUrl` manually)
-- Main location marker: red/accent colored pin
-- Category marker colors come from `/categories` API response (`color` field)
-  — a categorical palette hand-authored in `apps/api/app/config/scoring_config.py`
-  for marker-to-marker distinctiveness, intentionally separate from the
-  frontend brand tokens above
-- Cluster markers when count > 50 (use `leaflet.markercluster`)
-- Click marker → Leaflet popup: name, distance, category
-- Fit bounds on initial search result
-- Preserve zoom level on filter/visibility changes
-- Max 500 markers rendered
-
-### Error reporting (web)
-
-- Every browser call sends an `X-Request-ID` (per call) and an `X-Correlation-ID` (per user action, from `src/lib/tracing.ts`). Hooks mint the correlation ID when an action starts, for example an analyze run or a report, and pass it to `trackedFetch`. BFF routes forward both, and the backend echoes and logs both.
-- Failed calls, uncaught exceptions and unhandled rejections are posted to `/api/client-errors`, which relays them to `POST /client-errors` (`src/lib/errorReporting.ts`). Query strings and request bodies are never included.
-- Render errors are caught by `src/app/[locale]/error.tsx` (translated) and `src/app/global-error.tsx` (English only, because it sits outside the i18n provider).
-
-### BFF proxy routes (Next.js API routes)
-
-Thin pass-through — forward query params and body, relay FastAPI response verbatim.
-No transformation, no caching, no auth for MVP.
-`NEXT_PUBLIC_API_URL` env var points to FastAPI (`http://localhost:8000`).
-
-### Address search flow
-
-1. User types → 300ms debounce → `GET /api/search/address?q=...`
-2. Dropdown shows top 5 suggestions
-3. User selects → store sets `selectedAddress` → `useAnalyze` mutation fires
-4. Results populate panel; map fits bounds to features
-
-### Analyze button
-
-Explicit "Analyze" button also triggers the mutation (in addition to address selection).
-Shows `"Analyzing..."` label while in-flight.
-
-### Results panel behavior
-
-- Collapsible group headers per category (Schools, Bus Stops)
-- Each group header has a toggle to show/hide its markers on the map
-- Clicking a facility item → map centers on that marker and opens its popup
-- Skeleton loaders shown while `isAnalyzing` is true
-- Persistent primary-colour **Generate report** button (below the scrolling score, above the radius adjuster): starts a background PDF job, shows "Generating report…", then a toast with **Download** (failures offer **Retry**). Any change to address/radius/categories resets it
-- Empty state: illustration + "No facilities found within {radius}km. Try increasing your search radius." + button to auto-increase radius
-
-### i18n
-
-Translations live in `src/i18n/en.json`; `mi.json` mirrors its keys. Add every new string to both.
-
-### Notifications
-
-- Global errors (API down, rate limits): Toast/snackbar, top-right, auto-dismiss
-- Contextual errors (no results, bad address): inline near the relevant component
-
-### Loading states
-
-- Results panel: skeleton loaders per category group while `isAnalyzing`
-- Map: subtle semi-transparent overlay + spinner (non-blocking)
-- Search: loading indicator in autocomplete dropdown
-
-### Accessibility
-
-- Keyboard navigation for all interactive elements
-- ARIA labels on map controls, search, filters, panels
-- Focus management when panel opens/closes
-- Screen reader support for results list
-
-### Tests (Jest + @testing-library/react)
-
-- Unit: components, hooks, utility functions
-- Integration: key user flows with mocked API responses
-- Colocated next to source files
-
-### SEO (for public-facing pages)
-
-- Title tags, meta descriptions, OpenGraph tags, JSON-LD structured data
-- Canonical URLs, single `<h1>`, semantic HTML5
-
-### Performance targets
-
-| Metric               | Target  |
-| -------------------- | ------- |
-| Address autocomplete | < 1 sec |
-| Full analysis API    | < 3 sec |
-| Map initial render   | < 2 sec |
-| Max markers on map   | 500     |
+UI rules (layout, theme, map, search flow, results, i18n, accessibility): [`apps/web/docs/FRONTEND.md`](apps/web/docs/FRONTEND.md). Stack, structure and setup: `apps/web/README.md`.
 
 ---
 
@@ -340,6 +112,12 @@ SCORING_DENSITY_FACTOR=10
 # Frontend (apps/web/.env.local)
 NEXT_PUBLIC_API_URL=http://localhost:8000
 ```
+
+## Conventions and gotchas
+
+- **Versions are set by release-please, not by hand.** The API version comes from `apps/api/pyproject.toml` (read by `app/config/version.py`). The web version is in `apps/web/package.json`. Release PRs bump both (`.release-please-manifest.json`), so leave them alone in feature PRs.
+- **Formatting is partly enforced.** CI checks `ruff format --check` for the API, but only `eslint .` for the web. Run `uv run ruff format` before pushing API changes.
+- **Two web builds exist.** CI's build job runs `build:web`. The Cloudflare deploy runs `build:cf` (OpenNext). A passing `next build` doesn't prove the Cloudflare build works.
 
 ---
 

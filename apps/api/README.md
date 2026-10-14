@@ -424,12 +424,7 @@ libraries     → education
 
 For complete, interactive API documentation, visit **http://localhost:8000/docs** (Swagger UI) when the backend is running. All endpoints are documented there with live request/response examples.
 
-**Key endpoints:**
-- `GET /health` — Health check
-- `GET /search/address?q=...` — Address autocomplete
-- `GET /categories` — List facility categories
-- `GET /parcels?lat=<lat>&lon=<lon>` — Resolve a point to its cadastral parcel (GeoJSON Feature)
-- `POST /location/analyze` — Analyze a location with facility scoring
+Full endpoint table and request/response shapes: [`docs/API_CONTRACT.md`](docs/API_CONTRACT.md).
 
 ---
 
