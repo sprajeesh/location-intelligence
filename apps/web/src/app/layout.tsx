@@ -1,15 +1,15 @@
 import { ReactNode } from 'react';
 import type { Metadata, Viewport } from 'next';
-import { Inter } from 'next/font/google';
+import { Plus_Jakarta_Sans } from 'next/font/google';
 import { getLocale } from 'next-intl/server';
 import { primary } from '@/styles/tokens';
 import { getSiteUrl } from '@/lib/siteUrl';
 import '../i18n/globals.css';
 import { ErrorReporter } from '@/components/ErrorReporter/ErrorReporter';
 
-const inter = Inter({
+const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ['latin'],
-  variable: '--font-inter',
+  variable: '--font-plus-jakarta-sans',
 });
 
 export const metadata: Metadata = {
@@ -52,7 +52,7 @@ const THEME_INIT_SCRIPT = `(function(){try{var s=localStorage.getItem('li-theme'
 export default async function RootLayout({ children }: { children: ReactNode }) {
   const locale = await getLocale();
   return (
-    <html lang={locale} className={inter.variable} suppressHydrationWarning>
+    <html lang={locale} className={plusJakartaSans.variable} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
