@@ -33,7 +33,7 @@ export const TEXT_BUTTON_SHAPE_CLASSES =
 const TOOLBAR_ACTIVE_TINT =
   "bg-primary-50 text-primary-600 hover:bg-primary-100 active:bg-primary-200";
 const TOOLBAR_ACTIVE_SOLID =
-  "bg-primary-600 text-white shadow-sm hover:bg-primary-600 active:bg-primary-700";
+  "bg-primary-600 text-white shadow-xs hover:bg-primary-600 active:bg-primary-700";
 const TOOLBAR_INACTIVE =
   "text-slate-600 hover:text-slate-800 hover:bg-slate-100 active:bg-slate-200";
 const TOOLBAR_INACTIVE_ICON =

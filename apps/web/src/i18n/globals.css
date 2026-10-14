@@ -1,6 +1,5 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@config "../../tailwind.config.ts";
 
 /* Color scales as CSS variables, "R G B" triplets (no rgb() wrapper) so
    tailwind.config.ts can compose them as rgb(var(--x) / <alpha-value>) and
@@ -153,8 +152,32 @@
   --color-white: 44 44 46;
 }
 
-* {
-  @apply m-0 p-0 box-border;
+/* Tailwind v3 defaulted every border to slate-200; v4 defaults to currentColor.
+   Restore the v3 default so bare `border` classes keep their look.
+   Everything here sits in the base layer: unlayered rules beat utilities in
+   v4's cascade, which would make the padding and margin utilities stop applying. */
+@layer base {
+  * {
+    @apply m-0 p-0 box-border;
+  }
+
+  *,
+  ::before,
+  ::after,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: rgb(var(--color-slate-200));
+  }
+
+  /* v3's preflight pointed buttons at the hand cursor; v4 drops that. */
+  button,
+  [role="button"] {
+    cursor: pointer;
+  }
+
+  :disabled {
+    cursor: default;
+  }
 }
 
 html {
@@ -233,7 +256,7 @@ h6 {
 }
 
 .leaflet-control-attribution {
-  @apply bg-white/80 text-slate-500 backdrop-blur-sm;
+  @apply bg-white/80 text-slate-500 backdrop-blur-xs;
 }
 
 /* Leaflet's own popup/scale chrome ships hardcoded white/black inline CSS
