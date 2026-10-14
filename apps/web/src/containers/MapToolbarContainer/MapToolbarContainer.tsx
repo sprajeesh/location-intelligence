@@ -2,7 +2,7 @@
 
 import React, { useCallback, useState } from "react";
 import { useMap } from "react-leaflet";
-import { Plus, Minus, Crosshair, Navigation } from "lucide-react";
+import { Plus, Minus, Crosshair, Navigation, MapPinOff } from "lucide-react";
 import { useLocationStore } from "@/store/index";
 import { useIsDesktop } from "@/hooks/useIsDesktop";
 import { ToolbarButton } from "@/components/ToolbarButton";
@@ -54,6 +54,9 @@ export function MapToolbarContainer({
   const analysisResult = useLocationStore((s) => s.analysisResult);
   const parcelFeature = useLocationStore((s) => s.parcelFeature);
   const activeRoute = useLocationStore((s) => s.activeRoute);
+  const visibleFacilityIds = useLocationStore((s) => s.visibleFacilityIds);
+  const clearVisibleFacilityIds = useLocationStore((s) => s.clearVisibleFacilityIds);
+  const exitNavigation = useLocationStore((s) => s.exitNavigation);
 
   const handleZoomIn = useCallback(
     (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -107,7 +110,21 @@ export function MapToolbarContainer({
     [map],
   );
 
+  // Hides every facility marker (the results list keeps its data, so markers
+  // can be shown again). Also exits navigation and clears any open feature
+  // popup so no route line or orphaned card is left on the map. The searched
+  // address pin is separate state and is untouched.
+  const handleRemoveAllMarkers = useCallback(
+    (e: React.MouseEvent<HTMLButtonElement>) => {
+      e.stopPropagation();
+      clearVisibleFacilityIds();
+      exitNavigation();
+    },
+    [clearVisibleFacilityIds, exitNavigation],
+  );
+
   const hasFeatures = (analysisResult?.features?.length ?? 0) > 0;
+  const hasVisibleMarkers = visibleFacilityIds.size > 0;
 
   return (
     <SurfacePanel
@@ -132,6 +149,12 @@ export function MapToolbarContainer({
         label="Zoom to features"
         onClick={handleZoomToFeatures}
         disabled={!hasFeatures}
+      />
+      <ToolbarButton
+        icon={MapPinOff}
+        label="Remove all markers"
+        onClick={handleRemoveAllMarkers}
+        disabled={!hasVisibleMarkers}
       />
       <ToolbarButton
         icon={Navigation}
