@@ -178,6 +178,85 @@ describe('MapToolbarContainer', () => {
     });
   });
 
+  describe('Remove all markers', () => {
+    const facility = { id: '1', name: 'Feature 1', category: 'schools', lat: -36.85, lon: 174.76, distanceKm: 1.2 };
+
+    beforeEach(() => {
+      useLocationStore.setState({
+        visibleFacilityIds: new Set(),
+        activeRoute: null,
+        selectedFeature: null,
+        isNavigating: false,
+        navigateFrom: null,
+        navigateTo: null,
+      });
+    });
+
+    it('is disabled when no markers are visible', () => {
+      render(<MapToolbarContainer {...defaultProps} />);
+      expect(screen.getByRole('button', { name: 'Remove all markers' })).toBeDisabled();
+    });
+
+    it('is enabled when at least one marker is visible', () => {
+      useLocationStore.setState({ visibleFacilityIds: new Set(['1']) });
+      render(<MapToolbarContainer {...defaultProps} />);
+      expect(screen.getByRole('button', { name: 'Remove all markers' })).toBeEnabled();
+    });
+
+    it('hides all markers, keeps analysis data and the searched address when clicked', async () => {
+      const user = userEvent.setup();
+      const selectedAddress = { displayName: 'Test Address', lat: -36.848, lon: 174.763 };
+      useLocationStore.setState({
+        selectedAddress,
+        analysisResult: {
+          location: { lat: -36.848, lon: 174.763, displayName: 'Test' },
+          features: [facility],
+          score: { overall: 72, coverage: '1/5', categories: [], contribution: [] },
+          warnings: [],
+        },
+        visibleFacilityIds: new Set(['1']),
+      });
+      render(<MapToolbarContainer {...defaultProps} />);
+      await user.click(screen.getByRole('button', { name: 'Remove all markers' }));
+
+      const state = useLocationStore.getState();
+      expect(state.visibleFacilityIds.size).toBe(0);
+      expect(state.analysisResult?.features).toHaveLength(1);
+      expect(state.selectedAddress).toEqual(selectedAddress);
+    });
+
+    it('clears the active route and open feature popup and exits navigation', async () => {
+      const user = userEvent.setup();
+      useLocationStore.setState({
+        visibleFacilityIds: new Set(['1']),
+        activeRoute: [[-36.848, 174.763], [-36.85, 174.76]],
+        selectedFeature: facility,
+        isNavigating: true,
+        navigateFrom: { displayName: 'From', lat: -36.848, lon: 174.763 },
+        navigateTo: { displayName: 'To', lat: -36.85, lon: 174.76 },
+      });
+      render(<MapToolbarContainer {...defaultProps} />);
+      await user.click(screen.getByRole('button', { name: 'Remove all markers' }));
+
+      const state = useLocationStore.getState();
+      expect(state.activeRoute).toBeNull();
+      expect(state.selectedFeature).toBeNull();
+      expect(state.isNavigating).toBe(false);
+      expect(state.navigateFrom).toBeNull();
+      expect(state.navigateTo).toBeNull();
+    });
+
+    it('sits directly after Zoom to features', () => {
+      render(<MapToolbarContainer {...defaultProps} />);
+      const zoom = screen.getByRole('button', { name: 'Zoom to features' });
+      const remove = screen.getByRole('button', { name: 'Remove all markers' });
+      expect(zoom.compareDocumentPosition(remove) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+      expect(remove.nextElementSibling).toBe(
+        screen.getByRole('button', { name: 'Current location' }),
+      );
+    });
+  });
+
   describe('Current location', () => {
     it('calls geolocation.getCurrentPosition when clicked', async () => {
       const user = userEvent.setup();
