@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.28.0](https://github.com/sprajeesh/location-intelligence/compare/web@v0.27.0...web@v0.28.0) (2026-10-14)
+
+
+### Features
+
+* **web:** add remove all markers button to map toolbar ([#383](https://github.com/sprajeesh/location-intelligence/issues/383)) ([7f8c364](https://github.com/sprajeesh/location-intelligence/commit/7f8c364eb7899e0ad6493b72ad397e2ef9c3be6e))
+* **web:** switch global font to Plus Jakarta Sans ([#385](https://github.com/sprajeesh/location-intelligence/issues/385)) ([c13e23a](https://github.com/sprajeesh/location-intelligence/commit/c13e23a3430d0eef5d826a627ae71459bbbf3d24))
+
 ## [0.27.0](https://github.com/sprajeesh/location-intelligence/compare/web@v0.26.0...web@v0.27.0) (2026-10-13)
 
 
