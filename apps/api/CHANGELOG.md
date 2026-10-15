@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.14.0](https://github.com/sprajeesh/location-intelligence/compare/api@v0.13.0...api@v0.14.0) (2026-10-15)
+
+
+### Features
+
+* **api:** add map_corrections table (migration, model, repository) ([#400](https://github.com/sprajeesh/location-intelligence/issues/400)) ([fcbd46b](https://github.com/sprajeesh/location-intelligence/commit/fcbd46bd460742dcc57946dfebc8e89d468c679a))
+* **api:** POST /map-corrections endpoint (validation, dedupe, rate limit) ([#401](https://github.com/sprajeesh/location-intelligence/issues/401)) ([21b6c00](https://github.com/sprajeesh/location-intelligence/commit/21b6c00b137aef802608901d0ede6c6007169da6))
+
+
+### Documentation
+
+* correct the remove request contract and the map corrections frontend notes ([#405](https://github.com/sprajeesh/location-intelligence/issues/405)) ([77928d1](https://github.com/sprajeesh/location-intelligence/commit/77928d1b884a503d02c98990550a14f31b7e54f4))
+* refresh AGENTS.md and split API and frontend detail into docs ([#394](https://github.com/sprajeesh/location-intelligence/issues/394)) ([797c6ca](https://github.com/sprajeesh/location-intelligence/commit/797c6ca9b0ae55624683e7f58e5f44afe94adf92))
+
 ## [0.13.0](https://github.com/sprajeesh/location-intelligence/compare/api@v0.12.0...api@v0.13.0) (2026-10-12)
 
 
