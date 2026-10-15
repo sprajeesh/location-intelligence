@@ -11,7 +11,7 @@ import ScoreDisplay from "@/components/ScoreDisplay";
 import { ScoreExplainModal } from "@/components/ScoreExplainModal";
 import { RadiusAdjuster } from "@/components/RadiusAdjuster";
 import { ReportButton } from "@/components/ReportButton";
-import { MobileControlsBar } from "@/containers/MobileControlsBar";
+import { MobileControlsBar } from "@/components/MobileControlsBar";
 import { SurfacePanel, CHIP_BORDER_SHADOW } from "@/components/ui/SurfacePanel";
 import { useNavigate } from "@/hooks/useNavigate";
 import { useAnalyze } from "@/hooks/useAnalyze";

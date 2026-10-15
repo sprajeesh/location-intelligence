@@ -13,7 +13,7 @@ import { useReportAction } from "@/hooks/useReportAction";
 import PanelCollapseButton from "@/components/PanelCollapseButton/PanelCollapseButton";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { SettingsContainer } from "@/containers/SettingsContainer";
-import { MobileControlsBar } from "@/containers/MobileControlsBar";
+import { MobileControlsBar } from "@/components/MobileControlsBar";
 import { MobileViewToggleContainer } from "@/containers/MobileViewToggleContainer";
 import { SURFACE_PANEL_CLASSES } from "@/components/ui/SurfacePanel";
 

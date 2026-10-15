@@ -67,7 +67,7 @@ jest.mock('@/components/ReportButton', () => ({
   ),
 }));
 jest.mock('@/hooks/useIsDesktop', () => ({ useIsDesktop: jest.fn(() => true) }));
-jest.mock('@/containers/MobileControlsBar', () => ({
+jest.mock('@/components/MobileControlsBar', () => ({
   MobileControlsBar: ({ report }: { report: { disabled: boolean } }) => (
     <div data-testid="mobile-controls-bar" data-report-disabled={String(report.disabled)} />
   ),
