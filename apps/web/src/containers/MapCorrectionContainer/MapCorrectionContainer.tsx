@@ -57,6 +57,7 @@ function AddPlaceContainer({ point, facilityTypes, onClose }: AddPlaceContainerP
       errors={form.errors}
       formError={form.formError}
       sending={form.sending}
+      canSubmit={form.canSubmit}
       address={{
         isOpen: address.isOpen,
         status: address.status,
@@ -94,6 +95,7 @@ function RemovePlaceContainer({ target, onClose }: RemovePlaceContainerProps) {
       reasonError={form.reasonError}
       serverError={form.serverError}
       sending={form.sending}
+      canSubmit={form.canSubmit}
       onReasonChange={form.setReason}
       onWebsiteChange={form.setWebsite}
       onSubmit={form.submit}

@@ -22,6 +22,8 @@ export interface AddPlaceFormProps {
   errors: Partial<Record<keyof AddPlaceValues, string>>;
   formError: string | null;
   sending: boolean;
+  /** False until the required fields are filled in; the submit button is disabled until then. */
+  canSubmit: boolean;
   /** Address suggestions, from useAddressAutocomplete. The field's text is values.address. */
   address: AddressAutocompleteProps;
   onChange: (field: keyof AddPlaceValues, value: string) => void;
@@ -36,6 +38,7 @@ export function AddPlaceForm({
   errors,
   formError,
   sending,
+  canSubmit,
   address,
   onChange,
   onSubmit,
@@ -156,7 +159,7 @@ export function AddPlaceForm({
             type="submit"
             variant="primary"
             label={sending ? t("actions.submitting") : t("actions.submit")}
-            disabled={sending}
+            disabled={sending || !canSubmit}
           />
         </ModalFooter>
       </form>
@@ -171,6 +174,8 @@ export interface RemovePlaceFormProps {
   reasonError: string | null;
   serverError: string | null;
   sending: boolean;
+  /** False until a reason is chosen; the submit button is disabled until then. */
+  canSubmit: boolean;
   onReasonChange: (reason: MapCorrectionReason) => void;
   onWebsiteChange: (value: string) => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
@@ -191,6 +196,7 @@ export function RemovePlaceForm({
   reasonError,
   serverError,
   sending,
+  canSubmit,
   onReasonChange,
   onWebsiteChange,
   onSubmit,
@@ -239,7 +245,7 @@ export function RemovePlaceForm({
             type="submit"
             variant="primary"
             label={sending ? t("actions.submitting") : t("actions.submit")}
-            disabled={sending}
+            disabled={sending || !canSubmit}
           />
         </ModalFooter>
       </form>

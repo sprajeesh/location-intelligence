@@ -113,10 +113,13 @@ describe("MapCorrectionForm", () => {
       expect(submitMock).not.toHaveBeenCalled();
     });
 
-    it("requires a facility type", async () => {
+    it("keeps submit disabled until a facility type is chosen", async () => {
       openAdd();
-      await userEvent.click(screen.getByRole("button", { name: en.mapCorrection.actions.submit }));
-      expect(screen.getByText(en.mapCorrection.errors.facilityTypeRequired)).toBeInTheDocument();
+      const submit = screen.getByRole("button", { name: en.mapCorrection.actions.submit });
+      expect(submit).toBeDisabled();
+
+      await userEvent.selectOptions(screen.getByLabelText(/What kind of place/), "restaurants");
+      expect(submit).toBeEnabled();
       expect(submitMock).not.toHaveBeenCalled();
     });
 
@@ -229,12 +232,14 @@ describe("MapCorrectionForm", () => {
   });
 
   describe("remove", () => {
-    it("names the place and blocks submit until a reason is chosen", async () => {
+    it("names the place and keeps submit disabled until a reason is chosen", async () => {
       openRemove();
       expect(screen.getByText("Corner Cafe")).toBeInTheDocument();
-      await userEvent.click(screen.getByRole("button", { name: en.mapCorrection.actions.submit }));
+      const submit = screen.getByRole("button", { name: en.mapCorrection.actions.submit });
+      expect(submit).toBeDisabled();
 
-      expect(screen.getByText(en.mapCorrection.errors.reasonRequired)).toBeInTheDocument();
+      await userEvent.click(screen.getByLabelText(en.mapCorrection.remove.reasons.closed));
+      expect(submit).toBeEnabled();
       expect(submitMock).not.toHaveBeenCalled();
     });
 
