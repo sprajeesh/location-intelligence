@@ -6,10 +6,11 @@ import type { MapCorrectionOutcome } from "@/hooks/useMapCorrection";
 import { MapCorrectionContainer } from "./MapCorrectionContainer";
 
 jest.mock("next-intl", () => ({
-  useTranslations: (ns: string) => (key: string, values?: Record<string, unknown>) => {
+  // ns is optional: the form's root translator is called with no namespace.
+  useTranslations: (ns?: string) => (key: string, values?: Record<string, unknown>) => {
     const raw = key.split(".").reduce<unknown>(
       (node, part) => (node as Record<string, unknown>)[part],
-      (en as Record<string, unknown>)[ns],
+      ns ? (en as Record<string, unknown>)[ns] : en,
     );
     return values ? `${raw}|${JSON.stringify(values)}` : raw;
   },
@@ -18,6 +19,18 @@ jest.mock("next-intl", () => ({
 const submitMock = jest.fn<Promise<MapCorrectionOutcome>, [unknown]>();
 jest.mock("@/hooks/useMapCorrection", () => ({
   useMapCorrection: () => ({ submit: submitMock }),
+}));
+
+// Controllable stand-in for the address search (it needs a QueryClient, which these tests don't set up).
+const mockSearch = {
+  query: "",
+  setQuery: jest.fn(),
+  suggestions: [] as { displayName: string; lat: number; lon: number }[],
+  isLoading: false,
+  error: null as string | null,
+};
+jest.mock("@/hooks/useAddressSearch", () => ({
+  useAddressSearch: () => mockSearch,
 }));
 
 jest.mock("@/hooks/useCategories", () => ({
@@ -35,6 +48,9 @@ jest.mock("@/hooks/useCategories", () => ({
 const POINT = { lat: -36.848, lon: 174.763 };
 
 beforeEach(() => {
+  mockSearch.suggestions = [];
+  mockSearch.isLoading = false;
+  mockSearch.error = null;
   submitMock.mockReset();
   submitMock.mockResolvedValue({ kind: "pending" });
   useLocationStore.setState({ correctionMode: "off", correctionPoint: null, correctionRemoveTarget: null });
@@ -157,6 +173,42 @@ describe("MapCorrectionForm", () => {
       await userEvent.click(screen.getByRole("button", { name: en.mapCorrection.actions.submit }));
 
       expect(await screen.findByText(en.mapCorrection.errors.formGeneric)).toBeInTheDocument();
+    });
+
+    it("offers address suggestions as the user types, and fills the field when one is picked", async () => {
+      mockSearch.suggestions = [{ displayName: "1 Queen Street, Auckland", lat: -36.84, lon: 174.76 }];
+      openAdd();
+      await userEvent.selectOptions(screen.getByLabelText(/What kind of place/), "restaurants");
+      await userEvent.type(screen.getByLabelText(/Address of the place/), "Queen");
+      expect(screen.getByRole("listbox")).toBeInTheDocument();
+
+      await userEvent.click(screen.getByRole("option", { name: "1 Queen Street, Auckland" }));
+
+      expect(screen.getByLabelText(/Address of the place/)).toHaveValue("1 Queen Street, Auckland");
+      expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
+      await userEvent.click(screen.getByRole("button", { name: en.mapCorrection.actions.submit }));
+      await waitFor(() => expect(submitMock).toHaveBeenCalledTimes(1));
+      expect(submitMock.mock.calls[0]?.[0]).toMatchObject({ address: "1 Queen Street, Auckland" });
+    });
+
+    it("Escape closes the suggestions but keeps the form open", async () => {
+      mockSearch.suggestions = [{ displayName: "1 Queen Street, Auckland", lat: -36.84, lon: 174.76 }];
+      openAdd();
+      await userEvent.type(screen.getByLabelText(/Address of the place/), "Queen");
+      expect(screen.getByRole("listbox")).toBeInTheDocument();
+
+      await userEvent.keyboard("{Escape}");
+
+      expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
+      expect(screen.getByLabelText(/Address of the place/)).toBeInTheDocument();
+      expect(useLocationStore.getState().correctionMode).toBe("adding");
+    });
+
+    it("says so when the address search finds nothing", async () => {
+      mockSearch.suggestions = [];
+      openAdd();
+      await userEvent.type(screen.getByLabelText(/Address of the place/), "zzzz");
+      expect(screen.getByText(en.search.noResults)).toBeInTheDocument();
     });
 
     it("shows the rate-limit wait in minutes for a 429", async () => {

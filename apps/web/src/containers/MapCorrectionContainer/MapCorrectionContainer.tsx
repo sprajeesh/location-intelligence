@@ -3,6 +3,7 @@
 import { useLocationStore } from "@/store";
 import { useCategories } from "@/hooks/useCategories";
 import { useAddPlaceForm } from "@/hooks/useAddPlaceForm";
+import { useAddressAutocomplete } from "@/hooks/useAddressAutocomplete";
 import { useRemovePlaceForm } from "@/hooks/useRemovePlaceForm";
 import { AddPlaceForm, RemovePlaceForm } from "@/components/MapCorrectionForm";
 
@@ -48,6 +49,10 @@ interface AddPlaceContainerProps {
 
 function AddPlaceContainer({ point, facilityTypes, onClose }: AddPlaceContainerProps) {
   const form = useAddPlaceForm({ point });
+  const address = useAddressAutocomplete({
+    value: form.values.address,
+    onChange: (value) => form.setValue("address", value),
+  });
   return (
     <AddPlaceForm
       facilityTypes={facilityTypes}
@@ -55,6 +60,21 @@ function AddPlaceContainer({ point, facilityTypes, onClose }: AddPlaceContainerP
       errors={form.errors}
       formError={form.formError}
       sending={form.sending}
+      address={{
+        isOpen: address.isOpen,
+        status: address.status,
+        items: address.suggestions.map((suggestion, index) => ({
+          key: `${suggestion.lat}-${suggestion.lon}-${index}`,
+          id: `mc-address-option-${index}`,
+          displayName: suggestion.displayName,
+        })),
+        highlightedIndex: address.highlightedIndex,
+        onChange: address.onChange,
+        onKeyDown: address.onKeyDown,
+        onBlur: address.onBlur,
+        onHighlight: address.onHighlight,
+        onSelect: address.onSelect,
+      }}
       onChange={form.setValue}
       onSubmit={form.submit}
       onClose={onClose}

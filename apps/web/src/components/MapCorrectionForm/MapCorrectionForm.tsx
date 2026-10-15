@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import type { MapCorrectionReason } from "@/types/api";
 import type { AddPlaceValues } from "@/utils/mapCorrection";
 import { MAP_CORRECTION_REASONS, EMAIL_MAX_LENGTH } from "@/utils/mapCorrection";
+import { AddressAutocompleteField, type AddressAutocompleteProps } from "@/components/AddressAutocompleteField";
 import { Button } from "@/components/ui/Button";
 import { InlineBanner } from "@/components/ui/InlineBanner";
 import { INPUT_BASE_CLASSES, Input } from "@/components/ui/Input";
@@ -20,6 +21,8 @@ export interface AddPlaceFormProps {
   errors: Partial<Record<keyof AddPlaceValues, string>>;
   formError: string | null;
   sending: boolean;
+  /** Address suggestions, from useAddressAutocomplete. The field's text is values.address. */
+  address: AddressAutocompleteProps;
   onChange: (field: keyof AddPlaceValues, value: string) => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
   onClose: () => void;
@@ -32,11 +35,13 @@ export function AddPlaceForm({
   errors,
   formError,
   sending,
+  address,
   onChange,
   onSubmit,
   onClose,
 }: AddPlaceFormProps) {
   const t = useTranslations("mapCorrection");
+  const tSearch = useTranslations();
   const titleId = useId();
   const consentId = useId();
 
@@ -101,23 +106,19 @@ export function AddPlaceForm({
             {fieldError("mc-name-error", errors.name)}
           </div>
 
-          <div>
-            <label htmlFor="mc-address" className={LABEL_CLASSES}>
-              {t("add.address")}
-            </label>
-            <Input
-              size="lg"
-              id="mc-address"
-              name="address"
-              autoComplete="off"
-              value={values.address}
-              aria-invalid={!!errors.address}
-              aria-describedby={errors.address ? "mc-address-error" : undefined}
-              onChange={(e) => onChange("address", e.target.value)}
-              className={FIELD_CLASSES}
-            />
-            {fieldError("mc-address-error", errors.address)}
-          </div>
+          <AddressAutocompleteField
+            id="mc-address"
+            label={t("add.address")}
+            value={values.address}
+            placeholder={tSearch("search.placeholder")}
+            error={errors.address}
+            messages={{
+              loading: tSearch("search.loading"),
+              empty: tSearch("search.noResults"),
+              error: tSearch("errors.generic"),
+            }}
+            {...address}
+          />
 
           <div>
             <label htmlFor="mc-email" className={LABEL_CLASSES}>
@@ -262,7 +263,8 @@ function HoneypotField({ value, onChange }: { value: string; onChange: (value: s
     <div className="hidden" aria-hidden="true">
       <label>
         {t("honeypot.label")}
-        <input
+        <Input
+          size="lg"
           type="text"
           name="website"
           tabIndex={-1}
