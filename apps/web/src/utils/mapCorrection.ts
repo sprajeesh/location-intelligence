@@ -75,6 +75,11 @@ export function buildAddPayload(
   };
 }
 
+/** The submit button stays off until the required add fields are filled in. */
+export function hasRequiredAddPlaceFields(values: AddPlaceValues): boolean {
+  return values.facilityType.trim() !== "";
+}
+
 export function validateRemoveReason(reason: MapCorrectionReason | null): CorrectionErrorKey | null {
   return reason ? null : "reasonRequired";
 }

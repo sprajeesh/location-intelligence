@@ -17,6 +17,8 @@ export interface UseRemovePlaceFormResult {
   /** Translated form-level message (a 422, or a 429 wait). */
   serverError: string | null;
   sending: boolean;
+  /** False until a reason is chosen. Drives the submit button. */
+  canSubmit: boolean;
   setReason: (reason: MapCorrectionReason) => void;
   setWebsite: (value: string) => void;
   submit: (event: FormEvent<HTMLFormElement>) => void;
@@ -62,5 +64,17 @@ export function useRemovePlaceForm({
     }
   }
 
-  return { reason, website, reasonError, serverError, sending, setReason, setWebsite, submit };
+  const canSubmit = reason !== null;
+
+  return {
+    reason,
+    website,
+    reasonError,
+    serverError,
+    sending,
+    canSubmit,
+    setReason,
+    setWebsite,
+    submit,
+  };
 }

@@ -6,6 +6,7 @@ import { useMapCorrection, type MapCorrectionField } from "@/hooks/useMapCorrect
 import {
   EMPTY_ADD_PLACE_VALUES,
   buildAddPayload,
+  hasRequiredAddPlaceFields,
   rateLimitMessage,
   validateAddPlace,
   withoutKey,
@@ -22,6 +23,8 @@ export interface UseAddPlaceFormResult {
   /** Translated form-level message (a 422 that names no field, or a 429 wait). */
   formError: string | null;
   sending: boolean;
+  /** False until every required field has a value. Drives the submit button. */
+  canSubmit: boolean;
   setValue: (field: keyof AddPlaceValues, value: string) => void;
   submit: (event: FormEvent<HTMLFormElement>) => void;
 }
@@ -86,5 +89,7 @@ export function useAddPlaceForm({
     if (message) errors[field] = message;
   }
 
-  return { values, errors, formError, sending, setValue, submit };
+  const canSubmit = hasRequiredAddPlaceFields(values);
+
+  return { values, errors, formError, sending, canSubmit, setValue, submit };
 }
