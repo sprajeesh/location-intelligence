@@ -41,6 +41,8 @@ IFS= read -r LINZ_API_KEY_B64
 # Contact form (optional: POST /contact returns 503 while these are unset).
 IFS= read -r CONTACT_RECIPIENT_EMAIL_B64 || true
 IFS= read -r RESEND_API_KEY_B64 || true
+# Map corrections IP-hash secret (required by the API in production; see settings.py).
+IFS= read -r MAP_CORRECTION_IP_HASH_SECRET_B64 || true
 
 DB_USER="$(b64_decode "$DB_USER_B64")"
 DB_PASSWORD="$(b64_decode "$DB_PASSWORD_B64")"
@@ -49,6 +51,7 @@ REDIS_PASSWORD="$(b64_decode "$REDIS_PASSWORD_B64")"
 LINZ_API_KEY="$(b64_decode "$LINZ_API_KEY_B64")"
 CONTACT_RECIPIENT_EMAIL="$(b64_decode "${CONTACT_RECIPIENT_EMAIL_B64:-}")"
 RESEND_API_KEY="$(b64_decode "${RESEND_API_KEY_B64:-}")"
+MAP_CORRECTION_IP_HASH_SECRET="$(b64_decode "${MAP_CORRECTION_IP_HASH_SECRET_B64:-}")"
 ENV_FILE="${1:-.env}"
 SECRETS_DIR="${2:-secrets}"
 
@@ -158,6 +161,7 @@ append_optional() {
 }
 append_optional CONTACT_RECIPIENT_EMAIL "$CONTACT_RECIPIENT_EMAIL"
 append_optional RESEND_API_KEY "$RESEND_API_KEY"
+append_optional MAP_CORRECTION_IP_HASH_SECRET "$MAP_CORRECTION_IP_HASH_SECRET"
 chmod 600 "$ENV_FILE"
 
 # Two Compose file-secrets for docker-compose.prod.yml's redis service, so
