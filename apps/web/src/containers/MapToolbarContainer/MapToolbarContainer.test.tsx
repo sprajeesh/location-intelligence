@@ -178,6 +178,31 @@ describe('MapToolbarContainer', () => {
     });
   });
 
+  describe('Report a missing place', () => {
+    afterEach(() => {
+      delete process.env.NEXT_PUBLIC_MAP_CORRECTIONS_ENABLED;
+    });
+
+    it('is shown when the map corrections flag is on', () => {
+      process.env.NEXT_PUBLIC_MAP_CORRECTIONS_ENABLED = 'true';
+      render(<MapToolbarContainer {...defaultProps} />);
+      expect(screen.getByRole('button', { name: 'Report a missing place' })).toBeInTheDocument();
+    });
+
+    it('is hidden when the map corrections flag is off', () => {
+      process.env.NEXT_PUBLIC_MAP_CORRECTIONS_ENABLED = 'false';
+      render(<MapToolbarContainer {...defaultProps} />);
+      expect(screen.queryByRole('button', { name: 'Report a missing place' })).not.toBeInTheDocument();
+    });
+
+    it('starts placement mode when clicked', async () => {
+      process.env.NEXT_PUBLIC_MAP_CORRECTIONS_ENABLED = 'true';
+      render(<MapToolbarContainer {...defaultProps} />);
+      await userEvent.click(screen.getByRole('button', { name: 'Report a missing place' }));
+      expect(useLocationStore.getState().correctionMode).toBe('placing');
+    });
+  });
+
   describe('Remove all markers', () => {
     const facility = { id: '1', name: 'Feature 1', category: 'schools', lat: -36.85, lon: 174.76, distanceKm: 1.2 };
 

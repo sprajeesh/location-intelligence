@@ -1,5 +1,7 @@
 import { useTranslations } from "next-intl";
 import { FacilityRouteModePicker } from "@/components/FacilityRouteModePicker";
+import { Button } from "@/components/ui/Button";
+import { useRemoveCorrectionAction } from "@/hooks/useRemoveCorrectionAction";
 import type { Feature } from "@/types/api";
 import { isValidHttpUrl } from "@/utils/url";
 import { FACILITY_DETAIL_FIELDS } from "./mapConstants";
@@ -14,6 +16,7 @@ export interface FacilityPopupContentProps {
 export function FacilityPopupContent({ feature, onBackToResults }: FacilityPopupContentProps) {
   const t = useTranslations();
   const details = feature.details;
+  const openRemoveCorrection = useRemoveCorrectionAction(feature);
 
   return (
     <>
@@ -58,6 +61,15 @@ export function FacilityPopupContent({ feature, onBackToResults }: FacilityPopup
         />
       )}
       <FacilityRouteModePicker feature={feature} onBackToResults={onBackToResults} />
+      {openRemoveCorrection && (
+        <Button
+          type="button"
+          variant="ghost"
+          label={t("mapCorrection.remove.button")}
+          onClick={openRemoveCorrection}
+          className="mt-2 w-full"
+        />
+      )}
     </>
   );
 }

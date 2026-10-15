@@ -2,8 +2,9 @@
 
 import React, { useCallback, useState } from "react";
 import { useMap } from "react-leaflet";
-import { Plus, Minus, Crosshair, Navigation, MapPinOff } from "lucide-react";
+import { Plus, Minus, Crosshair, Navigation, MapPinOff, MapPinPlus } from "lucide-react";
 import { useLocationStore } from "@/store/index";
+import { isMapCorrectionsEnabled } from "@/utils/mapCorrectionsFlag";
 import { useIsDesktop } from "@/hooks/useIsDesktop";
 import { ToolbarButton } from "@/components/ToolbarButton";
 import { LayerSelector, type MapLayerId } from "@/components/LayerSelector";
@@ -57,6 +58,7 @@ export function MapToolbarContainer({
   const visibleFacilityIds = useLocationStore((s) => s.visibleFacilityIds);
   const clearVisibleFacilityIds = useLocationStore((s) => s.clearVisibleFacilityIds);
   const exitNavigation = useLocationStore((s) => s.exitNavigation);
+  const startAddCorrection = useLocationStore((s) => s.startAddCorrection);
 
   const handleZoomIn = useCallback(
     (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -162,6 +164,16 @@ export function MapToolbarContainer({
         onClick={handleCurrentLocation}
         disabled={isLocating}
       />
+      {isMapCorrectionsEnabled() && (
+        <ToolbarButton
+          icon={MapPinPlus}
+          label="Report a missing place"
+          onClick={(e) => {
+            e.stopPropagation();
+            startAddCorrection();
+          }}
+        />
+      )}
 
       <div className="w-5 h-px bg-slate-200 my-0.5" role="separator" />
 

@@ -46,6 +46,7 @@ jest.mock('react-leaflet', () => {
       ({ children }: { children?: React.ReactNode }, _ref: unknown) => <div>{children}</div>,
     ),
     TileLayer: () => null,
+    useMapEvents: () => undefined,
     Marker: ({
       children,
       icon,
