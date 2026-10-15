@@ -18,6 +18,7 @@ Endpoints and request/response shapes for the FastAPI backend. Where each module
 | GET    | `/parcels`                      | Parcel lookup at a point                                |
 | POST   | `/contact`                      | Contact form → emailed via Resend to `CONTACT_RECIPIENT_EMAIL` (`202`; `503` if unconfigured) |
 | POST   | `/client-errors`                | Browser error reports, logged as `event=client.error` (`202`) |
+| POST   | `/map-corrections`              | Add or remove a facility from the map → `202 {id,status}`, `200` if already mapped/removed (see below) |
 
 ## POST /location/analyze contract
 
@@ -80,3 +81,30 @@ Returns every facility type (12 currently), for example:
   { "id": "bus_stops", "label": "Bus Stops", "implemented": true, "color": "#14B8A6", "isDefault": true }
 ]
 ```
+
+## POST /map-corrections
+
+Users submit corrections to OpenStreetMap-derived facilities: `add` (a facility missing from the map) or `remove` (a facility that is closed or wrong). Stored as pending for review. Per-type rules are enforced by the request model (`app/schemas/requests.py`), the bounding box and facility slug by the service (`app/services/map_corrections.py`).
+
+Request (`add`):
+
+```json
+{ "correctionType": "add", "facilityType": "restaurants", "lat": -36.848, "lon": 174.763, "name": "Optional", "address": "Optional", "reporterEmail": "optional@example.com", "website": "" }
+```
+
+Request (`remove`): `correctionType: "remove"`, `targetOsmId` (`node/12345`, `way/…` or `relation/…`) and `reason` (`closed`, `not_found` or `other`) are required; `name` and `address` are not allowed.
+
+| Type     | Condition                                                  | Response                                  |
+| -------- | ---------------------------------------------------------- | ----------------------------------------- |
+| `add`    | Same-type OSM element within 100 m                         | `200 {"status":"already_mapped"}`, nothing stored |
+| `add`    | Pending `add` of the same type within 50 m                 | `202 {id,status}` with the existing id, `report_count` + 1 |
+| `add`    | Otherwise                                                  | `202 {id,status:"pending"}`               |
+| `remove` | Target missing from OSM or no longer carries the type's tags | `200 {"status":"already_removed"}`, nothing stored |
+| `remove` | Pending `remove` for the same target                       | `202 {id,status}` with the existing id, `report_count` + 1 |
+| `remove` | Otherwise                                                  | `202 {id,status:"pending"}`               |
+
+- A non-empty `website` (honeypot) returns `202` with an unstored id and stores nothing.
+- If Overpass fails or its breaker is open, the row is stored with `dedupe_checked = false`.
+- `422` for invalid input, including coordinates outside NZ (lat -48 to -33, lon 165 to 180). The echoed body masks `reporterEmail`.
+- `429` per IP: `add` 5 per hour, `remove` 3 per hour. Fails open when Redis is unavailable.
+- Privacy: the IP is stored only as an HMAC-SHA256 (`MAP_CORRECTION_IP_HASH_SECRET`). Logs carry event names and correction types, never the email or raw IP.
