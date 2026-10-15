@@ -196,9 +196,22 @@ export type MapCorrectionRequest =
   | {
       correctionType: 'remove'
       targetOsmId: string
+      facilityType: string
+      lat: number
+      lon: number
       reason: MapCorrectionReason
       website: string
     }
+
+/** The facility a remove correction is about: its OSM element plus the type and point the API stores with it. */
+export interface MapCorrectionRemoveTarget {
+  targetOsmId: string
+  facilityType: string
+  lat: number
+  lon: number
+  /** Display name for the form. Not sent. */
+  name: string
+}
 
 /** 202 body: stored as pending, or merged into a pending report. */
 export interface MapCorrectionPendingBody {

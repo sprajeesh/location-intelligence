@@ -6,6 +6,7 @@ import { useAddPlaceForm } from "@/hooks/useAddPlaceForm";
 import { useAddressAutocomplete } from "@/hooks/useAddressAutocomplete";
 import { useRemovePlaceForm } from "@/hooks/useRemovePlaceForm";
 import { AddPlaceForm, RemovePlaceForm } from "@/components/MapCorrectionForm";
+import type { MapCorrectionRemoveTarget } from "@/types/api";
 
 /**
  * Shows the map correction form that matches the store's mode: add (from a map click) or
@@ -30,11 +31,7 @@ export function MapCorrectionContainer() {
 
   if (mode === "removing" && removeTarget) {
     return (
-      <RemovePlaceContainer
-        targetOsmId={removeTarget.targetOsmId}
-        targetName={removeTarget.name}
-        onClose={closeCorrection}
-      />
+      <RemovePlaceContainer target={removeTarget} onClose={closeCorrection} />
     );
   }
 
@@ -83,16 +80,15 @@ function AddPlaceContainer({ point, facilityTypes, onClose }: AddPlaceContainerP
 }
 
 interface RemovePlaceContainerProps {
-  targetOsmId: string;
-  targetName: string;
+  target: MapCorrectionRemoveTarget;
   onClose: () => void;
 }
 
-function RemovePlaceContainer({ targetOsmId, targetName, onClose }: RemovePlaceContainerProps) {
-  const form = useRemovePlaceForm({ targetOsmId });
+function RemovePlaceContainer({ target, onClose }: RemovePlaceContainerProps) {
+  const form = useRemovePlaceForm({ target });
   return (
     <RemovePlaceForm
-      targetName={targetName}
+      targetName={target.name}
       reason={form.reason}
       website={form.website}
       reasonError={form.reasonError}

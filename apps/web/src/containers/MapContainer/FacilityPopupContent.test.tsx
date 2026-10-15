@@ -52,6 +52,9 @@ describe("FacilityPopupContent remove action", () => {
     expect(useLocationStore.getState().correctionMode).toBe("removing");
     expect(useLocationStore.getState().correctionRemoveTarget).toEqual({
       targetOsmId: target,
+      facilityType: "restaurants",
+      lat: -36.8,
+      lon: 174.7,
       name: "Corner Cafe",
     });
   });

@@ -3,7 +3,7 @@
 import { useState, type FormEvent } from "react";
 import { useTranslations } from "next-intl";
 import { useMapCorrection } from "@/hooks/useMapCorrection";
-import type { MapCorrectionReason } from "@/types/api";
+import type { MapCorrectionReason, MapCorrectionRemoveTarget } from "@/types/api";
 import {
   buildRemovePayload,
   rateLimitMessage,
@@ -24,9 +24,9 @@ export interface UseRemovePlaceFormResult {
 
 /** State, validation and submission for the report-as-closed form. */
 export function useRemovePlaceForm({
-  targetOsmId,
+  target,
 }: {
-  targetOsmId: string;
+  target: MapCorrectionRemoveTarget;
 }): UseRemovePlaceFormResult {
   const t = useTranslations("mapCorrection");
   const { submit: sendCorrection } = useMapCorrection();
@@ -53,7 +53,7 @@ export function useRemovePlaceForm({
 
   async function send(chosen: MapCorrectionReason) {
     setSending(true);
-    const outcome = await sendCorrection(buildRemovePayload(targetOsmId, chosen, website));
+    const outcome = await sendCorrection(buildRemovePayload(target, chosen, website));
     setSending(false);
     if (outcome.kind === "invalid") {
       setServerError(t("errors.formGeneric"));

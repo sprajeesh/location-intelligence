@@ -46,6 +46,13 @@ jest.mock("@/hooks/useCategories", () => ({
 }));
 
 const POINT = { lat: -36.848, lon: 174.763 };
+const REMOVE_TARGET = {
+  targetOsmId: "node/12345",
+  facilityType: "restaurants",
+  lat: -36.8,
+  lon: 174.7,
+  name: "Corner Cafe",
+};
 
 beforeEach(() => {
   mockSearch.suggestions = [];
@@ -64,7 +71,7 @@ function openAdd() {
 function openRemove() {
   useLocationStore.setState({
     correctionMode: "removing",
-    correctionRemoveTarget: { targetOsmId: "node/12345", name: "Corner Cafe" },
+    correctionRemoveTarget: REMOVE_TARGET,
   });
   return render(<MapCorrectionContainer />);
 }
@@ -240,6 +247,9 @@ describe("MapCorrectionForm", () => {
       expect(submitMock.mock.calls[0]?.[0]).toEqual({
         correctionType: "remove",
         targetOsmId: "node/12345",
+        facilityType: "restaurants",
+        lat: -36.8,
+        lon: 174.7,
         reason: "closed",
         website: "",
       });

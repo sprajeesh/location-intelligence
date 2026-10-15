@@ -84,9 +84,13 @@ describe("remove payload and reason validation", () => {
   });
 
   it("builds the remove payload", () => {
-    expect(buildRemovePayload("node/1", "not_found", "")).toEqual({
+    const target = { targetOsmId: "node/1", facilityType: "restaurants", lat: -36.8, lon: 174.7 };
+    expect(buildRemovePayload(target, "not_found", "")).toEqual({
       correctionType: "remove",
       targetOsmId: "node/1",
+      facilityType: "restaurants",
+      lat: -36.8,
+      lon: 174.7,
       reason: "not_found",
       website: "",
     });

@@ -1,4 +1,8 @@
-import type { MapCorrectionReason, MapCorrectionRequest } from "@/types/api";
+import type {
+  MapCorrectionReason,
+  MapCorrectionRemoveTarget,
+  MapCorrectionRequest,
+} from "@/types/api";
 import type { MapCorrectionField } from "@/hooks/useMapCorrection";
 
 // Same shape the API enforces (apps/api/app/api/contact.py and the map corrections schema).
@@ -75,12 +79,21 @@ export function validateRemoveReason(reason: MapCorrectionReason | null): Correc
   return reason ? null : "reasonRequired";
 }
 
+/** The API stores the facility type and point with a remove too, so the payload carries them. */
 export function buildRemovePayload(
-  targetOsmId: string,
+  target: Pick<MapCorrectionRemoveTarget, "targetOsmId" | "facilityType" | "lat" | "lon">,
   reason: MapCorrectionReason,
   website: string,
 ): MapCorrectionRequest {
-  return { correctionType: "remove", targetOsmId, reason, website };
+  return {
+    correctionType: "remove",
+    targetOsmId: target.targetOsmId,
+    facilityType: target.facilityType,
+    lat: target.lat,
+    lon: target.lon,
+    reason,
+    website,
+  };
 }
 
 /** Pulls field names out of a FastAPI 422 body. Errors without a known field are form-level. */

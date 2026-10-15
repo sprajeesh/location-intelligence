@@ -15,5 +15,12 @@ export function useRemoveCorrectionAction(feature: Feature): (() => void) | null
   if (!isMapCorrectionsEnabled()) return null;
   const targetOsmId = osmTargetFromFeatureId(feature.id);
   if (!targetOsmId) return null;
-  return () => startRemoveCorrection({ targetOsmId, name: feature.name });
+  return () =>
+    startRemoveCorrection({
+      targetOsmId,
+      facilityType: feature.category,
+      lat: feature.lat,
+      lon: feature.lon,
+      name: feature.name,
+    });
 }

@@ -17,6 +17,9 @@ const submitMock = submitMapCorrection as jest.MockedFunction<typeof submitMapCo
 const payload = {
   correctionType: "remove" as const,
   targetOsmId: "node/12345",
+  facilityType: "restaurants",
+  lat: -36.8,
+  lon: 174.7,
   reason: "closed" as const,
   website: "",
 };

@@ -1,6 +1,12 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { AddressResult, AnalyzeResponse, Feature, RouteTransportMode } from '@/types/api'
+import type {
+  AddressResult,
+  AnalyzeResponse,
+  Feature,
+  MapCorrectionRemoveTarget,
+  RouteTransportMode,
+} from '@/types/api'
 import type { ParcelFeature } from '@/types/parcel'
 import { DEFAULT_RADIUS_KM } from '@/constants/radius'
 
@@ -107,10 +113,10 @@ export interface LocationIntelligenceStore {
   // should not survive a reload, and the reporter's email never reaches this store.
   correctionMode: CorrectionMode
   correctionPoint: { lat: number; lon: number } | null
-  correctionRemoveTarget: { targetOsmId: string; name: string } | null
+  correctionRemoveTarget: MapCorrectionRemoveTarget | null
   startAddCorrection: () => void
   setCorrectionPoint: (point: { lat: number; lon: number }) => void
-  startRemoveCorrection: (target: { targetOsmId: string; name: string }) => void
+  startRemoveCorrection: (target: MapCorrectionRemoveTarget) => void
   closeCorrection: () => void
 }
 
