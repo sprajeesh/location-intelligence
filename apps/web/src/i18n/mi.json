@@ -254,5 +254,60 @@
     "feedbackTitle": "Tukuna mai ō whakaaro",
     "feedbackBody": "Kei te hiahia mātou ki te whakarongo ki a koe. Mēnā he whakaaro tāu, he mea hē kua kitea e koe, he pātai rānei mō te āhua o te mahi a Mōhiotanga Wāhi NZ, tēnā, whakamōhiotia mai mātou.",
     "feedbackLink": "Whakapā mai ki a mātou"
+  },
+  "mapCorrection": {
+    "place": {
+      "hint": "Pāwhiria te mapa ki te wāhi o te wāhi.",
+      "useCentre": "Whakamahia te pūtahi o te mapa",
+      "cancel": "Whakakore",
+      "button": "Pūrongo i tētahi wāhi ngaro"
+    },
+    "add": {
+      "title": "Pūrongo i tētahi wāhi ngaro",
+      "facilityType": "He aha te momo wāhi?",
+      "facilityTypePlaceholder": "Kōwhiria he momo",
+      "name": "Te ingoa o te wāhi (kōwhiri)",
+      "address": "Te wāhitau o te wāhi (kōwhiri)",
+      "email": "Tō īmēra (kōwhiri)",
+      "consent": "Ka whakamahia tēnei anake hei whai i tō pūrongo. Ka muka mai i a mātou ina kati te pūrongo."
+    },
+    "remove": {
+      "button": "Pūrongo i tēnei wāhi kua katia",
+      "title": "Pūrongo i tēnei wāhi kua katia",
+      "target": "Wāhi",
+      "reasonLegend": "He aha koe i pūrongo ai?",
+      "reasons": {
+        "closed": "Kua katia",
+        "notFound": "Kāore i konei, kāore rānei e kitea e au",
+        "other": "Tētahi atu"
+      }
+    },
+    "actions": {
+      "submit": "Tukuna te pūrongo",
+      "submitting": "E tuku ana...",
+      "cancel": "Whakakore",
+      "close": "Kati"
+    },
+    "errors": {
+      "facilityTypeRequired": "Tēnā, kōwhiria he momo wāhi.",
+      "nameTooLong": "Whakaiti te ingoa ki te 200 tohu, iti iho rānei.",
+      "addressTooLong": "Whakaiti te wāhitau ki te 300 tohu, iti iho rānei.",
+      "emailInvalid": "Tēnā, tuhia he wāhitau īmēra tika.",
+      "reasonRequired": "Tēnā, kōwhiria he take.",
+      "invalidField": "Kāore tēnei uara i tika. Tirohia, ka ngana anō.",
+      "formGeneric": "Kāore i tukuna tō pūrongo. Tirohia te puka, ka ngana anō.",
+      "rateLimited": "He maha ōu pūrongo i tēnei wā. Ngana anō i roto i {minutes, plural, one {# meneti} other {# meneti}}.",
+      "rateLimitedUnknown": "He maha ōu pūrongo i tēnei wā. Ngana anō ā muri ake nei."
+    },
+    "toasts": {
+      "pending": "Kei te pai. Ka arotakehia tāu whakaaro.",
+      "alreadyMapped": "Kei te mapa kē tēnei wāhi.",
+      "alreadyRemoved": "Kua tohua kē tēnei wāhi he kua katia.",
+      "error": "Kāore i tukuna tō pūrongo.",
+      "retry": "Ngana anō"
+    },
+    "honeypot": {
+      "label": "Pūkaha tukutuku"
+    }
   }
 }

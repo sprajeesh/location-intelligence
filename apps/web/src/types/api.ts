@@ -177,3 +177,49 @@ export interface RouteResult {
   routes: RouteOption[]
   fallback?: boolean
 }
+
+/** Why a facility is being reported as closed or wrong (POST /map-corrections, remove). */
+export type MapCorrectionReason = 'closed' | 'not_found' | 'other'
+
+/** POST /api/map-corrections body. Mirrors the API's MapCorrectionRequest (camelCase). */
+export type MapCorrectionRequest =
+  | {
+      correctionType: 'add'
+      facilityType: string
+      lat: number
+      lon: number
+      name?: string
+      address?: string
+      reporterEmail?: string
+      website: string
+    }
+  | {
+      correctionType: 'remove'
+      targetOsmId: string
+      facilityType: string
+      lat: number
+      lon: number
+      reason: MapCorrectionReason
+      website: string
+    }
+
+/** The facility a remove correction is about: its OSM element plus the type and point the API stores with it. */
+export interface MapCorrectionRemoveTarget {
+  targetOsmId: string
+  facilityType: string
+  lat: number
+  lon: number
+  /** Display name for the form. Not sent. */
+  name: string
+}
+
+/** 202 body: stored as pending, or merged into a pending report. */
+export interface MapCorrectionPendingBody {
+  id: string
+  status: 'pending'
+}
+
+/** 200 body: nothing stored because the map already agrees with the report. */
+export interface MapCorrectionNoopBody {
+  status: 'already_mapped' | 'already_removed'
+}

@@ -3,6 +3,15 @@ import userEvent from '@testing-library/user-event';
 import { MapToolbarContainer } from './MapToolbarContainer';
 import { useLocationStore } from '@/store';
 import * as useIsDesktopModule from '@/hooks/useIsDesktop';
+import en from '@/i18n/en.json';
+
+jest.mock('next-intl', () => ({
+  useTranslations: (ns?: string) => (key: string) =>
+    key.split('.').reduce<unknown>(
+      (node, part) => (node as Record<string, unknown>)[part],
+      ns ? (en as Record<string, unknown>)[ns] : en,
+    ),
+}));
 
 jest.mock('react-leaflet', () => ({
   useMap: jest.fn(),
@@ -175,6 +184,31 @@ describe('MapToolbarContainer', () => {
       render(<MapToolbarContainer {...defaultProps} />);
       await user.click(screen.getByRole('button', { name: 'Zoom to features' }));
       expect(mockMap.fitBounds).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Report a missing place', () => {
+    afterEach(() => {
+      delete process.env.NEXT_PUBLIC_MAP_CORRECTIONS_ENABLED;
+    });
+
+    it('is shown when the map corrections flag is on', () => {
+      process.env.NEXT_PUBLIC_MAP_CORRECTIONS_ENABLED = 'true';
+      render(<MapToolbarContainer {...defaultProps} />);
+      expect(screen.getByRole('button', { name: 'Report a missing place' })).toBeInTheDocument();
+    });
+
+    it('is hidden when the map corrections flag is off', () => {
+      process.env.NEXT_PUBLIC_MAP_CORRECTIONS_ENABLED = 'false';
+      render(<MapToolbarContainer {...defaultProps} />);
+      expect(screen.queryByRole('button', { name: 'Report a missing place' })).not.toBeInTheDocument();
+    });
+
+    it('starts placement mode when clicked', async () => {
+      process.env.NEXT_PUBLIC_MAP_CORRECTIONS_ENABLED = 'true';
+      render(<MapToolbarContainer {...defaultProps} />);
+      await userEvent.click(screen.getByRole('button', { name: 'Report a missing place' }));
+      expect(useLocationStore.getState().correctionMode).toBe('placing');
     });
   });
 

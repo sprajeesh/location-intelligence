@@ -2,8 +2,17 @@
 
 import React, { useCallback, useState } from "react";
 import { useMap } from "react-leaflet";
-import { Plus, Minus, Crosshair, Navigation, MapPinOff } from "lucide-react";
+import { useTranslations } from "next-intl";
+import {
+  Plus,
+  Minus,
+  Crosshair,
+  Navigation,
+  MapPinOff,
+  MapPinPlus,
+} from "lucide-react";
 import { useLocationStore } from "@/store/index";
+import { isMapCorrectionsEnabled } from "@/utils/mapCorrectionsFlag";
 import { useIsDesktop } from "@/hooks/useIsDesktop";
 import { ToolbarButton } from "@/components/ToolbarButton";
 import { LayerSelector, type MapLayerId } from "@/components/LayerSelector";
@@ -18,9 +27,10 @@ export const TILE_LAYER_URLS: Record<MapLayerId, string> = {
 };
 
 export const TILE_LAYER_ATTRIBUTIONS: Record<MapLayerId, string> = {
-  default: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+  default:
+    '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
   satellite:
-    'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
+    "Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community",
   topo: '&copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)',
 };
 
@@ -47,6 +57,7 @@ export function MapToolbarContainer({
   onLayerChange,
 }: MapToolbarContainerProps) {
   const map = useMap();
+  const t = useTranslations("mapCorrection");
   const [isLocating, setIsLocating] = useState(false);
   const isDesktop = useIsDesktop();
 
@@ -55,8 +66,11 @@ export function MapToolbarContainer({
   const parcelFeature = useLocationStore((s) => s.parcelFeature);
   const activeRoute = useLocationStore((s) => s.activeRoute);
   const visibleFacilityIds = useLocationStore((s) => s.visibleFacilityIds);
-  const clearVisibleFacilityIds = useLocationStore((s) => s.clearVisibleFacilityIds);
+  const clearVisibleFacilityIds = useLocationStore(
+    (s) => s.clearVisibleFacilityIds,
+  );
   const exitNavigation = useLocationStore((s) => s.exitNavigation);
+  const startAddCorrection = useLocationStore((s) => s.startAddCorrection);
 
   const handleZoomIn = useCallback(
     (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -138,7 +152,11 @@ export function MapToolbarContainer({
       {isDesktop && (
         <>
           <ToolbarButton icon={Plus} label="Zoom in" onClick={handleZoomIn} />
-          <ToolbarButton icon={Minus} label="Zoom out" onClick={handleZoomOut} />
+          <ToolbarButton
+            icon={Minus}
+            label="Zoom out"
+            onClick={handleZoomOut}
+          />
 
           <div className="w-5 h-px bg-slate-200 my-0.5" role="separator" />
         </>
@@ -162,6 +180,19 @@ export function MapToolbarContainer({
         onClick={handleCurrentLocation}
         disabled={isLocating}
       />
+      {isMapCorrectionsEnabled() && (
+        <>
+          <div className="w-5 h-px bg-slate-200 my-0.5" role="separator" />
+          <ToolbarButton
+            icon={MapPinPlus}
+            label={t("place.button")}
+            onClick={(e) => {
+              e.stopPropagation();
+              startAddCorrection();
+            }}
+          />
+        </>
+      )}
 
       <div className="w-5 h-px bg-slate-200 my-0.5" role="separator" />
 

@@ -386,5 +386,60 @@
     "faqLink": "Read the FAQ",
     "dataSourcesLink": "See the data sources",
     "subtitle": "A free tool that scores New Zealand addresses by the facilities nearby."
+  },
+  "mapCorrection": {
+    "place": {
+      "hint": "Click on the map where the place is.",
+      "useCentre": "Use map centre",
+      "cancel": "Cancel",
+      "button": "Report a missing place"
+    },
+    "add": {
+      "title": "Report a missing place",
+      "facilityType": "What kind of place is it?",
+      "facilityTypePlaceholder": "Choose a category",
+      "name": "Name of the place (optional)",
+      "address": "Address of the place (optional)",
+      "email": "Your email (optional)",
+      "consent": "We'll only use this to follow up on your report. We'll delete it once the report is closed."
+    },
+    "remove": {
+      "button": "Report this place as closed",
+      "title": "Report this place as closed",
+      "target": "Place",
+      "reasonLegend": "Why are you reporting it?",
+      "reasons": {
+        "closed": "It has closed",
+        "notFound": "It isn't here, or I can't find it",
+        "other": "Something else"
+      }
+    },
+    "actions": {
+      "submit": "Submit report",
+      "submitting": "Sending...",
+      "cancel": "Cancel",
+      "close": "Close"
+    },
+    "errors": {
+      "facilityTypeRequired": "Please choose a type of place.",
+      "nameTooLong": "Keep the name to 200 characters or fewer.",
+      "addressTooLong": "Keep the address to 300 characters or fewer.",
+      "emailInvalid": "Please enter a valid email address.",
+      "reasonRequired": "Please choose a reason.",
+      "invalidField": "This value isn't valid. Check it and try again.",
+      "formGeneric": "We couldn't send your report. Check the form and try again.",
+      "rateLimited": "You've sent several reports recently. Try again in {minutes, plural, one {# minute} other {# minutes}}.",
+      "rateLimitedUnknown": "You've sent several reports recently. Try again later."
+    },
+    "toasts": {
+      "pending": "Thanks. We'll review your suggestion.",
+      "alreadyMapped": "This place is already on the map.",
+      "alreadyRemoved": "This place is already marked as closed.",
+      "error": "We couldn't send your report.",
+      "retry": "Retry"
+    },
+    "honeypot": {
+      "label": "Website"
+    }
   }
 }

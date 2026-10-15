@@ -27,6 +27,10 @@ import { MapNotice } from "@/components/MapNotice";
 import { MapLoadingOverlay } from "@/components/MapLoadingOverlay";
 import { ParcelInfoCard } from "@/components/ParcelInfoCard";
 import { Spinner } from "@/components/ui/Spinner";
+import { CorrectionPlacementHint } from "@/components/CorrectionPlacementHint";
+import { MapCorrectionContainer } from "@/containers/MapCorrectionContainer";
+import { useCorrectionPlacement } from "@/hooks/useCorrectionPlacement";
+import { isMapCorrectionsEnabled } from "@/utils/mapCorrectionsFlag";
 import { parcelCardPosition, type CardPosition } from "@/utils/mapCardPosition";
 import { computeParcelStatus } from "@/utils/parcelStatus";
 import { useMapViewportSync } from "./useMapViewportSync";
@@ -122,6 +126,8 @@ function MapContent() {
 
   useInvalidateSizeOnResize(map);
 
+  const correctionPlacement = useCorrectionPlacement();
+
   useMapViewportSync(map, {
     data: parcelQuery.data,
     isFetching: parcelQuery.isFetching,
@@ -189,6 +195,13 @@ function MapContent() {
         <MapNotice tone="neutral" icon={<Spinner size="xs" decorative />}>
           {t("parcels.locating", { defaultValue: "Locating parcel…" })}
         </MapNotice>
+      )}
+
+      {correctionPlacement.placing && (
+        <CorrectionPlacementHint
+          onUseMapCentre={correctionPlacement.useMapCentre}
+          onCancel={correctionPlacement.cancel}
+        />
       )}
 
       {parcelFeature && showParcelInfo && (
@@ -268,6 +281,8 @@ export function MapContainer() {
       </LeafletMapContainer>
 
       {isAnalyzing && <MapLoadingOverlay />}
+
+      {isMapCorrectionsEnabled() && <MapCorrectionContainer />}
     </div>
   );
 }

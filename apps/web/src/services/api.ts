@@ -10,6 +10,7 @@ import {
   Category,
   FacilityStatus,
   RouteResult,
+  MapCorrectionRequest,
   RouteTransportMode,
 } from "@/types/api";
 import type { ParcelFeature } from "@/types/parcel";
@@ -294,6 +295,44 @@ export async function getCategories(): Promise<Category[]> {
  */
 export async function getCategoryWeights(): Promise<Record<string, number>> {
   return fetchJson<Record<string, number>>("/category-weights", { method: "GET" });
+}
+
+/** What POST /api/map-corrections returned. The caller maps the status to a UI outcome. */
+export interface MapCorrectionResult {
+  status: number;
+  body: unknown;
+  /** Seconds to wait, from the Retry-After header on a 429. */
+  retryAfterSeconds?: number;
+}
+
+/**
+ * Submit a map correction (add a missing place, or remove a closed one).
+ * Calls POST /api/map-corrections. Non-2xx responses are returned, not thrown, so the
+ * caller can show the API's field errors and rate-limit wait. Network errors are rethrown.
+ *
+ * The body can hold a reporter email. It goes only in the request, never in an error
+ * or log: trackedFetch reports the endpoint and status alone.
+ */
+export async function submitMapCorrection(
+  payload: MapCorrectionRequest,
+  correlationId: string,
+): Promise<MapCorrectionResult> {
+  const response = await trackedFetch(
+    `${getBaseUrl()}/api/map-corrections`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    },
+    correlationId,
+  );
+  const body: unknown = await response.json().catch(() => null);
+  const retryAfter = Number(response.headers.get("Retry-After"));
+  return {
+    status: response.status,
+    body,
+    retryAfterSeconds: Number.isFinite(retryAfter) && retryAfter > 0 ? retryAfter : undefined,
+  };
 }
 
 /**
