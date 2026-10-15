@@ -70,10 +70,11 @@ Solid, light-first UI with an opt-in dark toggle (`ThemeToggle`, persisted via
 
 Behind `NEXT_PUBLIC_MAP_CORRECTIONS_ENABLED=true`. Off means no toolbar button and no popup action. Backend contract: `apps/api/docs/API_CONTRACT.md` (`POST /map-corrections`).
 
-- **Add:** the "Report a missing place" toolbar button enters placement mode. The next map click, or "Use map centre", sets the point and opens `MapCorrectionForm`. Escape cancels.
-- **Remove:** a facility popup action ("Report this place as closed") opens the form for its OSM element. The action is hidden when the feature ID doesn't parse (`osmFeatureId.ts`).
+- **Add:** the "Report a missing place" toolbar button enters placement mode. The next map click, or "Use map centre", sets the point and opens `MapCorrectionForm`. Escape cancels placement.
+- **Address suggestions** in the add form fill the address text only. Picking one never moves the point, and its coordinates are discarded. Escape closes the dropdown without closing the form.
+- **Remove:** a facility popup action ("Report this place as closed") opens the form for its OSM element. The action is hidden when the feature ID doesn't parse (`osmFeatureId.ts`). The submitted payload carries the facility's type and point as well as the OSM ID, because the API requires them for remove too (see `API_CONTRACT.md`).
 - Correction state lives in the store and is not persisted. The reporter's email is held in the form only: it is never stored, logged, or put in a toast.
-- Outcomes: `202` and `200` toast and close the form. `422` marks fields inline. `429` shows the wait. `5xx` or a network error toasts with Retry.
+- Outcomes: `202` and `200` toast and close the form. `422` marks fields inline on the add form; the remove form has no fields, so it shows a generic message. `429` shows the wait. `5xx` or a network error toasts with Retry.
 - Each submission mints its own correlation ID (`useMapCorrection`).
 
 ## Address search flow

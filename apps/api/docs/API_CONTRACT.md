@@ -92,7 +92,7 @@ Request (`add`):
 { "correctionType": "add", "facilityType": "restaurants", "lat": -36.848, "lon": 174.763, "name": "Optional", "address": "Optional", "reporterEmail": "optional@example.com", "website": "" }
 ```
 
-Request (`remove`): `correctionType: "remove"`, `targetOsmId` (`node/12345`, `way/…` or `relation/…`) and `reason` (`closed`, `not_found` or `other`) are required; `name` and `address` are not allowed.
+Request (`remove`): `correctionType: "remove"`, `targetOsmId` (`node/12345`, `way/…` or `relation/…`), `reason` (`closed`, `not_found` or `other`), and `facilityType`, `lat` and `lon` (the facility's type and point, stored with the row) are all required; `name` and `address` are not allowed.
 
 | Type     | Condition                                                  | Response                                  |
 | -------- | ---------------------------------------------------------- | ----------------------------------------- |
