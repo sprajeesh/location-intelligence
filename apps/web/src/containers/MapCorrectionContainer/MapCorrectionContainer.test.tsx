@@ -60,12 +60,12 @@ describe("MapCorrectionForm", () => {
   });
 
   describe("add", () => {
-    it("lists only implemented facility types and shows the coordinates read-only", () => {
+    it("lists only implemented facility types and does not show the coordinates", () => {
       openAdd();
       const select = screen.getByLabelText(/Type of place/) as HTMLSelectElement;
       const options = within(select).getAllByRole("option").map((o) => o.textContent);
       expect(options).toEqual(["Choose a type", "Restaurants", "Schools"]);
-      expect(screen.getByText(/-36\.84800, 174\.76300/)).toBeInTheDocument();
+      expect(screen.queryByText(/-36\.84800/)).not.toBeInTheDocument();
     });
 
     it("blocks submit and shows an inline error when the name is over 200 characters", async () => {

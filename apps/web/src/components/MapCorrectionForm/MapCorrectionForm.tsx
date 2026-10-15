@@ -15,7 +15,6 @@ const FIELD_CLASSES = "mt-1 w-full px-3";
 const SELECT_CLASSES = `${INPUT_BASE_CLASSES} mt-1 w-full rounded-lg py-2.5 px-3 text-sm`;
 
 export interface AddPlaceFormProps {
-  point: { lat: number; lon: number };
   facilityTypes: { id: string; label: string }[];
   values: AddPlaceValues;
   errors: Partial<Record<keyof AddPlaceValues, string>>;
@@ -28,7 +27,6 @@ export interface AddPlaceFormProps {
 
 /** Presentational form for reporting a missing place. Holds no logic: state comes in as props. */
 export function AddPlaceForm({
-  point,
   facilityTypes,
   values,
   errors,
@@ -59,11 +57,6 @@ export function AddPlaceForm({
           closeLabel={t("actions.close")}
         />
         <ModalContent className="space-y-4">
-          <p className="text-xs text-slate-600">
-            <span className="font-medium">{t("add.location")}:</span>{" "}
-            {point.lat.toFixed(5)}, {point.lon.toFixed(5)}
-          </p>
-
           <div>
             <label htmlFor="mc-facility-type" className={LABEL_CLASSES}>
               {t("add.facilityType")} <span aria-hidden="true">*</span>

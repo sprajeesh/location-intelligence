@@ -50,7 +50,6 @@ function AddPlaceContainer({ point, facilityTypes, onClose }: AddPlaceContainerP
   const form = useAddPlaceForm({ point });
   return (
     <AddPlaceForm
-      point={point}
       facilityTypes={facilityTypes}
       values={form.values}
       errors={form.errors}

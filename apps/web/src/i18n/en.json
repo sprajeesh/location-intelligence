@@ -396,7 +396,6 @@
     },
     "add": {
       "title": "Report a missing place",
-      "location": "Location",
       "facilityType": "Type of place",
       "facilityTypePlaceholder": "Choose a type",
       "name": "Name (optional)",
