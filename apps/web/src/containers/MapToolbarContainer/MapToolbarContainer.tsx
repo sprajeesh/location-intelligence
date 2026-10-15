@@ -2,7 +2,14 @@
 
 import React, { useCallback, useState } from "react";
 import { useMap } from "react-leaflet";
-import { Plus, Minus, Crosshair, Navigation, MapPinOff, MapPinPlus } from "lucide-react";
+import {
+  Plus,
+  Minus,
+  Crosshair,
+  Navigation,
+  MapPinOff,
+  MapPinPlus,
+} from "lucide-react";
 import { useLocationStore } from "@/store/index";
 import { isMapCorrectionsEnabled } from "@/utils/mapCorrectionsFlag";
 import { useIsDesktop } from "@/hooks/useIsDesktop";
@@ -19,9 +26,10 @@ export const TILE_LAYER_URLS: Record<MapLayerId, string> = {
 };
 
 export const TILE_LAYER_ATTRIBUTIONS: Record<MapLayerId, string> = {
-  default: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+  default:
+    '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
   satellite:
-    'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
+    "Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community",
   topo: '&copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)',
 };
 
@@ -56,7 +64,9 @@ export function MapToolbarContainer({
   const parcelFeature = useLocationStore((s) => s.parcelFeature);
   const activeRoute = useLocationStore((s) => s.activeRoute);
   const visibleFacilityIds = useLocationStore((s) => s.visibleFacilityIds);
-  const clearVisibleFacilityIds = useLocationStore((s) => s.clearVisibleFacilityIds);
+  const clearVisibleFacilityIds = useLocationStore(
+    (s) => s.clearVisibleFacilityIds,
+  );
   const exitNavigation = useLocationStore((s) => s.exitNavigation);
   const startAddCorrection = useLocationStore((s) => s.startAddCorrection);
 
@@ -140,7 +150,11 @@ export function MapToolbarContainer({
       {isDesktop && (
         <>
           <ToolbarButton icon={Plus} label="Zoom in" onClick={handleZoomIn} />
-          <ToolbarButton icon={Minus} label="Zoom out" onClick={handleZoomOut} />
+          <ToolbarButton
+            icon={Minus}
+            label="Zoom out"
+            onClick={handleZoomOut}
+          />
 
           <div className="w-5 h-px bg-slate-200 my-0.5" role="separator" />
         </>
@@ -165,14 +179,17 @@ export function MapToolbarContainer({
         disabled={isLocating}
       />
       {isMapCorrectionsEnabled() && (
-        <ToolbarButton
-          icon={MapPinPlus}
-          label="Report a missing place"
-          onClick={(e) => {
-            e.stopPropagation();
-            startAddCorrection();
-          }}
-        />
+        <>
+          <div className="w-5 h-px bg-slate-200 my-0.5" role="separator" />
+          <ToolbarButton
+            icon={MapPinPlus}
+            label="Report a missing place"
+            onClick={(e) => {
+              e.stopPropagation();
+              startAddCorrection();
+            }}
+          />
+        </>
       )}
 
       <div className="w-5 h-px bg-slate-200 my-0.5" role="separator" />
