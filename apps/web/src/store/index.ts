@@ -20,6 +20,12 @@ export interface Toast {
 
 export type Theme = 'light' | 'dark'
 
+/**
+ * off: nothing in progress. placing: the next map click sets the point for an add.
+ * adding: the add form is open for `correctionPoint`. removing: the remove form is open.
+ */
+export type CorrectionMode = 'off' | 'placing' | 'adding' | 'removing'
+
 // Keep in sync with the inline anti-flash script in src/app/layout.tsx, which
 // reads this same localStorage key before React hydrates.
 export const THEME_STORAGE_KEY = 'li-theme'
@@ -96,6 +102,16 @@ export interface LocationIntelligenceStore {
   setPanelCollapsed: (isCollapsed: boolean) => void
   togglePanelCollapsed: () => void
   setIsMapViewOnMobile: (isMapView: boolean) => void
+
+  // Map corrections (see MapCorrectionForm). Not persisted: a half-finished report
+  // should not survive a reload, and the reporter's email never reaches this store.
+  correctionMode: CorrectionMode
+  correctionPoint: { lat: number; lon: number } | null
+  correctionRemoveTarget: { targetOsmId: string; name: string } | null
+  startAddCorrection: () => void
+  setCorrectionPoint: (point: { lat: number; lon: number }) => void
+  startRemoveCorrection: (target: { targetOsmId: string; name: string }) => void
+  closeCorrection: () => void
 }
 
 export const useLocationStore = create<LocationIntelligenceStore>()(
@@ -125,6 +141,10 @@ export const useLocationStore = create<LocationIntelligenceStore>()(
   isPanelCollapsed: false,
 
   isMapViewOnMobile: false,
+
+  correctionMode: 'off' as CorrectionMode,
+  correctionPoint: null,
+  correctionRemoveTarget: null,
 
   // Setters
   setSelectedAddress: (address) =>
@@ -257,6 +277,18 @@ export const useLocationStore = create<LocationIntelligenceStore>()(
 
   setIsMapViewOnMobile: (isMapView) =>
     set({ isMapViewOnMobile: isMapView }),
+
+  startAddCorrection: () =>
+    set({ correctionMode: 'placing', correctionPoint: null, correctionRemoveTarget: null }),
+
+  setCorrectionPoint: (point) =>
+    set({ correctionMode: 'adding', correctionPoint: point }),
+
+  startRemoveCorrection: (target) =>
+    set({ correctionMode: 'removing', correctionRemoveTarget: target, correctionPoint: null }),
+
+  closeCorrection: () =>
+    set({ correctionMode: 'off', correctionPoint: null, correctionRemoveTarget: null }),
     }),
     {
       name: THEME_STORAGE_KEY,
