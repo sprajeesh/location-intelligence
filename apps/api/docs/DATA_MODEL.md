@@ -1,6 +1,6 @@
 # Database Tables
 
-The API uses a single Postgres/PostGIS database (`gis`). Its three tables are
+The API uses a single Postgres/PostGIS database (`gis`). Its four tables are
 managed by two completely different mechanisms — knowing which is which
 matters when you change either one:
 
@@ -8,7 +8,8 @@ matters when you change either one:
 | ------------------ | -------------------------------------------------- | --------- |
 | `addresses`         | Baked into the `postgis` Docker image at **build time** (`docker/sql/01_schema.sql`, `02_load.sql`, `03_post_load.sql`) | ~2.6M |
 | `facility_types`     | **Alembic migration**, run manually against a running container (`apps/api/alembic/`) | 12 |
-| `category_weights`   | **Alembic migration**, same as above                | 5 |
+| `category_weights`   | **Alembic migration**, same as above                | 6 |
+| `map_corrections`    | **Alembic migration**, same as above (user-submitted; grows at runtime) | 0 at creation |
 
 `addresses` rebuilds fresh every time you rebuild the `postgis` image (see the
 root `README.md`'s "PostGIS Address Data" section). `facility_types` and
@@ -145,6 +146,50 @@ constraint (a cross-row invariant doesn't translate to a single-row `CHECK`).
 
 **Current seed values:** education `0.40`, transport `0.30`, healthcare
 `0.20`, shopping `0.10`, recreation `0.0000`, food_and_drink `0.0000`.
+
+---
+
+## `map_corrections`
+
+User-submitted Map corrections: `add` (a facility missing from OpenStreetMap)
+and `remove` (an existing OSM facility that is closed or wrong). Created by
+migration `0008`. This table is written by the API at runtime, unlike the
+seeded config tables. Accessed through the `MapCorrection` ORM model
+(`app/models/map_correction.py`) and `MapCorrectionRepository`
+(`app/repositories/db/map_correction_repository.py`). The endpoint and review
+flow are not built yet.
+
+| Column               | Type                     | Nullable | Notes |
+| -------------------- | ------------------------ | -------- | ----- |
+| `id`                 | `UUID PRIMARY KEY`       | no       | `gen_random_uuid()` |
+| `correction_type`    | `TEXT`                   | no       | `CHECK IN ('add','remove')` |
+| `facility_type_slug` | `TEXT`                   | no       | FK → `facility_types.slug` |
+| `target_osm_id`      | `TEXT`                   | yes      | e.g. `node/12345`. Required for `remove`, must be NULL for `add` |
+| `name`               | `TEXT`                   | yes      | `char_length <= 200`. Must be NULL for `remove` |
+| `address`            | `TEXT`                   | yes      | `char_length <= 300`. Must be NULL for `remove` |
+| `reason`             | `TEXT`                   | yes      | `CHECK IN ('closed','not_found','other')`. Required for `remove`, must be NULL for `add` |
+| `geom`               | `GEOGRAPHY(Point, 4326)` | no       | GiST index. Read location for `add`, marker location for `remove`. Longitude first |
+| `reporter_email`     | `TEXT`                   | yes      | `char_length <= 254` |
+| `status`             | `TEXT`                   | no       | `DEFAULT 'pending'`, `CHECK IN ('pending','rejected','applied')` |
+| `report_count`       | `INT`                    | no       | `DEFAULT 1`, `CHECK >= 1` |
+| `dedupe_checked`     | `BOOLEAN`                | no       | `DEFAULT true`. False when Overpass was unavailable at submission |
+| `review_note`        | `TEXT`                   | yes      | |
+| `osm_element_id`     | `TEXT`                   | yes      | Set when applied, e.g. `node/123456` |
+| `client_ip_hash`     | `TEXT`                   | no       | HMAC, used for abuse checks only |
+| `created_at`         | `TIMESTAMPTZ`            | no       | `DEFAULT now()` |
+| `reviewed_at`        | `TIMESTAMPTZ`            | yes      | |
+
+**Constraints:**
+- `ck_map_corrections_add_fields` — an `add` row has `target_osm_id` and `reason` NULL
+- `ck_map_corrections_remove_fields` — a `remove` row has `target_osm_id` and `reason` set, and `name` and `address` NULL
+- Plus the `CHECK` value constraints in the table above (`ck_map_corrections_type`, `_status`, `_reason`, the length checks, `_report_count`)
+
+**Indexes:** GiST on `geom` (`ix_map_corrections_geom`); B-tree on `status`
+(`ix_map_corrections_status`); B-tree on `(correction_type, target_osm_id)`
+(`ix_map_corrections_type_target`).
+
+**Coordinates:** read `lon` and `lat` from the ORM model (`ST_X`/`ST_Y` of
+`geom`). The `geom` column itself is deferred and never decoded.
 
 ---
 
