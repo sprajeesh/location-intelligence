@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.29.0](https://github.com/sprajeesh/location-intelligence/compare/web@v0.28.0...web@v0.29.0) (2026-10-15)
+
+
+### Features
+
+* **web:** enable map correction submit only when required fields are set ([#410](https://github.com/sprajeesh/location-intelligence/issues/410)) ([0ab0e9e](https://github.com/sprajeesh/location-intelligence/commit/0ab0e9e1caadcf1984b7b495ff08cd1a0fb42a4a))
+* **web:** map corrections UI behind a feature flag ([#389](https://github.com/sprajeesh/location-intelligence/issues/389)) ([#404](https://github.com/sprajeesh/location-intelligence/issues/404)) ([b52cd9d](https://github.com/sprajeesh/location-intelligence/commit/b52cd9d5b881355a11590b52b4a6445abf6a1371))
+
 ## [0.28.0](https://github.com/sprajeesh/location-intelligence/compare/web@v0.27.0...web@v0.28.0) (2026-10-14)
 
 
