@@ -68,7 +68,7 @@ Solid, light-first UI with an opt-in dark toggle (`ThemeToggle`, persisted via
 
 ## Map corrections
 
-Behind `NEXT_PUBLIC_MAP_CORRECTIONS_ENABLED=true`. Off means no toolbar button and no popup action. Backend contract: `apps/api/docs/API_CONTRACT.md` (`POST /map-corrections`).
+Backend contract: `apps/api/docs/API_CONTRACT.md` (`POST /map-corrections`).
 
 - **Add:** the "Report a missing place" toolbar button enters placement mode. The next map click, or "Use map centre", sets the point and opens `MapCorrectionForm`. Escape cancels placement.
 - **Address suggestions** in the add form fill the address text only. Picking one never moves the point, and its coordinates are discarded. Escape closes the dropdown without closing the form.

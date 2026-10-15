@@ -84,14 +84,14 @@ describe('MapToolbarContainer', () => {
       jest.spyOn(useIsDesktopModule, 'useIsDesktop').mockReturnValue(true);
       const { container } = render(<MapToolbarContainer {...defaultProps} />);
       const separators = container.querySelectorAll('[role="separator"]');
-      expect(separators).toHaveLength(2);
+      expect(separators).toHaveLength(3);
     });
 
     it('renders fewer separators on mobile due to hidden zoom buttons', () => {
       jest.spyOn(useIsDesktopModule, 'useIsDesktop').mockReturnValue(false);
       const { container } = render(<MapToolbarContainer {...defaultProps} />);
       const separators = container.querySelectorAll('[role="separator"]');
-      expect(separators).toHaveLength(1);
+      expect(separators).toHaveLength(2);
     });
   });
 
@@ -188,24 +188,12 @@ describe('MapToolbarContainer', () => {
   });
 
   describe('Report a missing place', () => {
-    afterEach(() => {
-      delete process.env.NEXT_PUBLIC_MAP_CORRECTIONS_ENABLED;
-    });
-
-    it('is shown when the map corrections flag is on', () => {
-      process.env.NEXT_PUBLIC_MAP_CORRECTIONS_ENABLED = 'true';
+    it('is shown', () => {
       render(<MapToolbarContainer {...defaultProps} />);
       expect(screen.getByRole('button', { name: 'Report a missing place' })).toBeInTheDocument();
     });
 
-    it('is hidden when the map corrections flag is off', () => {
-      process.env.NEXT_PUBLIC_MAP_CORRECTIONS_ENABLED = 'false';
-      render(<MapToolbarContainer {...defaultProps} />);
-      expect(screen.queryByRole('button', { name: 'Report a missing place' })).not.toBeInTheDocument();
-    });
-
     it('starts placement mode when clicked', async () => {
-      process.env.NEXT_PUBLIC_MAP_CORRECTIONS_ENABLED = 'true';
       render(<MapToolbarContainer {...defaultProps} />);
       await userEvent.click(screen.getByRole('button', { name: 'Report a missing place' }));
       expect(useLocationStore.getState().correctionMode).toBe('placing');

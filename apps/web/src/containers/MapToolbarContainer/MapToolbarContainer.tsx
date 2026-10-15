@@ -12,7 +12,6 @@ import {
   MapPinPlus,
 } from "lucide-react";
 import { useLocationStore } from "@/store/index";
-import { isMapCorrectionsEnabled } from "@/utils/mapCorrectionsFlag";
 import { useIsDesktop } from "@/hooks/useIsDesktop";
 import { ToolbarButton } from "@/components/ToolbarButton";
 import { LayerSelector, type MapLayerId } from "@/components/LayerSelector";
@@ -180,19 +179,15 @@ export function MapToolbarContainer({
         onClick={handleCurrentLocation}
         disabled={isLocating}
       />
-      {isMapCorrectionsEnabled() && (
-        <>
-          <div className="w-5 h-px bg-slate-200 my-0.5" role="separator" />
-          <ToolbarButton
-            icon={MapPinPlus}
-            label={t("place.button")}
-            onClick={(e) => {
-              e.stopPropagation();
-              startAddCorrection();
-            }}
-          />
-        </>
-      )}
+      <div className="w-5 h-px bg-slate-200 my-0.5" role="separator" />
+      <ToolbarButton
+        icon={MapPinPlus}
+        label={t("place.button")}
+        onClick={(e) => {
+          e.stopPropagation();
+          startAddCorrection();
+        }}
+      />
 
       <div className="w-5 h-px bg-slate-200 my-0.5" role="separator" />
 

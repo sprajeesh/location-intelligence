@@ -23,19 +23,11 @@ function feature(id: string): Feature {
 }
 
 afterEach(() => {
-  delete process.env.NEXT_PUBLIC_MAP_CORRECTIONS_ENABLED;
   useLocationStore.setState({ correctionMode: "off", correctionRemoveTarget: null });
 });
 
 describe("FacilityPopupContent remove action", () => {
-  it("is hidden when the feature flag is off", () => {
-    process.env.NEXT_PUBLIC_MAP_CORRECTIONS_ENABLED = "false";
-    render(<FacilityPopupContent feature={feature("osm_node_12345")} />);
-    expect(screen.queryByRole("button", { name: REMOVE_LABEL })).not.toBeInTheDocument();
-  });
-
   it("is hidden when the feature ID does not parse to an OSM element", () => {
-    process.env.NEXT_PUBLIC_MAP_CORRECTIONS_ENABLED = "true";
     render(<FacilityPopupContent feature={feature("manual_12345")} />);
     expect(screen.queryByRole("button", { name: REMOVE_LABEL })).not.toBeInTheDocument();
   });
@@ -45,7 +37,6 @@ describe("FacilityPopupContent remove action", () => {
     ["osm_way_987", "way/987"],
     ["osm_relation_42", "relation/42"],
   ])("opens the remove form with the target for %s", async (id, target) => {
-    process.env.NEXT_PUBLIC_MAP_CORRECTIONS_ENABLED = "true";
     render(<FacilityPopupContent feature={feature(id)} />);
     await userEvent.click(screen.getByRole("button", { name: REMOVE_LABEL }));
 

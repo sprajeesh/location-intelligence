@@ -30,7 +30,6 @@ import { Spinner } from "@/components/ui/Spinner";
 import { CorrectionPlacementHint } from "@/components/CorrectionPlacementHint";
 import { MapCorrectionContainer } from "@/containers/MapCorrectionContainer";
 import { useCorrectionPlacement } from "@/hooks/useCorrectionPlacement";
-import { isMapCorrectionsEnabled } from "@/utils/mapCorrectionsFlag";
 import { parcelCardPosition, type CardPosition } from "@/utils/mapCardPosition";
 import { computeParcelStatus } from "@/utils/parcelStatus";
 import { useMapViewportSync } from "./useMapViewportSync";
@@ -282,7 +281,7 @@ export function MapContainer() {
 
       {isAnalyzing && <MapLoadingOverlay />}
 
-      {isMapCorrectionsEnabled() && <MapCorrectionContainer />}
+      <MapCorrectionContainer />
     </div>
   );
 }
