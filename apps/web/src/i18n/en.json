@@ -389,7 +389,7 @@
   },
   "mapCorrection": {
     "place": {
-      "hint": "Click the map where the place is.",
+      "hint": "Click on the map where the place is.",
       "useCentre": "Use map centre",
       "cancel": "Cancel",
       "button": "Report a missing place"
