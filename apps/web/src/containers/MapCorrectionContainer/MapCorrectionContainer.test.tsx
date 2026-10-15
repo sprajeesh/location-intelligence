@@ -62,28 +62,28 @@ describe("MapCorrectionForm", () => {
   describe("add", () => {
     it("lists only implemented facility types and does not show the coordinates", () => {
       openAdd();
-      const select = screen.getByLabelText(/Type of place/) as HTMLSelectElement;
+      const select = screen.getByLabelText(/What kind of place/) as HTMLSelectElement;
       const options = within(select).getAllByRole("option").map((o) => o.textContent);
-      expect(options).toEqual(["Choose a type", "Restaurants", "Schools"]);
+      expect(options).toEqual(["Choose a category", "Restaurants", "Schools"]);
       expect(screen.queryByText(/-36\.84800/)).not.toBeInTheDocument();
     });
 
     it("blocks submit and shows an inline error when the name is over 200 characters", async () => {
       openAdd();
-      await userEvent.selectOptions(screen.getByLabelText(/Type of place/), "restaurants");
-      await userEvent.click(screen.getByLabelText(/Name/));
+      await userEvent.selectOptions(screen.getByLabelText(/What kind of place/), "restaurants");
+      await userEvent.click(screen.getByLabelText(/Name of the place/));
       await userEvent.paste("a".repeat(201));
       await userEvent.click(screen.getByRole("button", { name: en.mapCorrection.actions.submit }));
 
       expect(screen.getByText(en.mapCorrection.errors.nameTooLong)).toBeInTheDocument();
-      expect(screen.getByLabelText(/Name/)).toHaveAttribute("aria-describedby", "mc-name-error");
+      expect(screen.getByLabelText(/Name of the place/)).toHaveAttribute("aria-describedby", "mc-name-error");
       expect(submitMock).not.toHaveBeenCalled();
     });
 
     it("blocks submit and shows an inline error for a malformed email", async () => {
       openAdd();
-      await userEvent.selectOptions(screen.getByLabelText(/Type of place/), "restaurants");
-      await userEvent.type(screen.getByLabelText(/Email/), "not-an-email");
+      await userEvent.selectOptions(screen.getByLabelText(/What kind of place/), "restaurants");
+      await userEvent.type(screen.getByLabelText(/Your email/), "not-an-email");
       await userEvent.click(screen.getByRole("button", { name: en.mapCorrection.actions.submit }));
 
       expect(screen.getByText(en.mapCorrection.errors.emailInvalid)).toBeInTheDocument();
@@ -99,8 +99,8 @@ describe("MapCorrectionForm", () => {
 
     it("sends the add payload, leaving out blank optional fields", async () => {
       openAdd();
-      await userEvent.selectOptions(screen.getByLabelText(/Type of place/), "restaurants");
-      await userEvent.type(screen.getByLabelText(/Name/), "  New Noodle Bar ");
+      await userEvent.selectOptions(screen.getByLabelText(/What kind of place/), "restaurants");
+      await userEvent.type(screen.getByLabelText(/Name of the place/), "  New Noodle Bar ");
       await userEvent.click(screen.getByRole("button", { name: en.mapCorrection.actions.submit }));
 
       await waitFor(() => expect(submitMock).toHaveBeenCalledTimes(1));
@@ -116,8 +116,8 @@ describe("MapCorrectionForm", () => {
 
     it("sends the email when given", async () => {
       openAdd();
-      await userEvent.selectOptions(screen.getByLabelText(/Type of place/), "schools");
-      await userEvent.type(screen.getByLabelText(/Email/), "person@example.com");
+      await userEvent.selectOptions(screen.getByLabelText(/What kind of place/), "schools");
+      await userEvent.type(screen.getByLabelText(/Your email/), "person@example.com");
       await userEvent.click(screen.getByRole("button", { name: en.mapCorrection.actions.submit }));
 
       await waitFor(() => expect(submitMock).toHaveBeenCalledTimes(1));
@@ -131,7 +131,7 @@ describe("MapCorrectionForm", () => {
       expect(wrapper).toHaveClass("hidden");
       expect(honeypot).toHaveAttribute("tabindex", "-1");
 
-      await userEvent.selectOptions(screen.getByLabelText(/Type of place/), "restaurants");
+      await userEvent.selectOptions(screen.getByLabelText(/What kind of place/), "restaurants");
       await userEvent.type(honeypot, "https://spam.example");
       await userEvent.click(screen.getByRole("button", { name: en.mapCorrection.actions.submit }));
 
@@ -143,17 +143,17 @@ describe("MapCorrectionForm", () => {
     it("shows the field error from a 422 next to that field", async () => {
       submitMock.mockResolvedValue({ kind: "invalid", fieldErrors: ["address"], formError: false });
       openAdd();
-      await userEvent.selectOptions(screen.getByLabelText(/Type of place/), "restaurants");
+      await userEvent.selectOptions(screen.getByLabelText(/What kind of place/), "restaurants");
       await userEvent.click(screen.getByRole("button", { name: en.mapCorrection.actions.submit }));
 
       expect(await screen.findByText(en.mapCorrection.errors.invalidField)).toBeInTheDocument();
-      expect(screen.getByLabelText(/Address/)).toHaveAttribute("aria-invalid", "true");
+      expect(screen.getByLabelText(/Address of the place/)).toHaveAttribute("aria-invalid", "true");
     });
 
     it("shows a form-level message for a 422 that names no field", async () => {
       submitMock.mockResolvedValue({ kind: "invalid", fieldErrors: [], formError: true });
       openAdd();
-      await userEvent.selectOptions(screen.getByLabelText(/Type of place/), "restaurants");
+      await userEvent.selectOptions(screen.getByLabelText(/What kind of place/), "restaurants");
       await userEvent.click(screen.getByRole("button", { name: en.mapCorrection.actions.submit }));
 
       expect(await screen.findByText(en.mapCorrection.errors.formGeneric)).toBeInTheDocument();
@@ -162,7 +162,7 @@ describe("MapCorrectionForm", () => {
     it("shows the rate-limit wait in minutes for a 429", async () => {
       submitMock.mockResolvedValue({ kind: "rateLimited", retryAfterSeconds: 150 });
       openAdd();
-      await userEvent.selectOptions(screen.getByLabelText(/Type of place/), "restaurants");
+      await userEvent.selectOptions(screen.getByLabelText(/What kind of place/), "restaurants");
       await userEvent.click(screen.getByRole("button", { name: en.mapCorrection.actions.submit }));
 
       expect(await screen.findByText(/"minutes":3/)).toBeInTheDocument();

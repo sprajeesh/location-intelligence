@@ -396,11 +396,11 @@
     },
     "add": {
       "title": "Report a missing place",
-      "facilityType": "Type of place",
-      "facilityTypePlaceholder": "Choose a type",
-      "name": "Name (optional)",
-      "address": "Address (optional)",
-      "email": "Email (optional)",
+      "facilityType": "What kind of place is it?",
+      "facilityTypePlaceholder": "Choose a category",
+      "name": "Name of the place (optional)",
+      "address": "Address of the place (optional)",
+      "email": "Your email (optional)",
       "consent": "We'll only use this to follow up on your report. We'll delete it once the report is closed."
     },
     "remove": {

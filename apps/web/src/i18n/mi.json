@@ -264,11 +264,11 @@
     },
     "add": {
       "title": "Pūrongo i tētahi wāhi ngaro",
-      "facilityType": "Momo wāhi",
+      "facilityType": "He aha te momo wāhi?",
       "facilityTypePlaceholder": "Kōwhiria he momo",
-      "name": "Ingoa (kōwhiri)",
-      "address": "Wāhitau (kōwhiri)",
-      "email": "Īmēra (kōwhiri)",
+      "name": "Te ingoa o te wāhi (kōwhiri)",
+      "address": "Te wāhitau o te wāhi (kōwhiri)",
+      "email": "Tō īmēra (kōwhiri)",
       "consent": "Ka whakamahia tēnei anake hei whai i tō pūrongo. Ka muka mai i a mātou ina kati te pūrongo."
     },
     "remove": {
