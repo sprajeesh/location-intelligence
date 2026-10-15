@@ -1,12 +1,9 @@
 import logging
-import math
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from typing import Any
 
 import httpx
 from fastapi import Depends, FastAPI, Request
-from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -18,6 +15,7 @@ from app.api import (
     client_errors,
     contact,
     health,
+    map_corrections,
     parcels,
     reports,
     route,
@@ -26,6 +24,7 @@ from app.api import (
 from app.api.concurrency import InFlightLimiter, analyze_capacity_guard
 from app.api.deps import verify_api_key
 from app.api.rate_limit import bff_client_identifier, rate_limit_exceeded, rate_limiter
+from app.api.validation_errors import validation_error_detail
 from app.clients import redis_client as redis_module
 from app.clients.circuit_breaker import CircuitBreaker
 from app.clients.linz import LinzClient
@@ -45,31 +44,17 @@ from app.repositories.db.connection import (
     dispose_engine,
 )
 from app.repositories.db.facility_config_repository import FacilityConfigRepository
+from app.repositories.db.map_correction_repository import MapCorrectionRepository
 from app.repositories.report_jobs import ReportJobStore
 from app.services.distance import DistanceService
 from app.services.facilities import FacilitiesService
 from app.services.geocoding import GeocodingService
+from app.services.map_corrections import MapCorrectionService
 from app.services.routing import RoutingService
 from app.services.scoring import LocationScoringService
 from app.services.wikidata_enrichment import WikidataEnrichmentService
 
 logger = logging.getLogger(__name__)
-
-
-def _sanitize_non_finite_floats(value: Any) -> Any:
-    """Pydantic echoes the raw rejected input back in RequestValidationError.errors()
-    (e.g. `categoryWeights: {"education": NaN}`). Starlette's default JSONResponse
-    renders with allow_nan=False (per the JSON spec), so a NaN/Infinity input would
-    otherwise crash the 422 response itself with an unhandled ValueError instead of
-    reporting the validation failure. Stringify non-finite floats wherever they
-    appear in the error payload so the response can actually be serialized."""
-    if isinstance(value, float) and not math.isfinite(value):
-        return str(value)
-    if isinstance(value, dict):
-        return {key: _sanitize_non_finite_floats(item) for key, item in value.items()}
-    if isinstance(value, list):
-        return [_sanitize_non_finite_floats(item) for item in value]
-    return value
 
 
 @asynccontextmanager
@@ -216,6 +201,9 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         scoring_config.category_weights,
     )
     app.state.wikidata_enrichment_svc = WikidataEnrichmentService(wikidata_client, cache)
+    app.state.map_correction_svc = MapCorrectionService(
+        MapCorrectionRepository(session_factory), overpass, scoring_config, settings
+    )
 
     yield
 
@@ -251,7 +239,16 @@ def create_app() -> FastAPI:
     async def _validation_exception_handler(
         request: Request, exc: RequestValidationError
     ) -> JSONResponse:
-        errors = _sanitize_non_finite_floats(jsonable_encoder(exc.errors()))
+        errors = validation_error_detail(exc.errors())
+        if request.url.path == "/map-corrections":
+            # Field names only: the values submitted are never logged.
+            logger.info(
+                "Map correction rejected",
+                extra={
+                    "event": "map_correction.rejected",
+                    "error_loc": [".".join(str(part) for part in e["loc"]) for e in errors],
+                },
+            )
         return JSONResponse(status_code=422, content={"detail": errors})
 
     # health stays unauthenticated -- the docker-compose healthcheck (and any
@@ -305,6 +302,7 @@ def create_app() -> FastAPI:
             ),
         ],
     )
+    app.include_router(map_corrections.router, dependencies=[Depends(verify_api_key)])
     app.include_router(
         client_errors.router,
         dependencies=[

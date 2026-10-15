@@ -1,10 +1,6 @@
-import re
-
 from pydantic import BaseModel, Field, field_validator
 
-# Deliberately simple: one "@", no whitespace, a dot in the domain. Real validity
-# is only provable by delivery; this just rejects obvious typos and newlines.
-_EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+from app.schemas.validators import EMAIL_RE
 
 
 class ContactRequest(BaseModel):
@@ -30,6 +26,6 @@ class ContactRequest(BaseModel):
     @field_validator("email")
     @classmethod
     def _valid_email(cls, value: str) -> str:
-        if not _EMAIL_RE.match(value):
+        if not EMAIL_RE.match(value):
             raise ValueError("invalid email address")
         return value

@@ -11,16 +11,21 @@ from app.logging_config import exception_fields
 logger = logging.getLogger(__name__)
 
 
-async def bff_client_identifier(request: Request) -> str:
-    """Keys rate limits on the visitor IP the Next.js BFF asserts via
-    X-Forwarded-Client-Ip (see apps/web/src/utils/clientIp.ts) -- Caddy's own
-    X-Forwarded-For would only ever show the BFF's shared egress IP, which
-    would rate-limit every visitor together as one caller. Falls back to the
-    raw connecting IP for local dev / direct calls that bypass the BFF."""
+def client_ip(request: Request) -> str:
+    """The visitor IP the Next.js BFF asserts via X-Forwarded-Client-Ip (see
+    apps/web/src/utils/clientIp.ts) -- Caddy's own X-Forwarded-For would only
+    ever show the BFF's shared egress IP. Falls back to the raw connecting IP
+    for local dev / direct calls that bypass the BFF."""
     ip = request.headers.get("x-forwarded-client-ip")
     if not ip:
         ip = request.client.host if request.client else "unknown"
-    return f"{ip}:{request.scope['path']}"
+    return ip
+
+
+async def bff_client_identifier(request: Request) -> str:
+    """Rate-limit key: the caller IP (see client_ip) plus the request path, so
+    each route has its own bucket per caller."""
+    return f"{client_ip(request)}:{request.scope['path']}"
 
 
 async def rate_limit_exceeded(request: Request, response: Response, pexpire: int) -> None:
@@ -52,36 +57,53 @@ def rate_limiter(times: int, seconds: int) -> Callable[[Request, Response], Awai
     TODO: Switch back to fastapi_limiter.depends.RateLimiter once a release
     compatible with this project's resolved FastAPI version ships.
     """
-    milliseconds = seconds * 1000
 
     async def dependency(request: Request, response: Response) -> None:
-        if FastAPILimiter.redis is None:
-            return
-
-        rate_key = await bff_client_identifier(request)
-        key = f"{FastAPILimiter.prefix}:{rate_key}"
-
-        try:
-            try:
-                pexpire = await FastAPILimiter.redis.evalsha(
-                    FastAPILimiter.lua_sha, 1, key, str(times), str(milliseconds)
-                )
-            except redis.exceptions.NoScriptError:
-                FastAPILimiter.lua_sha = await FastAPILimiter.redis.script_load(
-                    FastAPILimiter.lua_script
-                )
-                pexpire = await FastAPILimiter.redis.evalsha(
-                    FastAPILimiter.lua_sha, 1, key, str(times), str(milliseconds)
-                )
-        except redis.exceptions.RedisError as exc:
-            # The key embeds the caller identifier, so it is not logged.
-            logger.warning(
-                "Rate limiting failed open -- Redis error",
-                extra={"event": "rate_limit.fail_open", **exception_fields(exc)},
-            )
-            return
-
-        if pexpire != 0:
-            await rate_limit_exceeded(request, response, pexpire)
+        await enforce_rate_limit(request, response, times, seconds)
 
     return dependency
+
+
+async def enforce_rate_limit(
+    request: Request,
+    response: Response,
+    times: int,
+    seconds: int,
+    *,
+    scope: str | None = None,
+) -> None:
+    """Counts this request against `times` per `seconds` for the caller and raises
+    429 when the limit is exceeded. `scope` splits one route into several buckets,
+    for routes whose limit depends on the request body (see map_corrections).
+    Fails open exactly as rate_limiter() does."""
+    if FastAPILimiter.redis is None:
+        return
+
+    rate_key = await bff_client_identifier(request)
+    if scope is not None:
+        rate_key = f"{rate_key}#{scope}"
+    key = f"{FastAPILimiter.prefix}:{rate_key}"
+    milliseconds = seconds * 1000
+
+    try:
+        try:
+            pexpire = await FastAPILimiter.redis.evalsha(
+                FastAPILimiter.lua_sha, 1, key, str(times), str(milliseconds)
+            )
+        except redis.exceptions.NoScriptError:
+            FastAPILimiter.lua_sha = await FastAPILimiter.redis.script_load(
+                FastAPILimiter.lua_script
+            )
+            pexpire = await FastAPILimiter.redis.evalsha(
+                FastAPILimiter.lua_sha, 1, key, str(times), str(milliseconds)
+            )
+    except redis.exceptions.RedisError as exc:
+        # The key embeds the caller identifier, so it is not logged.
+        logger.warning(
+            "Rate limiting failed open -- Redis error",
+            extra={"event": "rate_limit.fail_open", **exception_fields(exc)},
+        )
+        return
+
+    if pexpire != 0:
+        await rate_limit_exceeded(request, response, pexpire)

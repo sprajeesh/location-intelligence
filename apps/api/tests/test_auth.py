@@ -114,12 +114,23 @@ class TestProductionRequiresSecret:
         with pytest.raises(ValueError, match="linz_api_key must be set"):
             Settings(**self._kwargs(environment="production", api_shared_secret=SECRET))
 
+    def test_production_without_map_correction_secret_raises(self) -> None:
+        with pytest.raises(ValueError, match="map_correction_ip_hash_secret must be set"):
+            Settings(
+                **self._kwargs(
+                    environment="production",
+                    api_shared_secret=SECRET,
+                    linz_api_key="test-linz-key",
+                )
+            )
+
     def test_production_with_secret_is_allowed(self) -> None:
         settings = Settings(
             **self._kwargs(
                 environment="production",
                 api_shared_secret=SECRET,
                 linz_api_key="test-linz-key",
+                map_correction_ip_hash_secret="test-map-correction-secret",
             )
         )
         assert settings.api_shared_secret == SECRET

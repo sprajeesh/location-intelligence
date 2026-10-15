@@ -78,6 +78,12 @@ prefix, e.g. `event:overpass.*`.
 | `report.map_render_failed`        | ERROR   | report section (falls back to a table)          |
 | `report_store.*`                  | WARNING | report Redis store reads and writes             |
 | `client.error`                    | WARNING / ERROR | `POST /client-errors`, browser reports (WARNING for `kind=api`) |
+| `map_correction.received`         | INFO    | `POST /map-corrections`, every submission (`correction_type`) |
+| `map_correction.stored`           | INFO    | map corrections service, new pending row (`correction_type`, `dedupe_checked`) |
+| `map_correction.merged`           | INFO    | map corrections service, duplicate bumped `report_count` (`correction_type`) |
+| `map_correction.already_mapped`   | INFO    | map corrections service, `add` matched OSM within 100 m; nothing stored |
+| `map_correction.already_removed`  | INFO    | map corrections service, `remove` target gone or untagged; nothing stored |
+| `map_correction.rejected`         | INFO    | map corrections service (`error_loc`: field name, or `reason=honeypot`) and 422 handler (`error_loc`: field names only) |
 
 ## Browser errors
 

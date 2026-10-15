@@ -232,6 +232,53 @@ class OverpassClient:
         parsed = _parse_merged_elements(elements, tag_to_category)
         return {category: parsed.get(category, []) for category, _tags, _radius_m in specs}
 
+    async def find_elements_near(
+        self,
+        tags: list[tuple[str, str]],
+        lat: float,
+        lon: float,
+        radius_m: float,
+        *,
+        retries: int = 1,
+    ) -> list[dict]:
+        """Raw OSM elements carrying any of `tags` within `radius_m` metres of (lat, lon).
+
+        Used to check whether a proposed facility is already mapped. Raises on
+        failure (or CircuitOpenError while the breaker is open), so callers can
+        tell "no match" apart from "could not check".
+        """
+        lines = "\n".join(
+            f'  nwr["{key}"="{value}"](around:{radius_m},{lat},{lon});' for key, value in tags
+        )
+        query = f"[out:json][timeout:25];\n(\n{lines}\n);\nout center;"
+        return await self._run_query(query, retries, "map-correction-near")
+
+    async def fetch_element_tags(
+        self,
+        osm_id: str,
+        tags: list[tuple[str, str]],
+        *,
+        retries: int = 1,
+    ) -> bool:
+        """True if the OSM element `osm_id` (for example "node/12345") still exists
+        and carries at least one of `tags`. False if it is missing or untagged.
+
+        Raises on failure, like find_elements_near.
+        """
+        element_type, element_id = osm_id.split("/", 1)
+        query = f"[out:json][timeout:25];\n{element_type}({element_id});\nout tags;"
+        elements = await self._run_query(query, retries, "map-correction-remove")
+        return any(
+            (element.get("tags") or {}).get(key) == value
+            for element in elements
+            for key, value in tags
+        )
+
+    async def _run_query(self, query: str, retries: int, label: str) -> list[dict]:
+        if self._breaker is not None:
+            return await self._breaker.call(lambda: self._post_with_retry(query, retries, label))
+        return await self._post_with_retry(query, retries, label)
+
     async def _post_with_retry(self, query: str, retries: int, label: str) -> list[dict]:
         last_exc: Exception | None = None
         for attempt in range(retries + 1):

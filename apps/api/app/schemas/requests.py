@@ -1,7 +1,17 @@
-import math
 from typing import Literal
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
+
+from app.schemas.validators import (
+    bound_category_weights,
+    check_map_correction_type_rules,
+    clean_email,
+    clean_osm_id,
+    clean_single_line_text,
+    dedupe_categories,
+    require_finite,
+    strip_string,
+)
 
 
 class AnalyzeRequest(BaseModel):
@@ -32,23 +42,68 @@ class AnalyzeRequest(BaseModel):
     @field_validator("categories")
     @classmethod
     def _strip_dedupe_categories(cls, value: list[str] | None) -> list[str] | None:
-        if value is None:
-            return None
-        cleaned = [category.strip() for category in value if category.strip()]
-        return list(dict.fromkeys(cleaned))
+        return dedupe_categories(value)
 
     @field_validator("category_weights")
     @classmethod
     def _bound_category_weights(cls, value: dict[str, float] | None) -> dict[str, float] | None:
-        if value is None:
-            return None
-        if len(value) > 10:  # today's real composite-category count is 5
-            raise ValueError("category_weights has too many entries")
-        for category, weight in value.items():
-            if not category.strip():
-                raise ValueError("category_weights keys must be non-empty")
-            if not math.isfinite(weight):
-                raise ValueError(f"category_weights[{category}] must be finite")
-            if not (0.0 <= weight <= 1.0):
-                raise ValueError(f"category_weights[{category}] must be between 0.0 and 1.0")
-        return value
+        return bound_category_weights(value)
+
+
+class MapCorrectionRequest(BaseModel):
+    """POST /map-corrections body: an `add` or a `remove` submission.
+
+    Holds the structural rules. Checks that need the loaded config or the NZ
+    bounding box (the facility slug set, the bounds) run in the service, which
+    raises a 422 with the same error shape. The honeypot `website` field is
+    accepted here so the service can answer bots with a normal-looking 202.
+    """
+
+    correction_type: Literal["add", "remove"] = Field(alias="correctionType")
+    facility_type: str = Field(alias="facilityType", min_length=1, max_length=64)
+    lat: float
+    lon: float
+    target_osm_id: str | None = Field(default=None, alias="targetOsmId")
+    reason: Literal["closed", "not_found", "other"] | None = None
+    name: str | None = Field(default=None, max_length=200)
+    address: str | None = Field(default=None, max_length=300)
+    reporter_email: str | None = Field(default=None, alias="reporterEmail", max_length=254)
+    website: str | None = None
+
+    model_config = {"populate_by_name": True}
+
+    @field_validator("facility_type", mode="before")
+    @classmethod
+    def _strip_facility_type(cls, value: object) -> object:
+        return strip_string(value)
+
+    @field_validator("lat", "lon")
+    @classmethod
+    def _finite(cls, value: float) -> float:
+        return require_finite(value)
+
+    @field_validator("target_osm_id", mode="before")
+    @classmethod
+    def _osm_id_format(cls, value: object) -> object:
+        return clean_osm_id(value)
+
+    @field_validator("name", "address", mode="before")
+    @classmethod
+    def _clean_text(cls, value: object) -> object:
+        return clean_single_line_text(value)
+
+    @field_validator("reporter_email", mode="before")
+    @classmethod
+    def _clean_email(cls, value: object) -> object:
+        return clean_email(value)
+
+    @model_validator(mode="after")
+    def _per_type_rules(self) -> "MapCorrectionRequest":
+        check_map_correction_type_rules(
+            self.correction_type,
+            target_osm_id=self.target_osm_id,
+            reason=self.reason,
+            name=self.name,
+            address=self.address,
+        )
+        return self
