@@ -1,7 +1,8 @@
-import math
 from typing import Literal
 
 from pydantic import BaseModel, Field, field_validator
+
+from app.schemas.validators import bound_category_weights, dedupe_categories
 
 
 class AnalyzeRequest(BaseModel):
@@ -32,23 +33,9 @@ class AnalyzeRequest(BaseModel):
     @field_validator("categories")
     @classmethod
     def _strip_dedupe_categories(cls, value: list[str] | None) -> list[str] | None:
-        if value is None:
-            return None
-        cleaned = [category.strip() for category in value if category.strip()]
-        return list(dict.fromkeys(cleaned))
+        return dedupe_categories(value)
 
     @field_validator("category_weights")
     @classmethod
     def _bound_category_weights(cls, value: dict[str, float] | None) -> dict[str, float] | None:
-        if value is None:
-            return None
-        if len(value) > 10:  # today's real composite-category count is 5
-            raise ValueError("category_weights has too many entries")
-        for category, weight in value.items():
-            if not category.strip():
-                raise ValueError("category_weights keys must be non-empty")
-            if not math.isfinite(weight):
-                raise ValueError(f"category_weights[{category}] must be finite")
-            if not (0.0 <= weight <= 1.0):
-                raise ValueError(f"category_weights[{category}] must be between 0.0 and 1.0")
-        return value
+        return bound_category_weights(value)
