@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/Button";
 import { InlineBanner } from "@/components/ui/InlineBanner";
 import { INPUT_BASE_CLASSES, Input } from "@/components/ui/Input";
 import { Modal, ModalContent, ModalFooter, ModalHeader } from "@/components/ui/Modal";
+import { RadioGroup } from "@/components/ui/RadioGroup";
 
 const LABEL_CLASSES = "block text-sm font-medium text-ink";
 const FIELD_CLASSES = "mt-1 w-full px-3";
@@ -212,31 +213,21 @@ export function RemovePlaceForm({
             <span className="font-medium">{t("remove.target")}:</span> {targetName}
           </p>
 
-          <fieldset aria-describedby={reasonError ? "mc-reason-error" : undefined}>
-            <legend className="text-sm font-medium text-ink mb-2">
-              {t("remove.reasonLegend")} <span aria-hidden="true">*</span>
-            </legend>
-            <div className="space-y-2">
-              {MAP_CORRECTION_REASONS.map((option) => (
-                <label key={option} className="flex items-center gap-2 text-sm text-ink">
-                  <input
-                    type="radio"
-                    name="reason"
-                    value={option}
-                    checked={reason === option}
-                    onChange={() => onReasonChange(option)}
-                    className="h-4 w-4 accent-primary-600"
-                  />
-                  {t(`remove.reasons.${REASON_KEYS[option]}`)}
-                </label>
-              ))}
-            </div>
-            {reasonError && (
-              <p id="mc-reason-error" className="mt-1 text-xs text-error-600">
-                {reasonError}
-              </p>
-            )}
-          </fieldset>
+          <RadioGroup
+            name="reason"
+            legend={
+              <>
+                {t("remove.reasonLegend")} <span aria-hidden="true">*</span>
+              </>
+            }
+            options={MAP_CORRECTION_REASONS.map((option) => ({
+              value: option,
+              label: t(`remove.reasons.${REASON_KEYS[option]}`),
+            }))}
+            value={reason}
+            onChange={onReasonChange}
+            error={reasonError}
+          />
 
           <HoneypotField value={website} onChange={onWebsiteChange} />
 
