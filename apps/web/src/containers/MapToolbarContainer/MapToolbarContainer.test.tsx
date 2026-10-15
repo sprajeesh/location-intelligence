@@ -3,6 +3,15 @@ import userEvent from '@testing-library/user-event';
 import { MapToolbarContainer } from './MapToolbarContainer';
 import { useLocationStore } from '@/store';
 import * as useIsDesktopModule from '@/hooks/useIsDesktop';
+import en from '@/i18n/en.json';
+
+jest.mock('next-intl', () => ({
+  useTranslations: (ns?: string) => (key: string) =>
+    key.split('.').reduce<unknown>(
+      (node, part) => (node as Record<string, unknown>)[part],
+      ns ? (en as Record<string, unknown>)[ns] : en,
+    ),
+}));
 
 jest.mock('react-leaflet', () => ({
   useMap: jest.fn(),

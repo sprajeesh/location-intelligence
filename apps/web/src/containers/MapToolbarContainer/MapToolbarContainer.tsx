@@ -2,6 +2,7 @@
 
 import React, { useCallback, useState } from "react";
 import { useMap } from "react-leaflet";
+import { useTranslations } from "next-intl";
 import {
   Plus,
   Minus,
@@ -56,6 +57,7 @@ export function MapToolbarContainer({
   onLayerChange,
 }: MapToolbarContainerProps) {
   const map = useMap();
+  const t = useTranslations("mapCorrection");
   const [isLocating, setIsLocating] = useState(false);
   const isDesktop = useIsDesktop();
 
@@ -183,7 +185,7 @@ export function MapToolbarContainer({
           <div className="w-5 h-px bg-slate-200 my-0.5" role="separator" />
           <ToolbarButton
             icon={MapPinPlus}
-            label="Report a missing place"
+            label={t("place.button")}
             onClick={(e) => {
               e.stopPropagation();
               startAddCorrection();
