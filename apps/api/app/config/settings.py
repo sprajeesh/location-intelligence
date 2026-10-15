@@ -85,6 +85,18 @@ class Settings(BaseSettings):
     resend_emails_url: str = "https://api.resend.com/emails"
     contact_from_email: str = "onboarding@resend.dev"
 
+    # Map corrections (app/api/map_corrections.py). Submissions outside this
+    # New Zealand bounding box are rejected with 422. Lat -48..-33 and
+    # lon 165..180 cover the mainland and offshore islands.
+    map_correction_min_lat: float = -48.0
+    map_correction_max_lat: float = -33.0
+    map_correction_min_lon: float = 165.0
+    map_correction_max_lon: float = 180.0
+    # HMAC key for client_ip_hash, so stored rows never hold a raw IP. Required
+    # in production (validator below); local dev falls back to a fixed
+    # development key, which only means dev hashes are not secret.
+    map_correction_ip_hash_secret: str | None = None
+
     # Circuit breakers (app/clients/circuit_breaker.py) -- open after this
     # many consecutive failures against the dependency, skip the network call
     # entirely for the cooldown, then allow one trial call through.
@@ -134,6 +146,12 @@ class Settings(BaseSettings):
     # error loop on one page, tight enough that a script can't flood the logs.
     rate_limit_client_errors_times: int = 20
     rate_limit_client_errors_seconds: int = 60
+    # POST /map-corrections: applied per correction type, per IP. Removing a
+    # facility is the more sensitive action, so its limit is stricter.
+    rate_limit_map_correction_add_times: int = 5
+    rate_limit_map_correction_add_seconds: int = 3600
+    rate_limit_map_correction_remove_times: int = 3
+    rate_limit_map_correction_remove_seconds: int = 3600
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
@@ -152,6 +170,12 @@ class Settings(BaseSettings):
                     "linz_api_key must be set when environment=production -- "
                     "every GET /parcels request fails with 502 when it's unset "
                     "(LinzClient raises RuntimeError)."
+                )
+            if not self.map_correction_ip_hash_secret:
+                raise ValueError(
+                    "map_correction_ip_hash_secret must be set when environment=production "
+                    "-- client IP hashes for map corrections would otherwise be "
+                    "reproducible from the public source."
                 )
         return self
 
