@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.30.0](https://github.com/sprajeesh/location-intelligence/compare/web@v0.29.0...web@v0.30.0) (2026-10-23)
+
+
+### Features
+
+* **web:** hamburger inside mobile search, lens at right, shorter placeholder ([#425](https://github.com/sprajeesh/location-intelligence/issues/425)) ([ec47d00](https://github.com/sprajeesh/location-intelligence/commit/ec47d005cd28dd1994d79cf699386cb0cc78d78d))
+* **web:** mobile declutter — overflow menu, no mobile footer, collapsed map toolbar ([#418](https://github.com/sprajeesh/location-intelligence/issues/418)) ([ec9dd4c](https://github.com/sprajeesh/location-intelligence/commit/ec9dd4c773573c6ed3ffbb79da9c4f4255992fc2))
+* **web:** mobile foundations — 16px inputs, 44px touch targets, safe areas, dvh ([#417](https://github.com/sprajeesh/location-intelligence/issues/417)) ([3f0a869](https://github.com/sprajeesh/location-intelligence/commit/3f0a8693ddd16ec47468c7735e9d94ad56003370))
+* **web:** mobile map-first layout with bottom results sheet ([#419](https://github.com/sprajeesh/location-intelligence/issues/419)) ([36c82f1](https://github.com/sprajeesh/location-intelligence/commit/36c82f172584dc426be8eb6552b0c4cf57a0d2d1))
+
+
+### Bug Fixes
+
+* **web:** upgrade next to 16.4.1 and ignore unfixable picomatch ReDoS ([#422](https://github.com/sprajeesh/location-intelligence/issues/422)) ([53a4f02](https://github.com/sprajeesh/location-intelligence/commit/53a4f0249e9cbfa8f3c893e06025c43a7601bb3f))
+
+
+### Performance Improvements
+
+* **web:** shared useIsDesktop listener, store selectors, lazy modals ([#420](https://github.com/sprajeesh/location-intelligence/issues/420)) ([b280a5e](https://github.com/sprajeesh/location-intelligence/commit/b280a5e983244e8d7c4065ae385d96d1b9d71e23))
+
 ## [0.29.0](https://github.com/sprajeesh/location-intelligence/compare/web@v0.28.0...web@v0.29.0) (2026-10-15)
 
 
