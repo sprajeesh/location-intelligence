@@ -30,6 +30,7 @@ const SIZE_CLASSES: Record<InputSize, string> = {
   // input under 16px. Desktop keeps the compact sizes.
   sm: "rounded py-0.5 text-base md:text-xs max-md:min-h-11",
   md: "rounded py-1 text-base md:text-sm max-md:min-h-11",
+  // lg is the primary search field only, so it gets a larger 48px target on mobile.
   lg: "rounded-lg py-2.5 text-base md:text-sm max-md:min-h-12",
 };
 
