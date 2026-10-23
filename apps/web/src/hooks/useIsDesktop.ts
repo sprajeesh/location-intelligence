@@ -3,18 +3,15 @@ import { useSyncExternalStore } from "react";
 const DESKTOP_MIN_WIDTH = 768;
 
 // One resize listener shared by every consumer (several containers call this
-// hook), instead of one listener each. Subscribers are only notified when
-// the desktop/mobile answer actually flips, not on every resize tick.
+// hook), instead of one listener each. useSyncExternalStore compares the
+// snapshot itself, so a resize that doesn't cross the breakpoint re-renders nothing.
 const listeners = new Set<() => void>();
-let lastValue: boolean | null = null;
 let attached = false;
 
-const read = () => window.innerWidth >= DESKTOP_MIN_WIDTH;
+const read = () =>
+  typeof window === "undefined" ? false : window.innerWidth >= DESKTOP_MIN_WIDTH;
 
 const onResize = () => {
-  const next = read();
-  if (next === lastValue) return;
-  lastValue = next;
   listeners.forEach((l) => l());
 };
 
@@ -22,7 +19,6 @@ function subscribe(listener: () => void) {
   listeners.add(listener);
   if (!attached) {
     attached = true;
-    lastValue = read();
     window.addEventListener("resize", onResize);
   }
   return () => {
