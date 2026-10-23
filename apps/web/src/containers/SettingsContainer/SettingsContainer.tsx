@@ -5,7 +5,12 @@ import { createPortal } from "react-dom";
 import { useTranslations } from "next-intl";
 import { Settings } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { SettingsModal } from "@/components/SettingsModal";
+import dynamic from "next/dynamic";
+
+// Only mounted once the user opens Scoring, so keep it out of the first-load bundle.
+const SettingsModal = dynamic(() =>
+  import("@/components/SettingsModal").then((m) => m.SettingsModal),
+);
 import { useCategories } from "@/hooks/useCategories";
 import { useCategoryWeights } from "@/hooks/useCategoryWeights";
 import { useAnalyze } from "@/hooks/useAnalyze";

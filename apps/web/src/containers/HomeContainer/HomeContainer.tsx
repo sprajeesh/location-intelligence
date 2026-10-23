@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo } from "react";
 import { useTranslations } from "next-intl";
+import { useShallow } from "zustand/react/shallow";
 import { SearchContainer } from "@/containers/SearchContainer";
 import { AnalysisContainer } from "@/containers/AnalysisContainer";
 import { MapContainerDynamic } from "@/containers/MapContainer";
@@ -31,7 +32,21 @@ export function HomeContainer() {
     sheetSnap,
     setSheetSnap,
     setMapBottomInsetPx,
-  } = useLocationStore();
+  } = useLocationStore(
+    useShallow((s) => ({
+      selectedAddress: s.selectedAddress,
+      analysisResult: s.analysisResult,
+      isAnalyzing: s.isAnalyzing,
+      radiusKm: s.radiusKm,
+      distanceMode: s.distanceMode,
+      isPanelCollapsed: s.isPanelCollapsed,
+      togglePanelCollapsed: s.togglePanelCollapsed,
+      setPanelCollapsed: s.setPanelCollapsed,
+      sheetSnap: s.sheetSnap,
+      setSheetSnap: s.setSheetSnap,
+      setMapBottomInsetPx: s.setMapBottomInsetPx,
+    })),
+  );
   const isDesktop = useIsDesktop();
   const t = useTranslations();
   const addressSearch = useAddressSearch();
