@@ -25,6 +25,7 @@ export interface Toast {
 }
 
 export type Theme = 'light' | 'dark'
+export type SheetSnap = 'peek' | 'half' | 'full'
 
 /**
  * off: nothing in progress. placing: the next map click sets the point for an add.
@@ -74,8 +75,16 @@ export interface LocationIntelligenceStore {
   // Results panel collapsed state -- persisted to control expand/collapse behavior
   isPanelCollapsed: boolean
 
-  // Mobile map view state -- shows full-screen map instead of results panel on mobile
+  // Mobile results sheet position. 'peek' leaves the map prominent (what
+  // isMapViewOnMobile used to mean), 'half' is the default after a search,
+  // 'full' is for reading the results. Desktop ignores it.
+  sheetSnap: SheetSnap
+  // True exactly when sheetSnap is 'peek'; kept so map code can react to the
+  // map becoming the focus without knowing about snap points.
   isMapViewOnMobile: boolean
+  // Height in px the mobile sheet covers at the bottom of the map, so camera
+  // moves can keep their target in the visible part. 0 on desktop.
+  mapBottomInsetPx: number
 
   // Actions
   setSelectedAddress: (address: AddressResult | null) => void
@@ -108,6 +117,8 @@ export interface LocationIntelligenceStore {
   setPanelCollapsed: (isCollapsed: boolean) => void
   togglePanelCollapsed: () => void
   setIsMapViewOnMobile: (isMapView: boolean) => void
+  setSheetSnap: (snap: SheetSnap) => void
+  setMapBottomInsetPx: (px: number) => void
 
   // Map corrections (see MapCorrectionForm). Not persisted: a half-finished report
   // should not survive a reload, and the reporter's email never reaches this store.
@@ -146,7 +157,9 @@ export const useLocationStore = create<LocationIntelligenceStore>()(
 
   isPanelCollapsed: false,
 
+  sheetSnap: 'half' as SheetSnap,
   isMapViewOnMobile: false,
+  mapBottomInsetPx: 0,
 
   correctionMode: 'off' as CorrectionMode,
   correctionPoint: null,
@@ -281,8 +294,15 @@ export const useLocationStore = create<LocationIntelligenceStore>()(
   togglePanelCollapsed: () =>
     set((state) => ({ isPanelCollapsed: !state.isPanelCollapsed })),
 
+  // Compatibility wrapper: "map view" is the sheet at its peek position,
+  // "results view" is the half position.
   setIsMapViewOnMobile: (isMapView) =>
-    set({ isMapViewOnMobile: isMapView }),
+    set({ sheetSnap: isMapView ? 'peek' : 'half', isMapViewOnMobile: isMapView }),
+
+  setSheetSnap: (snap) =>
+    set({ sheetSnap: snap, isMapViewOnMobile: snap === 'peek' }),
+
+  setMapBottomInsetPx: (px) => set({ mapBottomInsetPx: px }),
 
   startAddCorrection: () =>
     set({ correctionMode: 'placing', correctionPoint: null, correctionRemoveTarget: null }),

@@ -23,7 +23,23 @@ UI behaviour and rules for `apps/web/`. Stack, structure, setup and error-report
 
 ## Layout — Mobile
 
-Results panel becomes a draggable bottom sheet. Map occupies most of the screen.
+Below `md`, once an address is selected the map is a full-bleed backdrop and
+nothing else swaps it out:
+
+- **Top bar** (floating): the address search plus a "⋯" `MobileMenu` holding
+  Theme, Scoring, Report (once results exist), Language and the site links.
+  The footer is desktop-only.
+- **Results sheet** (`ResultsSheet`): a bottom sheet with `peek` (~104px, address and
+  score only), `half` (default after a search) and `full` snap points. Only the
+  handle drags (tap cycles, arrow keys step), so the list inside scrolls normally.
+  State lives in the store as `sheetSnap`; `isMapViewOnMobile` is true exactly at
+  `peek`. Showing a marker or tapping a facility drops the sheet to `peek`.
+- **Map camera** keeps its target clear of the sheet via `mapBottomInsetPx`
+  (see `useMapViewportSync`).
+- **Map toolbar** shows Locate and a "more" button; the rest folds away.
+- Touch targets are 44px and inputs are 16px below `md` (prevents iOS focus zoom).
+
+Before an address is selected the search floats over the map as before.
 
 ## Theme
 

@@ -153,6 +153,9 @@
       }
     }
   },
+  "sheet": {
+    "label": "Results"
+  },
   "menu": {
     "more": "More"
   },

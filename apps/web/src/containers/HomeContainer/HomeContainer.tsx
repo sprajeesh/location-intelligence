@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo } from "react";
+import { useTranslations } from "next-intl";
 import { SearchContainer } from "@/containers/SearchContainer";
 import { AnalysisContainer } from "@/containers/AnalysisContainer";
 import { MapContainerDynamic } from "@/containers/MapContainer";
@@ -14,11 +15,8 @@ import PanelCollapseButton from "@/components/PanelCollapseButton/PanelCollapseB
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { SettingsContainer } from "@/containers/SettingsContainer";
 import { MobileMenu } from "@/components/MobileMenu";
-import { MobileViewToggleContainer } from "@/containers/MobileViewToggleContainer";
+import { ResultsSheet } from "@/components/ResultsSheet";
 import { SURFACE_PANEL_CLASSES } from "@/components/ui/SurfacePanel";
-
-// Match the map toolbar's outer width (40px) so the column lines up with it.
-const FLOATING_CONTROL_CLASSES = `!w-10 !h-10 ${SURFACE_PANEL_CLASSES.chip}`;
 
 export function HomeContainer() {
   const {
@@ -30,9 +28,12 @@ export function HomeContainer() {
     isPanelCollapsed,
     togglePanelCollapsed,
     setPanelCollapsed,
-    isMapViewOnMobile,
+    sheetSnap,
+    setSheetSnap,
+    setMapBottomInsetPx,
   } = useLocationStore();
   const isDesktop = useIsDesktop();
+  const t = useTranslations();
   const addressSearch = useAddressSearch();
   const categories = useAnalyzeCategories();
   const categoryWeights = useAnalyzeCategoryWeights();
@@ -90,24 +91,42 @@ export function HomeContainer() {
 
   const panelWidthClass = getPanelWidth();
 
-  const showMapOnMobile = isMapViewOnMobile && !isDesktop && hasActivePanel;
-  const showResultsOnMobile =
-    !isMapViewOnMobile && !isDesktop && hasActivePanel;
+  // On mobile, once an address is selected the map is always the full-bleed
+  // backdrop and the search / results live in a floating top bar and a bottom
+  // sheet. Desktop keeps the pinned sidebar. The sidebar is not rendered at
+  // all on mobile so AnalysisContainer is only ever mounted once.
+  const mobileActive = !isDesktop && hasActivePanel;
+
+  // Leaving the mobile layout (resize / rotate to desktop) must not leave a
+  // stale inset behind that would offset the desktop camera.
+  useEffect(() => {
+    if (!mobileActive) setMapBottomInsetPx(0);
+  }, [mobileActive, setMapBottomInsetPx]);
+
+  const overallScore = analysisResult?.score?.overall;
+  const sheetSummary = selectedAddress && (
+    <span className="flex items-center gap-2 min-w-0">
+      {typeof overallScore === "number" && (
+        <span className="font-bold text-primary-700 flex-shrink-0">{Math.round(overallScore)}</span>
+      )}
+      <span className="truncate text-slate-600">{selectedAddress.displayName}</span>
+    </span>
+  );
 
   return (
     <>
       {/* Fills the relative slot in page.tsx, which already stops above the footer. */}
       <div className="absolute inset-0 flex flex-col md:flex-row">
-        {/* Panel container — shows only when expanded; hidden when collapsed */}
+        {/* Panel container — shows only when expanded; hidden when collapsed.
+          Not rendered on mobile once an address is selected (see mobileActive). */}
+        {!mobileActive && (
         <div
           className={
-            hasActivePanel && !isPanelCollapsed && !showMapOnMobile
+            hasActivePanel && !isPanelCollapsed
               ? `relative z-10 flex-shrink-0 flex flex-col overflow-visible bg-white h-full w-full md:h-full ${panelWidthClass} transition-all duration-300 ease-in-out border-r border-slate-200`
-              : hasActivePanel && !showMapOnMobile && isPanelCollapsed
+              : hasActivePanel && isPanelCollapsed
                 ? "hidden"
-                : showMapOnMobile
-                  ? "hidden md:flex"
-                  : "absolute inset-0 z-10 p-4 pointer-events-none"
+                : "absolute inset-0 z-10 p-4 pointer-events-none"
           }
         >
           <div
@@ -173,46 +192,50 @@ export function HomeContainer() {
             </div>
           </div>
         </div>
+        )}
 
         {/* Map container — full-bleed before a panel is active; on mobile in map view, shows full screen.
-          On mobile when showing map, use z-20 to ensure toolbar sits above the results panel's z-10. */}
+          On mobile the map is always visible; the sheet and top bar float over it. */}
         <div
-          className={`flex-1 min-w-0 min-h-0 relative ${showResultsOnMobile ? "hidden z-0" : showMapOnMobile ? "z-20 md:z-0" : "z-0"} md:flex`}
+          className="flex-1 min-w-0 min-h-0 relative z-0 md:flex"
         >
           <MapContainerDynamic />
         </div>
       </div>
 
-      {/* Search bar for mobile map view — floats above map, with the icon-only
-          Map/Results toggle just below it (Theme, Scoring, etc. are in MobileMenu).
-          The wrapper ignores pointer events so the map stays draggable around
-          the floating pieces. */}
-      {showMapOnMobile && (
-        <div className="absolute top-0 left-0 right-0 z-20 md:hidden p-3 pointer-events-none">
-          <div className="pointer-events-auto flex items-start gap-2">
-            <div className="flex-1">
-              <SearchContainer
-                query={addressSearch.query}
-                setQuery={addressSearch.setQuery}
-                suggestions={addressSearch.suggestions}
-                isLoading={addressSearch.isLoading}
-                error={addressSearch.error}
-              />
+      {/* Mobile: search + menu float over the map, and results sit in a bottom
+          sheet. The wrapper ignores pointer events so the map stays draggable
+          around the floating pieces. */}
+      {mobileActive && (
+        <>
+          <div className="absolute top-0 left-0 right-0 z-20 md:hidden p-3 pt-safe pointer-events-none">
+            <div className="pointer-events-auto flex items-start gap-2">
+              <div className="flex-1">
+                <SearchContainer
+                  query={addressSearch.query}
+                  setQuery={addressSearch.setQuery}
+                  suggestions={addressSearch.suggestions}
+                  isLoading={addressSearch.isLoading}
+                  error={addressSearch.error}
+                />
+              </div>
+              <MobileMenu report={menuReport} />
             </div>
-            <MobileMenu report={menuReport} />
           </div>
-          {/* 40px square buttons: the map toolbar's outer width (32px button + p-1 padding). */}
-          <div className="mt-3 flex flex-col items-end gap-2 pointer-events-auto">
-            <MobileViewToggleContainer
-              iconOnly
-              className={FLOATING_CONTROL_CLASSES}
-            />
-          </div>
-        </div>
+          <ResultsSheet
+            snap={sheetSnap}
+            onSnapChange={setSheetSnap}
+            onHeightChange={setMapBottomInsetPx}
+            summary={sheetSummary}
+            label={t("sheet.label", { defaultValue: "Results" })}
+          >
+            <AnalysisContainer />
+          </ResultsSheet>
+        </>
       )}
 
       {/* Collapse button — positioned outside layout flow so it's always visible and clickable */}
-      {hasActivePanel && !showMapOnMobile && (
+      {hasActivePanel && !mobileActive && (
         <div className="pointer-events-none fixed inset-0 z-0">
           <PanelCollapseButton
             isCollapsed={isPanelCollapsed}

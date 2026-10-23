@@ -11,7 +11,6 @@ import ScoreDisplay from "@/components/ScoreDisplay";
 import { ScoreExplainModal } from "@/components/ScoreExplainModal";
 import { RadiusAdjuster } from "@/components/RadiusAdjuster";
 import { ReportButton } from "@/components/ReportButton";
-import { MobileControlsBar } from "@/components/MobileControlsBar";
 import { SurfacePanel, CHIP_BORDER_SHADOW } from "@/components/ui/SurfacePanel";
 import { useNavigate } from "@/hooks/useNavigate";
 import { useAnalyze } from "@/hooks/useAnalyze";
@@ -102,8 +101,8 @@ export default function ResultsPanel({
     [analysisResult],
   );
 
-  // On mobile, showing a marker switches from the results panel to the
-  // full-screen map so the newly-shown pin is actually visible.
+  // On mobile, showing a marker drops the results sheet to its peek position
+  // so the newly-shown pin is actually visible on the map.
   const switchToMapViewOnMobile = useCallback(() => {
     if (typeof window !== "undefined" && window.innerWidth < 768) {
       setIsMapViewOnMobile(true);
@@ -134,9 +133,10 @@ export default function ResultsPanel({
     (feature: Feature) => {
       setSelectedFeature(feature);
       setActiveRoute(null);
+      switchToMapViewOnMobile();
       onFacilityClick?.(feature);
     },
-    [onFacilityClick, setSelectedFeature, setActiveRoute],
+    [onFacilityClick, setSelectedFeature, setActiveRoute, switchToMapViewOnMobile],
   );
 
   const navigate = useNavigate();
@@ -310,8 +310,6 @@ export default function ResultsPanel({
           />
         </div>
 
-        {/* Mobile Map toggle; Theme/Scoring/Report live in MobileMenu */}
-        {!isDesktop && <MobileControlsBar />}
       </SurfacePanel>
 
       {explainTarget &&
