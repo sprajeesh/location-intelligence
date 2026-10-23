@@ -1,0 +1,12 @@
+# Snyk policy file
+version: v1.25.0
+ignore:
+  SNYK-JS-PICOMATCH-21248802:
+    - '*':
+        reason: >-
+          ReDoS in picomatch@4.0.7, reached only via next-intl > @parcel/watcher
+          (a build/dev-time file watcher, not in the runtime request path).
+          4.0.7 is the latest published version and Snyk lists no fix.
+          Re-check when a patched picomatch is released.
+        expires: 2026-11-22T00:00:00.000Z
+        created: 2026-10-23T00:00:00.000Z
