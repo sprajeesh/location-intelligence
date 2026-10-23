@@ -149,8 +149,8 @@ function MapContent() {
   const tileAttribution = TILE_LAYER_ATTRIBUTIONS[activeLayer];
   const tileMaxZoom = TILE_LAYER_MAX_ZOOM[activeLayer];
 
-  // On mobile, picking a route from a facility popup returns to the results
-  // panel; on desktop the panel is always visible, so there's nothing to go back to.
+  // On mobile, picking a route from a facility popup raises the results sheet
+  // back to half height; on desktop the panel is always visible.
   const onBackToResults = isDesktop ? undefined : () => setIsMapViewOnMobile(false);
 
   return (
@@ -213,7 +213,9 @@ function MapContent() {
 
       {/* Map toolbar (zoom/layers/locate) -- app-level controls (Scoring,
           Theme) live in HomeContainer now, not here. */}
-      <div className="absolute right-3 top-1/2 -translate-y-1/2 z-[1000] flex flex-col items-center gap-2">
+      {/* Below md it hangs under the floating search bar (top-right) instead of
+          sitting mid-height, where the bottom sheet would cover it. */}
+      <div className="absolute right-3 top-20 md:top-1/2 md:-translate-y-1/2 z-[1000] flex flex-col items-center gap-2">
         <MapToolbarContainer activeLayer={activeLayer} onLayerChange={setActiveLayer} />
       </div>
 

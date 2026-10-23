@@ -13,6 +13,19 @@ import {
   ROUTE_FIT_PADDING,
 } from "./mapConstants";
 
+/**
+ * Fit/fly options that keep the target clear of the mobile results sheet,
+ * which covers the bottom `mapBottomInsetPx` of the map. Read from the store
+ * at call time so the inset changing never re-triggers a camera move.
+ */
+function insetFitOptions(padding: [number, number]) {
+  const inset = useLocationStore.getState().mapBottomInsetPx;
+  return {
+    paddingTopLeft: padding,
+    paddingBottomRight: [padding[0], padding[1] + inset] as [number, number],
+  };
+}
+
 export interface ParcelLookup {
   data: ParcelFeature | null | undefined;
   isFetching: boolean;
@@ -51,11 +64,17 @@ export function useMapViewportSync(map: LeafletMap, parcelLookup: ParcelLookup) 
     if (parcelData) {
       const bounds = L.geoJSON(parcelData as unknown as GeoJSON.Feature).getBounds();
       if (bounds.isValid()) {
-        map.flyToBounds(bounds, { padding: PARCEL_FLY_PADDING });
+        map.flyToBounds(bounds, insetFitOptions(PARCEL_FLY_PADDING));
         return;
       }
     }
-    map.flyTo([selectedAddress.lat, selectedAddress.lon], ADDRESS_FLY_ZOOM);
+    // Centre the address in the part of the map the sheet leaves visible.
+    const inset = useLocationStore.getState().mapBottomInsetPx;
+    const target = L.latLng(selectedAddress.lat, selectedAddress.lon);
+    const centre = inset
+      ? map.unproject(map.project(target, ADDRESS_FLY_ZOOM).add([0, inset / 2]), ADDRESS_FLY_ZOOM)
+      : target;
+    map.flyTo(centre, ADDRESS_FLY_ZOOM);
   }, [selectedAddress, parcelData, parcelIsFetching, map]);
 
   // Pan to selected facility without changing zoom
@@ -74,7 +93,7 @@ export function useMapViewportSync(map: LeafletMap, parcelLookup: ParcelLookup) 
     if (addr) bounds.extend([addr.lat, addr.lon]);
     if (feat) bounds.extend([feat.lat, feat.lon]);
     if (bounds.isValid()) {
-      map.flyToBounds(bounds, { padding: ROUTE_FIT_PADDING });
+      map.flyToBounds(bounds, insetFitOptions(ROUTE_FIT_PADDING));
     }
   }, [activeRoute, map]);
 
@@ -105,7 +124,7 @@ export function useMapViewportSync(map: LeafletMap, parcelLookup: ParcelLookup) 
       features: visibleFeatures,
       activeRoute: route,
     });
-    if (bounds) map.fitBounds(bounds, { padding: FIT_BOUNDS_PADDING });
+    if (bounds) map.fitBounds(bounds, insetFitOptions(FIT_BOUNDS_PADDING));
   }, [visibleFacilityIds, map]);
 
   // Fit when the user toggles facility visibility. Skips when nothing is

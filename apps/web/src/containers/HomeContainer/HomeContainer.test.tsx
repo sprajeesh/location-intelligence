@@ -37,8 +37,8 @@ jest.mock('@/components/ReportButton', () => ({
 jest.mock('@/components/ThemeToggle', () => ({
   ThemeToggle: () => <div data-testid="theme-toggle-mock" />,
 }));
-jest.mock('@/containers/MobileViewToggleContainer', () => ({
-  MobileViewToggleContainer: () => <div data-testid="mobile-view-toggle-mock" />,
+jest.mock('next-intl', () => ({
+  useTranslations: () => (_key: string, opts?: { defaultValue?: string }) => opts?.defaultValue ?? _key,
 }));
 jest.mock('@/components/PanelCollapseButton/PanelCollapseButton', () => ({
   __esModule: true,
@@ -69,6 +69,9 @@ const makeStoreState = (overrides = {}) => ({
   isPanelCollapsed: false,
   togglePanelCollapsed: jest.fn(),
   setPanelCollapsed: jest.fn(),
+  sheetSnap: 'half',
+  setSheetSnap: jest.fn(),
+  setMapBottomInsetPx: jest.fn(),
   ...overrides,
 });
 
@@ -187,11 +190,9 @@ describe('HomeContainer', () => {
   });
 
   describe('Controls group', () => {
-    it('keeps Theme/Scoring out of the mobile results view (they live in MobileMenu)', () => {
+    it('keeps Theme/Scoring out of the mobile layout (they live in MobileMenu)', () => {
       mockUseIsDesktop.mockReturnValue(false);
-      mockUseLocationStore.mockReturnValue(
-        makeStoreState({ selectedAddress: MOCK_ADDRESS, isMapViewOnMobile: false })
-      );
+      mockUseLocationStore.mockReturnValue(makeStoreState({ selectedAddress: MOCK_ADDRESS }));
       render(<HomeContainer />);
       expect(screen.queryByTestId('theme-toggle-mock')).not.toBeInTheDocument();
       expect(screen.queryByTestId('settings-container-mock')).not.toBeInTheDocument();
@@ -200,36 +201,65 @@ describe('HomeContainer', () => {
 
     it('offers the mobile menu without Report before an address is selected', () => {
       mockUseIsDesktop.mockReturnValue(false);
-      mockUseLocationStore.mockReturnValue(makeStoreState({ isMapViewOnMobile: false }));
+      mockUseLocationStore.mockReturnValue(makeStoreState());
       render(<HomeContainer />);
       expect(screen.getByTestId('mobile-menu-mock')).toHaveAttribute('data-has-report', 'false');
       expect(screen.queryByTestId('theme-toggle-mock')).not.toBeInTheDocument();
     });
 
-    it('shows only the Map/Results toggle below the floating search in map view, plus the menu', () => {
+    it('floats the search and menu at the top of the map on mobile', () => {
       mockUseIsDesktop.mockReturnValue(false);
-      mockUseLocationStore.mockReturnValue(
-        makeStoreState({ selectedAddress: MOCK_ADDRESS, isMapViewOnMobile: true })
-      );
+      mockUseLocationStore.mockReturnValue(makeStoreState({ selectedAddress: MOCK_ADDRESS }));
       render(<HomeContainer />);
-      expect(screen.queryByTestId('theme-toggle-mock')).not.toBeInTheDocument();
-      expect(screen.queryByTestId('settings-container-mock')).not.toBeInTheDocument();
-      const mapToggle = screen.getAllByTestId('mobile-view-toggle-mock').at(-1) as HTMLElement;
-      const column = mapToggle.parentElement as HTMLElement;
-      expect(column).toHaveClass('flex', 'flex-col', 'items-end', 'pointer-events-auto');
-      expect(column.previousElementSibling?.querySelector('[data-testid="search-container-mock"]')).not.toBeNull();
-      expect(column.previousElementSibling?.querySelector('[data-testid="mobile-menu-mock"]')).not.toBeNull();
+      const search = screen.getByTestId('search-container-mock');
+      const overlay = search.closest('.absolute.top-0') as HTMLElement;
+      expect(overlay).toHaveClass('pointer-events-none');
+      expect(overlay.querySelector('[data-testid="mobile-menu-mock"]')).not.toBeNull();
+    });
+  });
+
+  describe('Mobile results sheet', () => {
+    beforeEach(() => {
+      mockUseIsDesktop.mockReturnValue(false);
     });
 
-    it('renders the floating search at the top in map view', () => {
-      mockUseIsDesktop.mockReturnValue(false);
+    it('keeps the map visible and mounts results once, inside the sheet', () => {
+      mockUseLocationStore.mockReturnValue(makeStoreState({ selectedAddress: MOCK_ADDRESS }));
+      render(<HomeContainer />);
+      expect(screen.getByTestId('map-container-mock')).toBeInTheDocument();
+      expect(screen.getAllByTestId('analysis-container-mock')).toHaveLength(1);
+      expect(screen.getAllByTestId('search-container-mock')).toHaveLength(1);
+      const sheet = screen.getByRole('region', { name: 'Results' });
+      expect(sheet).toContainElement(screen.getByTestId('analysis-container-mock'));
+    });
+
+    it('does not render the sheet before an address is selected, or on desktop', () => {
+      mockUseLocationStore.mockReturnValue(makeStoreState());
+      const { unmount } = render(<HomeContainer />);
+      expect(screen.queryByRole('region', { name: 'Results' })).not.toBeInTheDocument();
+      unmount();
+      mockUseIsDesktop.mockReturnValue(true);
+      mockUseLocationStore.mockReturnValue(makeStoreState({ selectedAddress: MOCK_ADDRESS }));
+      render(<HomeContainer />);
+      expect(screen.queryByRole('region', { name: 'Results' })).not.toBeInTheDocument();
+    });
+
+    it('hides the sheet content at peek and reports the sheet height as the map inset', () => {
+      const setMapBottomInsetPx = jest.fn();
       mockUseLocationStore.mockReturnValue(
-        makeStoreState({ selectedAddress: MOCK_ADDRESS, isMapViewOnMobile: true })
+        makeStoreState({ selectedAddress: MOCK_ADDRESS, sheetSnap: 'peek', setMapBottomInsetPx }),
       );
       render(<HomeContainer />);
-      // The panel's own (hidden) search is also mounted; the floating one is last in the DOM.
-      const search = screen.getAllByTestId('search-container-mock').at(-1) as HTMLElement;
-      expect(search.closest('.absolute.top-0')).toHaveClass('pointer-events-none');
+      expect(screen.getByTestId('analysis-container-mock').parentElement).toHaveAttribute('aria-hidden', 'true');
+      expect(setMapBottomInsetPx).toHaveBeenCalledWith(104);
+    });
+
+    it('resets the map inset when leaving the mobile layout', () => {
+      const setMapBottomInsetPx = jest.fn();
+      mockUseIsDesktop.mockReturnValue(true);
+      mockUseLocationStore.mockReturnValue(makeStoreState({ selectedAddress: MOCK_ADDRESS, setMapBottomInsetPx }));
+      render(<HomeContainer />);
+      expect(setMapBottomInsetPx).toHaveBeenCalledWith(0);
     });
   });
 
@@ -302,58 +332,6 @@ describe('HomeContainer', () => {
       const { container } = render(<HomeContainer />);
       const { panelWrapper } = getSlots(container);
       expect(panelWrapper.className).toContain('md:w-[360px]');
-    });
-  });
-
-  describe('Mobile search and view switching regression', () => {
-    it('maintains functionality when toggling between map and scores views on mobile', () => {
-      const mockSetIsMapViewOnMobile = jest.fn();
-      mockUseLocationStore.mockReturnValue(
-        makeStoreState({
-          selectedAddress: MOCK_ADDRESS,
-          isMapViewOnMobile: false,
-          setIsMapViewOnMobile: mockSetIsMapViewOnMobile,
-        })
-      );
-
-      const { rerender } = render(<HomeContainer />);
-
-      // Verify in scores view: search and analysis both in DOM
-      expect(screen.getByTestId('search-container-mock')).toBeInTheDocument();
-      expect(screen.getByTestId('analysis-container-mock')).toBeInTheDocument();
-      expect(screen.getByTestId('map-container-mock')).toBeInTheDocument();
-
-      // Simulate switching to map view (isMapViewOnMobile: true)
-      mockUseLocationStore.mockReturnValue(
-        makeStoreState({
-          selectedAddress: MOCK_ADDRESS,
-          isMapViewOnMobile: true,
-          setIsMapViewOnMobile: mockSetIsMapViewOnMobile,
-        })
-      );
-      rerender(<HomeContainer />);
-
-      // In map view: layout applies "hidden" to panel, but components still in DOM
-      // Map should be present, and floating search bar should exist
-      expect(screen.getByTestId('map-container-mock')).toBeInTheDocument();
-      // Both search containers are in DOM (one hidden, one floating)
-      const searchMocks = screen.getAllByTestId('search-container-mock');
-      expect(searchMocks.length).toBeGreaterThan(0);
-
-      // Simulate switching back to scores view
-      mockUseLocationStore.mockReturnValue(
-        makeStoreState({
-          selectedAddress: MOCK_ADDRESS,
-          isMapViewOnMobile: false,
-          setIsMapViewOnMobile: mockSetIsMapViewOnMobile,
-        })
-      );
-      rerender(<HomeContainer />);
-
-      // Back in scores view: all components accessible
-      expect(screen.getByTestId('search-container-mock')).toBeInTheDocument();
-      expect(screen.getByTestId('analysis-container-mock')).toBeInTheDocument();
-      expect(screen.getByTestId('map-container-mock')).toBeInTheDocument();
     });
   });
 });

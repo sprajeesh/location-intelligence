@@ -14,7 +14,7 @@ export interface MapNoticeProps {
  */
 export function MapNotice({ tone, icon, children }: MapNoticeProps) {
   return (
-    <div className="absolute top-2 left-1/2 -translate-x-1/2 z-[1000] pointer-events-none">
+    <div className="absolute top-2 max-md:top-20 left-1/2 -translate-x-1/2 z-[1000] pointer-events-none">
       <InlineBanner tone={tone} icon={icon}>
         {children}
       </InlineBanner>

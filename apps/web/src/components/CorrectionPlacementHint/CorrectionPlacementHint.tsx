@@ -32,7 +32,7 @@ export function CorrectionPlacementHint({ onUseMapCentre, onCancel }: Correction
   return (
     <div
       ref={ref}
-      className="absolute top-3 left-1/2 -translate-x-1/2 z-[1000] w-[calc(100%-1.5rem)] max-w-md"
+      className="absolute top-3 max-md:top-20 left-1/2 -translate-x-1/2 z-[1000] w-[calc(100%-1.5rem)] max-w-md"
     >
       <SurfacePanel variant="toolbar" className="flex flex-col gap-2 p-3">
         <InlineBanner tone="neutral">{t("hint")}</InlineBanner>

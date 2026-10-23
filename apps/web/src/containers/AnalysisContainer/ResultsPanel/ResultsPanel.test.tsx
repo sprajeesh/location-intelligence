@@ -67,9 +67,6 @@ jest.mock('@/components/ReportButton', () => ({
   ),
 }));
 jest.mock('@/hooks/useIsDesktop', () => ({ useIsDesktop: jest.fn(() => true) }));
-jest.mock('@/components/MobileControlsBar', () => ({
-  MobileControlsBar: () => <div data-testid="mobile-controls-bar" />,
-}));
 jest.mock('@/components/LoadingSkeleton', () => ({
   __esModule: true,
   default: ({ count }: { count: number }) => (
@@ -332,37 +329,6 @@ describe('ResultsPanel', () => {
       mockUseLocationStore.mockReturnValue(makeStoreState());
       render(<ResultsPanel />);
       expect(screen.queryByRole('button', { name: /Report|Generate report|Download report/ })).not.toBeInTheDocument();
-    });
-  });
-
-  describe('Mobile controls bar', () => {
-    beforeEach(() => {
-      mockUseLocationStore.mockReturnValue(
-        makeStoreState({ analysisResult: mockAnalysisResult, selectedAddress: MOCK_ADDRESS }),
-      );
-    });
-
-    it('is shown on mobile', () => {
-      mockUseIsDesktop.mockReturnValue(false);
-      render(<ResultsPanel />);
-      const bar = screen.getByTestId('mobile-controls-bar');
-      expect(bar).toBeInTheDocument();
-    });
-
-    it('is hidden on desktop, where Report lives in the panel footer', () => {
-      render(<ResultsPanel />);
-      expect(screen.queryByTestId('mobile-controls-bar')).not.toBeInTheDocument();
-    });
-
-    it('is not shown while analyzing or before any analysis', () => {
-      mockUseIsDesktop.mockReturnValue(false);
-      mockUseLocationStore.mockReturnValue(makeStoreState({ isAnalyzing: true }));
-      const { unmount } = render(<ResultsPanel />);
-      expect(screen.queryByTestId('mobile-controls-bar')).not.toBeInTheDocument();
-      unmount();
-      mockUseLocationStore.mockReturnValue(makeStoreState());
-      render(<ResultsPanel />);
-      expect(screen.queryByTestId('mobile-controls-bar')).not.toBeInTheDocument();
     });
   });
 
