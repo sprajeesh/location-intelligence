@@ -85,6 +85,17 @@ describe('ResultsSheet', () => {
     expect(onSnapChange).toHaveBeenCalledWith('peek');
   });
 
+  it('reports the settled height, not every pixel of a drag', () => {
+    const { onHeightChange } = setup('half');
+    onHeightChange.mockClear();
+    const handle = screen.getByRole('button', { name: 'Results' });
+    fireEvent.pointerDown(handle, { clientY: 400, pointerId: 1 });
+    fireEvent.pointerMove(handle, { clientY: 350, pointerId: 1 });
+    fireEvent.pointerMove(handle, { clientY: 300, pointerId: 1 });
+    expect(screen.getByRole('region', { name: 'Results' })).toHaveStyle({ height: '500px' });
+    expect(onHeightChange).not.toHaveBeenCalled();
+  });
+
   it('ignores a second pointer while a drag is in progress', () => {
     const { onSnapChange } = setup('half');
     const handle = screen.getByRole('button', { name: 'Results' });

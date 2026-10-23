@@ -11,6 +11,17 @@ const FULL_RATIO = 0.92;
 // A drag shorter than this is a tap on the handle, not a resize.
 const TAP_SLOP_PX = 6;
 
+const SNAP_ORDER: readonly SheetSnap[] = ["peek", "half", "full"];
+
+interface DragState {
+  startY: number;
+  startHeight: number;
+  lastY: number;
+  lastT: number;
+  velocity: number;
+  moved: boolean;
+}
+
 export function snapHeights(viewportHeight: number): Record<SheetSnap, number> {
   return {
     peek: PEEK_HEIGHT_PX,
@@ -31,7 +42,7 @@ export function nearestSnap(
   velocity = 0,
 ): SheetSnap {
   const projected = height - velocity * 120;
-  return (Object.keys(heights) as SheetSnap[]).reduce((best, key) =>
+  return SNAP_ORDER.reduce((best, key) =>
     Math.abs(heights[key] - projected) < Math.abs(heights[best] - projected) ? key : best,
   );
 }
@@ -68,7 +79,7 @@ export function ResultsSheet({
     typeof window === "undefined" ? 800 : window.innerHeight,
   );
   const [dragHeight, setDragHeight] = useState<number | null>(null);
-  const drag = useRef<{ startY: number; startHeight: number; lastY: number; lastT: number; velocity: number; moved: boolean } | null>(null);
+  const drag = useRef<DragState | null>(null);
 
   useEffect(() => {
     const onResize = () => setViewportHeight(window.innerHeight);
@@ -79,9 +90,12 @@ export function ResultsSheet({
   const heights = snapHeights(viewportHeight);
   const height = dragHeight ?? heights[snap];
 
+  // Report only the settled snap height: the map camera doesn't need to chase
+  // every pointer-move pixel, and this avoids a store write per frame of a drag.
+  const settledHeight = heights[snap];
   useEffect(() => {
-    onHeightChange?.(height);
-  }, [height, onHeightChange]);
+    onHeightChange?.(settledHeight);
+  }, [settledHeight, onHeightChange]);
 
   const onPointerDown = useCallback(
     (e: React.PointerEvent<HTMLButtonElement>) => {
