@@ -153,6 +153,9 @@
       }
     }
   },
+  "menu": {
+    "more": "More"
+  },
   "theme": {
     "dark": "Hūmā pō",
     "light": "Hūmā ao",

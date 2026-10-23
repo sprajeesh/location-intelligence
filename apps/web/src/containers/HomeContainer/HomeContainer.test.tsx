@@ -23,6 +23,11 @@ jest.mock('@/containers/AnalysisContainer', () => ({
 jest.mock('@/containers/MapContainer', () => ({
   MapContainerDynamic: () => <div data-testid="map-container-mock" />,
 }));
+jest.mock('@/components/MobileMenu', () => ({
+  MobileMenu: ({ report }: { report?: unknown }) => (
+    <div data-testid="mobile-menu-mock" data-has-report={String(!!report)} />
+  ),
+}));
 jest.mock('@/containers/SettingsContainer', () => ({
   SettingsContainer: () => <div data-testid="settings-container-mock" />,
 }));
@@ -182,53 +187,38 @@ describe('HomeContainer', () => {
   });
 
   describe('Controls group', () => {
-    it('hides the mobile controls bar in the results view (ResultsPanel owns them there)', () => {
+    it('keeps Theme/Scoring out of the mobile results view (they live in MobileMenu)', () => {
       mockUseIsDesktop.mockReturnValue(false);
       mockUseLocationStore.mockReturnValue(
         makeStoreState({ selectedAddress: MOCK_ADDRESS, isMapViewOnMobile: false })
       );
       render(<HomeContainer />);
       expect(screen.queryByTestId('theme-toggle-mock')).not.toBeInTheDocument();
-      expect(screen.queryByTestId('report-button-mock')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('settings-container-mock')).not.toBeInTheDocument();
+      expect(screen.getByTestId('mobile-menu-mock')).toHaveAttribute('data-has-report', 'true');
     });
 
-    it('hides the mobile controls bar in map view (the map fills to the footer)', () => {
-      mockUseIsDesktop.mockReturnValue(false); // Mobile view
-      mockUseLocationStore.mockReturnValue(
-        makeStoreState({ selectedAddress: MOCK_ADDRESS, isMapViewOnMobile: true })
-      );
-      render(<HomeContainer />);
-      // Report only ever lives in the bottom bar, so its absence proves the bar is gone.
-      expect(screen.queryByTestId('report-button-mock')).not.toBeInTheDocument();
-      // Theme/Scoring are mounted once each, by the floating column (not the bar).
-      expect(screen.getAllByTestId('theme-toggle-mock')).toHaveLength(1);
-      expect(screen.getAllByTestId('settings-container-mock')).toHaveLength(1);
-    });
-
-    it('shows the mobile controls bar in the initial view (no address selected)', () => {
+    it('offers the mobile menu without Report before an address is selected', () => {
       mockUseIsDesktop.mockReturnValue(false);
       mockUseLocationStore.mockReturnValue(makeStoreState({ isMapViewOnMobile: false }));
       render(<HomeContainer />);
-      expect(screen.getByTestId('theme-toggle-mock')).toBeInTheDocument();
-      expect(screen.getByTestId('settings-container-mock')).toBeInTheDocument();
+      expect(screen.getByTestId('mobile-menu-mock')).toHaveAttribute('data-has-report', 'false');
+      expect(screen.queryByTestId('theme-toggle-mock')).not.toBeInTheDocument();
     });
 
-    it('renders icon-only Theme, Scoring and Map toggle in a column below the search card in map view', () => {
+    it('shows only the Map/Results toggle below the floating search in map view, plus the menu', () => {
       mockUseIsDesktop.mockReturnValue(false);
       mockUseLocationStore.mockReturnValue(
         makeStoreState({ selectedAddress: MOCK_ADDRESS, isMapViewOnMobile: true })
       );
       render(<HomeContainer />);
-      // In map view the floating column is the only copy of these controls mounted.
-      const theme = screen.getAllByTestId('theme-toggle-mock').at(-1) as HTMLElement;
-      const settings = screen.getAllByTestId('settings-container-mock').at(-1) as HTMLElement;
+      expect(screen.queryByTestId('theme-toggle-mock')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('settings-container-mock')).not.toBeInTheDocument();
       const mapToggle = screen.getAllByTestId('mobile-view-toggle-mock').at(-1) as HTMLElement;
-      const column = theme.parentElement as HTMLElement;
+      const column = mapToggle.parentElement as HTMLElement;
       expect(column).toHaveClass('flex', 'flex-col', 'items-end', 'pointer-events-auto');
-      expect(settings.parentElement).toBe(column);
-      expect(mapToggle.parentElement).toBe(column);
-      // Column sits inside the floating overlay, after the search card.
       expect(column.previousElementSibling?.querySelector('[data-testid="search-container-mock"]')).not.toBeNull();
+      expect(column.previousElementSibling?.querySelector('[data-testid="mobile-menu-mock"]')).not.toBeNull();
     });
 
     it('renders the floating search at the top in map view', () => {
@@ -239,8 +229,7 @@ describe('HomeContainer', () => {
       render(<HomeContainer />);
       // The panel's own (hidden) search is also mounted; the floating one is last in the DOM.
       const search = screen.getAllByTestId('search-container-mock').at(-1) as HTMLElement;
-      const card = search.parentElement as HTMLElement;
-      expect(card.parentElement).toHaveClass('absolute', 'top-0', 'pointer-events-none');
+      expect(search.closest('.absolute.top-0')).toHaveClass('pointer-events-none');
     });
   });
 

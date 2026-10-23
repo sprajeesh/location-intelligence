@@ -286,7 +286,7 @@ export default function ResultsPanel({
           )}
         </div>
 
-        {/* Full PDF report -- desktop only; on mobile it lives in the controls section below */}
+        {/* Full PDF report -- desktop only; on mobile it lives in the MobileMenu */}
         {isDesktop && (
           <div className="flex-shrink-0 border-t border-slate-200 px-4 sm:px-6 pt-3 sm:pt-4">
             <ReportButton
@@ -310,8 +310,8 @@ export default function ResultsPanel({
           />
         </div>
 
-        {/* Mobile controls -- this branch only renders once an analysis exists, so an address is always selected and Report is safe to show */}
-        {!isDesktop && <MobileControlsBar report={reportAction} />}
+        {/* Mobile Map toggle; Theme/Scoring/Report live in MobileMenu */}
+        {!isDesktop && <MobileControlsBar />}
       </SurfacePanel>
 
       {explainTarget &&

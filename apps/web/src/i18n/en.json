@@ -153,6 +153,9 @@
       }
     }
   },
+  "menu": {
+    "more": "More"
+  },
   "theme": {
     "dark": "Dark mode",
     "light": "Light mode",

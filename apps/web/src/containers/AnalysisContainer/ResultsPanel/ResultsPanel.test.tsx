@@ -68,9 +68,7 @@ jest.mock('@/components/ReportButton', () => ({
 }));
 jest.mock('@/hooks/useIsDesktop', () => ({ useIsDesktop: jest.fn(() => true) }));
 jest.mock('@/components/MobileControlsBar', () => ({
-  MobileControlsBar: ({ report }: { report: { disabled: boolean } }) => (
-    <div data-testid="mobile-controls-bar" data-report-disabled={String(report.disabled)} />
-  ),
+  MobileControlsBar: () => <div data-testid="mobile-controls-bar" />,
 }));
 jest.mock('@/components/LoadingSkeleton', () => ({
   __esModule: true,
@@ -344,12 +342,11 @@ describe('ResultsPanel', () => {
       );
     });
 
-    it('is shown on mobile and fed the report action', () => {
+    it('is shown on mobile', () => {
       mockUseIsDesktop.mockReturnValue(false);
       render(<ResultsPanel />);
       const bar = screen.getByTestId('mobile-controls-bar');
       expect(bar).toBeInTheDocument();
-      expect(bar).toHaveAttribute('data-report-disabled', 'false');
     });
 
     it('is hidden on desktop, where Report lives in the panel footer', () => {

@@ -49,18 +49,6 @@ describe("SiteFooter", () => {
     expect(labels).toEqual(["about", "contact", "faq", "dataSources"]);
   });
 
-  it("lays mobile links out as Contact + About, then FAQ + Data sources", async () => {
-    await renderFooter();
-    const mobile = screen.getAllByRole("navigation")[1]!;
-    const columns = Array.from(mobile.children).map((col) =>
-      Array.from(col.querySelectorAll("a:not([hreflang])")).map((a) => a.textContent),
-    );
-    expect(columns).toEqual([
-      ["contact", "about"],
-      ["faq", "dataSources"],
-    ]);
-  });
-
   it("renders both short and long labels in the markup (not display:none) so crawlers see them", async () => {
     await renderFooter();
     // Data sources link now shows full label on both desktop and mobile
@@ -73,13 +61,16 @@ describe("SiteFooter", () => {
     expect(hasLongLabel).toBe(true);
   });
 
-  it("puts the language switcher before About on desktop and under About on mobile", async () => {
+  it("puts the language switcher before About", async () => {
     await renderFooter();
-    const [desktop, mobile] = screen.getAllByRole("navigation");
-    const order = (nav: HTMLElement) =>
-      Array.from(nav.querySelectorAll("a")).map((a) => a.textContent);
-    expect(order(desktop!).slice(0, 3)).toEqual(["EN", "MI", "about"]);
-    expect(order(mobile!).slice(0, 4)).toEqual(["contact", "about", "EN", "MI"]);
+    const nav = screen.getByRole("navigation");
+    const order = Array.from(nav.querySelectorAll("a")).map((a) => a.textContent);
+    expect(order.slice(0, 3)).toEqual(["EN", "MI", "about"]);
+  });
+
+  it("renders a single nav; mobile links live in MobileMenu", async () => {
+    await renderFooter();
+    expect(screen.getAllByRole("navigation")).toHaveLength(1);
   });
 
   it("links the language switcher to the current page in each locale", async () => {
@@ -87,7 +78,7 @@ describe("SiteFooter", () => {
     await renderFooter();
     const links = screen.getAllByRole("link").filter((l) => l.hasAttribute("hreflang"));
     expect(Array.from(new Set(links.map((l) => l.getAttribute("href"))))).toEqual(["/about", "/mi/about"]);
-    expect(links.filter((l) => l.getAttribute("aria-current") === "true").map((l) => l.textContent)).toEqual(["MI", "MI"]);
+    expect(links.filter((l) => l.getAttribute("aria-current") === "true").map((l) => l.textContent)).toEqual(["MI"]);
   });
 
   it("shows the app version from package.json", async () => {
