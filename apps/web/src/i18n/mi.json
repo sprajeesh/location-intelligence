@@ -5,8 +5,10 @@
     "siteName": "Mōhiotanga Wāhi NZ"
   },
   "search": {
-    "placeholder": "Rapua he wāhi noho i Aotearoa...",
+    "placeholder": "Rapua he wāhitau...",
     "loading": "E rapu ana...",
+    "lens": "Rapua",
+    "clear": "Whakawātea rapua",
     "noResults": "Kāore i kitea he hua"
   },
   "analyze": {

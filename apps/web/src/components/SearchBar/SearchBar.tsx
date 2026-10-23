@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect, useId } from "react";
+import React, { type ReactNode, useState, useRef, useEffect, useId } from "react";
 import { useTranslations } from "next-intl";
 import { Search, X } from "lucide-react";
 import type { AddressResult } from "@/types/api";
@@ -18,6 +18,8 @@ interface SearchBarProps {
   onQueryChange: (value: string) => void;
   onSelectAddress: (address: AddressResult) => void;
   onClear: () => void;
+  /** Mobile-only control rendered inside the field's left edge (the menu). */
+  leading?: ReactNode;
 }
 
 export function SearchBar({
@@ -28,6 +30,7 @@ export function SearchBar({
   onQueryChange,
   onSelectAddress,
   onClear,
+  leading,
 }: SearchBarProps) {
   const t = useTranslations();
 
@@ -94,6 +97,15 @@ export function SearchBar({
     }
   };
 
+  // Mobile lens: submit the highlighted (else top) suggestion; with none yet,
+  // just put the caret back in the field.
+  const handleLensClick = () => {
+    const target =
+      suggestions[highlightedIndex ?? 0];
+    if (target) selectSuggestion(target);
+    else inputRef.current?.focus();
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (!isDropdownOpen || suggestions.length === 0) {
       if (e.key === "Enter") e.preventDefault();
@@ -131,7 +143,10 @@ export function SearchBar({
   return (
     <div ref={dropdownRef} className="relative">
       <div className="relative flex items-center gap-2">
-        <div className="absolute left-3 pointer-events-none flex items-center justify-center">
+        {leading && (
+          <div className="absolute left-1 z-10 md:hidden">{leading}</div>
+        )}
+        <div className="absolute left-3 pointer-events-none flex items-center justify-center max-md:hidden">
           <Search className="w-5 h-5 text-slate-400" aria-hidden="true" />
         </div>
 
@@ -156,26 +171,34 @@ export function SearchBar({
               : undefined
           }
           size="lg"
-          className="w-full pl-10 pr-10"
+          className={`w-full pl-10 pr-10 ${leading ? "max-md:pl-12" : "max-md:pl-3"} ${query ? "max-md:pr-24" : "max-md:pr-12"}`}
         />
 
-        {query && !isLoading && (
+        <div className="absolute right-3 max-md:right-1 flex items-center">
           <IconButton
-            icon={X}
-            size="sm"
+            icon={Search}
             variant="plain"
-            onClick={onClear}
-            className="absolute right-3 text-slate-400 hover:text-slate-600 active:text-slate-700"
-            label="Clear search"
-            title="Close"
+            onClick={handleLensClick}
+            className="md:hidden text-slate-400 hover:text-slate-600 active:text-slate-700"
+            label={t("search.lens")}
           />
-        )}
-
-        {isLoading && (
-          <div className="absolute right-3 flex items-center justify-center">
-            <Spinner size="sm" />
-          </div>
-        )}
+          {query && !isLoading && (
+            <IconButton
+              icon={X}
+              size="sm"
+              variant="plain"
+              onClick={onClear}
+              className="text-slate-400 hover:text-slate-600 active:text-slate-700"
+              label={t("search.clear")}
+              title={t("search.clear")}
+            />
+          )}
+          {isLoading && (
+            <div className="flex items-center justify-center max-md:w-11 max-md:h-11">
+              <Spinner size="sm" />
+            </div>
+          )}
+        </div>
       </div>
 
       {isDropdownOpen && (

@@ -5,8 +5,10 @@
     "siteName": "Location Intelligence NZ"
   },
   "search": {
-    "placeholder": "Search a New Zealand address...",
+    "placeholder": "Search an address...",
     "loading": "Searching...",
+    "lens": "Search",
+    "clear": "Clear search",
     "noResults": "No results found"
   },
   "analyze": {

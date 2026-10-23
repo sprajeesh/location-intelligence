@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
-import { MoreHorizontal } from "lucide-react";
+import { Menu } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { ReportButton } from "@/components/ReportButton";
@@ -37,9 +37,10 @@ const LINK_CLASSES =
   "flex min-h-11 items-center px-3 text-sm text-ink rounded-lg hover:bg-slate-100 focus-ring-flush";
 
 /**
- * MobileMenu — the mobile-only "⋯" overflow menu. Holds everything that is
- * not part of the search -> results -> map flow: Theme, Scoring, Report,
- * Language and the site links that the footer shows on desktop.
+ * MobileMenu — the mobile-only hamburger menu, shown inside the search
+ * field's left edge. Holds everything that is not part of the search ->
+ * results -> map flow: Theme, Scoring, Report, Language and the site links
+ * that the footer shows on desktop.
  *
  * A disclosure (aria-expanded + aria-controls) rather than role="menu": the
  * panel mixes buttons, links and a language switcher, so it is read and
@@ -83,11 +84,11 @@ export function MobileMenu({ report, className = "" }: MobileMenuProps) {
     <div ref={rootRef} className={`relative md:hidden ${className}`.trim()}>
       <Button
         ref={triggerRef}
-        icon={MoreHorizontal}
+        icon={Menu}
         iconOnly
         label={t("menu.more", { defaultValue: "More" })}
-        variant="ghost"
-        className={SURFACE_PANEL_CLASSES.chip}
+        variant="plain"
+        className="text-slate-500 hover:text-slate-700"
         pressed={open}
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
@@ -96,7 +97,7 @@ export function MobileMenu({ report, className = "" }: MobileMenuProps) {
       {open && (
         <div
           id={panelId}
-          className={`absolute right-0 top-full z-50 mt-2 w-64 max-w-[calc(100vw-1.5rem)] p-2 flex flex-col gap-1 ${SURFACE_PANEL_CLASSES.popover}`}
+          className={`absolute left-0 top-full z-50 mt-3 w-64 max-w-[calc(100vw-1.5rem)] p-2 flex flex-col gap-1 ${SURFACE_PANEL_CLASSES.popover}`}
         >
           <ThemeToggle className={ROW_CLASSES} />
           <SettingsContainer className={ROW_CLASSES} />
