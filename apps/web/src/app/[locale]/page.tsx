@@ -88,7 +88,7 @@ export default async function HomePage({ params }: HomePageProps) {
   };
 
   return (
-    <div className="flex flex-col w-full h-dvh overflow-hidden">
+    <div className="flex flex-col w-full h-dvh overflow-hidden pb-safe">
       {/* HomeContainer positions itself absolutely, so main is its relative
           slot and takes whatever height the footer leaves. */}
       <main className="relative flex-1 min-h-0">

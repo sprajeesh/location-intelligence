@@ -22,7 +22,7 @@ export default function ErrorPage({ error, reset }: ErrorPageProps) {
   }, [error]);
 
   return (
-    <div role="alert" className="flex min-h-[60vh] flex-col items-center justify-center gap-4 p-6 text-center">
+    <div role="alert" className="flex min-h-[60dvh] flex-col items-center justify-center gap-4 p-6 text-center">
       <h1 className="text-xl font-semibold text-ink">{t('generic')}</h1>
       <Button variant="primary" label={t('retry')} onClick={reset} />
     </div>

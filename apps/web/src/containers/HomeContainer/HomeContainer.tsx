@@ -113,7 +113,7 @@ export function HomeContainer() {
             className={
               hasActivePanel
                 ? `flex flex-col h-full ${isPanelCollapsed && isDesktop ? "opacity-0 invisible" : "opacity-100 visible"} transition-opacity duration-300`
-                : "flex flex-col h-full pointer-events-none max-w-md md:h-[75vh] md:gap-2 lg:h-full"
+                : "flex flex-col h-full pointer-events-none max-w-md md:h-[75dvh] md:gap-2 lg:h-full"
             }
           >
             {/* Search bar — always at the top. `relative` makes it the
@@ -164,7 +164,7 @@ export function HomeContainer() {
               className={
                 hasActivePanel
                   ? "flex-1 min-h-0 overflow-hidden"
-                  : "min-h-0 overflow-hidden pointer-events-auto h-[50vh] bottom-0 left-0 right-0 absolute sm:w-full md:relative md:h-auto md:flex-1 md:mt-0"
+                  : "min-h-0 overflow-hidden pointer-events-auto h-[50dvh] bottom-0 left-0 right-0 absolute sm:w-full md:relative md:h-auto md:flex-1 md:mt-0"
               }
             >
               <AnalysisContainer />

@@ -58,11 +58,12 @@ export interface ButtonProps extends NativeButtonProps {
 }
 
 const ICON_ONLY_SIZE_CLASSES: Record<ButtonSize, string> = {
-  md: "w-8 h-8 flex items-center justify-center rounded-lg",
-  sm: "p-1.5 rounded-lg",
+  // Below md, icon buttons grow to the 44px minimum touch target.
+  md: "w-8 h-8 max-md:w-11 max-md:h-11 flex items-center justify-center rounded-lg",
+  sm: "p-1.5 max-md:p-3.5 rounded-lg",
   // Same footprint as "md", but circular -- for a modal's close button, the
   // one icon-only affordance conventionally expected to be a round target.
-  close: "w-8 h-8 flex items-center justify-center rounded-full",
+  close: "w-8 h-8 max-md:w-11 max-md:h-11 flex items-center justify-center rounded-full",
 };
 
 const DEFAULT_ICON_SIZE: Record<ButtonSize, number> = {

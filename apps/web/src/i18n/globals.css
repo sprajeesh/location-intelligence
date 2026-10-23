@@ -191,7 +191,7 @@ html {
 
 body {
   @apply bg-white text-ink;
-  min-height: 100vh;
+  min-height: 100dvh;
 }
 
 h1,
@@ -271,6 +271,15 @@ h6 {
 }
 
 @layer utilities {
+  /* Safe-area insets (notch / iOS home indicator). Need viewportFit: 'cover'. */
+  .pt-safe {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
   .transition-smooth {
     @apply transition-all duration-200 ease-in-out;
   }
