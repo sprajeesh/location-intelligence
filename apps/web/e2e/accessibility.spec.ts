@@ -46,7 +46,7 @@ test.describe('Accessibility', () => {
     'buttons are keyboard accessible',
     { tag: ['@regression'] },
     async ({ page }) => {
-      const buttons = page.locator('button').first();
+      const buttons = page.locator('button:visible').first();
 
       // Focus the button using keyboard
       await buttons.focus();
@@ -85,7 +85,7 @@ test.describe('Accessibility', () => {
     { tag: ['@regression'] },
     async ({ page }) => {
       // This is a basic check that buttons are visible
-      const buttons = page.locator('button');
+      const buttons = page.locator('button:visible');
       const count = await buttons.count();
 
       // Should have at least one button
