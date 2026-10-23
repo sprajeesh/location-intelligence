@@ -85,6 +85,17 @@ describe('ResultsSheet', () => {
     expect(onSnapChange).toHaveBeenCalledWith('peek');
   });
 
+  it('ignores a second pointer while a drag is in progress', () => {
+    const { onSnapChange } = setup('half');
+    const handle = screen.getByRole('button', { name: 'Results' });
+    fireEvent.pointerDown(handle, { clientY: 400, pointerId: 1 });
+    fireEvent.pointerDown(handle, { clientY: 100, pointerId: 2 });
+    fireEvent.pointerMove(handle, { clientY: 700, pointerId: 1 });
+    fireEvent.pointerUp(handle, { clientY: 700, pointerId: 1 });
+    expect(onSnapChange).toHaveBeenCalledTimes(1);
+    expect(onSnapChange).toHaveBeenCalledWith('peek');
+  });
+
   it('steps with the arrow keys and cycles on Enter', async () => {
     const { onSnapChange } = setup('half');
     const handle = screen.getByRole('button', { name: 'Results' });

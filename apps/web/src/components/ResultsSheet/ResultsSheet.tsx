@@ -85,6 +85,8 @@ export function ResultsSheet({
 
   const onPointerDown = useCallback(
     (e: React.PointerEvent<HTMLButtonElement>) => {
+      // A second finger must not overwrite the drag already in progress.
+      if (drag.current) return;
       e.currentTarget.setPointerCapture?.(e.pointerId);
       drag.current = {
         startY: e.clientY,
