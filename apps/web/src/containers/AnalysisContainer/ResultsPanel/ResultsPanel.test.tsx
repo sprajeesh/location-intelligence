@@ -279,6 +279,8 @@ const makeStoreState = (overrides = {}) => ({
 // behaviour is opt-in per test.
 const setViewportWidth = (width: number) => {
   Object.defineProperty(window, 'innerWidth', { writable: true, configurable: true, value: width });
+  // The component asks useIsDesktop (mocked here), so keep the mock in step.
+  mockUseIsDesktop.mockReturnValue(width >= 768);
 };
 
 describe('ResultsPanel', () => {

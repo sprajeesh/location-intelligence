@@ -3,12 +3,18 @@
 import { useCallback, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslations } from "next-intl";
+import { useShallow } from "zustand/react/shallow";
 import { Search, FileText } from "lucide-react";
 import { useLocationStore } from "@/store/index";
 import type { CategoryScoreResult, Feature } from "@/types/api";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
 import ScoreDisplay from "@/components/ScoreDisplay";
-import { ScoreExplainModal } from "@/components/ScoreExplainModal";
+import dynamic from "next/dynamic";
+
+// Only mounted when the user opens an explanation, so keep it out of the first-load bundle.
+const ScoreExplainModal = dynamic(() =>
+  import("@/components/ScoreExplainModal").then((m) => m.ScoreExplainModal),
+);
 import { RadiusAdjuster } from "@/components/RadiusAdjuster";
 import { ReportButton } from "@/components/ReportButton";
 import { SurfacePanel, CHIP_BORDER_SHADOW } from "@/components/ui/SurfacePanel";
@@ -75,7 +81,24 @@ export default function ResultsPanel({
     setAnalysisResult,
     clearVisibleFacilityIds,
     setIsMapViewOnMobile,
-  } = useLocationStore();
+  } = useLocationStore(
+    useShallow((s) => ({
+      analysisResult: s.analysisResult,
+      isAnalyzing: s.isAnalyzing,
+      radiusKm: s.radiusKm,
+      visibleFacilityIds: s.visibleFacilityIds,
+      toggleFacilityVisibility: s.toggleFacilityVisibility,
+      setFacilitiesVisibility: s.setFacilitiesVisibility,
+      setActiveRoute: s.setActiveRoute,
+      setSelectedFeature: s.setSelectedFeature,
+      selectedAddress: s.selectedAddress,
+      distanceMode: s.distanceMode,
+      setRadiusKm: s.setRadiusKm,
+      setAnalysisResult: s.setAnalysisResult,
+      clearVisibleFacilityIds: s.clearVisibleFacilityIds,
+      setIsMapViewOnMobile: s.setIsMapViewOnMobile,
+    })),
+  );
 
   const { mutate: analyze } = useAnalyze();
   const analyzeCategories = useAnalyzeCategories();
@@ -104,10 +127,8 @@ export default function ResultsPanel({
   // On mobile, showing a marker drops the results sheet to its peek position
   // so the newly-shown pin is actually visible on the map.
   const switchToMapViewOnMobile = useCallback(() => {
-    if (typeof window !== "undefined" && window.innerWidth < 768) {
-      setIsMapViewOnMobile(true);
-    }
-  }, [setIsMapViewOnMobile]);
+    if (!isDesktop) setIsMapViewOnMobile(true);
+  }, [isDesktop, setIsMapViewOnMobile]);
 
   // Toggle a single facility's marker
   const handleToggleFacilityVisibility = useCallback(
