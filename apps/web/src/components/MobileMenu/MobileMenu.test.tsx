@@ -28,13 +28,13 @@ describe('MobileMenu', () => {
   it('is closed by default', () => {
     render(<MobileMenu />);
     expect(screen.getByRole('button', { name: 'More' })).toHaveAttribute('aria-expanded', 'false');
-    expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('theme-toggle-mock')).not.toBeInTheDocument();
   });
 
   it('opens with Theme, Scoring, Language and site links', async () => {
     render(<MobileMenu />);
     await userEvent.click(screen.getByRole('button', { name: 'More' }));
-    expect(screen.getByRole('menu')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'More' })).toHaveAttribute('aria-expanded', 'true');
     expect(screen.getByTestId('theme-toggle-mock')).toBeInTheDocument();
     expect(screen.getByTestId('settings-container-mock')).toBeInTheDocument();
     expect(screen.getByTestId('language-switcher-mock')).toBeInTheDocument();
@@ -58,12 +58,23 @@ describe('MobileMenu', () => {
     const toggle = screen.getByRole('button', { name: 'More' });
     await userEvent.click(toggle);
     await userEvent.keyboard('{Escape}');
-    expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('theme-toggle-mock')).not.toBeInTheDocument();
+    expect(toggle).toHaveFocus();
     await userEvent.click(toggle);
     await userEvent.click(document.body);
-    expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('theme-toggle-mock')).not.toBeInTheDocument();
     await userEvent.click(toggle);
     await userEvent.click(screen.getByRole('link', { name: 'footer.about' }));
-    expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('theme-toggle-mock')).not.toBeInTheDocument();
+  });
+
+  it('closes when the toggle is pressed again', async () => {
+    render(<MobileMenu />);
+    const toggle = screen.getByRole('button', { name: 'More' });
+    await userEvent.click(toggle);
+    expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    await userEvent.click(toggle);
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.queryByTestId('theme-toggle-mock')).not.toBeInTheDocument();
   });
 });

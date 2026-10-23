@@ -24,6 +24,14 @@ export interface MobileMenuProps {
   className?: string;
 }
 
+// [path, footer translation key]
+const LINKS: Array<[string, string]> = [
+  ["/about", "about"],
+  ["/contact", "contact"],
+  ["/faq", "faq"],
+  ["/data-sources", "dataSources"],
+];
+
 const ROW_CLASSES = "w-full !justify-start";
 const LINK_CLASSES =
   "flex min-h-11 items-center px-3 text-sm text-ink rounded-lg hover:bg-slate-100 focus-ring-flush";
@@ -33,12 +41,18 @@ const LINK_CLASSES =
  * not part of the search -> results -> map flow: Theme, Scoring, Report,
  * Language and the site links that the footer shows on desktop.
  *
+ * A disclosure (aria-expanded + aria-controls) rather than role="menu": the
+ * panel mixes buttons, links and a language switcher, so it is read and
+ * tabbed through as ordinary content instead of needing arrow-key menu
+ * semantics. Escape returns focus to the trigger.
+ *
  * Stays open when Scoring is tapped (its modal is portaled on top) so the
  * modal isn't unmounted mid-edit; closes on outside press, Escape or a link.
  */
 export function MobileMenu({ report, className = "" }: MobileMenuProps) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const panelId = useId();
   const locale = useLocale();
   const t = useTranslations();
@@ -49,7 +63,11 @@ export function MobileMenu({ report, className = "" }: MobileMenuProps) {
       if (!rootRef.current?.contains(e.target as Node)) setOpen(false);
     };
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
+      if (e.key === "Escape") {
+        setOpen(false);
+        // Hand focus back so keyboard users don't lose their place.
+        triggerRef.current?.focus();
+      }
     };
     document.addEventListener("pointerdown", onPointerDown);
     document.addEventListener("keydown", onKeyDown);
@@ -60,16 +78,11 @@ export function MobileMenu({ report, className = "" }: MobileMenuProps) {
   }, [open]);
 
   const close = () => setOpen(false);
-  const links: Array<[string, string]> = [
-    ["/about", t("footer.about")],
-    ["/contact", t("footer.contact")],
-    ["/faq", t("footer.faq")],
-    ["/data-sources", t("footer.dataSources")],
-  ];
 
   return (
     <div ref={rootRef} className={`relative md:hidden ${className}`.trim()}>
       <Button
+        ref={triggerRef}
         icon={MoreHorizontal}
         iconOnly
         label={t("menu.more", { defaultValue: "More" })}
@@ -83,7 +96,6 @@ export function MobileMenu({ report, className = "" }: MobileMenuProps) {
       {open && (
         <div
           id={panelId}
-          role="menu"
           className={`absolute right-0 top-full z-50 mt-2 w-64 max-w-[calc(100vw-1.5rem)] p-2 flex flex-col gap-1 ${SURFACE_PANEL_CLASSES.popover}`}
         >
           <ThemeToggle className={ROW_CLASSES} />
@@ -108,14 +120,14 @@ export function MobileMenu({ report, className = "" }: MobileMenuProps) {
             aria-label={t("footer.navLabel")}
             className="mt-1 border-t border-slate-200 pt-1"
           >
-            {links.map(([path, label]) => (
+            {LINKS.map(([path, key]) => (
               <Link
                 key={path}
                 href={localizedPath(locale, path)}
                 className={LINK_CLASSES}
                 onClick={close}
               >
-                {label}
+                {t(`footer.${key}`)}
               </Link>
             ))}
           </nav>
