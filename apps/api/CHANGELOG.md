@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.15.0](https://github.com/sprajeesh/location-intelligence/compare/api@v0.14.0...api@v0.15.0) (2026-10-23)
+
+
+### Features
+
+* **web:** mobile map-first layout with bottom results sheet ([#419](https://github.com/sprajeesh/location-intelligence/issues/419)) ([36c82f1](https://github.com/sprajeesh/location-intelligence/commit/36c82f172584dc426be8eb6552b0c4cf57a0d2d1))
+
+
+### Bug Fixes
+
+* **web:** upgrade next to 16.4.1 and ignore unfixable picomatch ReDoS ([#422](https://github.com/sprajeesh/location-intelligence/issues/422)) ([53a4f02](https://github.com/sprajeesh/location-intelligence/commit/53a4f0249e9cbfa8f3c893e06025c43a7601bb3f))
+
 ## [0.14.0](https://github.com/sprajeesh/location-intelligence/compare/api@v0.13.0...api@v0.14.0) (2026-10-15)
 
 
