@@ -110,7 +110,7 @@ describe('SearchBar', () => {
       render(<SearchBar {...defaultProps} onSelectAddress={onSelectAddress} />);
       await userEvent.click(screen.getByLabelText('Search'));
       expect(onSelectAddress).not.toHaveBeenCalled();
-      expect(screen.getByRole('combobox')).toHaveFocus();
+      expect(screen.getByRole('textbox')).toHaveFocus();
     });
 
     it('calls onClear when clear button is clicked', async () => {
