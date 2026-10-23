@@ -41,6 +41,9 @@ export const viewport: Viewport = {
   // `background_color` (mirroring this value and `white` respectively) can't
   // import TS and still need the same update by hand if this ever changes.
   themeColor: primary[500],
+  // Lets content extend under the notch / home indicator; surfaces opt in to
+  // the insets with env(safe-area-inset-*) (see .pb-safe / .pt-safe).
+  viewportFit: 'cover',
 };
 
 // Reads the persisted theme choice and sets the `dark` class before React

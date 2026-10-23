@@ -26,9 +26,12 @@ export const INPUT_BASE_CLASSES =
   "bg-white border border-slate-300 text-ink placeholder-slate-400 transition-all duration-150 hover:border-slate-400 disabled:opacity-40 disabled:cursor-not-allowed focus-ring-flush";
 
 const SIZE_CLASSES: Record<InputSize, string> = {
-  sm: "rounded py-0.5 text-xs",
-  md: "rounded py-1 text-sm",
-  lg: "rounded-lg py-2.5 text-sm",
+  // Below md the font is 16px: iOS Safari zooms the page on focus of any
+  // input under 16px. Desktop keeps the compact sizes.
+  sm: "rounded py-0.5 text-base md:text-xs max-md:min-h-11",
+  md: "rounded py-1 text-base md:text-sm max-md:min-h-11",
+  // lg is the primary search field only, so it gets a larger 48px target on mobile.
+  lg: "rounded-lg py-2.5 text-base md:text-sm max-md:min-h-12",
 };
 
 const ALIGN_CLASSES: Record<InputAlign, string> = {
