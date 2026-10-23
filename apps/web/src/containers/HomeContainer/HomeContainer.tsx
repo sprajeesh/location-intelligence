@@ -13,7 +13,7 @@ import { useReportAction } from "@/hooks/useReportAction";
 import PanelCollapseButton from "@/components/PanelCollapseButton/PanelCollapseButton";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { SettingsContainer } from "@/containers/SettingsContainer";
-import { MobileControlsBar } from "@/components/MobileControlsBar";
+import { MobileMenu } from "@/components/MobileMenu";
 import { MobileViewToggleContainer } from "@/containers/MobileViewToggleContainer";
 import { SURFACE_PANEL_CLASSES } from "@/components/ui/SurfacePanel";
 
@@ -63,6 +63,7 @@ export function HomeContainer() {
   );
 
   const reportAction = useReportAction(reportRequest);
+  const menuReport = selectedAddress ? reportAction : undefined;
 
   // Expand panel when a new address is selected (don't collapse based on previous action)
   useEffect(() => {
@@ -124,7 +125,7 @@ export function HomeContainer() {
               className={
                 hasActivePanel
                   ? "relative flex-shrink-0 p-4 pb-2 border-b border-slate-200 md:border-r md:border-b-0 flex items-center gap-2"
-                  : "relative flex-shrink-0 z-20 pointer-events-auto"
+                  : "relative flex-shrink-0 z-20 pointer-events-auto flex items-start gap-2"
               }
             >
               <div className="flex-1">
@@ -136,8 +137,9 @@ export function HomeContainer() {
                   error={addressSearch.error}
                 />
               </div>
+              <MobileMenu report={menuReport} />
               {/* Theme / Score Config buttons — desktop only; on mobile these
-                live in the fixed bottom controls bar instead. Gated on
+                live in the "⋯" MobileMenu next to the search instead. Gated on
                 isDesktop (not a CSS breakpoint) so SettingsContainer isn't
                 double-mounted alongside its mobile counterpart below.
                 Positioned outside the search row's own flow (left-full) so
@@ -179,40 +181,28 @@ export function HomeContainer() {
         >
           <MapContainerDynamic />
         </div>
-
-        {/* Mobile controls -- an in-flow white row above the footer for the
-          initial view, so the buttons sit inside a panel instead of floating
-          over the footer. In the map view the bar is hidden (the map fills to
-          the footer and the controls float over it instead). In the results
-          view the same bar lives inside ResultsPanel. */}
-        {!isDesktop && !showResultsOnMobile && !showMapOnMobile && (
-          <MobileControlsBar
-            report={reportAction}
-            showReport={!!selectedAddress}
-            className="relative z-20 bg-white"
-          />
-        )}
       </div>
 
       {/* Search bar for mobile map view — floats above map, with the icon-only
-          Theme / Scoring / Map-Results controls in a column just below it.
+          Map/Results toggle just below it (Theme, Scoring, etc. are in MobileMenu).
           The wrapper ignores pointer events so the map stays draggable around
           the floating pieces. */}
       {showMapOnMobile && (
         <div className="absolute top-0 left-0 right-0 z-20 md:hidden p-3 pointer-events-none">
-          <div className="pointer-events-auto">
-            <SearchContainer
-              query={addressSearch.query}
-              setQuery={addressSearch.setQuery}
-              suggestions={addressSearch.suggestions}
-              isLoading={addressSearch.isLoading}
-              error={addressSearch.error}
-            />
+          <div className="pointer-events-auto flex items-start gap-2">
+            <div className="flex-1">
+              <SearchContainer
+                query={addressSearch.query}
+                setQuery={addressSearch.setQuery}
+                suggestions={addressSearch.suggestions}
+                isLoading={addressSearch.isLoading}
+                error={addressSearch.error}
+              />
+            </div>
+            <MobileMenu report={menuReport} />
           </div>
           {/* 40px square buttons: the map toolbar's outer width (32px button + p-1 padding). */}
           <div className="mt-3 flex flex-col items-end gap-2 pointer-events-auto">
-            <ThemeToggle iconOnly className={FLOATING_CONTROL_CLASSES} />
-            <SettingsContainer iconOnly className={FLOATING_CONTROL_CLASSES} />
             <MobileViewToggleContainer
               iconOnly
               className={FLOATING_CONTROL_CLASSES}

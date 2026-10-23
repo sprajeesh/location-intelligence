@@ -66,6 +66,7 @@ describe('MapToolbarContainer', () => {
     });
 
     it('renders zoom to features button', () => {
+      jest.spyOn(useIsDesktopModule, 'useIsDesktop').mockReturnValue(true);
       render(<MapToolbarContainer {...defaultProps} />);
       expect(screen.getByRole('button', { name: 'Zoom to features' })).toBeInTheDocument();
     });
@@ -76,6 +77,7 @@ describe('MapToolbarContainer', () => {
     });
 
     it('renders the layer selector', () => {
+      jest.spyOn(useIsDesktopModule, 'useIsDesktop').mockReturnValue(true);
       render(<MapToolbarContainer {...defaultProps} />);
       expect(screen.getByRole('button', { name: 'Map layers' })).toBeInTheDocument();
     });
@@ -87,11 +89,22 @@ describe('MapToolbarContainer', () => {
       expect(separators).toHaveLength(3);
     });
 
-    it('renders fewer separators on mobile due to hidden zoom buttons', () => {
+    it('shows only Locate and a "more" toggle on mobile until expanded', async () => {
       jest.spyOn(useIsDesktopModule, 'useIsDesktop').mockReturnValue(false);
       const { container } = render(<MapToolbarContainer {...defaultProps} />);
-      const separators = container.querySelectorAll('[role="separator"]');
-      expect(separators).toHaveLength(2);
+      expect(screen.getByRole('button', { name: 'Current location' })).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Zoom to features' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Map layers' })).not.toBeInTheDocument();
+      expect(container.querySelectorAll('[role="separator"]')).toHaveLength(0);
+
+      await userEvent.click(screen.getByRole('button', { name: 'More map controls' }));
+      expect(screen.getByRole('button', { name: 'Zoom to features' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Remove all markers' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Map layers' })).toBeInTheDocument();
+      expect(container.querySelectorAll('[role="separator"]')).toHaveLength(2);
+
+      await userEvent.click(screen.getByRole('button', { name: 'Fewer map controls' }));
+      expect(screen.queryByRole('button', { name: 'Zoom to features' })).not.toBeInTheDocument();
     });
   });
 

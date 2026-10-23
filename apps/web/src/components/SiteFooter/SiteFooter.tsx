@@ -8,8 +8,9 @@ import { version } from "../../../package.json";
 // Server-rendered so the links are in the initial HTML for crawlers.
 // Layout: Logo | App Name + Caption (2 lines) | Links with dividers | Version
 // Version appears on the right at all breakpoints. bg-primary-600 + white text
-// stays >= 4.5:1 in both light and dark. Fixed height (h-10 md:h-11) because
-// HomeContainer offsets its mobile controls bar by that amount — keep in sync.
+// stays >= 4.5:1 in both light and dark. Desktop only: below md the links, language
+// and version live in MobileMenu, so the footer takes no vertical space on phones
+// (the desktop block stays in the HTML for crawlers).
 const LINK_CLASSES =
   "underline-offset-2 hover:underline focus-visible:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white";
 
@@ -89,64 +90,6 @@ export async function SiteFooter({ className = "" }: SiteFooterProps) {
         <span className="flex-shrink-0 text-xs opacity-90">
           {versionLabel}
         </span>
-      </div>
-
-      {/* Mobile Layout (below md) - 3 column grid (auto, 1fr, auto) */}
-      <div className="md:hidden grid gap-2 p-2 min-h-20 border-b border-white border-opacity-20" style={{ gridTemplateColumns: 'auto 1fr auto' }}>
-        {/* Column 1: Logo */}
-        <div className="flex items-center justify-center">
-          <div className="flex-shrink-0 relative">
-            <div className="absolute inset-0 bg-white rounded-full opacity-20"></div>
-            <Image
-              src="/logo-mark.svg"
-              alt=""
-              width={40}
-              height={48}
-              className="h-12 w-auto relative filter brightness-0 invert"
-            />
-          </div>
-        </div>
-
-        {/* Column 2: App Name, Version (caption is desktop-only) */}
-        <div className="flex flex-col justify-center gap-y-1">
-          <span className="font-bold text-[11px] uppercase leading-tight">
-            {t("appName")}
-          </span>
-          <span className="text-[9px] opacity-90 leading-tight">
-            {versionLabel}
-          </span>
-        </div>
-
-        {/* Column 3: Links, in two columns -- Contact + About | FAQ + Data sources */}
-        <nav
-          aria-label={t("navLabel")}
-          className="grid grid-cols-2 gap-x-4 content-center text-left"
-        >
-          <div className="flex flex-col justify-center gap-y-0.5">
-            <Link href={localizedPath(locale, "/contact")} className={LINK_CLASSES}>
-              {t("contact")}
-            </Link>
-            <Link href={localizedPath(locale, "/about")} className={LINK_CLASSES}>
-              {t("about")}
-            </Link>
-            <LanguageSwitcher
-              locale={locale}
-              label={t("language")}
-              linkClassName={LINK_CLASSES}
-            />
-          </div>
-          <div className="flex flex-col justify-center gap-y-0.5">
-            <Link href={localizedPath(locale, "/faq")} className={LINK_CLASSES}>
-              {t("faq")}
-            </Link>
-            <Link
-              href={localizedPath(locale, "/data-sources")}
-              className={LINK_CLASSES}
-            >
-              {t("dataSources")}
-            </Link>
-          </div>
-        </nav>
       </div>
 
     </footer>

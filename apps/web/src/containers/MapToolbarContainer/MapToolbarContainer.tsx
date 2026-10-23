@@ -10,6 +10,8 @@ import {
   Navigation,
   MapPinOff,
   MapPinPlus,
+  MoreHorizontal,
+  X,
 } from "lucide-react";
 import { useLocationStore } from "@/store/index";
 import { useIsDesktop } from "@/hooks/useIsDesktop";
@@ -58,6 +60,7 @@ export function MapToolbarContainer({
   const map = useMap();
   const t = useTranslations("mapCorrection");
   const [isLocating, setIsLocating] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
   const isDesktop = useIsDesktop();
 
   const selectedAddress = useLocationStore((s) => s.selectedAddress);
@@ -139,6 +142,48 @@ export function MapToolbarContainer({
   const hasFeatures = (analysisResult?.features?.length ?? 0) > 0;
   const hasVisibleMarkers = visibleFacilityIds.size > 0;
 
+  const zoomToFeaturesButton = (
+    <ToolbarButton
+      icon={Crosshair}
+      label="Zoom to features"
+      onClick={handleZoomToFeatures}
+      disabled={!hasFeatures}
+    />
+  );
+  const removeMarkersButton = (
+    <ToolbarButton
+      icon={MapPinOff}
+      label="Remove all markers"
+      onClick={handleRemoveAllMarkers}
+      disabled={!hasVisibleMarkers}
+    />
+  );
+  const locateButton = (
+    <ToolbarButton
+      icon={Navigation}
+      label={isLocating ? "Locating..." : "Current location"}
+      onClick={handleCurrentLocation}
+      disabled={isLocating}
+    />
+  );
+  const extraControls = (
+    <>
+      <div className="w-5 h-px bg-slate-200 my-0.5" role="separator" />
+      <ToolbarButton
+        icon={MapPinPlus}
+        label={t("place.button")}
+        onClick={(e) => {
+          e.stopPropagation();
+          startAddCorrection();
+        }}
+      />
+
+      <div className="w-5 h-px bg-slate-200 my-0.5" role="separator" />
+
+      <LayerSelector activeLayer={activeLayer} onSelectLayer={onLayerChange} />
+    </>
+  );
+
   return (
     <SurfacePanel
       variant="toolbar"
@@ -161,37 +206,35 @@ export function MapToolbarContainer({
         </>
       )}
 
-      <ToolbarButton
-        icon={Crosshair}
-        label="Zoom to features"
-        onClick={handleZoomToFeatures}
-        disabled={!hasFeatures}
-      />
-      <ToolbarButton
-        icon={MapPinOff}
-        label="Remove all markers"
-        onClick={handleRemoveAllMarkers}
-        disabled={!hasVisibleMarkers}
-      />
-      <ToolbarButton
-        icon={Navigation}
-        label={isLocating ? "Locating..." : "Current location"}
-        onClick={handleCurrentLocation}
-        disabled={isLocating}
-      />
-      <div className="w-5 h-px bg-slate-200 my-0.5" role="separator" />
-      <ToolbarButton
-        icon={MapPinPlus}
-        label={t("place.button")}
-        onClick={(e) => {
-          e.stopPropagation();
-          startAddCorrection();
-        }}
-      />
-
-      <div className="w-5 h-px bg-slate-200 my-0.5" role="separator" />
-
-      <LayerSelector activeLayer={activeLayer} onSelectLayer={onLayerChange} />
+      {/* Below md only Locate and a "more" toggle show; the rest fold away so
+          the toolbar doesn't cover the map on a phone. */}
+      {isDesktop ? (
+        <>
+          {zoomToFeaturesButton}
+          {removeMarkersButton}
+          {locateButton}
+          {extraControls}
+        </>
+      ) : (
+        <>
+          {locateButton}
+          <ToolbarButton
+            icon={moreOpen ? X : MoreHorizontal}
+            label={moreOpen ? "Fewer map controls" : "More map controls"}
+            onClick={(e) => {
+              e.stopPropagation();
+              setMoreOpen((o) => !o);
+            }}
+          />
+          {moreOpen && (
+            <>
+              {zoomToFeaturesButton}
+              {removeMarkersButton}
+              {extraControls}
+            </>
+          )}
+        </>
+      )}
     </SurfacePanel>
   );
 }
