@@ -7,6 +7,8 @@
   "search": {
     "placeholder": "Rapua he wāhitau...",
     "loading": "E rapu ana...",
+    "lens": "Rapua",
+    "clear": "Whakawātea rapua",
     "noResults": "Kāore i kitea he hua"
   },
   "analyze": {

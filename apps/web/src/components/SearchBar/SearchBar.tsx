@@ -180,7 +180,7 @@ export function SearchBar({
             variant="plain"
             onClick={handleLensClick}
             className="md:hidden text-slate-400 hover:text-slate-600 active:text-slate-700"
-            label="Search"
+            label={t("search.lens")}
           />
           {query && !isLoading && (
             <IconButton
@@ -189,8 +189,8 @@ export function SearchBar({
               variant="plain"
               onClick={onClear}
               className="text-slate-400 hover:text-slate-600 active:text-slate-700"
-              label="Clear search"
-              title="Close"
+              label={t("search.clear")}
+              title={t("search.clear")}
             />
           )}
           {isLoading && (

@@ -173,7 +173,7 @@ export function HomeContainer() {
                 />
               </div>
               {/* Theme / Score Config buttons — desktop only; on mobile these
-                live in the "⋯" MobileMenu next to the search instead. Gated on
+                live in the hamburger MobileMenu inside the search field instead. Gated on
                 isDesktop (not a CSS breakpoint) so SettingsContainer isn't
                 double-mounted alongside its mobile counterpart below.
                 Positioned outside the search row's own flow (left-full) so

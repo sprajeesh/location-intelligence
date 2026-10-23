@@ -9,6 +9,8 @@ jest.mock('next-intl', () => ({
       'search.placeholder': 'Search an address...',
       'search.loading': 'Searching...',
       'search.noResults': 'No results found',
+      'search.lens': 'Search',
+      'search.clear': 'Clear search',
       'errors.generic': 'Something went wrong. Please try again.',
     };
     return translations[key] || key;

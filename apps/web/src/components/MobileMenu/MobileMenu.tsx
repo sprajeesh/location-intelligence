@@ -37,9 +37,10 @@ const LINK_CLASSES =
   "flex min-h-11 items-center px-3 text-sm text-ink rounded-lg hover:bg-slate-100 focus-ring-flush";
 
 /**
- * MobileMenu — the mobile-only hamburger menu, shown inside the search field's left edge. Holds everything that is
- * not part of the search -> results -> map flow: Theme, Scoring, Report,
- * Language and the site links that the footer shows on desktop.
+ * MobileMenu — the mobile-only hamburger menu, shown inside the search
+ * field's left edge. Holds everything that is not part of the search ->
+ * results -> map flow: Theme, Scoring, Report, Language and the site links
+ * that the footer shows on desktop.
  *
  * A disclosure (aria-expanded + aria-controls) rather than role="menu": the
  * panel mixes buttons, links and a language switcher, so it is read and
