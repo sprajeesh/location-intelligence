@@ -169,9 +169,9 @@ export function HomeContainer() {
                   suggestions={addressSearch.suggestions}
                   isLoading={addressSearch.isLoading}
                   error={addressSearch.error}
+                  leading={<MobileMenu report={menuReport} />}
                 />
               </div>
-              <MobileMenu report={menuReport} />
               {/* Theme / Score Config buttons — desktop only; on mobile these
                 live in the "⋯" MobileMenu next to the search instead. Gated on
                 isDesktop (not a CSS breakpoint) so SettingsContainer isn't
@@ -232,9 +232,9 @@ export function HomeContainer() {
                   suggestions={addressSearch.suggestions}
                   isLoading={addressSearch.isLoading}
                   error={addressSearch.error}
+                  leading={<MobileMenu report={menuReport} />}
                 />
               </div>
-              <MobileMenu report={menuReport} />
             </div>
           </div>
           <ResultsSheet

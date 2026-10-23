@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef } from "react";
+import { type ReactNode, useCallback, useEffect, useRef } from "react";
 import { SearchBar } from "@/components/SearchBar";
 import { useAnalyze } from "@/hooks/useAnalyze";
 import { useAnalyzeCategories } from "@/hooks/useAnalyzeCategories";
@@ -15,6 +15,7 @@ export interface SearchContainerProps {
   suggestions: AddressResult[];
   isLoading: boolean;
   error: string | null;
+  leading?: ReactNode;
 }
 
 export function SearchContainer({
@@ -23,6 +24,7 @@ export function SearchContainer({
   suggestions,
   isLoading,
   error,
+  leading,
 }: SearchContainerProps) {
   const {
     selectedAddress,
@@ -98,6 +100,7 @@ export function SearchContainer({
       onQueryChange={handleQueryChange}
       onSelectAddress={handleSelectAddress}
       onClear={handleClear}
+      leading={leading}
     />
   );
 }

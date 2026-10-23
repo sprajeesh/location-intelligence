@@ -6,7 +6,7 @@ import type { AddressResult } from '@/types/api';
 jest.mock('next-intl', () => ({
   useTranslations: () => (key: string) => {
     const translations: Record<string, string> = {
-      'search.placeholder': 'Search a New Zealand address...',
+      'search.placeholder': 'Search an address...',
       'search.loading': 'Searching...',
       'search.noResults': 'No results found',
       'errors.generic': 'Something went wrong. Please try again.',
@@ -47,7 +47,7 @@ describe('SearchBar', () => {
     it('renders the input field with placeholder', () => {
       render(<SearchBar {...defaultProps} />);
       const input = screen.getByPlaceholderText(
-        'Search a New Zealand address...'
+        'Search an address...'
       );
       expect(input).toBeInTheDocument();
     });
@@ -77,11 +77,40 @@ describe('SearchBar', () => {
       );
 
       const input = screen.getByPlaceholderText(
-        'Search a New Zealand address...'
+        'Search an address...'
       );
       fireEvent.change(input, { target: { value: 'Main' } });
 
       expect(onQueryChange).toHaveBeenCalledWith('Main');
+    });
+
+    it('renders the leading slot inside the field', () => {
+      render(
+        <SearchBar {...defaultProps} leading={<button>menu</button>} />
+      );
+      expect(screen.getByRole('button', { name: 'menu' })).toBeInTheDocument();
+    });
+
+    it('mobile lens selects the top suggestion', async () => {
+      const onSelectAddress = jest.fn();
+      render(
+        <SearchBar
+          {...defaultProps}
+          query="Main"
+          suggestions={mockSuggestions}
+          onSelectAddress={onSelectAddress}
+        />
+      );
+      await userEvent.click(screen.getByLabelText('Search'));
+      expect(onSelectAddress).toHaveBeenCalledWith(mockSuggestions[0]);
+    });
+
+    it('mobile lens with no suggestions only focuses the input', async () => {
+      const onSelectAddress = jest.fn();
+      render(<SearchBar {...defaultProps} onSelectAddress={onSelectAddress} />);
+      await userEvent.click(screen.getByLabelText('Search'));
+      expect(onSelectAddress).not.toHaveBeenCalled();
+      expect(screen.getByRole('combobox')).toHaveFocus();
     });
 
     it('calls onClear when clear button is clicked', async () => {
@@ -265,7 +294,7 @@ describe('SearchBar', () => {
       );
 
       const input = screen.getByPlaceholderText(
-        'Search a New Zealand address...'
+        'Search an address...'
       );
       fireEvent.keyDown(input, { key: 'ArrowDown' });
 
@@ -286,7 +315,7 @@ describe('SearchBar', () => {
       );
 
       const input = screen.getByPlaceholderText(
-        'Search a New Zealand address...'
+        'Search an address...'
       );
 
       fireEvent.keyDown(input, { key: 'ArrowDown' });
@@ -317,7 +346,7 @@ describe('SearchBar', () => {
       );
 
       const input = screen.getByPlaceholderText(
-        'Search a New Zealand address...'
+        'Search an address...'
       );
       fireEvent.keyDown(input, { key: 'ArrowDown' });
       fireEvent.keyDown(input, { key: 'Enter' });
@@ -335,7 +364,7 @@ describe('SearchBar', () => {
       );
 
       const input = screen.getByPlaceholderText(
-        'Search a New Zealand address...'
+        'Search an address...'
       );
       fireEvent.keyDown(input, { key: 'Escape' });
 
@@ -356,7 +385,7 @@ describe('SearchBar', () => {
       );
 
       const input = screen.getByPlaceholderText(
-        'Search a New Zealand address...'
+        'Search an address...'
       );
       fireEvent.keyDown(input, { key: 'Escape' });
       fireEvent.keyDown(input, { key: 'Enter' });

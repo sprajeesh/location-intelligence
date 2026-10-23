@@ -15,7 +15,9 @@ jest.mock('@/hooks/useReportAction', () => ({
   }),
 }));
 jest.mock('@/containers/SearchContainer', () => ({
-  SearchContainer: () => <div data-testid="search-container-mock" />,
+  SearchContainer: ({ leading }: { leading?: React.ReactNode }) => (
+    <div data-testid="search-container-mock">{leading}</div>
+  ),
 }));
 jest.mock('@/containers/AnalysisContainer', () => ({
   AnalysisContainer: () => <div data-testid="analysis-container-mock" />,

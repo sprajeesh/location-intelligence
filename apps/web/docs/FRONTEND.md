@@ -26,8 +26,10 @@ UI behaviour and rules for `apps/web/`. Stack, structure, setup and error-report
 Below `md`, once an address is selected the map is a full-bleed backdrop and
 nothing else swaps it out:
 
-- **Top bar** (floating): the address search plus a "⋯" `MobileMenu` holding
-  Theme, Scoring, Report (once results exist), Language and the site links.
+- **Top bar** (floating): the address search. A hamburger `MobileMenu` sits inside
+  the field's left edge (Theme, Scoring, Report once results exist, Language and
+  the site links) and the lens is a submit button at the right end, before the
+  clear (X) once there is text.
   The footer is desktop-only.
 - **Results sheet** (`ResultsSheet`): a bottom sheet with `peek` (~104px, address and
   score only), `half` (default after a search) and `full` snap points. Only the
