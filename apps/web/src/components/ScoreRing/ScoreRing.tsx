@@ -12,7 +12,9 @@ export interface ScoreRingProps {
   trackClassName?: string;
 }
 
-const STROKE_WIDTH = 10;
+// Full 10px stroke from 120px up; thinner on small rings so they don't look heavy.
+const strokeWidthFor = (size: number) =>
+  Math.min(10, Math.max(6, Math.round(size / 12)));
 const REVEAL_DURATION_MS = 1000;
 
 function easeOutCubic(t: number) {
@@ -44,7 +46,8 @@ export function ScoreRing({
   unitClassName = "text-xs font-medium text-white/70",
   trackClassName = "stroke-white/25",
 }: ScoreRingProps) {
-  const radius = (size - STROKE_WIDTH) / 2;
+  const strokeWidth = strokeWidthFor(size);
+  const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const clamped = score === null ? 0 : Math.max(0, Math.min(100, score));
   const center = size / 2;
@@ -94,7 +97,7 @@ export function ScoreRing({
           cx={center}
           cy={center}
           r={radius}
-          strokeWidth={STROKE_WIDTH}
+          strokeWidth={strokeWidth}
           fill="none"
           className={trackClassName}
         />
@@ -102,7 +105,7 @@ export function ScoreRing({
           cx={center}
           cy={center}
           r={radius}
-          strokeWidth={STROKE_WIDTH}
+          strokeWidth={strokeWidth}
           fill="none"
           stroke="currentColor"
           strokeLinecap="round"

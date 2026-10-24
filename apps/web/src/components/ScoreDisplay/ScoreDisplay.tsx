@@ -9,6 +9,7 @@ import { CoverageCaption } from "@/components/CoverageCaption";
 import { CategoryScoreCard } from "@/components/CategoryScoreCard";
 import { ScoreRing } from "@/components/ScoreRing";
 import { IconButton } from "@/components/ui/IconButton";
+import { useIsDesktop } from "@/hooks/useIsDesktop";
 
 /**
  * ScoreDisplay — Shows the composite location score, coverage indicator,
@@ -50,6 +51,7 @@ export function ScoreDisplay({
   onExplainCategory,
 }: ScoreDisplayProps) {
   const t = useTranslations();
+  const isDesktop = useIsDesktop();
   const [expandedCategories, setExpandedCategories] = useState<Set<CategoryId>>(new Set());
 
   const { scored, total } = parseCoverage(score.coverage);
@@ -67,25 +69,49 @@ export function ScoreDisplay({
     });
   };
 
+  const explainButton = (
+    <IconButton
+      icon={HelpCircle}
+      size="sm"
+      onClick={() => onExplainOverall?.()}
+      label={t("score.explain.openOverall", { defaultValue: "Explain the overall score" })}
+      className="absolute top-2 right-2 text-white/70 hover:text-white"
+    />
+  );
+
   return (
     <div className="space-y-3">
-      {/* Overall Score — the panel's focal point */}
-      <div className="text-center">
-        <div className="relative flex flex-col items-center gap-3 rounded-2xl surface-glass-primary py-8 transition-smooth">
-          <IconButton
-            icon={HelpCircle}
-            size="sm"
-            onClick={() => onExplainOverall?.()}
-            label={t("score.explain.openOverall", { defaultValue: "Explain the overall score" })}
-            className="absolute top-2 right-2 text-white/70 hover:text-white"
-          />
-          <h3 className="text-xs font-semibold text-white/70 uppercase tracking-wider">
-            {t("score.title", { defaultValue: "Location Score" })}
-          </h3>
-          <ScoreRing score={score.overall} />
-          <CoverageCaption scored={scored} total={total} className="text-white/70" />
+      {/* Overall Score — the panel's focal point. Below md the bottom sheet is
+          short on height, so the card becomes a compact row (ring beside the
+          title and coverage) instead of a tall centered stack. */}
+      {isDesktop ? (
+        <div className="text-center">
+          <div className="relative flex flex-col items-center gap-3 rounded-2xl surface-glass-primary py-8 transition-smooth">
+            {explainButton}
+            <h3 className="text-xs font-semibold text-white/70 uppercase tracking-wider">
+              {t("score.title", { defaultValue: "Location Score" })}
+            </h3>
+            <ScoreRing score={score.overall} />
+            <CoverageCaption scored={scored} total={total} className="text-white/70" />
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="relative flex items-center gap-4 rounded-2xl surface-glass-primary p-3 transition-smooth">
+          {explainButton}
+          <ScoreRing
+            score={score.overall}
+            size={72}
+            scoreClassName="text-xl font-bold text-white tabular-nums"
+            unitClassName="text-[10px] font-medium text-white/70"
+          />
+          <div className="flex flex-col gap-1 pr-8">
+            <h3 className="text-xs font-semibold text-white/70 uppercase tracking-wider">
+              {t("score.title", { defaultValue: "Location Score" })}
+            </h3>
+            <CoverageCaption scored={scored} total={total} className="text-white/70" />
+          </div>
+        </div>
+      )}
 
       {/* Category Breakdown -- staggered entrance overlaps the tail end of
           the score ring's ~1s reveal animation (see ScoreRing.tsx). */}

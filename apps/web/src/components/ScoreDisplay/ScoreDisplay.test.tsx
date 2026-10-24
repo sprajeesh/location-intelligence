@@ -188,7 +188,28 @@ const fullScore: ScoreResult = {
   ],
 };
 
+const mockIsDesktop = jest.fn(() => true);
+jest.mock('@/hooks/useIsDesktop', () => ({ useIsDesktop: () => mockIsDesktop() }));
+
 describe('ScoreDisplay', () => {
+  describe('compact hero below md', () => {
+    beforeEach(() => mockIsDesktop.mockReturnValue(false));
+    afterEach(() => mockIsDesktop.mockReturnValue(true));
+
+    it('keeps title, score, coverage and explain button', () => {
+      render(<ScoreDisplay score={fullScore} onExplainOverall={jest.fn()} />);
+      expect(screen.getByText('Location Score')).toBeInTheDocument();
+      expect(screen.getByText('21')).toBeInTheDocument();
+      expect(screen.getByText('Based on 5 of 5 categories')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /explain the overall score/i })).toBeInTheDocument();
+    });
+
+    it('renders a smaller ring', () => {
+      const { container } = render(<ScoreDisplay score={fullScore} />);
+      expect(container.querySelector('svg[width="72"]')).toBeInTheDocument();
+    });
+  });
+
   it('renders all five categories regardless of order or status', () => {
     render(<ScoreDisplay score={fullScore} />);
     expect(screen.getByTestId('category-score-card-education')).toBeInTheDocument();
