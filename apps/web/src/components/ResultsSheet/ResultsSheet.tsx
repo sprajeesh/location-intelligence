@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import type { SheetSnap } from "@/store";
+import { Button } from "@/components/ui/Button";
 import { SURFACE_PANEL_CLASSES } from "@/components/ui/SurfacePanel";
 
 export const PEEK_HEIGHT_PX = 104;
@@ -176,9 +177,9 @@ export function ResultsSheet({
       } ${className}`.trim()}
     >
       <div className="relative flex-shrink-0">
-        <button
-          type="button"
-          aria-label={label}
+        <Button
+          unstyled
+          ariaLabel={label}
           aria-expanded={snap !== "peek"}
           onPointerDown={onPointerDown}
           onPointerMove={onPointerMove}
@@ -200,7 +201,7 @@ export function ResultsSheet({
               {summary}
             </span>
           )}
-        </button>
+        </Button>
         {headerAction && <div className="absolute right-3 bottom-1 z-10">{headerAction}</div>}
       </div>
       <div
