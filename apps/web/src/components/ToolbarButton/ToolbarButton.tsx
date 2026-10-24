@@ -13,7 +13,9 @@ export interface ToolbarButtonProps {
 }
 
 export function ToolbarButton(props: ToolbarButtonProps) {
-  return <IconButton {...props} size="md" />;
+  // The map toolbar keeps its desktop footprint on mobile, so opt out of
+  // IconButton's below-md 44px touch-target growth.
+  return <IconButton {...props} size="md" className="max-md:w-8! max-md:h-8!" />;
 }
 
 export default ToolbarButton;
