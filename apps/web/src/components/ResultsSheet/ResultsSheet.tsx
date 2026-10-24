@@ -201,7 +201,7 @@ export function ResultsSheet({
             </span>
           )}
         </button>
-        {headerAction && <div className="absolute right-3 top-[18px] z-10">{headerAction}</div>}
+        {headerAction && <div className="absolute right-3 bottom-1 z-10">{headerAction}</div>}
       </div>
       <div
         className={`flex-1 min-h-0 overflow-hidden ${collapsed ? "invisible" : ""}`}
