@@ -5,7 +5,6 @@ import Link from "next/link";
 import { Menu } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { ReportButton } from "@/components/ReportButton";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { SettingsContainer } from "@/containers/SettingsContainer";
 import { Button } from "@/components/ui/Button";
@@ -14,13 +13,6 @@ import { localizedPath } from "@/lib/localizedPath";
 import { version } from "../../../package.json";
 
 export interface MobileMenuProps {
-  /** Report action; omit before an address is analyzed to hide the row. */
-  report?: {
-    generating: boolean;
-    ready: boolean;
-    disabled: boolean;
-    onClick: () => void;
-  };
   className?: string;
 }
 
@@ -39,7 +31,7 @@ const LINK_CLASSES =
 /**
  * MobileMenu — the mobile-only hamburger menu, shown inside the search
  * field's left edge. Holds everything that is not part of the search ->
- * results -> map flow: Theme, Scoring, Report, Language and the site links
+ * results -> map flow: Theme, Scoring, Language and the site links
  * that the footer shows on desktop.
  *
  * A disclosure (aria-expanded + aria-controls) rather than role="menu": the
@@ -50,7 +42,7 @@ const LINK_CLASSES =
  * Stays open when Scoring is tapped (its modal is portaled on top) so the
  * modal isn't unmounted mid-edit; closes on outside press, Escape or a link.
  */
-export function MobileMenu({ report, className = "" }: MobileMenuProps) {
+export function MobileMenu({ className = "" }: MobileMenuProps) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -101,15 +93,6 @@ export function MobileMenu({ report, className = "" }: MobileMenuProps) {
         >
           <ThemeToggle className={ROW_CLASSES} />
           <SettingsContainer className={ROW_CLASSES} />
-          {report && (
-            <ReportButton
-              generating={report.generating}
-              ready={report.ready}
-              disabled={report.disabled}
-              onClick={report.onClick}
-              fullWidth
-            />
-          )}
           <div className="px-3 py-1 text-sm">
             <LanguageSwitcher
               locale={locale}

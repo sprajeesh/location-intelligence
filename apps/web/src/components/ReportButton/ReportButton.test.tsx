@@ -134,4 +134,32 @@ describe('ReportButton', () => {
     await userEvent.click(screen.getByRole('button'));
     expect(onClick).toHaveBeenCalledTimes(1);
   });
+
+  describe('iconOnly', () => {
+    it('renders an icon button named "Report" with no visible label', async () => {
+      const onClick = jest.fn();
+      render(<ReportButton generating={false} ready={false} disabled={false} onClick={onClick} iconOnly />);
+
+      const button = screen.getByRole('button', { name: 'Report' });
+      expect(button.textContent).toBe('');
+      expect(button.querySelector('svg')).toBeInTheDocument();
+      expect(button.className).not.toMatch(/bg-primary-600/);
+      await userEvent.click(button);
+      expect(onClick).toHaveBeenCalled();
+    });
+
+    it('is named "Download" when ready', () => {
+      render(<ReportButton generating={false} ready disabled={false} onClick={jest.fn()} iconOnly />);
+      expect(screen.getByRole('button', { name: 'Download' })).toBeEnabled();
+    });
+
+    it('shows a spinner, stays named, and is disabled while generating', () => {
+      render(<ReportButton generating ready={false} disabled={false} onClick={jest.fn()} iconOnly />);
+      const button = screen.getByRole('button', { name: 'Generating…' });
+      expect(button).toBeDisabled();
+      expect(button).toHaveAttribute('aria-busy', 'true');
+      expect(button.querySelector('svg')).not.toBeInTheDocument();
+      expect(button.querySelector('.animate-spin')).toBeInTheDocument();
+    });
+  });
 });

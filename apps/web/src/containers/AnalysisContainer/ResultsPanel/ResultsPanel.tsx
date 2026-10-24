@@ -307,7 +307,7 @@ export default function ResultsPanel({
           )}
         </div>
 
-        {/* Full PDF report -- desktop only; on mobile it lives in the MobileMenu */}
+        {/* Full PDF report -- desktop only; on mobile it is an icon in the results sheet header */}
         {isDesktop && (
           <div className="flex-shrink-0 border-t border-slate-200 px-4 sm:px-6 pt-3 sm:pt-4">
             <ReportButton

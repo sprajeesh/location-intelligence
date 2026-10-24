@@ -16,14 +16,6 @@ jest.mock('@/containers/SettingsContainer', () => ({
 jest.mock('@/components/LanguageSwitcher', () => ({
   LanguageSwitcher: () => <div data-testid="language-switcher-mock" />,
 }));
-jest.mock('@/components/ReportButton', () => ({
-  ReportButton: ({ onClick }: { onClick: () => void }) => (
-    <button data-testid="report-button-mock" onClick={onClick}>Report</button>
-  ),
-}));
-
-const report = { generating: false, ready: false, disabled: false, onClick: jest.fn() };
-
 describe('MobileMenu', () => {
   it('is closed by default', () => {
     render(<MobileMenu />);
@@ -42,15 +34,10 @@ describe('MobileMenu', () => {
     expect(hrefs).toEqual(['/about', '/contact', '/faq', '/data-sources']);
   });
 
-  it('shows Report only when a report action is provided', async () => {
-    const { unmount } = render(<MobileMenu />);
+  it('does not list Report (it lives in the results sheet header)', async () => {
+    render(<MobileMenu />);
     await userEvent.click(screen.getByRole('button', { name: 'More' }));
-    expect(screen.queryByTestId('report-button-mock')).not.toBeInTheDocument();
-    unmount();
-    render(<MobileMenu report={report} />);
-    await userEvent.click(screen.getByRole('button', { name: 'More' }));
-    await userEvent.click(screen.getByTestId('report-button-mock'));
-    expect(report.onClick).toHaveBeenCalled();
+    expect(screen.queryByRole('button', { name: /report/i })).not.toBeInTheDocument();
   });
 
   it('closes on Escape, outside press and link click', async () => {

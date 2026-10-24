@@ -27,12 +27,13 @@ Below `md`, once an address is selected the map is a full-bleed backdrop and
 nothing else swaps it out:
 
 - **Top bar** (floating): the address search. A hamburger `MobileMenu` sits inside
-  the field's left edge (Theme, Scoring, Report once results exist, Language and
+  the field's left edge (Theme, Scoring, Language and
   the site links) and the lens is a submit button at the right end, before the
   clear (X) once there is text.
   The footer is desktop-only.
-- **Results sheet** (`ResultsSheet`): a bottom sheet with `peek` (~104px, address and
-  score only), `half` (default after a search) and `full` snap points. Only the
+- **Results sheet** (`ResultsSheet`): a bottom sheet with `peek` (~104px, address
+  plus an icon-only Report button pinned to the right of that row, outside the drag handle so
+  tapping it never moves the sheet), `half` (default after a search) and `full` snap points. Only the
   handle drags (tap cycles, arrow keys step), so the list inside scrolls normally.
   State lives in the store as `sheetSnap`; `isMapViewOnMobile` is true exactly at
   `peek`. Showing a marker or tapping a facility drops the sheet to `peek`.

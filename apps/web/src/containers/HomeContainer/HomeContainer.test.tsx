@@ -26,9 +26,7 @@ jest.mock('@/containers/MapContainer', () => ({
   MapContainerDynamic: () => <div data-testid="map-container-mock" />,
 }));
 jest.mock('@/components/MobileMenu', () => ({
-  MobileMenu: ({ report }: { report?: unknown }) => (
-    <div data-testid="mobile-menu-mock" data-has-report={String(!!report)} />
-  ),
+  MobileMenu: () => <div data-testid="mobile-menu-mock" />,
 }));
 jest.mock('@/containers/SettingsContainer', () => ({
   SettingsContainer: () => <div data-testid="settings-container-mock" />,
@@ -198,14 +196,15 @@ describe('HomeContainer', () => {
       render(<HomeContainer />);
       expect(screen.queryByTestId('theme-toggle-mock')).not.toBeInTheDocument();
       expect(screen.queryByTestId('settings-container-mock')).not.toBeInTheDocument();
-      expect(screen.getByTestId('mobile-menu-mock')).toHaveAttribute('data-has-report', 'true');
+      expect(screen.getByTestId('report-button-mock')).toBeInTheDocument();
     });
 
     it('offers the mobile menu without Report before an address is selected', () => {
       mockUseIsDesktop.mockReturnValue(false);
       mockUseLocationStore.mockReturnValue(makeStoreState());
       render(<HomeContainer />);
-      expect(screen.getByTestId('mobile-menu-mock')).toHaveAttribute('data-has-report', 'false');
+      expect(screen.getByTestId('mobile-menu-mock')).toBeInTheDocument();
+      expect(screen.queryByTestId('report-button-mock')).not.toBeInTheDocument();
       expect(screen.queryByTestId('theme-toggle-mock')).not.toBeInTheDocument();
     });
 

@@ -19,6 +19,8 @@ export interface ReportButtonProps {
   fullLabel?: boolean;
   /** Make the button full-width (default: true). Set to false for compact layouts like mobile controls bar. */
   fullWidth?: boolean;
+  /** Icon-only, outlined button (label kept as the accessible name) -- for tight, secondary spots like the mobile sheet header. */
+  iconOnly?: boolean;
 }
 
 /**
@@ -35,6 +37,7 @@ export function ReportButton({
   className = "",
   fullLabel = false,
   fullWidth = true,
+  iconOnly = false,
 }: ReportButtonProps) {
   const t = useTranslations();
 
@@ -49,6 +52,29 @@ export function ReportButton({
             ? "results.report.generateLabel"
             : "results.report.generate",
       );
+
+  if (iconOnly) {
+    // Button's `children` replaces the icon, so only pass it for the spinner.
+    return (
+      <Button
+        icon={FileDown}
+        iconOnly
+        label={label}
+        variant="outline"
+        onClick={onClick}
+        disabled={disabled || generating}
+        className={`${ready ? "text-primary-700" : ""} ${className}`.trim()}
+        aria-busy={generating || undefined}
+      >
+        {generating ? (
+          <span
+            aria-hidden="true"
+            className="w-4 h-4 rounded-full border-2 border-primary-200 border-t-primary-600 animate-spin"
+          />
+        ) : undefined}
+      </Button>
+    );
+  }
 
   if (generating) {
     return (
