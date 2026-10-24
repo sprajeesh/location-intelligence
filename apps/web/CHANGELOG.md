@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.30.1](https://github.com/sprajeesh/location-intelligence/compare/web@v0.30.0...web@v0.30.1) (2026-10-24)
+
+
+### Bug Fixes
+
+* **web:** upgrade @opennextjs/cloudflare to 1.20.13 for next 16.4.1 ([#429](https://github.com/sprajeesh/location-intelligence/issues/429)) ([ef9426f](https://github.com/sprajeesh/location-intelligence/commit/ef9426fa5a834fbc6352a350f6c3d4132540292d))
+
 ## [0.30.0](https://github.com/sprajeesh/location-intelligence/compare/web@v0.29.0...web@v0.30.0) (2026-10-23)
 
 
