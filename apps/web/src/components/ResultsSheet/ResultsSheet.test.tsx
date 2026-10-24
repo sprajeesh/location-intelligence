@@ -76,6 +76,29 @@ describe('ResultsSheet', () => {
     expect(onSnapChange).toHaveBeenCalledWith('full');
   });
 
+  it('renders the header action at peek, outside the handle, without moving the sheet', async () => {
+    const onSnapChange = jest.fn();
+    const onAction = jest.fn();
+    render(
+      <ResultsSheet
+        snap="peek"
+        onSnapChange={onSnapChange}
+        label="Results"
+        summary="Summary"
+        headerAction={<button onClick={onAction}>Report</button>}
+      >
+        <p>body</p>
+      </ResultsSheet>,
+    );
+    const action = screen.getByRole('button', { name: 'Report' });
+    expect(screen.getByRole('button', { name: 'Results' })).not.toContainElement(action);
+    // Stays above the results content, which has positioned children of its own.
+    expect(action.parentElement).toHaveClass('z-10');
+    await userEvent.click(action);
+    expect(onAction).toHaveBeenCalledTimes(1);
+    expect(onSnapChange).not.toHaveBeenCalled();
+  });
+
   it('snaps to the nearest point after a drag', () => {
     const { onSnapChange } = setup('half');
     const handle = screen.getByRole('button', { name: 'Results' });

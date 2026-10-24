@@ -15,6 +15,7 @@ import { useReportAction } from "@/hooks/useReportAction";
 import PanelCollapseButton from "@/components/PanelCollapseButton/PanelCollapseButton";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { SettingsContainer } from "@/containers/SettingsContainer";
+import { ReportButton } from "@/components/ReportButton";
 import { MobileMenu } from "@/components/MobileMenu";
 import { ResultsSheet } from "@/components/ResultsSheet";
 import { SURFACE_PANEL_CLASSES } from "@/components/ui/SurfacePanel";
@@ -79,7 +80,6 @@ export function HomeContainer() {
   );
 
   const reportAction = useReportAction(reportRequest);
-  const menuReport = selectedAddress ? reportAction : undefined;
 
   // Expand panel when a new address is selected (don't collapse based on previous action)
   useEffect(() => {
@@ -165,7 +165,7 @@ export function HomeContainer() {
                   suggestions={addressSearch.suggestions}
                   isLoading={addressSearch.isLoading}
                   error={addressSearch.error}
-                  leading={<MobileMenu report={menuReport} />}
+                  leading={<MobileMenu />}
                 />
               </div>
               {/* Theme / Score Config buttons — desktop only; on mobile these
@@ -228,7 +228,7 @@ export function HomeContainer() {
                   suggestions={addressSearch.suggestions}
                   isLoading={addressSearch.isLoading}
                   error={addressSearch.error}
-                  leading={<MobileMenu report={menuReport} />}
+                  leading={<MobileMenu />}
                 />
               </div>
             </div>
@@ -238,6 +238,17 @@ export function HomeContainer() {
             onSnapChange={setSheetSnap}
             onHeightChange={setMapBottomInsetPx}
             summary={sheetSummary}
+            headerAction={
+              selectedAddress && (
+                <ReportButton
+                  generating={reportAction.generating}
+                  ready={reportAction.ready}
+                  disabled={reportAction.disabled}
+                  onClick={reportAction.onClick}
+                  iconOnly
+                />
+              )
+            }
             label={t("sheet.label", { defaultValue: "Results" })}
           >
             <AnalysisContainer />

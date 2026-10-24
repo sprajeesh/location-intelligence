@@ -54,6 +54,8 @@ export interface ResultsSheetProps {
   onHeightChange?: (px: number) => void;
   /** Always-visible line next to the handle (what the user sees at "peek"). */
   summary?: ReactNode;
+  /** Action pinned to the right of the summary row (e.g. Report). Rendered beside the drag handle, not inside it, so it stays tappable without moving the sheet. */
+  headerAction?: ReactNode;
   label: string;
   children: ReactNode;
   className?: string;
@@ -71,6 +73,7 @@ export function ResultsSheet({
   onSnapChange,
   onHeightChange,
   summary,
+  headerAction,
   label,
   children,
   className = "",
@@ -172,27 +175,34 @@ export function ResultsSheet({
         dragHeight === null ? "transition-[height] duration-200 ease-out motion-reduce:transition-none" : ""
       } ${className}`.trim()}
     >
-      <button
-        type="button"
-        aria-label={label}
-        aria-expanded={snap !== "peek"}
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={endDrag}
-        onPointerCancel={endDrag}
-        onKeyDown={onKeyDown}
-        // click would double-fire after pointerup, so the pointer handlers own taps;
-        // Enter/Space (keyboard click with detail 0) are handled here.
-        onClick={(e) => {
-          if (e.detail === 0) onSnapChange(nextSnap(snap));
-        }}
-        className="flex-shrink-0 w-full flex flex-col items-center gap-1 pt-2 pb-1 touch-none cursor-grab active:cursor-grabbing focus-ring-flush rounded-t-2xl"
-      >
-        <span aria-hidden="true" className="h-1.5 w-10 rounded-full bg-slate-300" />
-        {summary && (
-          <span className="block w-full min-h-8 px-4 text-left text-sm text-ink">{summary}</span>
-        )}
-      </button>
+      <div className="relative flex-shrink-0">
+        <button
+          type="button"
+          aria-label={label}
+          aria-expanded={snap !== "peek"}
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={endDrag}
+          onPointerCancel={endDrag}
+          onKeyDown={onKeyDown}
+          // click would double-fire after pointerup, so the pointer handlers own taps;
+          // Enter/Space (keyboard click with detail 0) are handled here.
+          onClick={(e) => {
+            if (e.detail === 0) onSnapChange(nextSnap(snap));
+          }}
+          className="w-full flex flex-col items-center gap-1 pt-2 pb-1 touch-none cursor-grab active:cursor-grabbing focus-ring-flush rounded-t-2xl"
+        >
+          <span aria-hidden="true" className="h-1.5 w-10 rounded-full bg-slate-300" />
+          {summary && (
+            <span
+              className={`block w-full pl-4 text-left text-sm text-ink ${headerAction ? "min-h-11 pr-16" : "min-h-8 pr-4"}`}
+            >
+              {summary}
+            </span>
+          )}
+        </button>
+        {headerAction && <div className="absolute right-3 top-[18px] z-10">{headerAction}</div>}
+      </div>
       <div
         className={`flex-1 min-h-0 overflow-hidden ${collapsed ? "invisible" : ""}`}
         aria-hidden={collapsed}
