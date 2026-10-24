@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.31.0](https://github.com/sprajeesh/location-intelligence/compare/web@v0.30.1...web@v0.31.0) (2026-10-24)
+
+
+### Features
+
+* **web:** move Report to an icon button in the mobile results sheet header ([#437](https://github.com/sprajeesh/location-intelligence/issues/437)) ([2f3f808](https://github.com/sprajeesh/location-intelligence/commit/2f3f8089ceba7ac882a2ba4d27346fcf6d99826e))
+
+
+### Bug Fixes
+
+* **web:** compact the overall score hero card on mobile ([#435](https://github.com/sprajeesh/location-intelligence/issues/435)) ([7294d12](https://github.com/sprajeesh/location-intelligence/commit/7294d1277193958800dc82dd79c6a26848544520))
+* **web:** drop score prefix from mobile results sheet summary ([#434](https://github.com/sprajeesh/location-intelligence/issues/434)) ([5efe879](https://github.com/sprajeesh/location-intelligence/commit/5efe879384238db022d9d043fdbe34d8094eab45))
+* **web:** keep map toolbar button size on mobile ([#433](https://github.com/sprajeesh/location-intelligence/issues/433)) ([3fd41ac](https://github.com/sprajeesh/location-intelligence/commit/3fd41ac42362bb079751f79b1017927ced0d44b3))
+* **web:** match search padding in mobile results view to initial view ([#436](https://github.com/sprajeesh/location-intelligence/issues/436)) ([3d19d7a](https://github.com/sprajeesh/location-intelligence/commit/3d19d7a3d4f28be9ef161593b8da0e3d65912ad1))
+
 ## [0.30.1](https://github.com/sprajeesh/location-intelligence/compare/web@v0.30.0...web@v0.30.1) (2026-10-24)
 
 
