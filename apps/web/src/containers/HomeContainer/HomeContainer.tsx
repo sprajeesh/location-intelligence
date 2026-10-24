@@ -219,7 +219,7 @@ export function HomeContainer() {
           around the floating pieces. */}
       {mobileActive && (
         <>
-          <div className="absolute top-0 left-0 right-0 z-20 md:hidden p-3 pt-safe pointer-events-none">
+          <div className="absolute top-0 left-0 right-0 z-20 md:hidden p-4 pointer-events-none">
             <div className="pointer-events-auto flex items-start gap-2">
               <div className="flex-1">
                 <SearchContainer
