@@ -118,12 +118,8 @@ export function HomeContainer() {
     if (!mobileActive) setMapBottomInsetPx(0);
   }, [mobileActive, setMapBottomInsetPx]);
 
-  const overallScore = analysisResult?.score?.overall;
   const sheetSummary = selectedAddress && (
     <span className="flex items-center gap-2 min-w-0">
-      {typeof overallScore === "number" && (
-        <span className="font-bold text-primary-700 flex-shrink-0">{Math.round(overallScore)}</span>
-      )}
       <span className="truncate text-slate-600">{selectedAddress.displayName}</span>
     </span>
   );
