@@ -8,7 +8,7 @@ import { SURFACE_PANEL_CLASSES } from "@/components/ui/SurfacePanel";
 
 export const PEEK_HEIGHT_PX = 104;
 // Space left between the sheet and the bottom of the map so the scale bar and attribution stay visible.
-export const MAP_EDGE_GAP_PX = 24;
+export const MAP_EDGE_GAP_PX = 16;
 const HALF_RATIO = 0.5;
 const FULL_RATIO = 0.92;
 // A drag shorter than this is a tap on the handle, not a resize.
