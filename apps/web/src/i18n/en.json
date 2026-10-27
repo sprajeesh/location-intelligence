@@ -209,6 +209,10 @@
       "helpZeroWeight": "Every selected category needs a weight greater than 0% to save."
     }
   },
+  "languageSwitcher": {
+    "buttonLabel": "Language",
+    "tooltip": "Switch language"
+  },
   "footer": {
     "navLabel": "Site",
     "appName": "Location Intelligence",
