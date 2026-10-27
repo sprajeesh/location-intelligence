@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { HomeContainer } from './HomeContainer';
+import { MAP_EDGE_GAP_PX } from '@/components/ResultsSheet/ResultsSheet';
 
 jest.mock('@/store');
 jest.mock('@/hooks/useAddressSearch');
@@ -252,7 +253,7 @@ describe('HomeContainer', () => {
       );
       render(<HomeContainer />);
       expect(screen.getByTestId('analysis-container-mock').parentElement).toHaveAttribute('aria-hidden', 'true');
-      expect(setMapBottomInsetPx).toHaveBeenCalledWith(104);
+      expect(setMapBottomInsetPx).toHaveBeenCalledWith(104 + MAP_EDGE_GAP_PX);
     });
 
     it('resets the map inset when leaving the mobile layout', () => {

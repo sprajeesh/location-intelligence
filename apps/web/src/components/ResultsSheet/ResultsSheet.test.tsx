@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { ResultsSheet, nearestSnap, nextSnap, snapHeights } from './ResultsSheet';
+import { MAP_EDGE_GAP_PX, ResultsSheet, nearestSnap, nextSnap, snapHeights } from './ResultsSheet';
 
 // jsdom has no PointerEvent, so fireEvent.pointer* would drop clientY.
 if (!window.PointerEvent) {
@@ -50,8 +50,8 @@ describe('ResultsSheet', () => {
 
   it('sizes to the snap and reports its height', () => {
     const { onHeightChange } = setup('half');
-    expect(screen.getByRole('region', { name: 'Results' })).toHaveStyle({ height: '400px' });
-    expect(onHeightChange).toHaveBeenCalledWith(400);
+    expect(screen.getByRole('region', { name: 'Results' })).toHaveStyle({ height: '400px', bottom: `${MAP_EDGE_GAP_PX}px` });
+    expect(onHeightChange).toHaveBeenCalledWith(400 + MAP_EDGE_GAP_PX);
   });
 
   it('keeps children mounted but hidden and inert at peek', () => {

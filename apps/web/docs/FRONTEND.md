@@ -35,6 +35,7 @@ nothing else swaps it out:
   plus an icon-only Report button pinned to the right of that row, outside the drag handle so
   tapping it never moves the sheet), `half` (default after a search) and `full` snap points. Only the
   handle drags (tap cycles, arrow keys step), so the list inside scrolls normally.
+  The sheet sits `MAP_EDGE_GAP_PX` (32px) above the map's bottom edge so the scale bar and attribution stay visible.
   State lives in the store as `sheetSnap`; `isMapViewOnMobile` is true exactly at
   `peek`. Showing a marker or tapping a facility drops the sheet to `peek`.
 - **Map camera** keeps its target clear of the sheet via `mapBottomInsetPx`
