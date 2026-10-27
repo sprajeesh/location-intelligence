@@ -183,10 +183,7 @@ export function HomeContainer() {
                 {isDesktop && (
                   <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 flex items-center gap-2 pointer-events-auto whitespace-nowrap">
                     <ThemeToggle className={SURFACE_PANEL_CLASSES.chip} />
-                    <SettingsContainer
-                      expanded
-                      className={SURFACE_PANEL_CLASSES.chip}
-                    />
+                    <SettingsContainer className={SURFACE_PANEL_CLASSES.chip} />
                     <LanguageSwitcher
                       locale={locale}
                       label={t("footer.language")}
