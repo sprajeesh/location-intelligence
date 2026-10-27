@@ -259,6 +259,17 @@ h6 {
   @apply bg-white/80 text-slate-500 backdrop-blur-xs;
 }
 
+/* Below md the sheet's gap sets the offset, so the scale bar sits flush in it.
+   Leaflet's .leaflet-bottom/.leaflet-left .leaflet-control rules outrank a
+   bare .leaflet-control-scale, hence the extra selector. */
+@media (max-width: 767px) {
+  .leaflet-bottom .leaflet-control.leaflet-control-scale {
+    margin-bottom: 0;
+    margin-left: 0;
+    border: none;
+  }
+}
+
 /* Leaflet's own popup/scale chrome ships hardcoded white/black inline CSS
    (not Tailwind classes), so it needs explicit dark overrides. */
 .dark .leaflet-popup-content-wrapper,
