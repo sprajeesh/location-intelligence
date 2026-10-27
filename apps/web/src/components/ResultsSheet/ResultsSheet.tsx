@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/Button";
 import { SURFACE_PANEL_CLASSES } from "@/components/ui/SurfacePanel";
 
 export const PEEK_HEIGHT_PX = 104;
+// Space left between the sheet and the bottom of the map so the scale bar and attribution stay visible.
+export const MAP_EDGE_GAP_PX = 16;
 const HALF_RATIO = 0.5;
 const FULL_RATIO = 0.92;
 // A drag shorter than this is a tap on the handle, not a resize.
@@ -44,14 +46,16 @@ export function nearestSnap(
 ): SheetSnap {
   const projected = height - velocity * 120;
   return SNAP_ORDER.reduce((best, key) =>
-    Math.abs(heights[key] - projected) < Math.abs(heights[best] - projected) ? key : best,
+    Math.abs(heights[key] - projected) < Math.abs(heights[best] - projected)
+      ? key
+      : best,
   );
 }
 
 export interface ResultsSheetProps {
   snap: SheetSnap;
   onSnapChange: (snap: SheetSnap) => void;
-  /** Reports the height (px) the sheet currently covers, so the map can keep its target visible. */
+  /** Reports the height (px) the sheet currently covers, measured up from the map edge, so the map can keep its target visible. */
   onHeightChange?: (px: number) => void;
   /** Always-visible line next to the handle (what the user sees at "peek"). */
   summary?: ReactNode;
@@ -96,7 +100,7 @@ export function ResultsSheet({
 
   // Report only the settled snap height: the map camera doesn't need to chase
   // every pointer-move pixel, and this avoids a store write per frame of a drag.
-  const settledHeight = heights[snap];
+  const settledHeight = heights[snap] + MAP_EDGE_GAP_PX;
   useEffect(() => {
     onHeightChange?.(settledHeight);
   }, [settledHeight, onHeightChange]);
@@ -171,9 +175,11 @@ export function ResultsSheet({
   return (
     <section
       aria-label={label}
-      style={{ height }}
-      className={`absolute inset-x-0 bottom-0 z-30 flex flex-col rounded-t-2xl ${SURFACE_PANEL_CLASSES.sidebar} pb-safe ${
-        dragHeight === null ? "transition-[height] duration-200 ease-out motion-reduce:transition-none" : ""
+      style={{ height, bottom: MAP_EDGE_GAP_PX }}
+      className={`absolute inset-x-0 z-30 flex flex-col rounded-2xl ${SURFACE_PANEL_CLASSES.sidebar} pb-safe ${
+        dragHeight === null
+          ? "transition-[height] duration-200 ease-out motion-reduce:transition-none"
+          : ""
       } ${className}`.trim()}
     >
       <div className="relative flex-shrink-0">
@@ -193,7 +199,10 @@ export function ResultsSheet({
           }}
           className="w-full flex flex-col items-center gap-1 pt-2 pb-1 touch-none cursor-grab active:cursor-grabbing focus-ring-flush rounded-t-2xl"
         >
-          <span aria-hidden="true" className="h-1.5 w-10 rounded-full bg-slate-300" />
+          <span
+            aria-hidden="true"
+            className="h-1.5 w-10 rounded-full bg-slate-300"
+          />
           {summary && (
             <span
               className={`block w-full pl-4 text-left text-sm text-ink ${headerAction ? "min-h-11 pr-16" : "min-h-8 pr-4"}`}
@@ -202,7 +211,9 @@ export function ResultsSheet({
             </span>
           )}
         </Button>
-        {headerAction && <div className="absolute right-3 bottom-1 z-10">{headerAction}</div>}
+        {headerAction && (
+          <div className="absolute right-3 bottom-1 z-10">{headerAction}</div>
+        )}
       </div>
       <div
         className={`flex-1 min-h-0 overflow-hidden ${collapsed ? "invisible" : ""}`}
