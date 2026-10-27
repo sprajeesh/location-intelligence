@@ -191,7 +191,6 @@
   "settings": {
     "tooltip": "Tautuhinga",
     "buttonLabel": "Hātepe",
-    "buttonLabelExpanded": "Tautuhinga Hātepe",
     "title": "Tautuhinga",
     "description": "Ngā whare kua tohua mō tō hātepe wāhi noho, i ropu mā kāhui.",
     "helpMaxFacilities": "Kōwhiritia kia {max} ngā whare.",

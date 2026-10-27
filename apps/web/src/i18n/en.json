@@ -189,9 +189,8 @@
     "closeDirections": "Close directions"
   },
   "settings": {
-    "tooltip": "Settings",
-    "buttonLabel": "Scoring",
-    "buttonLabelExpanded": "Scoring Config",
+    "tooltip": "Score settings",
+    "buttonLabel": "Score settings",
     "title": "Settings",
     "description": "Facilities included in your location score, grouped by category.",
     "helpMaxFacilities": "Choose up to {max} facilities. Unselect one to choose a different one.",
