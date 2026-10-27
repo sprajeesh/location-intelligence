@@ -187,6 +187,7 @@ export function HomeContainer() {
                     <LanguageSwitcher
                       locale={locale}
                       label={t("footer.language")}
+                      buttonClassName={SURFACE_PANEL_CLASSES.chip}
                       linkClassName="underline-offset-2 hover:underline"
                     />
                   </div>

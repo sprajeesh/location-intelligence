@@ -5,6 +5,11 @@ let mockPathname = "/about";
 
 jest.mock("next/navigation", () => ({ usePathname: () => mockPathname }));
 
+jest.mock("next-intl", () => ({
+  useTranslations: () => (key: string, opts?: { defaultValue?: string }) =>
+    opts?.defaultValue ?? key,
+}));
+
 function setup(locale = "en") {
   render(<LanguageSwitcher locale={locale} label="Language" />);
   return screen.getByRole("button", { name: "Language" });
@@ -20,8 +25,12 @@ describe("LanguageSwitcher", () => {
 
   it("shows the current locale on the trigger, collapsed by default", () => {
     const trigger = setup("mi");
-    expect(trigger).toHaveTextContent("MI");
+    expect(trigger).toHaveTextContent("Language [MI]");
     expect(trigger).toHaveAttribute("aria-expanded", "false");
+  });
+
+  it("defaults the trigger text to EN", () => {
+    expect(setup()).toHaveTextContent("Language [EN]");
   });
 
   it("toggles aria-expanded when the trigger is clicked", () => {

@@ -2,11 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Languages } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { routing } from "@/i18n/routing";
 import { localizedPath } from "@/lib/localizedPath";
+import { useTranslations } from "next-intl";
 
 const FLAG_LABELS: Record<string, string> = { en: "EN", mi: "MI" };
 
@@ -40,6 +41,7 @@ interface LanguageSwitcherProps {
   locale: string;
   label: string;
   className?: string;
+  buttonClassName?: string;
   linkClassName?: string;
 }
 
@@ -56,11 +58,13 @@ export function LanguageSwitcher({
   locale,
   label,
   className = "",
+  buttonClassName = "",
   linkClassName = "",
 }: LanguageSwitcherProps) {
   const base = stripLocale(usePathname() ?? "/");
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const t = useTranslations();
 
   useEffect(() => {
     if (!open) return;
@@ -81,15 +85,19 @@ export function LanguageSwitcher({
   return (
     <div ref={ref} className={`relative inline-block ${className}`.trim()}>
       <Button
-        unstyled
+        icon={Languages}
+        title={t("languageSwitcher.tooltip", {
+          defaultValue: "Switch language",
+        })}
         ariaLabel={label}
         aria-haspopup="true"
         aria-expanded={open}
         onClick={() => setOpen((o) => !o)}
-        className={`inline-flex items-center gap-x-1 ${linkClassName}`.trim()}
+        className={buttonClassName}
       >
-        <NzFlag />
-        {FLAG_LABELS[locale] ?? locale.toUpperCase()}
+        <Languages size={16} strokeWidth={2} aria-hidden="true" />
+        {t("languageSwitcher.buttonLabel", { defaultValue: "Language" })} [
+        {FLAG_LABELS[locale] ?? locale.toUpperCase()}]
         <ChevronDown
           aria-hidden="true"
           className={`h-3 w-3 transition-transform ${open ? "rotate-180" : ""}`}
