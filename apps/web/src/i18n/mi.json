@@ -209,6 +209,10 @@
       "helpZeroWeight": "Me rahi ake i te 0% te taumaha."
     }
   },
+  "languageSwitcher": {
+    "buttonLabel": "Reo",
+    "tooltip": "Hurihia te reo"
+  },
   "footer": {
     "navLabel": "Pae tukutuku",
     "appName": "Mōhiotanga Wāhi",
