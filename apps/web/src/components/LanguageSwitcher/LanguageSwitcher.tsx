@@ -5,6 +5,8 @@ import Link from "next/link";
 import { ChevronDown, Languages } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/Button";
+import { SURFACE_PANEL_CLASSES } from "@/components/ui/SurfacePanel";
+import { menuItemClasses, MenuItemDot } from "@/components/ui/MenuItem";
 import { routing } from "@/i18n/routing";
 import { localizedPath } from "@/lib/localizedPath";
 import { useTranslations } from "next-intl";
@@ -103,10 +105,9 @@ export function LanguageSwitcher({
           className={`h-3 w-3 transition-transform ${open ? "rotate-180" : ""}`}
         />
       </Button>
-      {/* Always rendered (just hidden) so the locale links stay in the markup for crawlers.
-          Opens upward because the footer sits at the bottom of the viewport. */}
+      {/* Always rendered (just hidden) so the locale links stay in the markup for crawlers. */}
       <ul
-        className={`${open ? "" : "hidden"} absolute bottom-full left-0 mb-1 min-w-[4.5rem] rounded-md bg-primary-700 py-1 shadow-lg z-50`}
+        className={`${open ? "" : "hidden"} absolute top-full left-0 mt-1 min-w-[4.5rem] py-1 z-50 ${SURFACE_PANEL_CLASSES.popover}`}
       >
         {routing.locales.map((l) => (
           <li key={l}>
@@ -116,10 +117,11 @@ export function LanguageSwitcher({
               lang={l}
               aria-current={l === locale ? "true" : undefined}
               onClick={() => setOpen(false)}
-              className={`flex items-center gap-x-1 px-3 py-1 hover:bg-primary-800 ${l === locale ? "font-bold" : ""} ${linkClassName}`.trim()}
+              className={`${menuItemClasses(l === locale)} ${linkClassName}`.trim()}
             >
               <NzFlag />
               {FLAG_LABELS[l] ?? l.toUpperCase()}
+              {l === locale && <MenuItemDot />}
             </Link>
           </li>
         ))}
