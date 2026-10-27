@@ -45,8 +45,6 @@ function weightsEqual(
  */
 export interface SettingsContainerProps {
   className?: string;
-  /** Use the fuller "Scoring Config" label instead of "Scoring" — desktop only, where there's room next to the search bar. */
-  expanded?: boolean;
   /** Collapse to icon-only below 400px (label stays as the accessible name) — mobile controls only, where buttons share limited space. */
   iconOnlyOnNarrow?: boolean;
   /** Always render icon-only (label becomes the accessible name) — mobile map view's floating controls. */
@@ -55,7 +53,6 @@ export interface SettingsContainerProps {
 
 export function SettingsContainer({
   className,
-  expanded = false,
   iconOnlyOnNarrow = false,
   iconOnly = false,
 }: SettingsContainerProps = {}) {
@@ -145,16 +142,14 @@ export function SettingsContainer({
       <Button
         icon={Settings}
         variant="outline"
-        label={
-          expanded
-            ? t("settings.buttonLabelExpanded", {
-                defaultValue: "Scoring Config",
-              })
-            : t("settings.buttonLabel", { defaultValue: "Scoring" })
-        }
-        title={t("settings.tooltip", { defaultValue: "Settings" })}
+        label={t("settings.buttonLabel", { defaultValue: "Score settings" })}
+        title={t("settings.tooltip", { defaultValue: "Score settings" })}
         iconOnly={iconOnly}
-        ariaLabel={iconOnlyOnNarrow ? t("settings.buttonLabel", { defaultValue: "Scoring" }) : undefined}
+        ariaLabel={
+          iconOnlyOnNarrow
+            ? t("settings.buttonLabel", { defaultValue: "Score settings" })
+            : undefined
+        }
         labelClassName={iconOnlyOnNarrow ? "max-[400px]:hidden" : undefined}
         onClick={() => setIsOpen(true)}
         className={className}

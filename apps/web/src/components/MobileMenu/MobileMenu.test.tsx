@@ -23,7 +23,7 @@ describe('MobileMenu', () => {
     expect(screen.queryByTestId('theme-toggle-mock')).not.toBeInTheDocument();
   });
 
-  it('opens with Theme, Scoring, Language and site links', async () => {
+  it('opens with Theme, Score settings, Language and site links', async () => {
     render(<MobileMenu />);
     await userEvent.click(screen.getByRole('button', { name: 'More' }));
     expect(screen.getByRole('button', { name: 'More' })).toHaveAttribute('aria-expanded', 'true');

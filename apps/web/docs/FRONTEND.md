@@ -27,7 +27,7 @@ Below `md`, once an address is selected the map is a full-bleed backdrop and
 nothing else swaps it out:
 
 - **Top bar** (floating): the address search. A hamburger `MobileMenu` sits inside
-  the field's left edge (Theme, Scoring, Language and
+  the field's left edge (Theme, Score settings, Language and
   the site links) and the lens is a submit button at the right end, before the
   clear (X) once there is text.
   The footer is desktop-only.
