@@ -61,24 +61,15 @@ describe("SiteFooter", () => {
     expect(hasLongLabel).toBe(true);
   });
 
-  it("puts the language switcher before About", async () => {
-    await renderFooter();
-    const nav = screen.getByRole("navigation");
-    const order = Array.from(nav.querySelectorAll("a")).map((a) => a.textContent);
-    expect(order.slice(0, 3)).toEqual(["EN", "MI", "about"]);
-  });
-
   it("renders a single nav; mobile links live in MobileMenu", async () => {
     await renderFooter();
     expect(screen.getAllByRole("navigation")).toHaveLength(1);
   });
 
-  it("links the language switcher to the current page in each locale", async () => {
+  it("does not render a language switcher; it lives in the header and MobileMenu", async () => {
     mockLocale = "mi";
     await renderFooter();
-    const links = screen.getAllByRole("link").filter((l) => l.hasAttribute("hreflang"));
-    expect(Array.from(new Set(links.map((l) => l.getAttribute("href"))))).toEqual(["/about", "/mi/about"]);
-    expect(links.filter((l) => l.getAttribute("aria-current") === "true").map((l) => l.textContent)).toEqual(["MI"]);
+    expect(screen.getAllByRole("link").filter((l) => l.hasAttribute("hreflang"))).toHaveLength(0);
   });
 
   it("shows the app version from package.json", async () => {
