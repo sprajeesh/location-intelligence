@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.32.1](https://github.com/sprajeesh/location-intelligence/compare/web@v0.32.0...web@v0.32.1) (2026-10-28)
+
+
+### Bug Fixes
+
+* **web:** keep score category and facility labels on one line ([#450](https://github.com/sprajeesh/location-intelligence/issues/450)) ([8dd7342](https://github.com/sprajeesh/location-intelligence/commit/8dd7342ac824ad4db984b177ca12057af81b93e4))
+
 ## [0.32.0](https://github.com/sprajeesh/location-intelligence/compare/web@v0.31.0...web@v0.32.0) (2026-10-28)
 
 
