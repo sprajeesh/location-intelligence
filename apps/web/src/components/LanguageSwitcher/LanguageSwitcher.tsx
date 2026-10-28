@@ -87,7 +87,6 @@ export function LanguageSwitcher({
   return (
     <div ref={ref} className={`relative inline-block ${className}`.trim()}>
       <Button
-        icon={Languages}
         title={t("languageSwitcher.tooltip", {
           defaultValue: "Switch language",
         })}
@@ -105,7 +104,8 @@ export function LanguageSwitcher({
           className={`h-3 w-3 transition-transform ${open ? "rotate-180" : ""}`}
         />
       </Button>
-      {/* Always rendered (just hidden) so the locale links stay in the markup for crawlers. */}
+      {/* Always rendered (just hidden) so the locale links stay in the markup for crawlers.
+          Opens downward (top-full) because the switcher sits in the top search row. */}
       <ul
         className={`${open ? "" : "hidden"} absolute top-full left-0 mt-1 min-w-[4.5rem] py-1 z-50 ${SURFACE_PANEL_CLASSES.popover}`}
       >

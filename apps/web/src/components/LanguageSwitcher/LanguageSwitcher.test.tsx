@@ -33,6 +33,10 @@ describe("LanguageSwitcher", () => {
     expect(setup()).toHaveTextContent("Language [EN]");
   });
 
+  it("gives the trigger a tooltip", () => {
+    expect(setup()).toHaveAttribute("title", "Switch language");
+  });
+
   it("toggles aria-expanded when the trigger is clicked", () => {
     const trigger = setup();
     fireEvent.click(trigger);
