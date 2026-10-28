@@ -201,6 +201,23 @@ describe('HomeContainer', () => {
       expect(screen.getByTestId('report-button-mock')).toBeInTheDocument();
     });
 
+    it('renders the language switcher beside Theme/Scoring on desktop', () => {
+      mockUseLocationStore.mockReturnValue(makeStoreState({ selectedAddress: MOCK_ADDRESS }));
+      render(<HomeContainer />);
+      const trigger = screen.getByRole('button', { name: 'footer.language' });
+      expect(trigger).toHaveAttribute('aria-expanded', 'false');
+      const chipGroup = screen.getByTestId('theme-toggle-mock').parentElement as HTMLElement;
+      expect(chipGroup).toContainElement(trigger);
+      expect(chipGroup).toContainElement(screen.getByTestId('settings-container-mock'));
+    });
+
+    it('does not render the language switcher on mobile (it lives in MobileMenu)', () => {
+      mockUseIsDesktop.mockReturnValue(false);
+      mockUseLocationStore.mockReturnValue(makeStoreState({ selectedAddress: MOCK_ADDRESS }));
+      render(<HomeContainer />);
+      expect(screen.queryByRole('button', { name: 'footer.language' })).not.toBeInTheDocument();
+    });
+
     it('offers the mobile menu without Report before an address is selected', () => {
       mockUseIsDesktop.mockReturnValue(false);
       mockUseLocationStore.mockReturnValue(makeStoreState());
