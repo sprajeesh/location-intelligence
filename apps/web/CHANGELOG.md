@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.32.0](https://github.com/sprajeesh/location-intelligence/compare/web@v0.31.0...web@v0.32.0) (2026-10-28)
+
+
+### Features
+
+* **ui:** language switcher re-alignment ([#447](https://github.com/sprajeesh/location-intelligence/issues/447)) ([9ad537a](https://github.com/sprajeesh/location-intelligence/commit/9ad537adf0a52e0b4ec8c604097793c3d1d99354))
+* **web:** rename score settings button to "Score settings" ([#443](https://github.com/sprajeesh/location-intelligence/issues/443)) ([3eccf48](https://github.com/sprajeesh/location-intelligence/commit/3eccf484b2c6f00d5d4d76dc5dcee6e917c2031f))
+
+
+### Bug Fixes
+
+* adjust scale control css ([#441](https://github.com/sprajeesh/location-intelligence/issues/441)) ([e89b5fe](https://github.com/sprajeesh/location-intelligence/commit/e89b5fec259860f981a79f6aed810f25d9bc2774))
+* **map:** leave a gap between map footer and result sheet ([#440](https://github.com/sprajeesh/location-intelligence/issues/440)) ([0296f5a](https://github.com/sprajeesh/location-intelligence/commit/0296f5a3be891628946831024828d773de2bbc44))
+
 ## [0.31.0](https://github.com/sprajeesh/location-intelligence/compare/web@v0.30.1...web@v0.31.0) (2026-10-24)
 
 

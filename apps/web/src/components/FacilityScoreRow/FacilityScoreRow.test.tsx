@@ -94,6 +94,24 @@ describe('FacilityScoreRow', () => {
     ).toBeInTheDocument();
   });
 
+  describe('Label layout', () => {
+    it('keeps the label on one line (truncate) with the full name in a title tooltip', () => {
+      render(<FacilityScoreRow facility={scoredFacility} />);
+      const label = screen.getByText('Schools');
+      expect(label).toHaveClass('truncate');
+      expect(label).toHaveAttribute('title', 'Schools');
+    });
+
+    it('renders the status pill beside the explanation, not in the header', () => {
+      render(<FacilityScoreRow facility={noDataFoundFacility} />);
+      const pill = screen.getByText('None found nearby');
+      const explanation = screen.getByText('No hospital found nearby.');
+      const header = screen.getByTestId('facility-score-row-header-hospitals');
+      expect(header).not.toContainElement(pill);
+      expect(explanation.parentElement).toContainElement(pill);
+    });
+  });
+
   describe('Type-level marker toggle', () => {
     const schoolFeatures: Feature[] = [
       { id: 'school-1', name: 'Auckland Primary', category: 'schools', lat: -36.85, lon: 174.76, distanceKm: 0.5 },
