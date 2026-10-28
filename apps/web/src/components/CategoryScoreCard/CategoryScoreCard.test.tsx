@@ -93,6 +93,15 @@ describe('CategoryScoreCard', () => {
     expect(screen.getByText('0')).toBeInTheDocument();
   });
 
+  it('keeps the category label on one line (truncate) with the full name in a title tooltip', () => {
+    render(
+      <CategoryScoreCard category={checkedZeroCategory} isExpanded={false} onToggleExpand={jest.fn()} />
+    );
+    const label = screen.getByText('Transport');
+    expect(label).toHaveClass('truncate', 'min-w-0');
+    expect(label).toHaveAttribute('title', 'Transport');
+  });
+
   it('renders these two states as visually and structurally distinct', () => {
     const { unmount } = render(
       <CategoryScoreCard category={notCheckedCategory} isExpanded={false} onToggleExpand={jest.fn()} />
