@@ -93,13 +93,12 @@ export function MobileMenu({ className = "" }: MobileMenuProps) {
         >
           <ThemeToggle className={ROW_CLASSES} />
           <SettingsContainer className={ROW_CLASSES} />
-          <div className="px-3 py-1 text-sm">
-            <LanguageSwitcher
-              locale={locale}
-              label={t("footer.language")}
-              linkClassName="underline-offset-2 hover:underline"
-            />
-          </div>
+          <LanguageSwitcher
+            locale={locale}
+            label={t("footer.language")}
+            buttonClassName={ROW_CLASSES}
+            linkClassName="underline-offset-2 hover:underline"
+          />
           <nav
             aria-label={t("footer.navLabel")}
             className="mt-1 border-t border-slate-200 pt-1"

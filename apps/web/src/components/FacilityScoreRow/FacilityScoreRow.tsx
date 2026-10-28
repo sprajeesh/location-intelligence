@@ -9,6 +9,7 @@ import { StatusPill } from "@/components/StatusPill";
 import { FacilityItem } from "@/components/FacilityItem";
 import { IconButton } from "@/components/ui/IconButton";
 import { getVisibilityToggleClasses } from "@/components/ui/Button";
+import { FLUID_LABEL_CONTAINER_CLASS, FLUID_LABEL_TEXT_CLASS } from "@/utils/fluidLabel";
 
 /**
  * FacilityScoreRow — Renders one facility type's score breakdown within a
@@ -60,6 +61,13 @@ export function FacilityScoreRow({
   const isTypeVisible =
     typeFeatureIds.length > 0 && typeFeatureIds.every((id) => visibleFacilityIds?.has(id));
 
+  const statusPill =
+    displayStatus === "not_checked" ? (
+      <StatusPill label={t("score.status.notAssessed", { defaultValue: "Not assessed" })} />
+    ) : displayStatus === "no_data_found" ? (
+      <StatusPill label={t("score.status.noDataFound", { defaultValue: "None found nearby" })} />
+    ) : null;
+
   return (
     <div
       data-testid={`facility-score-row-${facility.facilityType}`}
@@ -69,15 +77,15 @@ export function FacilityScoreRow({
         ${isNotChecked ? "border-dashed border-slate-200 opacity-60" : "border-slate-200"}
       `}
     >
-      <div className="flex items-center justify-between gap-2">
-        <span className="text-sm text-slate-700">{label}</span>
-        <div className="flex items-center gap-2">
-          {displayStatus === "not_checked" && (
-            <StatusPill label={t("score.status.notAssessed", { defaultValue: "Not assessed" })} />
-          )}
-          {displayStatus === "no_data_found" && (
-            <StatusPill label={t("score.status.noDataFound", { defaultValue: "None found nearby" })} />
-          )}
+      {/* Label font scales with this header's width; see utils/fluidLabel. */}
+      <div
+        data-testid={`facility-score-row-header-${facility.facilityType}`}
+        className={`${FLUID_LABEL_CONTAINER_CLASS} flex items-center justify-between gap-2`}
+      >
+        <span className={`flex-1 ${FLUID_LABEL_TEXT_CLASS} text-slate-700`} title={label}>
+          {label}
+        </span>
+        <div className="flex shrink-0 items-center gap-2">
           {!isNotChecked && (
             <span className={`text-sm font-semibold ${getScoreColorClass(facility.score)}`}>
               {formatScoreValue(facility.score)}
@@ -101,7 +109,10 @@ export function FacilityScoreRow({
           )}
         </div>
       </div>
-      <p className="text-xs text-slate-500 mt-1">{facility.explanation}</p>
+      <div className="mt-1 flex items-start gap-2">
+        <p className="min-w-0 flex-1 text-xs text-slate-500">{facility.explanation}</p>
+        {statusPill && <div className="shrink-0">{statusPill}</div>}
+      </div>
 
       {displayStatus === "scored" && features.length > 0 && (
         <ul className="space-y-1 mt-2">

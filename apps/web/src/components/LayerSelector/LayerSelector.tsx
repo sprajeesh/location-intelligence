@@ -5,6 +5,7 @@ import { Layers, Map, Satellite, Mountain } from "lucide-react";
 import { ToolbarButton } from "@/components/ToolbarButton";
 import { Button } from "@/components/ui/Button";
 import { SURFACE_PANEL_CLASSES } from "@/components/ui/SurfacePanel";
+import { menuItemClasses, MenuItemDot } from "@/components/ui/MenuItem";
 
 export type MapLayerId = "default" | "satellite" | "topo";
 
@@ -92,21 +93,11 @@ export function LayerSelector({ activeLayer, onSelectLayer }: LayerSelectorProps
                 onClick={() => handleSelect(layer.id)}
                 role="menuitem"
                 aria-current={isActive ? "true" : undefined}
-                className={`
-                  w-full flex items-center gap-2 px-3 py-2 text-sm
-                  transition-colors duration-150 focus-ring-inset
-                  ${
-                    isActive
-                      ? "text-primary-600 bg-primary-50 active:bg-primary-100"
-                      : "text-slate-700 hover:text-slate-900 hover:bg-slate-50 active:bg-slate-100"
-                  }
-                `}
+                className={menuItemClasses(isActive)}
               >
                 <LayerIcon size={14} strokeWidth={2} />
                 <span>{layer.label}</span>
-                {isActive && (
-                  <div className="ml-auto w-1.5 h-1.5 rounded-full bg-primary-500" />
-                )}
+                {isActive && <MenuItemDot />}
               </Button>
             );
           })}

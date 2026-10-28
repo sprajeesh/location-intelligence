@@ -141,7 +141,6 @@ export function SettingsContainer({
     <>
       <Button
         icon={Settings}
-        variant="outline"
         label={t("settings.buttonLabel", { defaultValue: "Score settings" })}
         title={t("settings.tooltip", { defaultValue: "Score settings" })}
         iconOnly={iconOnly}
