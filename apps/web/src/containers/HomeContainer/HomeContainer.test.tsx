@@ -39,6 +39,7 @@ jest.mock('@/components/ThemeToggle', () => ({
   ThemeToggle: () => <div data-testid="theme-toggle-mock" />,
 }));
 jest.mock('next-intl', () => ({
+  useLocale: () => 'en',
   useTranslations: () => (_key: string, opts?: { defaultValue?: string }) => opts?.defaultValue ?? _key,
 }));
 jest.mock('@/components/PanelCollapseButton/PanelCollapseButton', () => ({
