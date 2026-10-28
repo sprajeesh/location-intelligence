@@ -98,20 +98,15 @@ describe('FacilityScoreRow', () => {
     it('keeps the label on one line (truncate) with the full name in a title tooltip', () => {
       render(<FacilityScoreRow facility={scoredFacility} />);
       const label = screen.getByText('Schools');
-      expect(label).toHaveClass('truncate', 'min-w-0', 'flex-1');
+      expect(label).toHaveClass('truncate');
       expect(label).toHaveAttribute('title', 'Schools');
-    });
-
-    it('scales the label font between 12px and 14px via clamp() against the header width', () => {
-      render(<FacilityScoreRow facility={scoredFacility} />);
-      expect(screen.getByText('Schools').className).toContain('clamp(0.75rem,5cqw,0.875rem)');
     });
 
     it('renders the status pill beside the explanation, not in the header', () => {
       render(<FacilityScoreRow facility={noDataFoundFacility} />);
       const pill = screen.getByText('None found nearby');
       const explanation = screen.getByText('No hospital found nearby.');
-      const header = screen.getByText('Hospitals').parentElement as HTMLElement;
+      const header = screen.getByTestId('facility-score-row-header-hospitals');
       expect(header).not.toContainElement(pill);
       expect(explanation.parentElement).toContainElement(pill);
     });

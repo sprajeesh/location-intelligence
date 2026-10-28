@@ -9,6 +9,7 @@ import { StatusPill } from "@/components/StatusPill";
 import { FacilityItem } from "@/components/FacilityItem";
 import { IconButton } from "@/components/ui/IconButton";
 import { getVisibilityToggleClasses } from "@/components/ui/Button";
+import { FLUID_LABEL_CONTAINER_CLASS, FLUID_LABEL_TEXT_CLASS } from "@/utils/fluidLabel";
 
 /**
  * FacilityScoreRow — Renders one facility type's score breakdown within a
@@ -76,12 +77,12 @@ export function FacilityScoreRow({
         ${isNotChecked ? "border-dashed border-slate-200 opacity-60" : "border-slate-200"}
       `}
     >
-      {/* @container: the label's font size scales with this header's width. */}
-      <div className="@container flex items-center justify-between gap-2">
-        <span
-          className="min-w-0 flex-1 truncate text-[length:clamp(0.75rem,5cqw,0.875rem)] text-slate-700"
-          title={label}
-        >
+      {/* Label font scales with this header's width; see utils/fluidLabel. */}
+      <div
+        data-testid={`facility-score-row-header-${facility.facilityType}`}
+        className={`${FLUID_LABEL_CONTAINER_CLASS} flex items-center justify-between gap-2`}
+      >
+        <span className={`flex-1 ${FLUID_LABEL_TEXT_CLASS} text-slate-700`} title={label}>
           {label}
         </span>
         <div className="flex shrink-0 items-center gap-2">

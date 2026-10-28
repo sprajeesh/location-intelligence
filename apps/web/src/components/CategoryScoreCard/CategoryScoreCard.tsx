@@ -11,6 +11,7 @@ import {
   sortFacilitiesForDisplay,
 } from "@/utils/scoreDisplay";
 import { getScoreCategoryIcon } from "@/utils/categoryIcons";
+import { FLUID_LABEL_CONTAINER_CLASS, FLUID_LABEL_TEXT_CLASS } from "@/utils/fluidLabel";
 import { FacilityScoreRow } from "@/components/FacilityScoreRow";
 import { StatusPill } from "@/components/StatusPill";
 import { CollapsibleCard } from "@/components/ui/CollapsibleCard";
@@ -114,7 +115,7 @@ export function CategoryScoreCard({
       collapseLabel={t("score.actions.collapse", { label, defaultValue: `Collapse ${label}` })}
       contentId={`category-score-${category.category}`}
       className={isNotChecked ? "border-dashed border-slate-200 opacity-60" : "border-slate-200"}
-      headerClassName="items-center @container"
+      headerClassName={`items-center ${FLUID_LABEL_CONTAINER_CLASS}`}
       contentClassName="px-3 pb-3"
       wrapperProps={{
         "data-testid": `category-score-card-${category.category}`,
@@ -123,10 +124,7 @@ export function CategoryScoreCard({
       header={
         <span className="flex min-w-0 items-center gap-2 font-medium text-slate-900">
           <Icon className="w-4 h-4 text-slate-500 flex-shrink-0" aria-hidden="true" />
-          <span
-            className="min-w-0 truncate text-[length:clamp(0.75rem,6cqw,1rem)]"
-            title={label}
-          >
+          <span className={FLUID_LABEL_TEXT_CLASS} title={label}>
             {label}
           </span>
         </span>
