@@ -19,7 +19,9 @@ protection has to work without knowing "who" is asking — it can only limit
    out to Overpass (OpenStreetMap) and OSRM (routing) and used to accept an
    unbounded `categories` list, so a single request could have triggered
    thousands of real outbound calls.
-2. **A downstream dependency (Overpass, OSRM, Redis) goes down or gets slow.**
+2. **A downstream dependency (Overpass, OSRM, Redis) goes down or gets slow.** Facility
+   categories served from the local POI snapshot (`docs/POI_SNAPSHOT.md`) do not depend on
+   Overpass at request time. Only the fallback categories do.
    The API runs as a single uvicorn worker with no `--workers` — one stuck
    request can affect every other concurrent visitor, so failures need to be
    fast, not just eventually-correct.
@@ -100,7 +102,7 @@ it already did on individual failures:
   fails fast with the same `502 Routing service unavailable` an individual
   OSRM failure already returns — driving routes are unaffected since they
   use the separate `osrm` breaker/instance.
-- **Overpass**: the whole merged-query call (including its own internal
+- **Overpass** (fallback categories only): the whole merged-query call (including its own internal
   retries) counts as one breaker outcome, not each HTTP attempt. When open,
   that batch of categories fails immediately and is reported the same way
   a real Overpass failure already was — `warnings: ["Could not fetch

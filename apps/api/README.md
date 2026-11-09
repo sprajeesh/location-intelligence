@@ -1,7 +1,7 @@
 # Location Intelligence — FastAPI Backend
 
 Production-ready FastAPI service for location-based facility analysis and scoring.
-Handles geocoding (LINZ PostGIS), Overpass queries, distance calculation, caching, and hybrid scoring.
+Handles geocoding (LINZ PostGIS), facility lookups (local OSM POI snapshot in PostGIS, with Overpass as fallback), distance calculation, caching, and hybrid scoring.
 
 **Framework:** FastAPI 0.115+  
 **Language:** Python 3.13  
@@ -135,6 +135,11 @@ curl http://localhost:8000/health
 └─────────────────────────────────────────┘
 ```
 
+Facility lookups read the local OSM POI snapshot (PostGIS `osm_poi`) first, and
+Overpass serves only the categories the snapshot does not cover. See
+[`docs/POI_SNAPSHOT.md`](docs/POI_SNAPSHOT.md) for the build, load and rollback
+procedures.
+
 ### Directory Structure
 
 ```
@@ -151,7 +156,7 @@ app/
 ├── services/               # Business logic (pure, no HTTP)
 │   ├── __init__.py
 │   ├── geocoding.py        # Orchestrates PostGIS address search + cache
-│   ├── facilities.py       # Orchestrates Overpass (parallel) + cache
+│   ├── facilities.py       # POI snapshot first; Overpass (parallel) + cache for the rest
 │   ├── distance.py         # Orchestrates OSRM + fallback
 │   └── scoring.py          # LocationScoringService (isolated formula)
 ├── clients/                # HTTP clients for external services
@@ -201,6 +206,7 @@ class Settings(BaseSettings):
     api_port: int = 8000
     database_url: str = "postgresql://gisuser:changeme@localhost:5432/gis"
     overpass_url: str = "https://overpass-api.de/api/interpreter"
+    poi_snapshot_enabled: bool = True  # false = every category uses Overpass
     osrm_url: str = "http://localhost:5000"
     linz_api_key: str | None = None
     redis_url: str = "redis://localhost:6379"
@@ -265,6 +271,7 @@ via `AddressRepository(pool)`.
 #### OverpassClient (`app/clients/overpass.py`)
 
 - Posts OverpassQL queries to Overpass API
+- Serves facility categories the local snapshot does not cover, and the map-correction checks. Facility search reads the snapshot first (`app/repositories/db/poi_snapshot_repository.py`).
 - Supports parallel queries per category
 - **Retry logic:** 2× attempts with 1s/2s exponential backoff
 - **Deduplication:** By OSM id (handles duplicate nodes/ways)
@@ -347,7 +354,8 @@ class CacheRepository:
 | Data | Pattern | TTL |
 |---|---|---|
 | Geocoding | `geocode:{query_hash}` | 30 days |
-| Overpass | `overpass:{lat}:{lon}:{radius}:{category}` | 24h |
+| Overpass (fallback categories only) | `overpass:{lat}:{lon}:{radius}:{category}` | 24h |
+| POI snapshot (PostGIS) | not cached; a local radius query | refreshed monthly |
 | OSRM | `osrm:{lat1},{lon1}:{lat2},{lon2}:{mode}` | 24h |
 
 ### 5. Services
@@ -360,11 +368,13 @@ class CacheRepository:
 
 #### FacilitiesService (`app/services/facilities.py`)
 
-- **Parallel queries:** Uses `asyncio.gather()` for all categories
+- **Snapshot first:** categories whose every OSM tag pair is in the POI snapshot are queried in PostGIS. They are not cached and never call Overpass.
+- **Overpass for the rest:** other categories check the Redis cache, then go to Overpass in merged batches
+- **Parallel queries:** Uses `asyncio.gather()` for both paths
 - **Retry:** Overpass failures retry 2× with backoff
 - **Deduplication:** By OSM id (removes duplicate nodes/ways)
 - **Merges:** All results into single facility list
-- **Caches:** Per category + radius + location (24h)
+- **Caches:** Overpass results per category + radius + location (24h)
 
 #### DistanceService (`app/services/distance.py`)
 
@@ -673,13 +683,14 @@ select = ["E", "F", "I", "UP"]
 | Data                               | TTL            | Rationale                                     |
 | ---------------------------------- | -------------- | --------------------------------------------- |
 | PostGIS address search (geocoding) | 30 days        | LINZ addresses rarely change                  |
-| Overpass (facilities)              | 24 hours       | OSM data updates slowly                       |
+| POI snapshot (facilities)          | not cached     | Local PostGIS query; refreshed monthly        |
+| Overpass (fallback categories)     | 24 hours       | OSM data updates slowly                       |
 | OSRM (distances)                   | 24 hours       | Routes stable, but roads may change           |
 | **Scores**                         | **NOT cached** | Computed on-the-fly from cached facility data |
 
 ### Parallel Execution
 
-- Overpass queries run **in parallel** (one per category) via `asyncio.gather()`
+- Overpass queries run **in parallel** (one per fallback batch) via `asyncio.gather()`; snapshot queries run concurrently too
 - OSRM distance requests can be batched
 
 ### Timeouts
@@ -711,6 +722,7 @@ API_HOST=0.0.0.0
 API_PORT=8000
 DATABASE_URL=postgresql://gisuser:secret@your-postgis-host:5432/gis
 OVERPASS_URL=https://your-overpass-instance
+POI_SNAPSHOT_ENABLED=true
 OSRM_URL=https://your-osrm-instance
 OSRM_FOOT_URL=https://your-osrm-foot-instance
 OSRM_BIKE_URL=https://your-osrm-bike-instance
@@ -767,6 +779,21 @@ psql -h localhost -U gisuser -d gis -c "SELECT count(*) FROM addresses;"
 psql -h localhost -U gisuser -d gis \
   -c "SELECT full_address FROM addresses WHERE full_address_ascii ILIKE 'cuba%' LIMIT 5;"
 ```
+
+### Facilities missing, or out of date
+
+Facility categories come from the local POI snapshot when it is loaded.
+
+```bash
+# Is a snapshot loaded, and how old is it?
+psql "$DATABASE_URL" -c "SELECT built_at, source_name, source_timestamp, row_count FROM osm_poi_snapshot;"
+# No row: the snapshot was never loaded, and every category uses Overpass.
+# Look for poi_snapshot.loaded / poi_snapshot.unavailable / poi_snapshot.partial_coverage in the startup log.
+```
+
+A new snapshot takes effect only after an API restart. To turn the snapshot off and
+send everything to Overpass, set `POI_SNAPSHOT_ENABLED=false` and restart. See
+[`docs/POI_SNAPSHOT.md`](docs/POI_SNAPSHOT.md).
 
 ### Overpass queries timeout or fail
 

@@ -110,7 +110,8 @@ app/
 
 Clients:
 - NominatimClient
-- OverpassClient
+- OverpassClient (fallback for facilities not in the local POI snapshot)
+- PoiSnapshotRepository (local OSM POI snapshot in PostGIS; see apps/api/docs/POI_SNAPSHOT.md)
 - LocationScoringService
 - DistanceService
 
@@ -156,9 +157,13 @@ Address → coordinates
 Autocomplete:
 Top 5 suggestions
 
-## Overpass
+## Overpass and the local POI snapshot
 
-Fetch:
+Facility categories are read from the local OSM POI snapshot in PostGIS, built
+monthly from the Geofabrik NZ extract (`apps/api/docs/POI_SNAPSHOT.md`). Overpass
+serves categories the snapshot does not cover, and the map-correction checks.
+
+Facility types fetched:
 - Schools
 - Universities
 - Hospitals
@@ -391,6 +396,7 @@ Handle:
 
 API_URL
 OVERPASS_URL
+POI_SNAPSHOT_ENABLED
 NOMINATIM_URL
 CACHE_URL
 

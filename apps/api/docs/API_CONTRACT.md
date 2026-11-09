@@ -9,7 +9,7 @@ Endpoints and request/response shapes for the FastAPI backend. Where each module
 | GET    | `/health`                       | `{"status": "ok", "version": <apps/api/pyproject.toml>}` |
 | GET    | `/search/address?q=&country=nz` | LINZ PostGIS address search, top 5, NZ addresses        |
 | GET    | `/categories`                   | All categories with `implemented` flag + marker `color` |
-| POST   | `/location/analyze`             | Full analysis — geocode + Overpass + OSRM + score       |
+| POST   | `/location/analyze`             | Full analysis — geocode + facilities (POI snapshot, Overpass fallback) + OSRM + score |
 | POST   | `/reports`                      | Start a background PDF report job → `202 {jobId}` (see `apps/api/docs/REPORTS.md`) |
 | GET    | `/reports/{jobId}`              | Job status: `queued\|running\|ready\|failed`            |
 | GET    | `/reports/{jobId}/download`     | The finished PDF (`409` until ready, `404` once expired) |
@@ -104,7 +104,7 @@ Request (`remove`): `correctionType: "remove"`, `targetOsmId` (`node/12345`, `wa
 | `remove` | Otherwise                                                  | `202 {id,status:"pending"}`               |
 
 - A non-empty `website` (honeypot) returns `202` with an unstored id and stores nothing.
-- If Overpass fails or its breaker is open, the row is stored with `dedupe_checked = false`.
+- If Overpass fails or its breaker is open, the row is stored with `dedupe_checked = false`. (Map corrections always check against live Overpass; they do not use the POI snapshot.)
 - `422` for invalid input, including coordinates outside NZ (lat -48 to -33, lon 165 to 180). The echoed body masks `reporterEmail`.
 - `429` per IP: `add` 5 per hour, `remove` 3 per hour. Fails open when Redis is unavailable.
 - Privacy: the IP is stored only as an HMAC-SHA256 (`MAP_CORRECTION_IP_HASH_SECRET`). Logs carry event names and correction types, never the email or raw IP.

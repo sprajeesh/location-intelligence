@@ -94,7 +94,7 @@ See [apps/web/README.md](apps/web/README.md#quick-start)
 │  ┌─────────────────────────────────────────┐   │
 │  │  Services Layer                         │   │
 │  │  - Geocoding (PostGIS + Redis cache)    │   │
-│  │  - Facilities (Overpass, parallel)      │   │
+│  │  - Facilities (POI snapshot, Overpass)  │   │
 │  │  - Distance (OSRM + Haversine fallback) │   │
 │  │  - Scoring (hybrid formula)             │   │
 │  └─────────────────────────────────────────┘   │
@@ -102,7 +102,8 @@ See [apps/web/README.md](apps/web/README.md#quick-start)
      │                       │                │
 ┌────▼──────────┐ ┌──────────▼──────┐ ┌──────▼──────┐
 │  PostGIS      │ │  Overpass API   │ │  OSRM       │
-│  LINZ Address │ │  (Facilities)   │ │  (Distance) │
+│  LINZ Address │ │  (fallback      │ │  (Distance) │
+│  + OSM POIs   │ │   facilities)   │ │             │
 │  :5432        │ │                 │ │  :5000      │
 └───────────────┘ └─────────────────┘ └─────────────┘
                            │
