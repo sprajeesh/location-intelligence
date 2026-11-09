@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.16.0](https://github.com/sprajeesh/location-intelligence/compare/api@v0.15.1...api@v0.16.0) (2026-11-09)
+
+
+### Features
+
+* **api:** serve facility categories from a local OSM POI snapshot ([#456](https://github.com/sprajeesh/location-intelligence/issues/456)) ([7734180](https://github.com/sprajeesh/location-intelligence/commit/77341803afdf3c67ea8d3d46879b40ba88537952))
+
+
+### Bug Fixes
+
+* **api:** pin pypdf to 6.21.4 to clear Snyk high-severity findings ([#455](https://github.com/sprajeesh/location-intelligence/issues/455)) ([bb8085c](https://github.com/sprajeesh/location-intelligence/commit/bb8085cf3f31f9454de82eefffc973a35dc83ef9))
+
 ## [0.15.1](https://github.com/sprajeesh/location-intelligence/compare/api@v0.15.0...api@v0.15.1) (2026-10-24)
 
 
