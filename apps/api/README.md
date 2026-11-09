@@ -855,7 +855,7 @@ Facility categories come from the local POI snapshot when it is loaded.
 # Is a snapshot loaded, and how old is it?
 psql "$DATABASE_URL" -c "SELECT built_at, source_name, source_timestamp, row_count FROM osm_poi_snapshot;"
 # No row: the snapshot was never loaded, and every category uses Overpass.
-# Look for poi_snapshot.loaded / poi_snapshot.unavailable / poi_snapshot.partial_coverage in the startup log.
+# Look for poi_snapshot.loaded / not_loaded / unavailable / partial_coverage in the startup log.
 ```
 
 A new snapshot takes effect only after an API restart. To turn the snapshot off and

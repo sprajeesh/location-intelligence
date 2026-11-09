@@ -190,3 +190,43 @@ async def test_failed_load_rolls_back_and_keeps_previous_snapshot(  # type: igno
         )
     # The live table and the manifest only. The staging and previous tables must be gone.
     assert tables == ["osm_poi", "osm_poi_snapshot"]
+
+
+async def test_row_count_mismatch_is_refused_and_keeps_previous_snapshot(  # type: ignore[no-untyped-def]
+    loaded, database_url: str, tmp_path: Path, snapshot_dir: Path
+) -> None:
+    """A file whose row count disagrees with its manifest must not replace the table."""
+    before = await PoiSnapshotRepository(loaded).load_manifest()
+    assert before is not None
+
+    bad_dir = tmp_path / "mismatch"
+    bad_dir.mkdir()
+    (bad_dir / "poi-snapshot.ndjson.gz").write_bytes(
+        (snapshot_dir / "poi-snapshot.ndjson.gz").read_bytes()
+    )
+    manifest = json.loads((snapshot_dir / "poi-snapshot.manifest.json").read_text())
+    manifest["row_count"] = 999
+    (bad_dir / "poi-snapshot.manifest.json").write_text(json.dumps(manifest))
+
+    with pytest.raises(ValueError, match="Refusing to load snapshot"):
+        load_snapshot(database_url, bad_dir)
+
+    assert await PoiSnapshotRepository(loaded).load_manifest() == before
+
+
+async def test_empty_snapshot_is_refused(  # type: ignore[no-untyped-def]
+    loaded, database_url: str, tmp_path: Path, snapshot_dir: Path
+) -> None:
+    before = await PoiSnapshotRepository(loaded).load_manifest()
+    empty_dir = tmp_path / "empty"
+    empty_dir.mkdir()
+    with gzip.open(empty_dir / "poi-snapshot.ndjson.gz", "wt", encoding="utf-8"):
+        pass
+    manifest = json.loads((snapshot_dir / "poi-snapshot.manifest.json").read_text())
+    manifest["row_count"] = 0
+    (empty_dir / "poi-snapshot.manifest.json").write_text(json.dumps(manifest))
+
+    with pytest.raises(ValueError, match="Refusing to load snapshot"):
+        load_snapshot(database_url, empty_dir)
+
+    assert await PoiSnapshotRepository(loaded).load_manifest() == before

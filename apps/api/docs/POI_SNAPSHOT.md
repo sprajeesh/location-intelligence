@@ -96,7 +96,9 @@ snapshot in place. The lock is held only for the renames.
 
 The API reads the manifest at startup. **Restart the API after a load** for the new
 snapshot to take effect. On startup it logs `poi_snapshot.loaded` (source,
-timestamp, row count) or `poi_snapshot.unavailable`.
+timestamp, row count). If there is no manifest row it logs
+`poi_snapshot.not_loaded`. If the manifest cannot be read it logs
+`poi_snapshot.unavailable`. In both failure cases every category uses Overpass.
 
 Migration 0009 must be applied first (`alembic upgrade head`).
 

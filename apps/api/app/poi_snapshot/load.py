@@ -79,6 +79,15 @@ def load_snapshot(database_url: str, snapshot_dir: str | Path) -> LoadResult:
                     )
                     row_count += 1
 
+            # Refuse an empty or inconsistent file before anything is swapped. An
+            # empty snapshot would mark every category as covered and return no
+            # facilities, with no Overpass fallback.
+            if row_count == 0 or row_count != manifest["row_count"]:
+                raise ValueError(
+                    f"Refusing to load snapshot: read {row_count} rows, "
+                    f"manifest says {manifest['row_count']}"
+                )
+
             cur.execute("DROP TABLE IF EXISTS osm_poi_next")
             # LIKE copies columns and NOT NULL only. CHECK constraints are declared
             # here explicitly (as in migration 0009). Copying them from osm_poi would

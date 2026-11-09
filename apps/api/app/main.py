@@ -199,19 +199,24 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
                 "POI snapshot manifest unreadable; using Overpass for all categories",
                 extra={"event": "poi_snapshot.unavailable", **exception_fields(exc)},
             )
-            manifest = None
-        if manifest is not None:
-            snapshot_pairs = manifest.tag_pairs
-            logger.info(
-                "POI snapshot loaded",
-                extra={
-                    "event": "poi_snapshot.loaded",
-                    "source": manifest.source_name,
-                    "source_timestamp": manifest.source_timestamp.isoformat(),
-                    "built_at": manifest.built_at.isoformat(),
-                    "row_count": manifest.row_count,
-                },
-            )
+        else:
+            if manifest is None:
+                logger.warning(
+                    "No POI snapshot loaded; using Overpass for all categories",
+                    extra={"event": "poi_snapshot.not_loaded"},
+                )
+            else:
+                snapshot_pairs = manifest.tag_pairs
+                logger.info(
+                    "POI snapshot loaded",
+                    extra={
+                        "event": "poi_snapshot.loaded",
+                        "source": manifest.source_name,
+                        "source_timestamp": manifest.source_timestamp.isoformat(),
+                        "built_at": manifest.built_at.isoformat(),
+                        "row_count": manifest.row_count,
+                    },
+                )
     app.state.facilities_svc = FacilitiesService(
         overpass,
         cache,

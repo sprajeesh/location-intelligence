@@ -53,6 +53,11 @@ prefix, e.g. `event:overpass.*`.
 | `overpass.retry`                  | WARNING | Overpass client, before each retry              |
 | `overpass.batch_failed`           | ERROR   | facilities service, after retries are exhausted |
 | `overpass.unmatched_element`      | WARNING | Overpass client                                 |
+| `poi_snapshot.loaded`             | INFO    | startup, manifest read                          |
+| `poi_snapshot.not_loaded`         | WARNING | startup, no manifest row (all categories use Overpass) |
+| `poi_snapshot.unavailable`        | WARNING | startup, manifest could not be read (all categories use Overpass) |
+| `poi_snapshot.partial_coverage`   | WARNING | startup, categories the snapshot does not cover |
+| `poi_snapshot.query_failed`       | ERROR   | facilities service, a snapshot query failed     |
 | `osrm.route_unavailable`          | WARNING | OSRM client, route call                         |
 | `osrm.route_failed`               | WARNING | OSRM client, route call                         |
 | `osrm.breaker_open`               | WARNING | OSRM client, route call                         |

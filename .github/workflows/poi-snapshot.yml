@@ -51,8 +51,16 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           TAG="poi-snapshot-$(date -u +%Y-%m-%d)"
-          gh release create "$TAG" \
-            "$RUNNER_TEMP/poi-snapshot/poi-snapshot.ndjson.gz" \
-            "$RUNNER_TEMP/poi-snapshot/poi-snapshot.manifest.json" \
-            --title "POI snapshot $TAG" \
-            --notes "OSM facility POIs for New Zealand (Geofabrik extract). Data (c) OpenStreetMap contributors, ODbL. See apps/api/docs/POI_SNAPSHOT.md."
+          FILES=(
+            "$RUNNER_TEMP/poi-snapshot/poi-snapshot.ndjson.gz"
+            "$RUNNER_TEMP/poi-snapshot/poi-snapshot.manifest.json"
+          )
+          # A second run on the same UTC day replaces the assets instead of failing.
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "${FILES[@]}" --clobber
+          else
+            gh release create "$TAG" "${FILES[@]}" \
+              --target "$GITHUB_SHA" \
+              --title "POI snapshot $TAG" \
+              --notes "OSM facility POIs for New Zealand (Geofabrik extract). Data (c) OpenStreetMap contributors, ODbL. See apps/api/docs/POI_SNAPSHOT.md."
+          fi
