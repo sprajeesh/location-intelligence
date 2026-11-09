@@ -35,6 +35,10 @@ class Settings(BaseSettings):
     db_statement_timeout_ms: int = Field(default=5000, gt=0)
     overpass_url: str = "https://overpass-api.de/api/interpreter"
     overpass_max_concurrency: int = 2
+    # Serve facility categories from the local OSM POI snapshot (osm_poi, see
+    # docs/POI_SNAPSHOT.md) when it covers them. False forces every category to
+    # Overpass, e.g. as a kill switch if the snapshot is suspected to be wrong.
+    poi_snapshot_enabled: bool = True
     # Driving routes and DistanceService's facility-distance scoring both use
     # this instance. Walking/cycling routes use their own OSRM instances
     # (separate self-hosted profile extracts -- see docker-compose.yml)

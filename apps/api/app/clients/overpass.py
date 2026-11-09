@@ -56,6 +56,49 @@ def _extract_details(tags: dict[str, str]) -> dict[str, str] | None:
     return details or None
 
 
+# Tags that supply the display name, in fallback order (see _parse_merged_elements).
+NAME_TAG_KEYS: tuple[str, ...] = ("name", "name:en", "ref")
+
+
+def tags_to_keep(tag_pairs: list[tuple[str, str]]) -> set[str]:
+    """Tag keys an element needs in order to be categorised and rendered.
+
+    Used by the POI snapshot extractor so that a stored element parses exactly
+    like the Overpass element it came from: the matched keys, the name keys and
+    the allow-listed detail keys. Everything else is dropped.
+    """
+    keys = {key for key, _value in tag_pairs}
+    keys.update(NAME_TAG_KEYS)
+    for tag_names in _DETAIL_TAGS.values():
+        keys.update(tag_names)
+    return keys
+
+
+def build_tag_to_category(
+    specs: list["CategorySpec"],
+) -> dict[tuple[str, str], list[str]]:
+    """Map each (key, value) tag pair to the categories that request it."""
+    tag_to_category: dict[tuple[str, str], list[str]] = {}
+    for category, tags, _radius_m in specs:
+        for pair in tags:
+            categories = tag_to_category.setdefault(pair, [])
+            if category not in categories:
+                categories.append(category)
+    return tag_to_category
+
+
+def parse_category_elements(
+    elements: list[dict], specs: list["CategorySpec"]
+) -> dict[str, list[dict]]:
+    """Parse raw elements (Overpass shape) into {category: [facility_dict, ...]}.
+
+    Public entry point shared by the Overpass client and the POI snapshot
+    repository, so both sources produce identical facility dicts.
+    """
+    parsed = _parse_merged_elements(elements, build_tag_to_category(specs))
+    return {category: parsed.get(category, []) for category, _tags, _radius_m in specs}
+
+
 def _build_merged_query(specs: list[CategorySpec], lat: float, lon: float) -> str:
     """Build a single OverpassQL query covering multiple categories.
 
@@ -152,7 +195,7 @@ def _parse_merged_elements(
             )
             continue
 
-        base_name = tags.get("name") or tags.get("name:en") or tags.get("ref")
+        base_name = next((tags[k] for k in NAME_TAG_KEYS if tags.get(k)), None)
         details = _extract_details(tags)
 
         for category in categories:
@@ -212,12 +255,7 @@ class OverpassClient:
         if not specs:
             return {}
 
-        tag_to_category: dict[tuple[str, str], list[str]] = {}
-        for category, tags, _radius_m in specs:
-            for pair in tags:
-                categories = tag_to_category.setdefault(pair, [])
-                if category not in categories:
-                    categories.append(category)
+        tag_to_category = build_tag_to_category(specs)
 
         query = _build_merged_query(specs, lat, lon)
         label = ",".join(category for category, _tags, _radius_m in specs)

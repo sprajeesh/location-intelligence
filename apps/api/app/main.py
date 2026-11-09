@@ -34,7 +34,7 @@ from app.clients.wikidata import WikidataClient
 from app.config.scoring_config_loader import load_scoring_config
 from app.config.settings import get_settings
 from app.config.version import get_version
-from app.logging_config import configure_logging
+from app.logging_config import configure_logging, exception_fields
 from app.middleware.request_context import RequestContextMiddleware
 from app.repositories.cache import CacheRepository
 from app.repositories.db.address_repository import AddressRepository
@@ -45,6 +45,7 @@ from app.repositories.db.connection import (
 )
 from app.repositories.db.facility_config_repository import FacilityConfigRepository
 from app.repositories.db.map_correction_repository import MapCorrectionRepository
+from app.repositories.db.poi_snapshot_repository import PoiSnapshotRepository
 from app.repositories.report_jobs import ReportJobStore
 from app.services.distance import DistanceService
 from app.services.facilities import FacilitiesService
@@ -185,7 +186,55 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     # Wire up services
     app.state.geocoding_svc = GeocodingService(AddressRepository(session_factory), cache)
-    app.state.facilities_svc = FacilitiesService(overpass, cache, scoring_config)
+    # Local OSM POI snapshot (docs/POI_SNAPSHOT.md). Read once at startup, like the
+    # scoring config: a rebuild needs a restart to take effect. Any failure here
+    # leaves snapshot_pairs empty, so every category keeps using Overpass.
+    poi_snapshot_repo = PoiSnapshotRepository(session_factory)
+    snapshot_pairs: frozenset[tuple[str, str]] = frozenset()
+    if settings.poi_snapshot_enabled:
+        try:
+            manifest = await poi_snapshot_repo.load_manifest()
+        except Exception as exc:
+            logger.warning(
+                "POI snapshot manifest unreadable; using Overpass for all categories",
+                extra={"event": "poi_snapshot.unavailable", **exception_fields(exc)},
+            )
+        else:
+            if manifest is None:
+                logger.warning(
+                    "No POI snapshot loaded; using Overpass for all categories",
+                    extra={"event": "poi_snapshot.not_loaded"},
+                )
+            else:
+                snapshot_pairs = manifest.tag_pairs
+                logger.info(
+                    "POI snapshot loaded",
+                    extra={
+                        "event": "poi_snapshot.loaded",
+                        "source": manifest.source_name,
+                        "source_timestamp": manifest.source_timestamp.isoformat(),
+                        "built_at": manifest.built_at.isoformat(),
+                        "row_count": manifest.row_count,
+                    },
+                )
+    app.state.facilities_svc = FacilitiesService(
+        overpass,
+        cache,
+        scoring_config,
+        poi_snapshot=poi_snapshot_repo,
+        snapshot_pairs=snapshot_pairs,
+    )
+    if snapshot_pairs:
+        uncovered = sorted(
+            cat
+            for cat in scoring_config.category_tags
+            if not app.state.facilities_svc.is_snapshot_covered(cat)
+        )
+        if uncovered:
+            logger.warning(
+                "Categories not covered by the POI snapshot; using Overpass for them",
+                extra={"event": "poi_snapshot.partial_coverage", "categories": uncovered},
+            )
     app.state.distance_svc = DistanceService(
         osrm,
         cache,

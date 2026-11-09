@@ -92,6 +92,9 @@ DB_POOL_MAX_OVERFLOW=5
 # Server-side statement_timeout per DB query, in ms. Timed-out address searches return 504.
 DB_STATEMENT_TIMEOUT_MS=5000
 OVERPASS_URL=https://overpass-api.de/api/interpreter
+# Facility categories come from the local OSM POI snapshot (PostGIS osm_poi) when loaded.
+# false = every category uses Overpass. See apps/api/docs/POI_SNAPSHOT.md.
+POI_SNAPSHOT_ENABLED=true
 OSRM_URL=http://localhost:5000
 OSRM_FOOT_URL=http://localhost:5001
 OSRM_BIKE_URL=http://localhost:5002
@@ -119,6 +122,7 @@ NEXT_PUBLIC_API_URL=http://localhost:8000
 
 - **Versions are set by release-please, not by hand.** The API version comes from `apps/api/pyproject.toml` (read by `app/config/version.py`). The web version is in `apps/web/package.json`. Release PRs bump both (`.release-please-manifest.json`), so leave them alone in feature PRs.
 - **Formatting is partly enforced.** CI checks `ruff format --check` for the API, but only `eslint .` for the web. Run `uv run ruff format` before pushing API changes.
+- **Facility data comes from a local OSM snapshot.** Categories are read from PostGIS `osm_poi`, built monthly by `poi-snapshot.yml` and loaded by hand with `python -m app.poi_snapshot load` (then restart the API). Overpass is the fallback. Details: `apps/api/docs/POI_SNAPSHOT.md`. `pyosmium` is a dev dependency and must stay out of the runtime image.
 - **Two web builds exist.** CI's build job runs `build:web`. The Cloudflare deploy runs `build:cf` (OpenNext). A passing `next build` doesn't prove the Cloudflare build works.
 
 ---

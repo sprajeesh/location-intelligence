@@ -193,6 +193,39 @@ flow are not built yet.
 
 ---
 
+## `osm_poi`
+
+Local copy of the OpenStreetMap facility elements (migration 0009). Rebuilt
+wholesale by `python -m app.poi_snapshot load`, never edited row by row. See
+[`POI_SNAPSHOT.md`](POI_SNAPSHOT.md).
+
+| Column     | Type                   | Nullable | Notes |
+| ---------- | ---------------------- | -------- | ----- |
+| `osm_type` | `TEXT`                 | no       | `node`, `way` or `relation` (CHECK constraint `ck_osm_poi_type`) |
+| `osm_id`   | `BIGINT`               | no       | OSM element id. Unique together with `osm_type` (`ux_osm_poi_element`) |
+| `extent`   | `GEOGRAPHY(MultiPoint, 4326)` | no | Every outline point of the element (a node is one point). Radius matching uses it, as Overpass `around:` does. GiST index `ix_osm_poi_extent` |
+| `tags`     | `JSONB`                | no       | The matched keys, name keys and detail keys only. GIN index `ix_osm_poi_tags` (`jsonb_path_ops`) |
+
+There is no primary key or id column. The loader creates each table fresh, so
+the unique index on `(osm_type, osm_id)` is what enforces uniqueness. The
+reported position is the bounding-box centre of `extent`, as Overpass
+`out center` returns it.
+
+## `osm_poi_snapshot`
+
+Single-row manifest for `osm_poi` (migration 0009). Enforced by
+`CHECK (id = 1)`. No row means no snapshot is loaded, and every facility category
+falls back to Overpass.
+
+| Column             | Type          | Nullable | Notes |
+| ------------------ | ------------- | -------- | ----- |
+| `id`               | `SMALLINT`    | no       | Primary key, always `1` |
+| `built_at`         | `TIMESTAMPTZ` | no       | When the snapshot files were built |
+| `source_name`      | `TEXT`        | no       | For example `geofabrik-new-zealand` |
+| `source_timestamp` | `TIMESTAMPTZ` | no       | OSM replication time of the extract |
+| `row_count`        | `BIGINT`      | no       | Rows in `osm_poi` at load time |
+| `tag_pairs`        | `JSONB`       | no       | `[[key, value], ...]` the snapshot covers. A category is served from the snapshot only if all its pairs are listed |
+
 ## Relationships
 
 ```
