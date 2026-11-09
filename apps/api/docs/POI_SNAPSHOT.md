@@ -187,8 +187,9 @@ Performance with the snapshot loaded, for all 14 categories in one fetch (3 km):
   category definitions include it. The API logs `poi_snapshot.partial_coverage`
   with the uncovered categories at startup.
 - **Boundary differences** described above (about 0.3% at the edge of the radius).
-- **Not yet run in CI:** the workflow is committed but has not been dispatched.
-  Its first run should be started by hand and checked.
+- **First CI run:** `poi-snapshot.yml` was dispatched by hand on 2026-11-09 (run
+  42593042736, 4m28s, success), publishing release `poi-snapshot-2026-11-09`. That
+  release has not been loaded on the server yet. Use the load steps above.
 - **Licensing:** OSM data is ODbL. Publishing the snapshot as a GitHub Release
   asset distributes a derived database publicly, so the ODbL share-alike and
   attribution terms apply to that release. The release notes carry the attribution.
