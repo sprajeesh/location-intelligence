@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<osm version="0.6" generator="ci-poi-fixture">
+  <bounds minlat="-36.86" minlon="174.75" maxlat="-36.84" maxlon="174.78"/>
+  <!-- Point POIs -->
+  <node id="1001" lat="-36.850000" lon="174.760000" version="1">
+    <tag k="amenity" v="school"/>
+    <tag k="name" v="Fixture School"/>
+    <tag k="phone" v="+64 9 000 0001"/>
+  </node>
+  <node id="1002" lat="-36.851000" lon="174.761000" version="1">
+    <tag k="highway" v="bus_stop"/>
+    <tag k="name" v="Fixture Bus Stop"/>
+  </node>
+  <node id="1003" lat="-36.852000" lon="174.762000" version="1">
+    <tag k="highway" v="crossing"/>
+  </node>
+  <!-- Closed way (area) hospital -->
+  <node id="1101" lat="-36.8400" lon="174.7600" version="1"/>
+  <node id="1102" lat="-36.8400" lon="174.7610" version="1"/>
+  <node id="1103" lat="-36.8410" lon="174.7610" version="1"/>
+  <node id="1104" lat="-36.8410" lon="174.7600" version="1"/>
+  <way id="2001" version="1">
+    <nd ref="1101"/><nd ref="1102"/><nd ref="1103"/><nd ref="1104"/><nd ref="1101"/>
+    <tag k="amenity" v="hospital"/>
+    <tag k="name" v="Fixture Hospital Way"/>
+  </way>
+  <!-- Elongated school footprint: its bounding-box centre is ~1km from the nearest
+       node, so only a node-based match finds it near the west end. -->
+  <node id="1301" lat="-36.850000" lon="174.750000" version="1"/>
+  <node id="1302" lat="-36.850000" lon="174.760000" version="1"/>
+  <node id="1303" lat="-36.850000" lon="174.770000" version="1"/>
+  <way id="2051" version="1">
+    <nd ref="1301"/><nd ref="1302"/><nd ref="1303"/>
+    <tag k="amenity" v="school"/>
+    <tag k="name" v="Fixture Long School"/>
+  </way>
+  <!-- Multipolygon relation hospital -->
+  <node id="1201" lat="-36.8500" lon="174.7700" version="1"/>
+  <node id="1202" lat="-36.8500" lon="174.7710" version="1"/>
+  <node id="1203" lat="-36.8510" lon="174.7710" version="1"/>
+  <node id="1204" lat="-36.8510" lon="174.7700" version="1"/>
+  <way id="2101" version="1">
+    <nd ref="1201"/><nd ref="1202"/><nd ref="1203"/><nd ref="1204"/><nd ref="1201"/>
+  </way>
+  <relation id="3001" version="1">
+    <member type="way" ref="2101" role="outer"/>
+    <tag k="type" v="multipolygon"/>
+    <tag k="amenity" v="hospital"/>
+    <tag k="name" v="Fixture Hospital Relation"/>
+  </relation>
+  <!-- Site relation (not a multipolygon): a school whose outline is its member way.
+       Overpass returns it through the member; the extractor must too. -->
+  <relation id="3002" version="1">
+    <member type="way" ref="2051" role=""/>
+    <tag k="type" v="site"/>
+    <tag k="site" v="school"/>
+    <tag k="amenity" v="school"/>
+    <tag k="name" v="Fixture Site School"/>
+  </relation>
+  <!-- Non-matching road: must be ignored -->
+  <way id="2201" version="1">
+    <nd ref="1101"/><nd ref="1201"/>
+    <tag k="highway" v="residential"/>
+  </way>
+</osm>
