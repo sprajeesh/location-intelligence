@@ -129,6 +129,7 @@ def test_load_path_does_not_need_pyosmium() -> None:
     code = (
         "import sys; sys.modules['osmium'] = None; "
         "import app.poi_snapshot.__main__, app.poi_snapshot.load; "
+        "import app.repositories.db.poi_snapshot_repository; "
         "print('ok')"
     )
     result = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True)
