@@ -49,6 +49,41 @@ docker compose ps  # All should show "healthy"
 - PostGIS: `localhost:5432` (database: `gis`)
 - OSRM: `http://localhost:5000` (driving), `:5001` (walking), `:5002` (cycling) — see [AGENTS.md](AGENTS.md#environment-variables)
 
+### POI Snapshot (facility data)
+
+Facility lookups (schools, bus stops, parks, and so on) read from a local copy of
+the OpenStreetMap data in PostGIS. Without it, the API still works, but every
+lookup goes to the public Overpass API, which is slower and less reliable. Do
+this once after setup, and again after each monthly refresh. The full procedure
+is in [apps/api/README.md](apps/api/README.md#poi-snapshot).
+
+```bash
+cd apps/api
+
+# 1. Create the osm_poi tables (migration 0009; run this before loading)
+uv run alembic upgrade head
+
+# 2a. Download the latest published snapshot (needs the GitHub CLI, gh)
+#     No release has been published yet, so this finds nothing today. Use 2b.
+mkdir -p ~/poi-snapshot
+gh release list --repo sprajeesh/location-intelligence --limit 5 | grep poi-snapshot
+gh release download <tag-from-above> --repo sprajeesh/location-intelligence \
+  -p 'poi-snapshot.*' -D ~/poi-snapshot
+
+# 2b. Or build it from the New Zealand OSM extract (~400 MB download,
+#     about 3 minutes, about 2.2 GB RAM)
+curl -L -o ~/poi-snapshot/new-zealand-latest.osm.pbf \
+  https://download.geofabrik.de/australia-oceania/new-zealand-latest.osm.pbf
+uv run python -m app.poi_snapshot build \
+  --pbf ~/poi-snapshot/new-zealand-latest.osm.pbf --out-dir ~/poi-snapshot
+
+# 3. Load it into PostGIS (uses DATABASE_URL from apps/api/.env)
+uv run python -m app.poi_snapshot load --dir ~/poi-snapshot
+
+# 4. Check it, then restart the API so it picks up the snapshot
+psql "$DATABASE_URL" -c "SELECT source_name, row_count, source_timestamp FROM osm_poi_snapshot;"
+```
+
 ### Backend (FastAPI)
 
 See [apps/api/README.md](apps/api/README.md#quick-start)

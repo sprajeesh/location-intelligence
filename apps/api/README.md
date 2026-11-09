@@ -22,6 +22,7 @@ Handles geocoding (LINZ PostGIS), facility lookups (local OSM POI snapshot in Po
 **Implementation Details**
 - [Key Components](#key-components) — Settings, main app, repositories, clients, services, and endpoints
 - [Database Migrations](#database-migrations) — Alembic migrations
+- [POI Snapshot](#poi-snapshot) — Loading facility data on a fresh setup
 - [PostGIS Address Data](#postgis-address-data) — How LINZ data loads and gets indexed
 
 **Quality & Deployment**
@@ -54,6 +55,8 @@ cp ../.env .env
 # Run database migrations (creates + seeds facility_types/category_weights —
 # the API fails to start without these tables, see "Database Migrations" below)
 uv run alembic upgrade head
+
+# Optional, recommended: load the facility snapshot (see "POI Snapshot" below)
 
 # Run server
 uv run uvicorn app.main:app --reload
@@ -470,6 +473,70 @@ before starting the server on a fresh database.
 See [`docs/DATA_MODEL.md`](docs/DATA_MODEL.md) for the full table schemas.
 
 ---
+
+## POI Snapshot
+
+Facility categories (schools, bus stops, parks, hospitals, and others) are read
+from `osm_poi` in PostGIS, built from the OpenStreetMap New Zealand extract. A
+category is served from the snapshot only if the snapshot covers all of its tags.
+Anything else falls back to Overpass. See [`docs/POI_SNAPSHOT.md`](docs/POI_SNAPSHOT.md)
+for the design, accuracy and rollback.
+
+### Setting up from scratch
+
+Do this after the database is up (`docker compose up -d` from the repo root) and
+the dependencies are installed (`uv sync`). It is optional: without the snapshot,
+facility lookups use Overpass, as they did before.
+
+```bash
+cd apps/api
+
+# 1. Create the osm_poi and osm_poi_snapshot tables (migration 0009).
+#    Run this before loading. The loader does not create tables.
+uv run alembic upgrade head
+
+# 2. Get the snapshot files. Use 2a or 2b.
+mkdir -p ~/poi-snapshot
+
+# 2a. Download the latest published snapshot (needs the GitHub CLI, gh).
+#     List the releases, then download the two assets of the one you want.
+#     No release has been published yet, so this finds nothing today. Use 2b
+#     until the first monthly build publishes one.
+gh release list --repo sprajeesh/location-intelligence --limit 5 | grep poi-snapshot
+gh release download <tag-from-above> --repo sprajeesh/location-intelligence \
+  -p 'poi-snapshot.*' -D ~/poi-snapshot
+
+# 2b. Or build it yourself from the Geofabrik extract. This needs about 400 MB of
+#     download, about 3 minutes, and about 2.2 GB of RAM. The PBF file is only an
+#     input, so keep it outside the repo.
+curl -L -o ~/poi-snapshot/new-zealand-latest.osm.pbf \
+  https://download.geofabrik.de/australia-oceania/new-zealand-latest.osm.pbf
+uv run python -m app.poi_snapshot build \
+  --pbf ~/poi-snapshot/new-zealand-latest.osm.pbf --out-dir ~/poi-snapshot
+
+# 3. Load the snapshot. This replaces the contents of osm_poi in one transaction.
+#    It uses DATABASE_URL from apps/api/.env, or pass --database-url.
+uv run python -m app.poi_snapshot load --dir ~/poi-snapshot
+
+# 4. Check the manifest.
+psql "$DATABASE_URL" -c "SELECT source_name, row_count, source_timestamp FROM osm_poi_snapshot;"
+```
+
+**Restart the API** after loading. The manifest is read once at startup. The
+startup log should contain `poi_snapshot.loaded`. If it contains
+`poi_snapshot.unavailable`, the manifest could not be read, and every category is
+using Overpass.
+
+### Refreshing the snapshot
+
+The build runs monthly in GitHub Actions (`.github/workflows/poi-snapshot.yml`) and
+publishes a new release. To refresh, repeat steps 2a, 3 and 4, then restart the API.
+Loading the same snapshot twice is safe.
+
+### Turning it off
+
+Set `POI_SNAPSHOT_ENABLED=false` in `apps/api/.env` and restart the API. Every
+category then uses Overpass, and the snapshot tables are left as they are.
 
 ## PostGIS Address Data
 
