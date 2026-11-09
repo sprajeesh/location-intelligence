@@ -1,0 +1,58 @@
+name: POI snapshot
+
+# Builds the local OSM POI snapshot used by facility search (see
+# apps/api/docs/POI_SNAPSHOT.md) and publishes it as a GitHub Release asset.
+# It does NOT touch production: loading the release into PostGIS is a manual
+# step on the server (`python -m app.poi_snapshot load`).
+
+on:
+  schedule:
+    - cron: "0 3 1 * *" # monthly, 1st day, 03:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build and publish POI snapshot
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@2d1c1198e79c30cca5c3957b1e3b65ce95b5356e
+        with:
+          persist-credentials: false
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v8.1.0
+        with:
+          enable-cache: true
+
+      - name: Install Python dependencies
+        run: cd apps/api && uv sync
+
+      - name: Download New Zealand OSM extract
+        env:
+          PBF_URL: https://download.geofabrik.de/australia-oceania/new-zealand-latest.osm.pbf
+        run: |
+          mkdir -p "$RUNNER_TEMP/osm" "$RUNNER_TEMP/poi-snapshot"
+          curl -fL --retry 3 -o "$RUNNER_TEMP/osm/new-zealand-latest.osm.pbf" "$PBF_URL"
+
+      - name: Build snapshot
+        run: |
+          cd apps/api
+          uv run python -m app.poi_snapshot build \
+            --pbf "$RUNNER_TEMP/osm/new-zealand-latest.osm.pbf" \
+            --out-dir "$RUNNER_TEMP/poi-snapshot"
+
+      - name: Publish release asset
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="poi-snapshot-$(date -u +%Y-%m-%d)"
+          gh release create "$TAG" \
+            "$RUNNER_TEMP/poi-snapshot/poi-snapshot.ndjson.gz" \
+            "$RUNNER_TEMP/poi-snapshot/poi-snapshot.manifest.json" \
+            --title "POI snapshot $TAG" \
+            --notes "OSM facility POIs for New Zealand (Geofabrik extract). Data (c) OpenStreetMap contributors, ODbL. See apps/api/docs/POI_SNAPSHOT.md."
